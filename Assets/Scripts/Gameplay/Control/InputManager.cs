@@ -51,13 +51,14 @@ namespace ZWebGLFrameWork.Gameplay
         private bool _longPressTriggered;
         private bool _tapBlocked;
 
-        private CameraController _cameraController;
+        [SerializeField] private CameraController _cameraController;
         private Camera _mainCamera;
 
         private void Start()
         {
             _mainCamera = Camera.main;
-            _cameraController = FindObjectOfType<CameraController>();
+            if (_cameraController == null)
+                _cameraController = FindObjectOfType<CameraController>();
         }
 
         private void Update()

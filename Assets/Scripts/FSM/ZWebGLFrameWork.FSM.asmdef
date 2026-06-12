@@ -1,0 +1,18 @@
+{
+    "name": "ZWebGLFrameWork.FSM",
+    "rootNamespace": "ZWebGLFrameWork.FSM",
+    "references": [
+        "ZWebGLFrameWork.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

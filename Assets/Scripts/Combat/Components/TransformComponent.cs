@@ -1,5 +1,5 @@
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {

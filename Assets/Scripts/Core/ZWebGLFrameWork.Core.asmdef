@@ -1,0 +1,16 @@
+{
+    "name": "ZWebGLFrameWork.Core",
+    "rootNamespace": "ZWebGLFrameWork.Core",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

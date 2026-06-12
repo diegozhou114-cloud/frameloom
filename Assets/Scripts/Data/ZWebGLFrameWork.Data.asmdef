@@ -1,0 +1,19 @@
+{
+    "name": "ZWebGLFrameWork.Data",
+    "rootNamespace": "ZWebGLFrameWork.Data",
+    "references": [
+        "ZWebGLFrameWork.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll",
+        "UnityEngine.JSONSerializeModule.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

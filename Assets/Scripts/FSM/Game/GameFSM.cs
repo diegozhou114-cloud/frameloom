@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
-using ZWebGLFrameWork.UI;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -15,9 +14,6 @@ namespace ZWebGLFrameWork.FSM
         public const string EventStateChanged = "GameStateChanged";
 
         private FSM<GameState> _fsm;
-
-        /// <summary>底层 FSM 引擎</summary>
-        public FSM<GameState> FSM => _fsm;
 
         /// <summary>当前游戏状态</summary>
         public GameState CurrentState => _fsm.CurrentStateId;
@@ -172,23 +168,5 @@ namespace ZWebGLFrameWork.FSM
             _fsm?.Clear();
             base.OnDestroy();
         }
-    }
-
-    // ==================== 辅助类型 ====================
-
-    /// <summary>状态变更事件数据</summary>
-    public struct GameStateChangedEvent
-    {
-        public GameState OldState;
-        public GameState NewState;
-        public object Data;
-        public override string ToString() => $"{OldState} → {NewState}";
-    }
-
-    /// <summary>Loading 状态携带的目标状态信息</summary>
-    public struct LoadingPayload
-    {
-        public GameState TargetState;
-        public object TargetData;
     }
 }

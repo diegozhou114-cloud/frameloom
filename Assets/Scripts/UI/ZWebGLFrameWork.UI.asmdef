@@ -1,0 +1,21 @@
+{
+    "name": "ZWebGLFrameWork.UI",
+    "rootNamespace": "ZWebGLFrameWork.UI",
+    "references": [
+        "ZWebGLFrameWork.Core",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll",
+        "UnityEngine.UIModule.dll",
+        "UnityEngine.UI.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

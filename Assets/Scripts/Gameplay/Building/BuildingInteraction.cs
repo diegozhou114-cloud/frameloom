@@ -9,7 +9,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 建筑交互 — 点击建筑弹出信息面板（升级/移动/取消），
     /// 升级扣资源+启动计时器，编辑模式支持移动建筑。
     /// </summary>
-    public class BuildingInteraction : Singleton<BuildingInteraction>
+    public class BuildingInteraction : MonoBehaviour
     {
         /// <summary>EventBus：建筑升级开始</summary>
         public const string EventUpgradeStarted = "UpgradeStarted";
@@ -19,16 +19,16 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>是否在编辑模式</summary>
         public bool IsEditMode { get; private set; }
 
-        private SelectionManager _selection;
-        private BuildingPlacer _placer;
+        [SerializeField] private SelectionManager _selection;
+        [SerializeField] private BuildingPlacer _placer;
 
         private void Start()
         {
-            _selection = SelectionManager.Instance;
-            _placer = BuildingPlacer.Instance;
+            if (_selection == null) _selection = FindObjectOfType<SelectionManager>();
+            if (_placer == null) _placer = FindObjectOfType<BuildingPlacer>();
 
             EventBus.Subscribe<SelectionEvent>(SelectionManager.EventSelectionChanged, OnSelectionChanged);
-            EventBus.Subscribe(SelectionManager.EventSelectionCleared, _ => OnDeselected());
+            EventBus.Subscribe(SelectionManager.EventSelectionCleared, OnDeselected);
             EventBus.Subscribe<GestureData>(InputManager.EventGesture, OnGesture);
         }
 
@@ -41,7 +41,7 @@ namespace ZWebGLFrameWork.Gameplay
         private void OnDestroy()
         {
             EventBus.Unsubscribe<SelectionEvent>(SelectionManager.EventSelectionChanged, OnSelectionChanged);
-            EventBus.Unsubscribe(SelectionManager.EventSelectionCleared, _ => OnDeselected());
+            EventBus.Unsubscribe(SelectionManager.EventSelectionCleared, OnDeselected);
             EventBus.Unsubscribe<GestureData>(InputManager.EventGesture, OnGesture);
         }
 

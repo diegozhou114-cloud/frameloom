@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -68,12 +69,29 @@ namespace ZWebGLFrameWork.Data
 
             var saveData = new GameSaveData
             {
-                PlayerSnapshot = DataManager.Instance.Player.GetSnapshot(),
-                VillageSnapshot = DataManager.Instance.Village.GetSnapshot(),
+                PlayerEntries = ToSerializable(DataManager.Instance.Player.GetSnapshot()),
+                VillageEntries = ToSerializable(DataManager.Instance.Village.GetSnapshot()),
                 SaveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
             return Save(saveData, targetSlot);
+        }
+
+        private static List<SerializableKVP> ToSerializable(Dictionary<string, object> dict)
+        {
+            var list = new List<SerializableKVP>();
+            foreach (var kv in dict)
+                list.Add(new SerializableKVP { Key = kv.Key, Value = kv.Value?.ToString() ?? "" });
+            return list;
+        }
+
+        private static Dictionary<string, object> FromSerializable(List<SerializableKVP> list)
+        {
+            var dict = new Dictionary<string, object>();
+            if (list != null)
+                foreach (var kv in list)
+                    dict[kv.Key] = kv.Value;
+            return dict;
         }
 
         // ==================== 加载 ====================
@@ -108,8 +126,8 @@ namespace ZWebGLFrameWork.Data
             var saveData = Load<GameSaveData>(slot);
             if (saveData == null) return false;
 
-            DataManager.Instance.Player.RestoreSnapshot(saveData.PlayerSnapshot);
-            DataManager.Instance.Village.RestoreSnapshot(saveData.VillageSnapshot);
+            DataManager.Instance.Player.RestoreSnapshot(FromSerializable(saveData.PlayerEntries));
+            DataManager.Instance.Village.RestoreSnapshot(FromSerializable(saveData.VillageEntries));
 
             Debug.Log($"[SaveManager] 加载成功: slot={slot ?? CurrentSlot}, time={saveData.SaveTime}");
             return true;
@@ -150,8 +168,15 @@ namespace ZWebGLFrameWork.Data
     [Serializable]
     public class GameSaveData
     {
-        public System.Collections.Generic.Dictionary<string, object> PlayerSnapshot;
-        public System.Collections.Generic.Dictionary<string, object> VillageSnapshot;
+        public List<SerializableKVP> PlayerEntries;
+        public List<SerializableKVP> VillageEntries;
         public string SaveTime;
+    }
+
+    [Serializable]
+    public class SerializableKVP
+    {
+        public string Key;
+        public string Value;
     }
 }

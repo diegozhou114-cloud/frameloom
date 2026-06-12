@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
-using ZWebGLFrameWork.Gameplay;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {
@@ -13,52 +13,56 @@ namespace ZWebGLFrameWork.Combat
     {
         public MovementSystem() { Order = 10; }
 
-        private GridManager _grid;
+        // 收集批量写回，避免遍历中修改 Pool
+        private readonly List<(Entity, MovementComponent)> _writeBack = new List<(Entity, MovementComponent)>();
 
         public override void Update()
         {
-            if (_grid == null) _grid = GridManager.Instance;
-            if (_grid == null) return;
-
             float dt = Time.deltaTime;
+            _writeBack.Clear();
 
-            foreach (var entity in World.GetEntitiesWith<TransformComponent>())
+            World.ForEachComponent<TransformComponent>((entity, ref transform) =>
             {
                 if (!World.TryGetComponent<MovementComponent>(entity, out var movement))
-                    continue;
-                if (!movement.HasPath) continue;
+                    return;
+                if (!movement.HasPath) return;
 
-                ref var transform = ref World.GetComponent<TransformComponent>(entity);
-
-                // 获取下一个路径点
                 var nextWaypoint = movement.NextWaypoint.Value;
-                Vector3 targetWorld = _grid.GridToWorld(nextWaypoint);
+                Vector3 targetWorld = GridToWorld(nextWaypoint, movement.CellSize);
 
-                // 移动
                 Vector3 direction = (targetWorld - transform.Position).normalized;
-                float step = movement.Speed * _grid.CellSize * dt;
-                transform.Position += direction * Mathf.Min(step, Vector3.Distance(transform.Position, targetWorld));
+                float step = movement.Speed * movement.CellSize * dt;
+                transform.Position += direction *
+                    Mathf.Min(step, Vector3.Distance(transform.Position, targetWorld));
 
-                // 到达当前路径点
                 if (Vector3.Distance(transform.Position, targetWorld) < 0.05f)
                 {
                     transform.Position = targetWorld;
                     transform.GridPosition = nextWaypoint;
                     movement.PathIndex++;
 
-                    // 到达终点
                     if (!movement.HasPath)
                     {
                         movement.Path = null;
                         movement.PathIndex = 0;
-
-                        // 更新 component
-                        World.AddComponent(entity, movement);
                     }
                 }
 
+                _writeBack.Add((entity, movement));
+            });
+
+            // 批量写回
+            foreach (var (entity, movement) in _writeBack)
                 World.AddComponent(entity, movement);
-            }
+        }
+
+        /// <summary>网格坐标 → 世界坐标（纯函数，不依赖 GridManager）</summary>
+        public static Vector3 GridToWorld(Vector2Int gridPos, float cellSize)
+        {
+            return new Vector3(
+                gridPos.x * cellSize + cellSize * 0.5f,
+                0f,
+                gridPos.y * cellSize + cellSize * 0.5f);
         }
     }
 }

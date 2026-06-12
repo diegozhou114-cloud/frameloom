@@ -1,0 +1,28 @@
+{
+    "name": "ZWebGLFrameWork.Editor",
+    "rootNamespace": "ZWebGLFrameWork.Editor",
+    "references": [
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.ECS",
+        "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.Network",
+        "ZWebGLFrameWork.UI",
+        "ZWebGLFrameWork.FSM",
+        "ZWebGLFrameWork.Gameplay",
+        "ZWebGLFrameWork.Combat"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll",
+        "UnityEditor.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

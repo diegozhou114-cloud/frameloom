@@ -1,124 +1,90 @@
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
-using ZWebGLFrameWork.Gameplay;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {
     /// <summary>
-    /// 单位 AI 行为 — 简单的决策树：索敌 → 寻路 → 攻击。
-    /// 运行在 ECS 系统之外，每 N 帧更新一次（降低计算压力）。
+    /// 单位 AI — 轻量编排层。
+    /// 评估目标 → 无效则索敌 → 路径规划。
+    /// 每 N 帧更新一次，降低计算压力。
     /// </summary>
     public class UnitAI
     {
-        /// <summary>AI 更新间隔（帧）</summary>
         public int UpdateInterval { get; set; } = 6;
 
         private readonly World _world;
+        private readonly TargetEvaluator _targetEvaluator;
+        private readonly TargetSelector _targetSelector;
+        private readonly PathPlanner _pathPlanner;
         private int _frameCounter;
-        private GridManager _grid;
 
-        public UnitAI(World world)
+        public UnitAI(World world, AStarPathfinding pathfinding)
         {
             _world = world;
-            _grid = GridManager.Instance;
+            _targetEvaluator = new TargetEvaluator(world);
+            _targetSelector = new TargetSelector(world);
+            _pathPlanner = new PathPlanner(world, pathfinding);
         }
 
-        /// <summary>逐帧调用，按间隔执行 AI 决策</summary>
         public void Update()
         {
             _frameCounter++;
             if (_frameCounter % UpdateInterval != 0) return;
 
-            foreach (var entity in _world.GetEntitiesWith<TransformComponent>())
+            _world.ForEachEntities<TransformComponent>(entity =>
             {
-                if (!_world.TryGetComponent<AttackComponent>(entity, out _)) continue;
-                if (!_world.TryGetComponent<HealthComponent>(entity, out var health) || !health.IsAlive) continue;
+                if (!_world.TryGetComponent<AttackComponent>(entity, out _)) return;
+                if (!_world.TryGetComponent<HealthComponent>(entity, out var health) || !health.IsAlive) return;
 
                 ProcessEntity(entity);
-            }
+            });
         }
 
         private void ProcessEntity(Entity entity)
         {
             var transform = _world.GetComponent<TransformComponent>(entity);
-            var team = _world.GetComponent<TeamComponent>(entity);
             var attack = _world.GetComponent<AttackComponent>(entity);
+            var team = _world.GetComponent<TeamComponent>(entity);
 
-            // 1. 已有目标 + 在射程内 → 不需要移动
-            if (_world.TryGetComponent<TargetComponent>(entity, out var target) && target.HasTarget)
+            // 1. 评估当前目标
+            var hasTarget = _world.TryGetComponent<TargetComponent>(entity, out var target);
+            if (hasTarget)
             {
-                if (_world.TryGetComponent<TransformComponent>(target.TargetEntity, out var targetTransform))
+                var status = _targetEvaluator.Evaluate(entity, target, attack, transform);
+                switch (status)
                 {
-                    float dist = Vector3.Distance(transform.Position, targetTransform.Position);
-                    if (dist <= attack.Range)
-                    {
-                        // 在射程内，清除移动路径
-                        if (_world.HasComponent<MovementComponent>(entity))
-                        {
-                            var mov = _world.GetComponent<MovementComponent>(entity);
-                            mov.Path = null;
-                            _world.AddComponent(entity, mov);
-                        }
+                    case TargetStatus.InRange:
+                        _pathPlanner.ClearPath(entity);
                         return;
-                    }
-                }
-                else
-                {
-                    // 目标已死亡
-                    _world.RemoveComponent<TargetComponent>(entity);
+                    case TargetStatus.OutOfRange:
+                        break; // 继续寻路
+                    case TargetStatus.NoTarget:
+                    case TargetStatus.TargetDead:
+                        _world.RemoveComponent<TargetComponent>(entity);
+                        hasTarget = false;
+                        break;
                 }
             }
 
             // 2. 索敌
-            Entity? enemy = FindBestTarget(transform, team.TeamId);
-            if (!enemy.HasValue) return;
-
-            // 3. 设置目标
-            if (!_world.HasComponent<TargetComponent>(entity))
-                _world.AddComponent(entity, TargetComponent.Create());
-            ref var t = ref _world.GetComponent<TargetComponent>(entity);
-            t.TargetEntity = enemy.Value;
-
-            // 4. 寻路
-            var enemyTransform = _world.GetComponent<TransformComponent>(enemy.Value);
-            var path = AStarPathfinding.FindPath(
-                transform.GridPosition, enemyTransform.GridPosition);
-
-            if (path.Count == 0) return;
-
-            // 5. 设置移动路径
-            if (!_world.HasComponent<MovementComponent>(entity))
-                _world.AddComponent(entity, MovementComponent.Create(3f)); // 默认速度
-
-            ref var mov = ref _world.GetComponent<MovementComponent>(entity);
-            mov.Path = path;
-            mov.PathIndex = 0;
-        }
-
-        private Entity? FindBestTarget(TransformComponent selfTransform, Team selfTeam)
-        {
-            Entity? bestTarget = null;
-            float bestScore = float.MaxValue;
-
-            foreach (var entity in _world.GetEntitiesWith<TransformComponent>())
+            if (!hasTarget)
             {
-                if (!_world.TryGetComponent<TeamComponent>(entity, out var otherTeam)) continue;
-                if (!_world.TryGetComponent<HealthComponent>(entity, out var hp) || !hp.IsAlive) continue;
-                if (!TeamComponent.IsEnemy(selfTeam, otherTeam.TeamId)) continue;
+                var enemy = _targetSelector.FindTarget(transform, team.TeamId);
+                if (!enemy.HasValue) return;
 
-                var otherTransform = _world.GetComponent<TransformComponent>(entity);
-                float dist = Vector3.Distance(selfTransform.Position, otherTransform.Position);
-
-                // 优先距离近 + 血量低
-                float score = dist - hp.CurrentHP * 0.1f;
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    bestTarget = entity;
-                }
+                _world.AddComponent(entity, TargetComponent.Create());
+                ref var t = ref _world.GetComponent<TargetComponent>(entity);
+                t.TargetEntity = enemy.Value;
             }
 
-            return bestTarget;
+            // 3. 寻路到目标（CellSize 由 Spawner 注入 MovementComponent，默认 1f）
+            target = _world.GetComponent<TargetComponent>(entity);
+            var targetTransform = _world.GetComponent<TransformComponent>(target.TargetEntity);
+            float cellSize = _world.TryGetComponent<MovementComponent>(entity, out var mov)
+                ? mov.CellSize : 1f;
+
+            _pathPlanner.PlanPath(entity, transform.GridPosition,
+                targetTransform.GridPosition, 3f, cellSize);
         }
     }
 }

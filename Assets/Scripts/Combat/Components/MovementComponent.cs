@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {
@@ -9,6 +9,9 @@ namespace ZWebGLFrameWork.Combat
     {
         /// <summary>移动速度（格/秒）</summary>
         public float Speed;
+
+        /// <summary>网格单元格边长（世界单位），由 Spawner 注入</summary>
+        public float CellSize;
 
         /// <summary>当前路径（网格坐标列表）</summary>
         public List<Vector2Int> Path;
@@ -32,11 +35,12 @@ namespace ZWebGLFrameWork.Combat
             }
         }
 
-        public static MovementComponent Create(float speed)
+        public static MovementComponent Create(float speed, float cellSize = 1f)
         {
             return new MovementComponent
             {
                 Speed = speed,
+                CellSize = cellSize,
                 Path = null,
                 PathIndex = 0,
             };

@@ -1,10 +1,11 @@
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {
     /// <summary>
-    /// 伤害系统 — 处理 DamageEvent，扣血。
+    /// 伤害系统 — 从 World 事件队列消费 DamageEvent，扣血。
+    /// 不依赖 IComponent，纯队列驱动。
     /// Order: 30
     /// </summary>
     public class DamageSystem : SystemBase
@@ -13,25 +14,18 @@ namespace ZWebGLFrameWork.Combat
 
         public override void Update()
         {
-            foreach (var entity in World.GetEntitiesWith<DamageEvent>())
+            World.ConsumeDamageEvents(evt =>
             {
-                if (!World.TryGetComponent<HealthComponent>(entity, out var health))
-                {
-                    World.RemoveComponent<DamageEvent>(entity);
-                    continue;
-                }
+                if (!World.TryGetComponent<HealthComponent>(evt.Target, out var health))
+                    return;
 
-                var damageEvent = World.GetComponent<DamageEvent>(entity);
-
-                // 扣血
-                health.CurrentHP -= damageEvent.Amount;
+                health.CurrentHP -= evt.Amount;
                 if (health.CurrentHP < 0) health.CurrentHP = 0;
 
-                World.AddComponent(entity, health);
-                World.RemoveComponent<DamageEvent>(entity);
+                World.AddComponent(evt.Target, health);
 
-                Debug.Log($"[DamageSystem] {entity} 受到 {damageEvent.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
-            }
+                Debug.Log($"[DamageSystem] {evt.Target} 受到 {evt.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
+            });
         }
     }
 }

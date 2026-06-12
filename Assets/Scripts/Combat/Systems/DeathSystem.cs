@@ -1,5 +1,5 @@
 using UnityEngine;
-using ZWebGLFrameWork.Combat.ECS;
+using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
 {
@@ -20,43 +20,51 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>是否有阵营全灭</summary>
         public Team? Winner { get; private set; }
 
+        private readonly System.Collections.Generic.List<Entity> _deadList =
+            new System.Collections.Generic.List<Entity>();
+
         public override void Update()
         {
             AttackerAlive = 0;
             DefenderAlive = 0;
             Winner = null;
+            _deadList.Clear();
 
-            var deadList = new System.Collections.Generic.List<Entity>();
-
-            foreach (var entity in World.GetEntitiesWith<HealthComponent>())
+            World.ForEachComponent<HealthComponent>((entity, ref health) =>
             {
-                var health = World.GetComponent<HealthComponent>(entity);
                 if (!health.IsAlive)
                 {
-                    deadList.Add(entity);
-                    continue;
+                    _deadList.Add(entity);
+                    return;
                 }
 
-                // 统计存活数
                 if (World.TryGetComponent<TeamComponent>(entity, out var team))
                 {
                     if (team.TeamId == Team.Attacker) AttackerAlive++;
                     else if (team.TeamId == Team.Defender) DefenderAlive++;
                 }
-            }
+            });
 
-            // 清理死亡单位
-            foreach (var dead in deadList)
+            int totalDefenders = _deadList.Count + DefenderAlive;
+            foreach (var dead in _deadList)
             {
                 Debug.Log($"[DeathSystem] 单位死亡: {dead}");
                 World.DestroyEntity(dead);
             }
 
-            // 胜负判定
+            AttackerDestroyedPercent = totalDefenders > 0
+                ? (float)_deadList.Count / totalDefenders : 0f;
+
             if (AttackerAlive == 0 && DefenderAlive > 0)
                 Winner = Team.Defender;
             else if (DefenderAlive == 0 && AttackerAlive > 0)
                 Winner = Team.Attacker;
         }
+
+        /// <summary>攻击方摧毁百分比</summary>
+        public float AttackerDestroyedPercent { get; private set; }
+
+        /// <summary>强制设置胜者（超时/外部干预）</summary>
+        public void ForceWinner(Team team) { Winner = team; }
     }
 }

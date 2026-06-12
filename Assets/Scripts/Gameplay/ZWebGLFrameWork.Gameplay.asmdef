@@ -1,0 +1,23 @@
+{
+    "name": "ZWebGLFrameWork.Gameplay",
+    "rootNamespace": "ZWebGLFrameWork.Gameplay",
+    "references": [
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityEngine.CoreModule.dll",
+        "UnityEngine.PhysicsModule.dll",
+        "UnityEngine.InputLegacyModule.dll",
+        "UnityEngine.UI.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

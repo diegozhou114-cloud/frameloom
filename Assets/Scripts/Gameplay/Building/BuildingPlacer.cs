@@ -8,7 +8,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 建筑放置器 — 从 UI 菜单拖出建筑，跟随手指/鼠标，
     /// 自动吸附网格，实时合法性检测（红/绿），松手确认放置。
     /// </summary>
-    public class BuildingPlacer : Singleton<BuildingPlacer>
+    public class BuildingPlacer : MonoBehaviour
     {
         /// <summary>EventBus：开始放置</summary>
         public const string EventPlacementStart = "PlacementStarted";

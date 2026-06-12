@@ -8,7 +8,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 世界坐标 ↔ 网格坐标互转，占用检测，边界校验。
     /// 跨场景单例。
     /// </summary>
-    public class GridManager : SingletonDontDestroy<GridManager>
+    public class GridManager : Singleton<GridManager>
     {
         [Header("网格尺寸")]
         [SerializeField] private int _rows = 44;           // 行数（Z 轴方向）
