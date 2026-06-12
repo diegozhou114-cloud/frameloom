@@ -1,0 +1,145 @@
+name: ZWebGL CI/CD
+
+on:
+  push:
+    branches: [master, develop]
+    paths:
+      - "Assets/Scripts/**"
+      - "Assets/Editor/**"
+      - "Packages/**"
+      - "ProjectSettings/**"
+  pull_request:
+    branches: [master]
+    paths:
+      - "Assets/Scripts/**"
+      - "Assets/Editor/**"
+
+jobs:
+  # ==================== 阶段1: 编译验证 ====================
+  compile:
+    name: 🔨 Compile & Validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        unityVersion: [2022.3.40f1]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-${{ matrix.unityVersion }}-
+
+      - name: Unity Compile Check
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          testMode: EditMode
+          customParameters: -nographics -batchmode -quit
+          checkName: EditMode Test Results
+
+      - name: Report Compile Result
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ 编译通过 - 0 errors"
+          else
+            echo "❌ 编译失败 - 请检查上方日志"
+            exit 1
+          fi
+
+  # ==================== 阶段2: 单元测试 ====================
+  test:
+    name: 🧪 Run Tests
+    needs: compile
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        unityVersion: [2022.3.40f1]
+        testMode: [EditMode, PlayMode]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-${{ matrix.unityVersion }}-
+
+      - name: Unity Test (${{ matrix.testMode }})
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          testMode: ${{ matrix.testMode }}
+          artifactsPath: TestResults-${{ matrix.testMode }}
+          customParameters: -nographics -batchmode -quit
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults-${{ matrix.testMode }}
+          path: TestResults-${{ matrix.testMode }}
+
+  # ==================== 阶段3: 构建打包 ====================
+  build:
+    name: 📦 Build (${{ matrix.targetPlatform }})
+    needs: test
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        targetPlatform: [WebGL, StandaloneWindows64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-
+
+      - name: Unity Build (${{ matrix.targetPlatform }})
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          allowDirtyBuild: false
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+
+  # ==================== 阶段4: WebGL 部署 ====================
+  deploy:
+    name: 🚀 Deploy WebGL
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Build-WebGL
+          path: deploy
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          publish_branch: gh-pages
+          commit_message: "🚀 Deploy WebGL build"
