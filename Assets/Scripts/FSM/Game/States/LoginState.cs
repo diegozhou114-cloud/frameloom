@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -12,7 +13,10 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入登录状态");
 
-            // TODO: 打开登录UI、连接网关服务器
+            EventBus.Publish("LoginStarted");
+
+            // 模拟登录成功，直接跳转主城
+            ChangeState(GameState.MainVillage);
         }
 
         public override void OnExit()

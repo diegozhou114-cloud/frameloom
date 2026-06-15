@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -12,14 +13,10 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入启动状态");
 
-            // TODO: SDK初始化、资源热更检查、版本校验
-            // 完成后切换到登录
-            // ChangeState(GameState.Login);
-        }
+            EventBus.Publish("LaunchStarted");
 
-        public override void OnUpdate()
-        {
-            // 模拟启动完成
+            // 使用 CoroutineManager 替代 async void，保持 FSM 生命周期同步
+            CoroutineManager.Delay(0.5f, () => ChangeState(GameState.Login));
         }
 
         public override void OnExit()

@@ -16,14 +16,36 @@ namespace ZWebGLFrameWork.Editor
 
         // ==================== 菜单 ====================
 
+        private static bool _isValidating;
+
         [MenuItem(ValidateMenu, false, 100)]
         public static void CompileAndValidate()
         {
-            Debug.Log("[BuildValidator] ===== 编译验证开始 =====");
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            if (_isValidating)
+            {
+                Debug.LogWarning("[BuildValidator] 验证已在运行中，跳过重复调用");
+                return;
+            }
+            _isValidating = true;
 
-            // 编译由 Unity 异步触发，通过回调等待完成
-            EditorApplication.update += WaitForCompilation;
+            Debug.Log("[BuildValidator] ===== 编译验证开始 =====");
+
+            // 先注册 logMessageReceived 捕获编译错误
+            StartCapturingErrors();
+
+            if (Application.isBatchMode)
+            {
+                // CI 环境：编译是同步的，Refresh 后编译立即完成
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                // 延迟一帧确保所有错误已回调
+                EditorApplication.delayCall += AnalyzeCompilationResult;
+            }
+            else
+            {
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                // Editor 环境：编译异步，通过 update 回调等待
+                EditorApplication.update += WaitForCompilation;
+            }
         }
 
         private static void WaitForCompilation()
@@ -38,52 +60,78 @@ namespace ZWebGLFrameWork.Editor
 
         private static void AnalyzeCompilationResult()
         {
-            // 注意：Unity 编译错误在 Console 中，Application.logMessageReceived 捕获
-            // 但编译时错误不经过此回调。这里用延迟检查。
+            EditorApplication.delayCall -= AnalyzeCompilationResult;
             EditorApplication.delayCall += () =>
             {
-                var errors = CollectErrorsFromConsole();
+                var errors = StopCapturingAndGetErrors();
+                _isValidating = false;
                 if (errors.Count == 0)
                 {
                     Debug.Log("<color=green>[BuildValidator] ✅ 编译通过，零错误！</color>");
-                    EditorUtility.DisplayDialog("编译验证", "✅ 所有程序集编译通过，零错误。",
-                        "确定");
+                    if (!Application.isBatchMode)
+                        EditorUtility.DisplayDialog("编译验证", "✅ 所有程序集编译通过，零错误。", "确定");
                     return;
                 }
-
                 ReportErrors(errors);
                 AttemptAutoFix(errors);
             };
         }
 
-        private static List<CompileError> CollectErrorsFromConsole()
+        private static List<CompileError> _capturedErrors;
+        private static Application.LogCallback _captureHandler;
+
+        /// <summary>开始捕获编译错误 — 在触发编译之前调用</summary>
+        private static void StartCapturingErrors()
         {
-            // 通过反射读取 Unity Console 的内部错误列表
-            var errors = new List<CompileError>();
-            var logEntries = System.Type.GetType("UnityEditor.LogEntries, UnityEditor.dll");
-            if (logEntries == null) return errors;
-
-            var getCountMethod = logEntries.GetMethod("GetCount");
-            var startMethod = logEntries.GetMethod("StartGettingEntries");
-            var getEntryMethod = logEntries.GetMethod("GetEntryInternal", new[] { typeof(int), typeof(int) });
-            var endMethod = logEntries.GetMethod("EndGettingEntries");
-
-            if (getCountMethod == null || startMethod == null || endMethod == null) return errors;
-
-            startMethod.Invoke(null, null);
-            int count = (int)getCountMethod.Invoke(null, null);
-
-            for (int i = 0; i < count; i++)
+            // 防御：先取消旧订阅，防止重复调用导致 handler 泄漏
+            if (_captureHandler != null)
             {
-                // GetEntryInternal params: [int row, int column]
-                // returns: condition, errorCode, file, line, column, mode, message
-                var args = new object[] { i, 0 };
-                getEntryMethod?.Invoke(null, args);
-                // The actual signature is complex; simplify by using LogEntries API
+                Application.logMessageReceived -= _captureHandler;
+                _captureHandler = null;
             }
 
-            endMethod.Invoke(null, null);
-            return errors;
+            _capturedErrors = new List<CompileError>();
+            _captureHandler = (condition, stackTrace, type) =>
+            {
+                if (type != LogType.Error && type != LogType.Exception) return;
+                var parsed = ParseCompileError(condition);
+                if (parsed.HasValue)
+                    _capturedErrors.Add(parsed.Value);
+            };
+            Application.logMessageReceived += _captureHandler;
+        }
+
+        /// <summary>停止捕获并返回收集到的编译错误</summary>
+        private static List<CompileError> StopCapturingAndGetErrors()
+        {
+            if (_captureHandler != null)
+            {
+                Application.logMessageReceived -= _captureHandler;
+                _captureHandler = null;
+            }
+            var result = _capturedErrors ?? new List<CompileError>();
+            _capturedErrors = null;
+            return result;
+        }
+
+        private static CompileError? ParseCompileError(string message)
+        {
+            if (string.IsNullOrEmpty(message)) return null;
+
+            var match = System.Text.RegularExpressions.Regex.Match(
+                message,
+                @"^(.+?)\((\d+),\d+\):\s*(error|warning)\s+(CS\d+):\s*(.+)$");
+
+            if (!match.Success) return null;
+
+            return new CompileError
+            {
+                File = match.Groups[1].Value,
+                Line = int.TryParse(match.Groups[2].Value, out var line) ? line : 0,
+                Severity = match.Groups[3].Value == "error" ? ErrorSeverity.Fatal : ErrorSeverity.Warning,
+                ErrorCode = match.Groups[4].Value,
+                Message = match.Groups[5].Value.Trim(),
+            };
         }
 
         private static void ReportErrors(List<CompileError> errors)

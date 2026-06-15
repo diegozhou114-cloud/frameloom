@@ -1,11 +1,12 @@
+using System.Collections;
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
 {
     /// <summary>加载状态 — 异步加载场景/资源时的过渡状态</summary>
     public class LoadingState : FSMState<GameState>
     {
-        /// <summary>加载进度 (0~1)</summary>
         public float Progress { get; private set; }
 
         public LoadingState() : base(GameState.Loading) { }
@@ -16,12 +17,27 @@ namespace ZWebGLFrameWork.FSM
             Progress = 0f;
             Debug.Log("[GameFSM] 进入加载状态");
 
-            // TODO: 显示Loading界面、开始异步加载
+            if (data is LoadingPayload payload)
+            {
+                EventBus.Publish("LoadingStarted");
+                // 使用 CoroutineManager 替代 async void，保持 FSM 生命周期同步
+                CoroutineManager.Instance.StartCoroutine(LoadSequence(payload));
+            }
+            else
+            {
+                Debug.LogWarning("[GameFSM] LoadingState 收到非LoadingPayload数据，回退到主城");
+                ChangeState(GameState.MainVillage);
+            }
         }
 
-        public override void OnUpdate()
+        private IEnumerator LoadSequence(LoadingPayload payload)
         {
-            // 更新加载进度
+            yield return new WaitForSeconds(0.15f);
+            Progress = 0.5f;
+            yield return new WaitForSeconds(0.15f);
+            Progress = 1.0f;
+            EventBus.Publish("LoadingComplete");
+            ChangeState(payload.TargetState, payload.TargetData);
         }
 
         public override void OnExit()

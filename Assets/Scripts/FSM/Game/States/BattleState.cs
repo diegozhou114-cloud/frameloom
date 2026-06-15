@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -12,7 +13,7 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入战斗状态");
 
-            // TODO: 加载战斗场景、初始化战斗单位、部署阶段
+            EventBus.Publish("BattleEntered");
         }
 
         public override void OnUpdate()

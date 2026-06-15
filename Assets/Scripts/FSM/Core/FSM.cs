@@ -14,6 +14,9 @@ namespace ZWebGLFrameWork.FSM
         private FSMState<T> _currentState;
         private FSMState<T> _previousState;
 
+        /// <summary>转换验证回调 — 返回 false 阻止切换。由 GameFSM 注入。</summary>
+        public Func<T, T, bool> TransitionGuard { get; set; }
+
         /// <summary>当前激活状态</summary>
         public FSMState<T> CurrentState => _currentState;
 
@@ -71,6 +74,17 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== 状态切换 ====================
 
+        /// <summary>
+        /// 转换验证钩子 — 先检查 TransitionGuard（外部注入），再检查子类重写。
+        /// 返回 false 阻止切换。
+        /// </summary>
+        protected virtual bool CanTransitionTo(T fromStateId, T toStateId)
+        {
+            if (TransitionGuard != null && !TransitionGuard(fromStateId, toStateId))
+                return false;
+            return true;
+        }
+
         /// <summary>切换到指定状态</summary>
         /// <param name="stateId">目标状态 ID</param>
         /// <param name="data">传递给新状态 OnEnter 的数据</param>
@@ -85,6 +99,14 @@ namespace ZWebGLFrameWork.FSM
 
             // 不重复进入同一状态
             if (_currentState == newState) return false;
+
+            // 转换规则验证
+            if (!CanTransitionTo(
+                _currentState != null ? _currentState.StateId : default,
+                stateId))
+            {
+                return false;
+            }
 
             // 退出旧状态
             var oldState = _currentState;

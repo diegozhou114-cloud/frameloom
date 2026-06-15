@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -12,7 +13,7 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入主城状态");
 
-            // TODO: 加载村庄场景、初始化建筑系统、启动资源计时器
+            EventBus.Publish("MainVillageEntered");
         }
 
         public override void OnUpdate()

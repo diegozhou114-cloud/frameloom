@@ -1,3 +1,4 @@
+using UnityEngine;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.ECS;
 
@@ -44,7 +45,7 @@ namespace ZWebGLFrameWork.Combat
             // 部落战防御建筑有额外加成
             foreach (var building in village.Buildings)
             {
-                var gridPos = new UnityEngine.Vector2Int(building.GridX.Value, building.GridY.Value);
+                var gridPos = new Vector2Int(building.GridX.Value, building.GridY.Value);
                 var entity = spawner.CreateBuildingEntity(gridPos, building.Level.Value,
                     Team.Defender, 600, 250, 60, 5.5f, 0.9f);
             }
@@ -53,6 +54,7 @@ namespace ZWebGLFrameWork.Combat
         public override void SpawnAttackerWave(UnitSpawner spawner, int wave)
         {
             // 部落战不支持波次，由部署阶段决定
+            Debug.LogWarning($"[ClanWarMode] SpawnAttackerWave(wave={wave}) 被意外调用 —— 部落战不应使用波次生成。UseWaves=false，请检查 CombatOrchestrator。");
         }
     }
 }

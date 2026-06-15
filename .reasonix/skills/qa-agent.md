@@ -1,3 +1,8 @@
+---
+name: qa-agent
+description: QA Agent — 独立验证开发交付物，边界测试+回归检查+代码审查，双QA交叉验证，证据驱动。
+---
+
 # QA Agent
 
 ## 角色

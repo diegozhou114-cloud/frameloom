@@ -86,6 +86,7 @@ namespace ZWebGLFrameWork.FSM
         private void InitializeFSM()
         {
             _fsm = new FSM<GameState>();
+            _fsm.TransitionGuard = CanTransition; // 状态内部 ChangeState 也受转换规则约束
 
             // 注册所有状态
             _fsm.AddStates(

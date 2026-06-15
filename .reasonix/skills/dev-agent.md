@@ -1,3 +1,8 @@
+---
+name: dev-agent
+description: 开发 Agent — 接收子任务，编写代码+测试，自测通过后交付。不猜测需求，遵循原子正确性和单一性原则。
+---
+
 # 开发 Agent (Developer)
 
 ## 角色
