@@ -25,6 +25,8 @@ namespace ZWebGLFrameWork.Network
         private KcpCore _kcp;
         private UdpClient _udpClient;
         private uint _conv;
+        private readonly MessageProtocol _protocol = new MessageProtocol();
+        private readonly object _protocolLock = new object();
 
         /// <summary>KCP Update 间隔（毫秒）</summary>
         public uint UpdateInterval
@@ -81,6 +83,8 @@ namespace ZWebGLFrameWork.Network
                 _kcp = null;
             }
 
+            lock (_protocolLock) { _protocol.Reset(); }
+
             if (State != ConnectionState.Disconnected)
             {
                 State = ConnectionState.Disconnected;
@@ -115,7 +119,7 @@ namespace ZWebGLFrameWork.Network
             uint current = (uint)(Time.unscaledTime * 1000);
             _kcp.Update(current);
 
-            // 接收 KCP 可靠数据
+            // 接收 KCP 可靠数据 → 帧协议解码 → 上抛消息体
             int peekSize = _kcp.PeekSize();
             while (peekSize > 0)
             {
@@ -123,9 +127,21 @@ namespace ZWebGLFrameWork.Network
                 int received = _kcp.Recv(buffer);
                 if (received > 0)
                 {
-                    var data = new byte[received];
-                    Buffer.BlockCopy(buffer, 0, data, 0, received);
-                    OnDataReceived?.Invoke(data);
+                    // 先收集消息再释放锁，防止 OnDataReceived 中调用 Disconnect 死锁
+                    var decodedMessages = new System.Collections.Generic.List<byte[]>();
+                    lock (_protocolLock)
+                    {
+                        _protocol.Feed(buffer, received);
+                        byte[] message;
+                        while ((message = _protocol.TryExtract()) != null)
+                        {
+                            decodedMessages.Add(message);
+                        }
+                    }
+                    foreach (var msg in decodedMessages)
+                    {
+                        OnDataReceived?.Invoke(msg);
+                    }
                 }
                 peekSize = _kcp.PeekSize();
             }

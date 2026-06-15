@@ -14,7 +14,7 @@ namespace ZWebGLFrameWork.ECS
         private readonly Queue<int> _freeIds = new Queue<int>();
         private int[] _generations;
         private int _nextId;
-        private readonly Dictionary<Type, object> _componentPools = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, IComponentPool> _componentPools = new Dictionary<Type, IComponentPool>();
 
         public World(int initialCapacity = 256) { _generations = new int[initialCapacity]; }
 
@@ -37,10 +37,10 @@ namespace ZWebGLFrameWork.ECS
         public void DestroyEntity(Entity entity)
         {
             if (!entity.IsValid) return;
-            foreach (var kv in _componentPools)
+            // 通过 IComponentPool 接口移除所有组件 — 零反射
+            foreach (var pool in _componentPools.Values)
             {
-                var poolType = typeof(ComponentPool<>).MakeGenericType(kv.Key);
-                poolType.GetMethod("Remove")?.Invoke(kv.Value, new object[] { entity });
+                pool.Remove(entity);
             }
             _entities.RemoveAll(e => e == entity);
             _freeIds.Enqueue(entity.Id);
@@ -52,19 +52,71 @@ namespace ZWebGLFrameWork.ECS
         public bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponent => GetPool<T>().TryGet(entity, out component);
         public bool HasComponent<T>(Entity entity) where T : struct, IComponent => GetPool<T>().Has(entity);
         public void RemoveComponent<T>(Entity entity) where T : struct, IComponent => GetPool<T>().Remove(entity);
+
+        /// <summary>设置组件（存在则覆盖，不存在则新增）— 解决 TryGetComponent 副本修改后无法写回的问题</summary>
+        public void SetComponent<T>(Entity entity, T component) where T : struct, IComponent => GetPool<T>().Set(entity, component);
         public IEnumerable<Entity> GetEntitiesWith<T>() where T : struct, IComponent => GetPool<T>().GetEntities();
         public void ForEachEntities<T>(Action<Entity> action) where T : struct, IComponent => GetPool<T>().ForEach((e, _) => action(e));
         public void ForEachComponent<T>(Action<Entity, ref T> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
 
-        // 事件队列
-        private readonly Queue<DamageEvent> _damageEvents = new Queue<DamageEvent>();
-        public void EnqueueDamageEvent(DamageEvent evt) => _damageEvents.Enqueue(evt);
-        public int ConsumeDamageEvents(Action<DamageEvent> handler)
+        /// <summary>
+        /// 两组件联合遍历 — 只遍历同时拥有 A 和 B 组件的实体。
+        /// 以较小的组件池驱动，两个 ref 都直接指向池内数组，支持写入。
+        /// </summary>
+        public void ForEachEntities<TA, TB>(Action<Entity, ref TA, ref TB> action)
+            where TA : struct, IComponent where TB : struct, IComponent
         {
-            int count = _damageEvents.Count;
-            while (_damageEvents.Count > 0) handler(_damageEvents.Dequeue());
+            var poolA = GetPool<TA>();
+            var poolB = GetPool<TB>();
+
+            if (poolA.Count <= poolB.Count)
+            {
+                poolA.ForEachRefPair(poolB, action);
+            }
+            else
+            {
+                poolB.ForEachRefPair<TA, TB>(poolA, (entity, ref b, ref a) => action(entity, ref a, ref b));
+            }
+        }
+
+        // ==================== 通用事件队列（泛型，不耦合业务类型） ====================
+
+        private readonly Dictionary<Type, object> _eventQueues = new Dictionary<Type, object>();
+
+        /// <summary>入队一个事件</summary>
+        public void EnqueueEvent<T>(T evt) where T : struct
+        {
+            GetEventQueue<T>().Enqueue(evt);
+        }
+
+        /// <summary>消费所有事件，返回消费数量</summary>
+        public int ConsumeEvents<T>(Action<T> handler) where T : struct
+        {
+            var queue = GetEventQueue<T>();
+            int count = queue.Count;
+            while (queue.Count > 0)
+                handler(queue.Dequeue());
             return count;
         }
+
+        private Queue<T> GetEventQueue<T>() where T : struct
+        {
+            var type = typeof(T);
+            if (!_eventQueues.TryGetValue(type, out var q))
+            {
+                q = new Queue<T>();
+                _eventQueues[type] = q;
+            }
+            return (Queue<T>)q;
+        }
+
+        // ==================== 兼容旧 API ====================
+
+        [Obsolete("使用 EnqueueEvent<DamageEvent> 替代")]
+        public void EnqueueDamageEvent(DamageEvent evt) => EnqueueEvent(evt);
+
+        [Obsolete("使用 ConsumeEvents<DamageEvent> 替代")]
+        public int ConsumeDamageEvents(Action<DamageEvent> handler) => ConsumeEvents(handler);
 
         private ComponentPool<T> GetPool<T>() where T : struct, IComponent
         {
@@ -78,12 +130,15 @@ namespace ZWebGLFrameWork.ECS
         }
     }
 
-    internal class ComponentPool<T> where T : struct, IComponent
+    internal class ComponentPool<T> : IComponentPool where T : struct, IComponent
     {
         private int[] _sparse;
         private Entity[] _denseEntities;
         private T[] _denseComponents;
         private int _count;
+
+        /// <summary>当前存活的组件数</summary>
+        public int Count => _count;
 
         public ComponentPool(int initialCapacity)
         {
@@ -103,6 +158,22 @@ namespace ZWebGLFrameWork.ECS
             _denseEntities[_count] = entity;
             _denseComponents[_count] = component;
             _count++;
+        }
+
+        /// <summary>设置组件 — 存在则覆盖，不存在则新增</summary>
+        public void Set(Entity entity, T component)
+        {
+            int id = entity.Id;
+            if (id < _sparse.Length)
+            {
+                int idx = _sparse[id];
+                if (idx >= 0 && idx < _count && _denseEntities[idx] == entity)
+                {
+                    _denseComponents[idx] = component;
+                    return;
+                }
+            }
+            Add(entity, component);
         }
 
         public ref T Get(Entity entity)
@@ -147,6 +218,30 @@ namespace ZWebGLFrameWork.ECS
 
         public IEnumerable<Entity> GetEntities() { for (int i = 0; i < _count; i++) yield return _denseEntities[i]; }
         public void ForEach(Action<Entity, ref T> action) { for (int i = 0; i < _count; i++) action(_denseEntities[i], ref _denseComponents[i]); }
+
+        /// <summary>
+        /// 联合遍历：遍历本池所有实体，对同时存在于 otherPool 的实体执行 action。
+        /// 两个 ref 都直接引用各池的密集数组，支持写入。
+        /// </summary>
+        internal void ForEachRefPair<TOther>(ComponentPool<TOther> otherPool,
+            Action<Entity, ref T, ref TOther> action) where TOther : struct, IComponent
+        {
+            for (int i = 0; i < _count; i++)
+            {
+                var entity = _denseEntities[i];
+                int id = entity.Id;
+                if (id < otherPool._sparse.Length)
+                {
+                    int otherIdx = otherPool._sparse[id];
+                    if (otherIdx >= 0 && otherIdx < otherPool._count &&
+                        otherPool._denseEntities[otherIdx] == entity)
+                    {
+                        action(entity, ref _denseComponents[i],
+                            ref otherPool._denseComponents[otherIdx]);
+                    }
+                }
+            }
+        }
 
         private void ResizeSparse(int newSize) { int old = _sparse.Length; Array.Resize(ref _sparse, newSize); for (int i = old; i < newSize; i++) _sparse[i] = -1; }
         private void ResizeDense(int newSize) { Array.Resize(ref _denseEntities, newSize); Array.Resize(ref _denseComponents, newSize); }

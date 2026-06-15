@@ -24,4 +24,54 @@ namespace ZWebGLFrameWork.Core
         void ClearAll();
         int TotalEventCount { get; }
     }
+
+    /// <summary>
+    /// 类型安全的事件键 — 编译期校验参数类型，避免字符串拼写错误。
+    /// 用法：public static readonly EventKey<GameStateChangedEvent> StateChanged = new("GameStateChanged");
+    ///      EventBus.Publish(StateChanged, payload);
+    /// </summary>
+    public readonly struct EventKey<T>
+    {
+        public readonly string Key;
+
+        public EventKey(string key) => Key = key;
+
+        public static implicit operator string(EventKey<T> ek) => ek.Key;
+
+        public override string ToString() => Key;
+    }
+
+    /// <summary>双参数类型安全事件键</summary>
+    public readonly struct EventKey<T1, T2>
+    {
+        public readonly string Key;
+
+        public EventKey(string key) => Key = key;
+
+        public static implicit operator string(EventKey<T1, T2> ek) => ek.Key;
+
+        public override string ToString() => Key;
+    }
+
+    /// <summary>EventBus 类型安全扩展方法</summary>
+    public static class EventBusExtensions
+    {
+        public static void Subscribe<T>(this IEventBus bus, EventKey<T> key, Action<T> handler)
+            => bus.Subscribe(key.Key, handler);
+
+        public static void Unsubscribe<T>(this IEventBus bus, EventKey<T> key, Action<T> handler)
+            => bus.Unsubscribe(key.Key, handler);
+
+        public static void Publish<T>(this IEventBus bus, EventKey<T> key, T arg)
+            => bus.Publish(key.Key, arg);
+
+        public static void Subscribe<T1, T2>(this IEventBus bus, EventKey<T1, T2> key, Action<T1, T2> handler)
+            => bus.Subscribe(key.Key, handler);
+
+        public static void Unsubscribe<T1, T2>(this IEventBus bus, EventKey<T1, T2> key, Action<T1, T2> handler)
+            => bus.Unsubscribe(key.Key, handler);
+
+        public static void Publish<T1, T2>(this IEventBus bus, EventKey<T1, T2> key, T1 arg1, T2 arg2)
+            => bus.Publish(key.Key, arg1, arg2);
+    }
 }

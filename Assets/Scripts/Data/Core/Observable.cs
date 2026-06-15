@@ -3,12 +3,23 @@ using System;
 namespace ZWebGLFrameWork.Data
 {
     /// <summary>
+    /// 可观察字段内部接口 — 提供无反射的 GetValue/SetSilent。
+    /// Observable&lt;T&gt; 实现此接口，ObservableModel 通过它操作字段。
+    /// </summary>
+    public interface IObservableField
+    {
+        object GetValue();
+        void SetSilent(object value);
+        System.Type ValueType { get; }
+    }
+
+    /// <summary>
     /// 响应式可观察值 — 值变化时自动触发 OnChanged 回调。
     /// 零变化跳过（旧值 Equals 新值时不触发）。
     /// 支持隐式转换为 T，可直接当值使用。
     /// </summary>
     /// <typeparam name="T">值类型</typeparam>
-    public class Observable<T> : IEquatable<Observable<T>>
+    public class Observable<T> : IEquatable<Observable<T>>, IObservableField
     {
         private T _value;
 
@@ -67,5 +78,19 @@ namespace ZWebGLFrameWork.Data
         {
             OnChanged = null;
         }
+
+        // ==================== IObservableField 实现（避免反射） ====================
+
+        object IObservableField.GetValue() => _value;
+
+        void IObservableField.SetSilent(object value)
+        {
+            if (value is T typed)
+                _value = typed;
+            else
+                _value = (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        System.Type IObservableField.ValueType => typeof(T);
     }
 }

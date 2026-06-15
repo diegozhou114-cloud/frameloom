@@ -14,7 +14,7 @@ namespace ZWebGLFrameWork.Combat
 
         public override void Update()
         {
-            World.ConsumeDamageEvents(evt =>
+            World.ConsumeEvents<DamageEvent>(evt =>
             {
                 if (!World.TryGetComponent<HealthComponent>(evt.Target, out var health))
                     return;
@@ -22,7 +22,8 @@ namespace ZWebGLFrameWork.Combat
                 health.CurrentHP -= evt.Amount;
                 if (health.CurrentHP < 0) health.CurrentHP = 0;
 
-                World.AddComponent(evt.Target, health);
+                // SetComponent 存在则覆盖（不触发 AddComponent 的 "if Has return" 导致写入丢失）
+                World.SetComponent(evt.Target, health);
 
                 Debug.Log($"[DamageSystem] {evt.Target} 受到 {evt.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
             });

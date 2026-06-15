@@ -38,13 +38,17 @@ namespace ZWebGLFrameWork.Network
         protected override void Awake()
         {
             base.Awake();
-
-            // 初始化四种客户端（懒加载）
-            _tcpClient = new TcpClient();
-            _udpClient = new UdpClient();
-            _httpClient = new HttpClient(this);
-            _kcpClient = new KcpClient();
+            // 协议客户端改为懒加载，仅在首次 Connect 时创建
         }
+
+        private INetworkClient GetOrCreateClient(NetworkProtocol protocol) => protocol switch
+        {
+            NetworkProtocol.TCP => _tcpClient ??= new TcpClient(),
+            NetworkProtocol.UDP => _udpClient ??= new UdpClient(),
+            NetworkProtocol.HTTP => _httpClient ??= new HttpClient(this),
+            NetworkProtocol.KCP => _kcpClient ??= new KcpClient(),
+            _ => throw new ArgumentException($"未知协议: {protocol}"),
+        };
 
         private void Update()
         {
@@ -63,14 +67,7 @@ namespace ZWebGLFrameWork.Network
             _lastPort = port;
             CurrentProtocol = protocol;
 
-            _currentClient = protocol switch
-            {
-                NetworkProtocol.TCP => _tcpClient,
-                NetworkProtocol.UDP => _udpClient,
-                NetworkProtocol.HTTP => _httpClient,
-                NetworkProtocol.KCP => _kcpClient,
-                _ => throw new ArgumentException($"未知协议: {protocol}"),
-            };
+            _currentClient = GetOrCreateClient(protocol);
 
             // 绑定事件
             _currentClient.OnConnected += HandleConnected;
@@ -153,18 +150,9 @@ namespace ZWebGLFrameWork.Network
 
         private void HandleDataReceived(byte[] data)
         {
-            // 喂入协议解码
-            var protocol = new MessageProtocol();
-            var message = protocol.TryDecode(data, data.Length);
-            if (message != null)
-            {
-                Dispatcher.Enqueue(message);
-            }
-            else
-            {
-                // 可能是不完整帧，但也可能是不需要帧协议的场景（UDP短消息）
-                Dispatcher.Enqueue(data);
-            }
+            // 各传输层客户端（TcpClient/KcpClient）已经完成帧解码，
+            // NetworkManager 收到的是已解码的消息体，直接入队分发。
+            Dispatcher.Enqueue(data);
         }
 
         private void BroadcastState(ConnectionState newState, string message)

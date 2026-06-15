@@ -23,6 +23,7 @@ namespace ZWebGLFrameWork.Network
 
         private Socket _socket;
         private readonly MessageProtocol _protocol = new MessageProtocol();
+        private readonly object _protocolLock = new object(); // 保护 _protocol 跨线程访问
         private readonly byte[] _receiveBuffer = new byte[NetworkDefine.ReceiveBufferSize];
         private Thread _receiveThread;
         private bool _isReceiving;
@@ -95,7 +96,7 @@ namespace ZWebGLFrameWork.Network
             if (State != ConnectionState.Disconnected)
             {
                 State = ConnectionState.Disconnected;
-                _protocol.Reset();
+                lock (_protocolLock) { _protocol.Reset(); }
                 OnDisconnected?.Invoke("主动断开");
             }
         }
@@ -173,11 +174,21 @@ namespace ZWebGLFrameWork.Network
                         break;
                     }
 
-                    // 协议解码
-                    byte[] message;
-                    while ((message = _protocol.TryDecode(_receiveBuffer, received)) != null)
+                    // 协议解码：Feed 一次 → 循环 TryExtract（避免数据重复拷贝）
+                    // 先收集消息再释放锁，防止 OnDataReceived 回调中调用 Disconnect 导致死锁
+                    var decodedMessages = new System.Collections.Generic.List<byte[]>();
+                    lock (_protocolLock)
                     {
-                        OnDataReceived?.Invoke(message);
+                        _protocol.Feed(_receiveBuffer, received);
+                        byte[] message;
+                        while ((message = _protocol.TryExtract()) != null)
+                        {
+                            decodedMessages.Add(message);
+                        }
+                    }
+                    foreach (var msg in decodedMessages)
+                    {
+                        OnDataReceived?.Invoke(msg);
                     }
                 }
                 catch (SocketException ex)
@@ -201,7 +212,11 @@ namespace ZWebGLFrameWork.Network
 
         private void SendHeartbeat()
         {
-            var frame = MessageProtocol.Encode(new byte[] { 0, 0 }); // 空消息作心跳
+            // 使用 NetworkDefine 定义的心跳消息 ID，服务端可正确区分
+            var heartbeatData = new byte[2];
+            heartbeatData[0] = (byte)((NetworkDefine.MsgHeartbeatReq >> 8) & 0xFF);
+            heartbeatData[1] = (byte)(NetworkDefine.MsgHeartbeatReq & 0xFF);
+            var frame = MessageProtocol.Encode(heartbeatData);
             Send(frame);
         }
 
@@ -212,7 +227,7 @@ namespace ZWebGLFrameWork.Network
             try { _socket?.Close(); } catch { }
             _socket = null;
             State = ConnectionState.Disconnected;
-            _protocol.Reset();
+            lock (_protocolLock) { _protocol.Reset(); }
 
             OnDisconnected?.Invoke(reason);
             Debug.LogWarning($"[TcpClient] 断开: {reason}");

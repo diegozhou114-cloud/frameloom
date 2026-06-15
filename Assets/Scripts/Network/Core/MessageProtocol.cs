@@ -45,16 +45,29 @@ namespace ZWebGLFrameWork.Network
 
         // ==================== 解码（接收方向） ====================
 
-        /// <summary>喂入原始数据，返回解析出的完整消息体（null = 需要更多数据）</summary>
-        public byte[] TryDecode(byte[] data, int dataLength)
+        /// <summary>
+        /// 喂入原始数据到内部缓冲区（一次 receive 调用一次）。
+        /// 分离喂入与提取，避免循环调用 TryDecode 时重复拷贝数据。
+        /// </summary>
+        public void Feed(byte[] data, int dataLength)
         {
+            if (data == null || dataLength <= 0) return;
+
             int totalLen = _bufferLength + dataLength;
             if (totalLen > _receiveBuffer.Length)
                 ExpandBuffer(totalLen);
 
             Buffer.BlockCopy(data, 0, _receiveBuffer, _bufferLength, dataLength);
             _bufferLength = totalLen;
+        }
 
+        /// <summary>
+        /// 从内部缓冲区提取一条完整消息体。
+        /// 返回 null = 需要更多数据（等待下一次 Feed）。
+        /// 可在 Feed 后循环调用直到返回 null。
+        /// </summary>
+        public byte[] TryExtract()
+        {
             if (_bufferLength < 4) return null;
 
             int bodyLength =
@@ -77,6 +90,16 @@ namespace ZWebGLFrameWork.Network
             RemoveBytes(frameLength);
 
             return body;
+        }
+
+        /// <summary>
+        /// [兼容旧 API] 喂入数据并尝试提取一条消息。
+        /// 推荐使用 Feed + 循环 TryExtract 替代循环调用此方法。
+        /// </summary>
+        public byte[] TryDecode(byte[] data, int dataLength)
+        {
+            Feed(data, dataLength);
+            return TryExtract();
         }
 
         public void Reset()

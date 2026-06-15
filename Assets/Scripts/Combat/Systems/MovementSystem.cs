@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using ZWebGLFrameWork.ECS;
 
@@ -13,18 +12,13 @@ namespace ZWebGLFrameWork.Combat
     {
         public MovementSystem() { Order = 10; }
 
-        // 收集批量写回，避免遍历中修改 Pool
-        private readonly List<(Entity, MovementComponent)> _writeBack = new List<(Entity, MovementComponent)>();
-
         public override void Update()
         {
             float dt = Time.deltaTime;
-            _writeBack.Clear();
 
-            World.ForEachComponent<TransformComponent>((entity, ref transform) =>
+            // 联合查询：两个 ref 都直接指向池内数组，写入立即生效，无需批量写回
+            World.ForEachEntities<TransformComponent, MovementComponent>((entity, ref transform, ref movement) =>
             {
-                if (!World.TryGetComponent<MovementComponent>(entity, out var movement))
-                    return;
                 if (!movement.HasPath) return;
 
                 var nextWaypoint = movement.NextWaypoint.Value;
@@ -47,13 +41,7 @@ namespace ZWebGLFrameWork.Combat
                         movement.PathIndex = 0;
                     }
                 }
-
-                _writeBack.Add((entity, movement));
             });
-
-            // 批量写回
-            foreach (var (entity, movement) in _writeBack)
-                World.AddComponent(entity, movement);
         }
 
         /// <summary>网格坐标 → 世界坐标（纯函数，不依赖 GridManager）</summary>

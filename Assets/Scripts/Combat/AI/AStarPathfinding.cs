@@ -18,7 +18,7 @@ namespace ZWebGLFrameWork.Combat
 
         private readonly GridManager _grid;
         private readonly Dictionary<Vector2Int, Node> _nodeCache = new();
-        private readonly List<Node> _openList = new();
+        private readonly BinaryHeap _openHeap = new();
 
         public AStarPathfinding(GridManager grid) { _grid = grid; }
 
@@ -30,26 +30,19 @@ namespace ZWebGLFrameWork.Combat
             if (!_grid.IsInBounds(end)) return new List<Vector2Int>();
 
             _nodeCache.Clear();
-            _openList.Clear();
+            _openHeap.Clear();
 
             var startNode = GetNode(start);
             startNode.G = 0;
             startNode.H = Heuristic(start, end);
             startNode.Parent = null;
-            _openList.Add(startNode);
+            _openHeap.Push(startNode);
 
-            while (_openList.Count > 0)
+            while (_openHeap.Count > 0)
             {
-                int bestIdx = 0;
-                for (int i = 1; i < _openList.Count; i++)
-                    if (_openList[i].F < _openList[bestIdx].F ||
-                        (_openList[i].F == _openList[bestIdx].F && _openList[i].H < _openList[bestIdx].H))
-                        bestIdx = i;
-
-                var current = _openList[bestIdx];
+                var current = _openHeap.Pop();
                 if (current.Position == end) return ReconstructPath(current);
 
-                _openList.RemoveAt(bestIdx);
                 current.Closed = true;
 
                 for (int i = 0; i < _directions.Length; i++)
@@ -57,6 +50,7 @@ namespace ZWebGLFrameWork.Combat
                     var neighborPos = current.Position + _directions[i];
                     if (!_grid.IsInBounds(neighborPos)) continue;
 
+                    // 对角线穿墙检测
                     if (i % 2 == 1)
                     {
                         var adj1 = current.Position + _directions[(i + 2) % 8];
@@ -71,12 +65,20 @@ namespace ZWebGLFrameWork.Combat
                     if (neighbor.Closed) continue;
 
                     int newG = current.G + _costs[i];
-                    if (!_openList.Contains(neighbor) || newG < neighbor.G)
+                    if (!neighbor.InOpen || newG < neighbor.G)
                     {
                         neighbor.G = newG;
                         neighbor.H = Heuristic(neighborPos, end);
                         neighbor.Parent = current;
-                        if (!_openList.Contains(neighbor)) _openList.Add(neighbor);
+                        if (!neighbor.InOpen)
+                        {
+                            neighbor.InOpen = true;
+                            _openHeap.Push(neighbor);
+                        }
+                        else
+                        {
+                            _openHeap.Update(neighbor);
+                        }
                     }
                 }
             }
@@ -121,6 +123,95 @@ namespace ZWebGLFrameWork.Combat
             public int G, H, F => G + H;
             public Node Parent;
             public bool Closed;
+            public bool InOpen;     // 是否在 open heap 中（替代 Contains 的 O(N) 查找）
+            public int HeapIndex = -1; // 在堆中的位置（用于 Update）
+        }
+
+        /// <summary>最小二叉堆 — O(log N) 插入/弹出，支持更新优先级</summary>
+        private class BinaryHeap
+        {
+            private readonly List<Node> _items = new();
+            public int Count => _items.Count;
+
+            public void Clear() => _items.Clear();
+
+            public void Push(Node node)
+            {
+                node.HeapIndex = _items.Count;
+                _items.Add(node);
+                SiftUp(_items.Count - 1);
+            }
+
+            public Node Pop()
+            {
+                var result = _items[0];
+                result.HeapIndex = -1;
+                result.InOpen = false;  // 标记已出堆，防止被误认为仍在堆中
+
+                int last = _items.Count - 1;
+                if (last > 0)
+                {
+                    _items[0] = _items[last];
+                    _items[0].HeapIndex = 0;
+                    _items.RemoveAt(last);
+                    SiftDown(0);
+                }
+                else
+                {
+                    _items.RemoveAt(last);
+                }
+                return result;
+            }
+
+            public void Update(Node node)
+            {
+                // 节点的 G 减小了，可能需要上浮
+                SiftUp(node.HeapIndex);
+            }
+
+            private void SiftUp(int idx)
+            {
+                while (idx > 0)
+                {
+                    int parent = (idx - 1) / 2;
+                    if (Compare(_items[idx], _items[parent]) >= 0) break;
+                    Swap(idx, parent);
+                    idx = parent;
+                }
+            }
+
+            private void SiftDown(int idx)
+            {
+                while (true)
+                {
+                    int left = idx * 2 + 1;
+                    int right = idx * 2 + 2;
+                    int smallest = idx;
+
+                    if (left < _items.Count && Compare(_items[left], _items[smallest]) < 0)
+                        smallest = left;
+                    if (right < _items.Count && Compare(_items[right], _items[smallest]) < 0)
+                        smallest = right;
+
+                    if (smallest == idx) break;
+                    Swap(idx, smallest);
+                    idx = smallest;
+                }
+            }
+
+            private void Swap(int a, int b)
+            {
+                (_items[a], _items[b]) = (_items[b], _items[a]);
+                _items[a].HeapIndex = a;
+                _items[b].HeapIndex = b;
+            }
+
+            private static int Compare(Node a, Node b)
+            {
+                int cmp = a.F.CompareTo(b.F);
+                if (cmp != 0) return cmp;
+                return a.H.CompareTo(b.H); // F 相同按 H 排序
+            }
         }
     }
 }

@@ -17,6 +17,12 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>防守方存活数</summary>
         public int DefenderAlive { get; private set; }
 
+        /// <summary>攻击方死亡数（本帧累计）</summary>
+        public int AttackerDead { get; private set; }
+
+        /// <summary>防守方死亡数（本帧累计）</summary>
+        public int DefenderDead { get; private set; }
+
         /// <summary>是否有阵营全灭</summary>
         public Team? Winner { get; private set; }
 
@@ -27,6 +33,8 @@ namespace ZWebGLFrameWork.Combat
         {
             AttackerAlive = 0;
             DefenderAlive = 0;
+            AttackerDead = 0;
+            DefenderDead = 0;
             Winner = null;
             _deadList.Clear();
 
@@ -45,15 +53,23 @@ namespace ZWebGLFrameWork.Combat
                 }
             });
 
-            int totalDefenders = _deadList.Count + DefenderAlive;
+            // 按阵营分别计数死亡单位
             foreach (var dead in _deadList)
             {
+                if (World.TryGetComponent<TeamComponent>(dead, out var team))
+                {
+                    if (team.TeamId == Team.Attacker) AttackerDead++;
+                    else if (team.TeamId == Team.Defender) DefenderDead++;
+                }
+
                 Debug.Log($"[DeathSystem] 单位死亡: {dead}");
                 World.DestroyEntity(dead);
             }
 
-            AttackerDestroyedPercent = totalDefenders > 0
-                ? (float)_deadList.Count / totalDefenders : 0f;
+            // 攻击方摧毁防守方的百分比 = 防守方死亡数 / 防守方总数
+            int defenderTotal = DefenderDead + DefenderAlive;
+            AttackerDestroyedPercent = defenderTotal > 0
+                ? (float)DefenderDead / defenderTotal : 0f;
 
             if (AttackerAlive == 0 && DefenderAlive > 0)
                 Winner = Team.Defender;
@@ -61,7 +77,7 @@ namespace ZWebGLFrameWork.Combat
                 Winner = Team.Attacker;
         }
 
-        /// <summary>攻击方摧毁百分比</summary>
+        /// <summary>攻击方摧毁防守方的百分比（0~1）</summary>
         public float AttackerDestroyedPercent { get; private set; }
 
         /// <summary>强制设置胜者（超时/外部干预）</summary>

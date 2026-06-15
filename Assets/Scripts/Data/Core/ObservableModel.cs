@@ -71,51 +71,58 @@ namespace ZWebGLFrameWork.Data
         /// <summary>所有字段名</summary>
         public IReadOnlyList<string> GetFieldNames() => _fieldNames;
 
-        /// <summary>生成快照字典</summary>
+        /// <summary>生成快照字典（通过 IObservableField 接口，零反射）</summary>
         public Dictionary<string, object> GetSnapshot()
         {
             var snapshot = new Dictionary<string, object>();
             foreach (var fieldName in _fieldNames)
             {
-                var observable = _fieldMap[fieldName];
-                var value = observable.GetType().GetProperty("Value")?.GetValue(observable);
-                snapshot[fieldName] = value;
+                if (_fieldMap.TryGetValue(fieldName, out var observable) &&
+                    observable is IObservableField field)
+                {
+                    snapshot[fieldName] = field.GetValue();
+                }
             }
             return snapshot;
         }
 
-        /// <summary>从快照静默恢复（不触发回调）</summary>
+        /// <summary>从快照静默恢复（不触发回调，通过 IObservableField 接口）</summary>
         public void RestoreSnapshot(Dictionary<string, object> snapshot)
         {
             foreach (var kv in snapshot)
             {
-                if (_fieldMap.TryGetValue(kv.Key, out var observable))
+                if (_fieldMap.TryGetValue(kv.Key, out var observable) &&
+                    observable is IObservableField field)
                 {
-                    var type = observable.GetType();
-                    var targetType = type.GetGenericArguments()[0];
-                    var setSilent = type.GetMethod("SetSilent");
                     try
                     {
-                        var val = Convert.ChangeType(kv.Value, targetType);
-                        setSilent?.Invoke(observable, new[] { val });
+                        if (field.ValueType.IsEnum && kv.Value is string enumStr)
+                            field.SetSilent(Enum.Parse(field.ValueType, enumStr));
+                        else
+                            field.SetSilent(kv.Value);
                     }
-                    catch { /* 类型不匹配，跳过 */ }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError(
+                            $"[ObservableModel.RestoreSnapshot] 字段 {kv.Key} 类型转换失败: " +
+                            $"value='{kv.Value}', targetType={field.ValueType.Name}. {ex.Message}");
+                    }
                 }
             }
         }
 
-        /// <summary>重置所有字段为默认值</summary>
+        /// <summary>重置所有字段为默认值（通过 IObservableField 接口）</summary>
         public virtual void Reset()
         {
             foreach (var fieldName in _fieldNames)
             {
-                var observable = _fieldMap[fieldName];
-                var type = observable.GetType();
-                var targetType = type.GetGenericArguments()[0];
-                var setSilent = type.GetMethod("SetSilent");
-                setSilent?.Invoke(observable, new[] {
-                    targetType.IsValueType ? Activator.CreateInstance(targetType) : null
-                });
+                if (_fieldMap.TryGetValue(fieldName, out var observable) &&
+                    observable is IObservableField field)
+                {
+                    object defaultValue = field.ValueType.IsValueType
+                        ? Activator.CreateInstance(field.ValueType) : null;
+                    field.SetSilent(defaultValue);
+                }
             }
         }
 

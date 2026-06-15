@@ -65,10 +65,22 @@ namespace ZWebGLFrameWork.FSM
                 },
             };
 
+        private bool _initialized;
+
         protected override void Awake()
         {
             base.Awake();
             InitializeFSM();
+        }
+
+        private void Start()
+        {
+            // 延迟到 Start 广播初始状态，确保其他模块的 Awake 已完成订阅
+            if (!_initialized && _fsm != null)
+            {
+                _initialized = true;
+                _fsm.ChangeState(GameState.Launch);
+            }
         }
 
         private void InitializeFSM()
@@ -86,9 +98,6 @@ namespace ZWebGLFrameWork.FSM
 
             // 监听内部状态变更，转发到 EventBus
             _fsm.OnStateChanged += OnInternalStateChanged;
-
-            // 默认进入启动状态
-            _fsm.ChangeState(GameState.Launch);
         }
 
         private void Update()

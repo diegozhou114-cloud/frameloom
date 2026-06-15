@@ -32,6 +32,15 @@ namespace ZWebGLFrameWork.Combat
             FreshBattle();
         }
 
+        private void Update()
+        {
+            // 驱动编排器帧循环（替代不可靠的 async Task.Yield）
+            if (_orchestrator.IsRunning)
+            {
+                _orchestrator.Tick(Time.deltaTime);
+            }
+        }
+
         /// <summary>以指定模式启动战斗</summary>
         public async Task StartBattleAsync(CombatMode mode)
         {
@@ -48,24 +57,24 @@ namespace ZWebGLFrameWork.Combat
             // 委托模式生成防守方
             mode.SpawnDefenders(_spawner, Data.DataManager.Instance.Village);
 
-            // 部署阶段
+            // 部署阶段（非阻塞，由 Update Tick 驱动）
             if (mode.AllowDeployment)
-                await _orchestrator.RunDeployPhase(mode.DeployTimeLimit);
+                await _orchestrator.RunDeployPhaseAsync(mode.DeployTimeLimit);
 
-            // 战斗阶段
-            await _orchestrator.RunBattlePhase(_systems, _ai, DeathSys, mode, _spawner);
+            // 战斗阶段（非阻塞，由 Update Tick 驱动）
+            await _orchestrator.RunBattlePhaseAsync(_systems, _ai, DeathSys, mode, _spawner);
 
             // 结算
             var winner = DeathSys.Winner ?? Team.Defender;
             var village = Data.DataManager.Instance.Village;
             int destroyed = village.Buildings.Count - DeathSys.DefenderAlive;
             var result = mode.CalculateResult(winner, village.Buildings.Count, destroyed,
-                Time.time); // battleDuration 从 Orchestrator 获取更精确
+                Time.time);
 
             EventBus.Publish(CombatOrchestrator.EventCombatEnded, result);
             Debug.Log($"[CombatManager] 结算: winner={result.Winner}, stars={result.Stars}");
 
-            await _orchestrator.RunEndPhase(result);
+            await _orchestrator.RunEndPhaseAsync(result);
             await _orchestrator.CleanupAsync(_systems);
             FreshBattle();
         }

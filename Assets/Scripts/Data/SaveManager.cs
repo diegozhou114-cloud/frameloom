@@ -81,7 +81,15 @@ namespace ZWebGLFrameWork.Data
         {
             var list = new List<SerializableKVP>();
             foreach (var kv in dict)
-                list.Add(new SerializableKVP { Key = kv.Key, Value = kv.Value?.ToString() ?? "" });
+            {
+                var val = kv.Value;
+                list.Add(new SerializableKVP
+                {
+                    Key = kv.Key,
+                    Value = val?.ToString() ?? "",
+                    TypeName = val?.GetType().Name ?? "null",
+                });
+            }
             return list;
         }
 
@@ -90,8 +98,26 @@ namespace ZWebGLFrameWork.Data
             var dict = new Dictionary<string, object>();
             if (list != null)
                 foreach (var kv in list)
-                    dict[kv.Key] = kv.Value;
+                    dict[kv.Key] = ParseTyped(kv.Value, kv.TypeName);
             return dict;
+        }
+
+        /// <summary>按类型名还原值（int/float/bool/enum 等常见类型）</summary>
+        private static object ParseTyped(string value, string typeName)
+        {
+            if (string.IsNullOrEmpty(value)) return null;
+
+            return typeName switch
+            {
+                "Int32" => int.TryParse(value, out var i) ? i : 0,
+                "Single" => float.TryParse(value,
+                    System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0f,
+                "Int64" => long.TryParse(value, out var l) ? l : 0L,
+                "Boolean" => bool.TryParse(value, out var b) && b,
+                "String" => value,
+                _ => value, // 枚举和其他类型由 ObservableModel.RestoreSnapshot 处理
+            };
         }
 
         // ==================== 加载 ====================
@@ -178,5 +204,6 @@ namespace ZWebGLFrameWork.Data
     {
         public string Key;
         public string Value;
+        public string TypeName;
     }
 }

@@ -46,6 +46,15 @@ namespace ZWebGLFrameWork.Core
             => Instance.Publish(eventKey, arg1, arg2);
         public static void ClearAll() => Instance.ClearAll();
         public static int TotalEventCount => Instance.TotalEventCount;
+
+        // ==================== 类型安全 EventKey 重载 ====================
+
+        public static void Subscribe<T>(EventKey<T> key, Action<T> handler)
+            => Instance.Subscribe(key.Key, handler);
+        public static void Unsubscribe<T>(EventKey<T> key, Action<T> handler)
+            => Instance.Unsubscribe(key.Key, handler);
+        public static void Publish<T>(EventKey<T> key, T arg)
+            => Instance.Publish(key.Key, arg);
     }
 
     /// <summary>EventBus 默认实现</summary>

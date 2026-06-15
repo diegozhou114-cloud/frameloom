@@ -42,7 +42,7 @@ namespace ZWebGLFrameWork.Combat
                 // 开火！attack 已通过 ref 原位修改，无需写回
                 attack.LastAttackTime = _currentTime;
 
-                World.EnqueueDamageEvent(new DamageEvent
+                World.EnqueueEvent(new DamageEvent
                 {
                     Amount = attack.Damage,
                     Attacker = entity,
