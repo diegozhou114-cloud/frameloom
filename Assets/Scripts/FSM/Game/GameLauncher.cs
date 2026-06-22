@@ -129,18 +129,23 @@ namespace ZWebGLFrameWork.FSM
                 ? "⚠ 降级默认值（.asset 未加载）"
                 : "✅ 策划配置";
 
+            var platformInfo = Config.EnablePlatformAutoDetect
+                ? $"平台自适应已激活 → 帧率:{Config.RuntimeFrameRate} 画质:{Config.RuntimeQualityLevel}"
+                : "平台自适应未启用（使用原始配置值）";
+
             Debug.Log(
                 "\n══════════════════════════════════════════\n"
                 + $"         AppConfig 运行时验证  [{status}]\n"
                 + "──────────────────────────────────────────\n"
+                + $"  ⓪ 平台自适应       : {platformInfo}\n"
                 + $"  ① 目标帧率         : {Application.targetFrameRate}"
-                + $"  ← Config: {Config.TargetFrameRate}\n"
+                + $"  (Config原始:{Config.TargetFrameRate})\n"
                 + $"  ② 垂直同步         : {QualitySettings.vSyncCount}"
                 + $"  ← Config: {Config.VSyncCount}\n"
                 + $"  ③ 允许后台运行     : {Application.runInBackground}"
                 + $"  ← Config: {Config.RunInBackground}\n"
                 + $"  ④ 画质等级         : {QualitySettings.GetQualityLevel()}"
-                + $"  ← Config: {Config.QualityLevel}\n"
+                + $"  (Config原始:{Config.QualityLevel})\n"
                 + $"  ⑤ 日志最低等级     : {LogManager.MinLevel}"
                 + $"  ← Config: {Config.MinLogLevel}\n"
                 + $"  ⑥ 加载模式         : {Config.LoadingMode}"
@@ -149,9 +154,9 @@ namespace ZWebGLFrameWork.FSM
                 + $"  → {Config.BackgroundFrameRate} FPS"
                 + "  （OnApplicationFocus 读取）\n"
                 + $"  ⑧ WebGL 内存       : {Config.WebGLMemorySize} MB"
-                + "  （构建时生效，运行时仅展示）\n"
+                + "  （构建时生效）\n"
                 + $"  ⑨ WebGL 异常模式   : {Config.WebGLExceptionMode}"
-                + "  （构建时生效，运行时仅展示）\n"
+                + "  （构建时生效）\n"
                 + $"  ⑩ 配置来源         : {(Config.IsDefaultInstance ? "CreateInstance 默认值" : "Resources/.asset")}\n"
                 + "══════════════════════════════════════════");
         }

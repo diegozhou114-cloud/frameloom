@@ -3,7 +3,8 @@
     "rootNamespace": "ZWebGLFrameWork.FSM",
     "references": [
         "ZWebGLFrameWork.Core",
-        "ZWebGLFrameWork.Data"
+        "ZWebGLFrameWork.Data",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -22,9 +22,19 @@ namespace ZWebGLFrameWork.Editor
             EditorGUILayout.Space(2);
 
             EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_enablePlatformAutoDetect"),
+                new GUIContent("平台自适应", "开启后根据平台自动调整帧率/画质，覆盖下方手动配置"));
+            EditorGUILayout.HelpBox(cfg.EnablePlatformAutoDetect
+                ? "✅ 已开启 — 移动端→30FPS+低画质  WebGL→30FPS+低画质  桌面端→60FPS+中画质"
+                : "⏭ 未开启 — 使用下方手动配置的值", MessageType.None);
+
+            EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_targetFrameRate"),
-                new GUIContent("目标帧率", "0=平台默认  -1=不限  30/60/120=固定（移动端建议30，桌面端60）"));
-            EditorGUILayout.HelpBox("0=平台默认，-1=不限制，30/60/120=固定刷新率", MessageType.None);
+                new GUIContent("目标帧率", "0=平台自适应，-1=不限制，30/60/120=固定"));
+            string frameHint = cfg.EnablePlatformAutoDetect
+                ? "⚠ 平台自适应已开启，此值被覆盖。运行时帧率由平台决定"
+                : "0=平台自适应，-1=不限制，30/60/120=固定刷新率";
+            EditorGUILayout.HelpBox(frameHint, cfg.EnablePlatformAutoDetect ? MessageType.Warning : MessageType.None);
 
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_vSyncCount"),
@@ -59,13 +69,53 @@ namespace ZWebGLFrameWork.Editor
 
             EditorGUILayout.Space(8);
 
-            // ===== 加载 =====
-            EditorGUILayout.LabelField("━ 加载 · 资源初始化策略 ━", EditorStyles.boldLabel);
+            // ===== 功能开关 =====
+            EditorGUILayout.LabelField("━ 功能开关 · 模块启停（本地测试可关闭）━", EditorStyles.boldLabel);
             EditorGUILayout.Space(2);
 
             EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_enableHotUpdate"),
+                new GUIContent("启用热更新", "关闭后跳过版本检查与资源下载，直接进入登录"));
+            EditorGUILayout.HelpBox(cfg.EnableHotUpdate
+                ? "✅ 线上模式 — 启动时检查版本并下载热更包"
+                : "⏭ 本地模式 — 跳过热更，直接进入登录", MessageType.None);
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_enableAudio"),
+                new GUIContent("启用音频", "关闭后 AudioManager 不初始化，静音运行"));
+            EditorGUILayout.HelpBox(cfg.EnableAudio ? "✅ 正常播放音效/BGM" : "⏭ 静音模式", MessageType.None);
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_enableSDK"),
+                new GUIContent("启用 SDK", "关闭后跳过第三方 SDK 初始化（广告/统计/支付）"));
+            EditorGUILayout.HelpBox(cfg.EnableSDK ? "✅ 初始化全部已注册 SDK" : "⏭ 本地开发模式，SDK 不加载", MessageType.None);
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_enableLocalization"),
+                new GUIContent("启用多语言", "关闭后文本使用 key 原名，不加载语言表"));
+            EditorGUILayout.HelpBox(cfg.EnableLocalization ? "✅ 加载语言表，按 key 翻译" : "⏭ 直接显示 key 原名", MessageType.None);
+
+            EditorGUILayout.Space(8);
+
+            // ===== 资源 =====
+            EditorGUILayout.LabelField("━ 资源 · 加载方式与策略 ━", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("_resourceProvider"),
+                new GUIContent("资源提供者", "底层从何处加载资源"));
+            string providerHint = cfg.ResourceProvider switch
+            {
+                ResourceProviderType.Resources    => "📁 Resources 目录 — 本地开发，无需打包，即改即用",
+                ResourceProviderType.AssetBundle  => "📦 AssetBundle 包 — 热更模式，从 StreamingAssets 或下载目录加载",
+                ResourceProviderType.Addressables => "☁ Addressables — 生产环境，支持远程资源与增量更新",
+                _                                 => "",
+            };
+            EditorGUILayout.HelpBox(providerHint, MessageType.Info);
+
+            EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_loadingMode"),
-                new GUIContent("加载模式", "游戏启动时的资源加载策略"));
+                new GUIContent("加载策略", "游戏启动时的异步加载策略"));
             string loadingHint = cfg.LoadingMode switch
             {
                 LoadingMode.Sequential => "顺序加载：按依赖链逐个加载 → 启动慢但内存稳，适合低端设备",
