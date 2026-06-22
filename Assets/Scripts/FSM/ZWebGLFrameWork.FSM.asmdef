@@ -2,7 +2,8 @@
     "name": "ZWebGLFrameWork.FSM",
     "rootNamespace": "ZWebGLFrameWork.FSM",
     "references": [
-        "ZWebGLFrameWork.Core"
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

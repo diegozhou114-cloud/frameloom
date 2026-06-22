@@ -1,5 +1,6 @@
 using UnityEngine;
 using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.Data;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -15,7 +16,17 @@ namespace ZWebGLFrameWork.FSM
 
             EventBus.Publish("LaunchStarted");
 
-            // 使用 CoroutineManager 替代 async void，保持 FSM 生命周期同步
+            var config = GameLauncher.Config;
+            var mode = config?.LoadingMode ?? LoadingMode.Sequential;
+
+            Debug.Log($"[LaunchState] 加载模式: {mode}");
+
+            // TODO: 根据加载模式执行不同的资源初始化策略
+            // Sequential → 顺序加载核心模块
+            // Parallel   → 并行加载（配合 AsyncManager）
+            // Lazy       → 仅加载最小集，其余按需
+
+            // 当前版本：0.5s 后进入 Login
             CoroutineManager.Delay(0.5f, () => ChangeState(GameState.Login));
         }
 
