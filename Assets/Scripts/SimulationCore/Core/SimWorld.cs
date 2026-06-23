@@ -1,0 +1,157 @@
+using System;
+using System.Collections.Generic;
+
+namespace ZWebGLFrameWork.SimulationCore
+{
+    /// <summary>
+    /// 确定性仿真世界 — 管理所有 SimEntity 和 SimComponentPool。
+    /// 零 UnityEngine 依赖，可在 .NET Core 服务器上运行。
+    /// </summary>
+    public class SimWorld
+    {
+        private readonly ISimLogger _logger;
+
+        public int EntityCount => _entities.Count;
+
+        /// <summary>实体创建/销毁事件 — 表现层同步用</summary>
+        public event Action<SimEntity> OnEntityCreated;
+        public event Action<SimEntity> OnEntityDestroyed;
+
+        private readonly List<SimEntity> _entities = new List<SimEntity>();
+        private int _nextId;
+        private int[] _generations;
+        private readonly Dictionary<Type, ISimComponentPool> _componentPools = new Dictionary<Type, ISimComponentPool>();
+
+        public SimWorld(int initialCapacity = 256, ISimLogger logger = null)
+        {
+            _logger = logger;
+            _generations = new int[initialCapacity];
+        }
+
+        // ==================== Entity 生命周期 ====================
+
+        /// <summary>
+        /// 创建实体。ID 单调递增，确保确定性顺序。
+        /// （不复用 freeIds — Queue 的出队顺序取决于销毁顺序，破坏确定性。）
+        /// </summary>
+        public SimEntity CreateEntity()
+        {
+            int id = _nextId++;
+            if (id >= _generations.Length)
+                Array.Resize(ref _generations, _generations.Length * 2);
+            _generations[id] = _generations[id] + 1;
+
+            var entity = new SimEntity(id, _generations[id]);
+            _entities.Add(entity);
+            OnEntityCreated?.Invoke(entity);
+            return entity;
+        }
+
+        public void DestroyEntity(SimEntity entity)
+        {
+            if (!entity.IsValid) return;
+            foreach (var pool in _componentPools.Values)
+                pool.Remove(entity);
+            _entities.RemoveAll(e => e == entity);
+            OnEntityDestroyed?.Invoke(entity);
+        }
+
+        // ==================== 组件操作 ====================
+
+        public void AddComponent<T>(SimEntity entity, T component) where T : struct, ISimComponent
+            => GetPool<T>().Add(entity, component);
+
+        public ref T GetComponent<T>(SimEntity entity) where T : struct, ISimComponent
+            => ref GetPool<T>().Get(entity);
+
+        public bool TryGetComponent<T>(SimEntity entity, out T component) where T : struct, ISimComponent
+            => GetPool<T>().TryGet(entity, out component);
+
+        public bool HasComponent<T>(SimEntity entity) where T : struct, ISimComponent
+            => GetPool<T>().Has(entity);
+
+        public void RemoveComponent<T>(SimEntity entity) where T : struct, ISimComponent
+            => GetPool<T>().Remove(entity);
+
+        public void SetComponent<T>(SimEntity entity, T component) where T : struct, ISimComponent
+            => GetPool<T>().Set(entity, component);
+
+        // ==================== 遍历 ====================
+
+        public IEnumerable<SimEntity> GetEntitiesWith<T>() where T : struct, ISimComponent
+            => GetPool<T>().GetEntities();
+
+        // ==================== 状态校验 ====================
+
+        /// <summary>
+        /// 计算当前世界状态的全量哈希 — FNV-1a 遍历所有组件池。
+        /// 用于帧同步 Checksum 比对。
+        /// </summary>
+        public ulong ComputeChecksum()
+        {
+            ulong hash = 14695981039346656037UL; // FNV-1a offset basis
+            hash ^= (ulong)_entities.Count;
+            hash *= 1099511628211UL;
+            foreach (var kv in _componentPools)
+            {
+                hash = kv.Value.AccumulateHash(hash);
+            }
+            return hash;
+        }
+
+        // ==================== 快照（预留 FrameSync 回滚） ====================
+
+        /// <summary>导出当前实体元数据快照</summary>
+        public SimWorldSnapshot ExportSnapshot()
+        {
+            return new SimWorldSnapshot(_nextId, (int[])_generations.Clone(), _entities.ToArray());
+        }
+
+        /// <summary>从快照恢复实体元数据</summary>
+        public void RestoreFrom(SimWorldSnapshot snapshot)
+        {
+            ClearPools();
+            _nextId = snapshot.NextId;
+            _generations = (int[])snapshot.Generations.Clone();
+            _entities.Clear();
+            _entities.AddRange(snapshot.Entities);
+            // 组件数据恢复在 Phase 5c (FrameSync) 完善
+        }
+
+        // ==================== 清理 ====================
+
+        public void ClearPools()
+        {
+            foreach (var pool in _componentPools.Values)
+                pool.Clear();
+        }
+
+        // ==================== 内部 ====================
+
+        private SimComponentPool<T> GetPool<T>() where T : struct, ISimComponent
+        {
+            var type = typeof(T);
+            if (!_componentPools.TryGetValue(type, out var pool))
+            {
+                pool = new SimComponentPool<T>(_generations.Length);
+                _componentPools[type] = pool;
+            }
+            return (SimComponentPool<T>)pool;
+        }
+    }
+
+    /// <summary>仿真世界快照 — 用于回滚恢复（Phase 5c 完善）</summary>
+    public struct SimWorldSnapshot
+    {
+        public int NextId;
+        public int[] Generations;
+        public SimEntity[] Entities;
+
+        public SimWorldSnapshot(int nextId, int[] generations, SimEntity[] entities)
+        {
+            NextId = nextId;
+            Generations = generations;
+            Entities = entities;
+        }
+    }
+}
