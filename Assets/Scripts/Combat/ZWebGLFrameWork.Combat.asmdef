@@ -6,6 +6,7 @@
         "ZWebGLFrameWork.ECS",
         "ZWebGLFrameWork.Data",
         "ZWebGLFrameWork.Gameplay",
+        "ZWebGLFrameWork.SimulationCore",
         "UniTask"
     ],
     "includePlatforms": [],
