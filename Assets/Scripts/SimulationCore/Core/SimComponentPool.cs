@@ -1,0 +1,215 @@
+using System;
+using System.Collections.Generic;
+
+namespace ZWebGLFrameWork.SimulationCore
+{
+    /// <summary>
+    /// SparseSet 组件池 — 确定性遍历顺序（= 创建顺序），O(1) 增删查。
+    /// 与现有 ComponentPool&lt;T&gt; 完全一致，但 AccumulateHash 用于状态校验。
+    /// </summary>
+    internal class SimComponentPool<T> : ISimComponentPool where T : struct, ISimComponent
+    {
+        private int[] _sparse;
+        private SimEntity[] _denseEntities;
+        private T[] _denseComponents;
+        private int _count;
+
+        public int Count => _count;
+
+        public SimComponentPool(int initialCapacity)
+        {
+            _sparse = new int[initialCapacity];
+            for (int i = 0; i < initialCapacity; i++) _sparse[i] = -1;
+            _denseEntities = new SimEntity[initialCapacity];
+            _denseComponents = new T[initialCapacity];
+        }
+
+        public void Add(SimEntity entity, T component)
+        {
+            if (Has(entity)) return;
+            int id = entity.Id;
+            if (id >= _sparse.Length) ResizeSparse(id + 1);
+            if (_count >= _denseEntities.Length) ResizeDense(_count * 2);
+            _sparse[id] = _count;
+            _denseEntities[_count] = entity;
+            _denseComponents[_count] = component;
+            _count++;
+        }
+
+        public void Set(SimEntity entity, T component)
+        {
+            int id = entity.Id;
+            if (id < _sparse.Length)
+            {
+                int idx = _sparse[id];
+                if (idx >= 0 && idx < _count && _denseEntities[idx] == entity)
+                {
+                    _denseComponents[idx] = component;
+                    return;
+                }
+            }
+            Add(entity, component);
+        }
+
+        public ref T Get(SimEntity entity)
+        {
+            int idx = _sparse[entity.Id];
+            if (idx < 0 || idx >= _count || _denseEntities[idx] != entity)
+                throw new InvalidOperationException($"SimEntity {entity} does not have component {typeof(T).Name}");
+            return ref _denseComponents[idx];
+        }
+
+        public bool TryGet(SimEntity entity, out T component)
+        {
+            int id = entity.Id;
+            if (id < _sparse.Length)
+            {
+                int idx = _sparse[id];
+                if (idx >= 0 && idx < _count && _denseEntities[idx] == entity)
+                {
+                    component = _denseComponents[idx];
+                    return true;
+                }
+            }
+            component = default;
+            return false;
+        }
+
+        public bool Has(SimEntity entity)
+        {
+            int id = entity.Id;
+            return id < _sparse.Length && _sparse[id] >= 0
+                && _sparse[id] < _count && _denseEntities[_sparse[id]] == entity;
+        }
+
+        public void Remove(SimEntity entity)
+        {
+            if (!Has(entity)) return;
+            int idx = _sparse[entity.Id];
+            int lastIdx = _count - 1;
+            if (idx != lastIdx)
+            {
+                _denseEntities[idx] = _denseEntities[lastIdx];
+                _denseComponents[idx] = _denseComponents[lastIdx];
+                _sparse[_denseEntities[lastIdx].Id] = idx;
+            }
+            _sparse[entity.Id] = -1;
+            _count--;
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < _count; i++)
+                _sparse[_denseEntities[i].Id] = -1;
+            _count = 0;
+        }
+
+        // ==================== 遍历 ====================
+
+        public IEnumerable<SimEntity> GetEntities()
+        {
+            for (int i = 0; i < _count; i++)
+                yield return _denseEntities[i];
+        }
+
+        public void ForEach(Action<SimEntity> action)
+        {
+            for (int i = 0; i < _count; i++)
+                action(_denseEntities[i]);
+        }
+
+        public delegate void ValAction<TA, TB>(TA arg1, TB arg2);
+        public delegate void RefAction<TA, TB>(TA arg1, ref TB arg2);
+        public delegate void RefPairAction<TA, TB, TC>(TA arg1, ref TB arg2, ref TC arg3);
+
+        public void ForEach(ValAction<SimEntity, T> action)
+        {
+            for (int i = 0; i < _count; i++)
+                action(_denseEntities[i], _denseComponents[i]);
+        }
+
+        public void ForEach(RefAction<SimEntity, T> action)
+        {
+            for (int i = 0; i < _count; i++)
+                action(_denseEntities[i], ref _denseComponents[i]);
+        }
+
+        /// <summary>
+        /// 联合遍历：遍历本池所有实体，对同时存在于 otherPool 的实体执行 action。
+        /// 用于双组件系统（如 MovementSystem 需要 Position + Velocity）。
+        /// </summary>
+        internal void ForEachRefPair<TOther>(SimComponentPool<TOther> otherPool,
+            RefPairAction<SimEntity, T, TOther> action) where TOther : struct, ISimComponent
+        {
+            for (int i = 0; i < _count; i++)
+            {
+                var entity = _denseEntities[i];
+                int id = entity.Id;
+                if (id < otherPool._sparse.Length)
+                {
+                    int otherIdx = otherPool._sparse[id];
+                    if (otherIdx >= 0 && otherIdx < otherPool._count
+                        && otherPool._denseEntities[otherIdx] == entity)
+                    {
+                        action(entity, ref _denseComponents[i],
+                            ref otherPool._denseComponents[otherIdx]);
+                    }
+                }
+            }
+        }
+
+        // ==================== 状态哈希 ====================
+
+        public ulong AccumulateHash(ulong hash)
+        {
+            const ulong FNVPrime = 1099511628211UL;
+            for (int i = 0; i < _count; i++)
+            {
+                hash ^= (ulong)_denseEntities[i].Id;
+                hash *= FNVPrime;
+                hash ^= (ulong)_denseEntities[i].Generation;
+                hash *= FNVPrime;
+
+                byte[] bytes = StructToBytes(_denseComponents[i]);
+                foreach (byte b in bytes)
+                {
+                    hash ^= b;
+                    hash *= FNVPrime;
+                }
+            }
+            return hash;
+        }
+
+        private static byte[] StructToBytes(T value)
+        {
+            int size = System.Runtime.InteropServices.Marshal.SizeOf<T>();
+            byte[] bytes = new byte[size];
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+            try
+            {
+                System.Runtime.InteropServices.Marshal.StructureToPtr(value, ptr, false);
+                System.Runtime.InteropServices.Marshal.Copy(ptr, bytes, 0, size);
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
+            }
+            return bytes;
+        }
+
+        // ==================== 内部 ====================
+
+        private void ResizeSparse(int newSize)
+        {
+            int old = _sparse.Length;
+            Array.Resize(ref _sparse, newSize);
+            for (int i = old; i < newSize; i++) _sparse[i] = -1;
+        }
+
+        private void ResizeDense(int newSize)
+        {
+            Array.Resize(ref _denseEntities, newSize);
+            Array.Resize(ref _denseComponents, newSize);
+        }
+    }
+}
