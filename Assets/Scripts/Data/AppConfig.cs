@@ -71,6 +71,11 @@ namespace ZWebGLFrameWork.Data
         [SerializeField] private bool _enableOfflineMode = true;
         public bool EnableOfflineMode => _enableOfflineMode;
 
+        /// <summary>是否启用 SimulationCore 战斗引擎：关闭=走老 CombatManager，开启=走新 SimCore</summary>
+        [Tooltip("开启后战斗走 SimulationCore 确定性仿真引擎")]
+        [SerializeField] private bool _useSimulationCore = false;
+        public bool UseSimulationCore => _useSimulationCore;
+
         /// <summary>默认服务器地址（联网模式使用）</summary>
         [Tooltip("默认连接的服务器主机名或IP")]
         [SerializeField] private string _defaultServerHost = "127.0.0.1";
