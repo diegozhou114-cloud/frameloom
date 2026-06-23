@@ -10,11 +10,15 @@ namespace ZWebGLFrameWork.Data
     /// </summary>
     public static class GameInitializer
     {
-        private const string FirstLaunchKey = "Game_FirstLaunchDone";
-
-        /// <summary>是否已完成首次初始化（任意槽位有存档即视为已初始化）</summary>
-        public static bool IsFirstLaunchDone =>
-            PlayerPrefs.GetInt(FirstLaunchKey, 0) == 1;
+        /// <summary>是否有任何存档存在</summary>
+        public static bool HasAnySave()
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (SaveManager.Exists(i)) return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// 确保当前槽位存在存档。若不存在则创建默认新手数据并保存。
@@ -49,27 +53,19 @@ namespace ZWebGLFrameWork.Data
                 Exp = 0,
                 Buildings = new List<BuildingSaveData>
                 {
-                    new BuildingSaveData { TypeId = 1, GridX = 22, GridY = 20, Level = 1 }, // Town Hall
-                    new BuildingSaveData { TypeId = 2, GridX = 18, GridY = 16, Level = 1 }, // Gold Mine
-                    new BuildingSaveData { TypeId = 3, GridX = 26, GridY = 16, Level = 1 }, // Elixir Collector
-                    new BuildingSaveData { TypeId = 5, GridX = 15, GridY = 24, Level = 1 }, // Cannon
+                    new BuildingSaveData { TypeId = 1, GridX = 20, GridY = 22, Level = 1 }, // Town Hall (中心)
+                    new BuildingSaveData { TypeId = 2, GridX = 16, GridY = 26, Level = 1 }, // Gold Mine (左上)
+                    new BuildingSaveData { TypeId = 3, GridX = 24, GridY = 26, Level = 1 }, // Elixir Collector (右上)
+                    new BuildingSaveData { TypeId = 5, GridX = 16, GridY = 18, Level = 1 }, // Cannon (左下)
                 },
                 SaveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
             SaveManager.Save(saveData, slot);
-            PlayerPrefs.SetInt(FirstLaunchKey, 1);
-            PlayerPrefs.Save();
 
             Debug.Log($"[GameInitializer] ✅ 默认存档已创建 slot={slot}: " +
                       $"{saveData.PlayerName} Lv.{saveData.PlayerLevel}");
         }
 
-        /// <summary>重置首次启动标记（调试用）</summary>
-        public static void ResetFirstLaunchFlag()
-        {
-            PlayerPrefs.DeleteKey(FirstLaunchKey);
-            PlayerPrefs.Save();
-        }
     }
 }

@@ -14,7 +14,6 @@ namespace ZWebGLFrameWork.FSM
     public class MainVillageState : FSMState<GameState>
     {
         private ResourceProducer _resourceProducer;
-        private BuildingInteraction _buildingInteraction;
 
         public MainVillageState() : base(GameState.MainVillage) { }
 
@@ -39,9 +38,6 @@ namespace ZWebGLFrameWork.FSM
 
             // ④ 订阅 HUD 攻击按钮事件
             EventBus.Subscribe("MainVillage_Attack", OnAttackClicked);
-
-            // ⑤ 查找场景中的 BuildingInteraction
-            _buildingInteraction = Object.FindObjectOfType<BuildingInteraction>();
 
             EventBus.Publish("MainVillageEntered");
         }

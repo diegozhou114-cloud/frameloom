@@ -43,6 +43,17 @@ namespace ZWebGLFrameWork.FSM
                     Progress = SceneLoader.Instance.Progress;
                     yield return null;
                 }
+
+                // 场景加载失败处理
+                if (loadTask.Status == UniTaskStatus.Faulted)
+                {
+                    Debug.LogError($"[LoadingState] ❌ 场景加载失败: {payload.TargetScene}");
+                    Progress = 0f;
+                    EventBus.Publish("LoadingFailed");
+                    ChangeState(GameState.MainVillage); // 回退到主城
+                    _activeCoroutine = null;
+                    yield break;
+                }
             }
             else
             {

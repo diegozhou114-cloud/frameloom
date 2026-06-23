@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
@@ -21,6 +22,10 @@ namespace ZWebGLFrameWork.FSM
             Debug.Log("[GameFSM] 进入登录状态");
             EventBus.Publish("LoginStarted");
 
+            // 统一注册网络状态监听（联网和离线共用，避免在 EventBus 回调中修改订阅）
+            EventBus.Subscribe<NetworkStateChangedEvent>(
+                NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
+
             var cfg = GameLauncher.Config;
 
             // 离线模式：完全跳过网络，直接使用本地存档
@@ -43,7 +48,9 @@ namespace ZWebGLFrameWork.FSM
         {
             EventBus.Unsubscribe(LoginEvents.GuestLogin, OnGuestLogin);
             EventBus.Unsubscribe(LoginEvents.OfflineLogin, OnOfflineLogin);
-            EventBus.Unsubscribe<int>("CharacterSelected", OnCharacterSelected);
+            EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+            EventBus.Unsubscribe<NetworkStateChangedEvent>(
+                NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
             UIManager.Instance.Close<LoginPanel>();
             UIManager.Instance.Close<CharacterSelectPanel>();
             base.OnExit();
@@ -51,7 +58,7 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== 事件回调 ====================
 
-        private void OnGuestLogin()
+        private async void OnGuestLogin()
         {
             UIManager.Instance.Close<LoginPanel>();
 
@@ -59,10 +66,19 @@ namespace ZWebGLFrameWork.FSM
             string host = cfg?.DefaultServerHost ?? "127.0.0.1";
             int port = cfg?.DefaultServerPort ?? 7777;
 
-            EventBus.Subscribe<NetworkStateChangedEvent>(
-                NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
-
+            // NetworkStateChanged 已在 OnEnter 中统一注册，此处不再重复 Subscribe
             NetworkManager.Instance.Connect(NetworkProtocol.TCP, host, port);
+
+            // 10 秒超时检测
+            await UniTask.Delay(10000);
+
+            if (!NetworkManager.Instance.IsConnected)
+            {
+                NetworkManager.Instance.Disconnect();
+                Debug.LogError("[LoginState] ⏰ 连接超时");
+                UIManager.Instance.Open<LoginPanel>();
+                EventBus.Publish(LoginEvents.LoginError, "连接超时，请检查网络后重试");
+            }
         }
 
         private void OnOfflineLogin()
@@ -83,14 +99,14 @@ namespace ZWebGLFrameWork.FSM
             }
             else
             {
-                EventBus.Subscribe<int>("CharacterSelected", OnCharacterSelected);
+                EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
                 UIManager.Instance.Open<CharacterSelectPanel>();
             }
         }
 
         private void OnCharacterSelected(int slot)
         {
-            EventBus.Unsubscribe<int>("CharacterSelected", OnCharacterSelected);
+            EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
             Debug.Log($"[LoginState] 角色已选择 slot={slot}");
             SaveManager.LoadToDataManager(slot);
             ChangeState(GameState.MainVillage);
@@ -100,20 +116,16 @@ namespace ZWebGLFrameWork.FSM
         {
             if (evt.NewState == ConnectionState.Connected)
             {
-                EventBus.Unsubscribe<NetworkStateChangedEvent>(
-                    NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
                 Debug.Log("[LoginState] ✅ 服务器连接成功 → MainVillage");
                 ChangeState(GameState.MainVillage);
             }
             else if (evt.NewState == ConnectionState.Disconnected
                      && !string.IsNullOrEmpty(evt.Message))
             {
-                EventBus.Unsubscribe<NetworkStateChangedEvent>(
-                    NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
                 Debug.LogError($"[LoginState] ❌ 连接失败: {evt.Message}");
                 // 重新打开登录面板并显示错误
                 UIManager.Instance.Open<LoginPanel>();
-                EventBus.Publish("LoginError", evt.Message);
+                EventBus.Publish(LoginEvents.LoginError, evt.Message);
             }
         }
 

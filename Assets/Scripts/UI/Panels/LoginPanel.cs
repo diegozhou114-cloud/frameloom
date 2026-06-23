@@ -13,14 +13,14 @@ namespace ZWebGLFrameWork.UI
         protected override void OnOpen(object data)
         {
             BuildUI();
-            EventBus.Subscribe<string>("LoginError", ShowError);
+            EventBus.Subscribe<string>(LoginEvents.LoginError, ShowError);
             if (data is string error)
                 ShowError(error);
         }
 
         protected override void OnClose()
         {
-            EventBus.Unsubscribe<string>("LoginError", ShowError);
+            EventBus.Unsubscribe<string>(LoginEvents.LoginError, ShowError);
         }
 
         private void BuildUI()

@@ -118,6 +118,13 @@ namespace ZWebGLFrameWork.ECS
 
         // ==================== 兼容旧 API ====================
 
+        /// <summary>清空所有组件池（场景切换时调用）</summary>
+        public void ClearPools()
+        {
+            foreach (var pool in _componentPools.Values)
+                pool.Clear();
+        }
+
         [Obsolete("使用 EnqueueEvent<DamageEvent> 替代")]
         public void EnqueueDamageEvent(DamageEvent evt) => EnqueueEvent(evt);
 
@@ -220,6 +227,13 @@ namespace ZWebGLFrameWork.ECS
             }
             _sparse[entity.Id] = -1;
             _count--;
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < _count; i++)
+                _sparse[_denseEntities[i].Id] = -1;
+            _count = 0;
         }
 
         public IEnumerable<Entity> GetEntities() { for (int i = 0; i < _count; i++) yield return _denseEntities[i]; }

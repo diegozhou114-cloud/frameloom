@@ -31,6 +31,7 @@ namespace ZWebGLFrameWork.FSM
                     {
                         GameState.Login,
                         GameState.Loading,
+                        GameState.MainVillage,  // 离线模式直通
                     }
                 },
                 {

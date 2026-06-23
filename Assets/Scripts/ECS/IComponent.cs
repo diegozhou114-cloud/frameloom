@@ -10,5 +10,6 @@ namespace ZWebGLFrameWork.ECS
     internal interface IComponentPool
     {
         void Remove(Entity entity);
+        void Clear();
     }
 }

@@ -81,7 +81,7 @@ namespace ZWebGLFrameWork.UI
             }
 
             // 通过 EventBus 通知 LoginState：角色已选择，槽位 N
-            EventBus.Publish("CharacterSelected", slot);
+            EventBus.Publish(LoginEvents.CharacterSelected, slot);
         }
 
         private Text CreateText(string name, string text, int fontSize,

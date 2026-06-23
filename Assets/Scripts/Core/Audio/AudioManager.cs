@@ -18,7 +18,11 @@ namespace ZWebGLFrameWork.Core
 
         [Header("音频源")]
         [SerializeField] private AudioSource _bgmSource;
-        [SerializeField] private AudioSource _sfxSource;
+
+        // SFX 对象池 — 4 通道轮询，避免音效互相截断
+        private AudioSource[] _sfxPool;
+        private int _sfxIndex;
+        private const int SfxPoolSize = 4;
 
         [Header("音量（0~1）")]
         [SerializeField] [Range(0f, 1f)] private float _masterVolume = 1f;
@@ -33,13 +37,13 @@ namespace ZWebGLFrameWork.Core
 
         /// <summary>
         /// 初始化音频管理器。
-        /// TODO: 从 AppConfig 读取默认音量。
-        /// TODO: 创建 AudioSource 对象池（默认 4 个 SFX 通道）。
         /// </summary>
         public bool Init()
         {
             try
             {
+                // 音量使用 Inspector 默认值，后续可通过 SetMasterVolume/SetBGMVolume/SetSFXVolume 运行时调整
+
                 if (_bgmSource == null)
                 {
                     var go = new GameObject("BGM_Source");
@@ -49,13 +53,16 @@ namespace ZWebGLFrameWork.Core
                     _bgmSource.playOnAwake = false;
                 }
 
-                if (_sfxSource == null)
+                // 创建 SFX 对象池
+                _sfxPool = new AudioSource[SfxPoolSize];
+                for (int i = 0; i < SfxPoolSize; i++)
                 {
-                    var go = new GameObject("SFX_Source");
+                    var go = new GameObject($"SFX_Source_{i}");
                     go.transform.SetParent(transform);
-                    _sfxSource = go.AddComponent<AudioSource>();
-                    _sfxSource.loop = false;
-                    _sfxSource.playOnAwake = false;
+                    var src = go.AddComponent<AudioSource>();
+                    src.loop = false;
+                    src.playOnAwake = false;
+                    _sfxPool[i] = src;
                 }
 
                 ApplyVolumes();
@@ -91,11 +98,20 @@ namespace ZWebGLFrameWork.Core
 
         // ==================== SFX ====================
 
-        /// <summary>播放音效（一次性）</summary>
+        /// <summary>播放音效（一次性，轮询池）</summary>
         public void PlaySFX(AudioClip clip, float volumeScale = 1f)
         {
-            if (clip == null || _sfxSource == null) return;
-            _sfxSource.PlayOneShot(clip, volumeScale);
+            if (clip == null || _sfxPool == null) return;
+            var src = _sfxPool[_sfxIndex % SfxPoolSize];
+            _sfxIndex++;
+            src.PlayOneShot(clip, volumeScale);
+        }
+
+        /// <summary>停止所有音效</summary>
+        public void StopAllSFX()
+        {
+            if (_sfxPool == null) return;
+            foreach (var s in _sfxPool) s.Stop();
         }
 
         // ==================== 音量控制 ====================
@@ -133,8 +149,9 @@ namespace ZWebGLFrameWork.Core
         {
             if (_bgmSource != null)
                 _bgmSource.volume = _masterVolume * _bgmVolume;
-            if (_sfxSource != null)
-                _sfxSource.volume = _masterVolume * _sfxVolume;
+            if (_sfxPool != null)
+                foreach (var s in _sfxPool)
+                    s.volume = _masterVolume * _sfxVolume;
         }
     }
 }

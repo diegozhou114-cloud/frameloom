@@ -4,6 +4,10 @@ using Cysharp.Threading.Tasks;
 namespace ZWebGLFrameWork.Core
 {
     /// <summary>
+    /// [DEPRECATED] 纯 UniTask 包装层，无额外价值。
+    /// 新代码请直接使用 UniTask API: UniTask.Delay / UniTask.Yield / UniTask.WhenAll 等。
+    /// 计划在 Phase 7 完成后移除。
+    ///
     /// 异步管理器 — UniTask 实现，提供 Unity 主线程安全的异步 API。
     /// 支持 PlayerLoopTiming 调度，无 GC 分配。
     /// </summary>

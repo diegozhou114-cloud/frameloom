@@ -44,13 +44,6 @@ namespace ZWebGLFrameWork.Core
             return StartCoroutine(WaitUntilRoutine(predicate, onComplete));
         }
 
-        /// <summary>将 UniTask 包装为协程执行（不阻塞调用方）</summary>
-        public static Coroutine RunUniTask(Func<UniTask> taskFactory,
-            Action onComplete = null, Action<Exception> onError = null)
-        {
-            return StartCoroutine(UniTaskRoutine(taskFactory, onComplete, onError));
-        }
-
         /// <summary>将 IEnumerator 转为 UniTask 等待</summary>
         public static async UniTask ToUniTask(IEnumerator routine)
         {
@@ -69,19 +62,6 @@ namespace ZWebGLFrameWork.Core
         {
             yield return new WaitUntil(predicate);
             onComplete?.Invoke();
-        }
-
-        private static IEnumerator UniTaskRoutine(Func<UniTask> taskFactory,
-            Action onComplete, Action<Exception> onError)
-        {
-            var task = taskFactory();
-            yield return task.ToCoroutine(result =>
-            {
-                if (task.Status == UniTaskStatus.Succeeded)
-                    onComplete?.Invoke();
-            });
-            if (task.Status == UniTaskStatus.Faulted)
-                onError?.Invoke(task.AsTask().Exception);
         }
     }
 }

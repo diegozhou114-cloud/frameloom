@@ -25,8 +25,7 @@ namespace ZWebGLFrameWork.Core
         /// <summary>
         /// 按注册顺序初始化所有 SDK。
         /// 单个 SDK 失败不影响后续初始化。
-        /// TODO: 根据平台条件跳过不适用的 SDK（如 WebGL 跳过原生广告 SDK）。
-        /// TODO: 接入 AppConfig 控制哪些 SDK 启用。
+        /// WebGL 平台自动跳过原生 SDK。
         /// </summary>
         public bool Init()
         {
@@ -39,6 +38,14 @@ namespace ZWebGLFrameWork.Core
                 {
                     try
                     {
+#if UNITY_WEBGL
+                        // WebGL 平台仅初始化 Web 兼容的 SDK
+                        if (sdk.Name.Contains("Ad") || sdk.Name.Contains("Analytics"))
+                        {
+                            Debug.Log($"[SDKManager] ⏭ WebGL 跳过原生 SDK: {sdk.Name}");
+                            continue;
+                        }
+#endif
                         sdk.Initialize();
                         Debug.Log($"[SDKManager] ✅ {sdk.Name} 初始化成功");
                         successCount++;

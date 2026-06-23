@@ -6,8 +6,9 @@ namespace ZWebGLFrameWork.Network
 {
     /// <summary>
     /// 网络管理器 — 跨场景单例，统一管理 TCP/UDP/HTTP/KCP 四种协议。
-    /// 运行时协议切换，整合地址解析、网络感知、消息分发。
-    /// 连接状态变更通过 EventBus 广播。
+    /// 
+    /// 当前状态: TCP 已接入 LoginState 登录流程；UDP/KCP/HTTP 已实现但暂未使用（Phase 7 战斗预留）。
+    /// MessageDispatcher 已就绪，可通过 RegisterHandler 注册消息处理器。
     /// </summary>
     public class NetworkManager : SingletonDontDestroy<NetworkManager>
     {

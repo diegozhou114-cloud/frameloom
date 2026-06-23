@@ -50,14 +50,25 @@ namespace ZWebGLFrameWork.Data
                 CurrentLanguage = language;
                 _translations.Clear();
 
-                // TODO: 实际加载语言文件
-                _translations["test_key"] = "测试文本";
-                _translations["login_title"] = "欢迎回来";
-                _translations["loading_tip"] = "正在加载...";
+                // 从 Resources 加载语言文件
+                var asset = Resources.Load<TextAsset>($"Config/Languages/{language}");
+                if (asset != null)
+                {
+                    var data = JsonUtility.FromJson<LocalizationData>(asset.text);
+                    if (data?.entries != null)
+                    {
+                        foreach (var entry in data.entries)
+                            _translations[entry.key] = entry.value;
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，使用硬编码默认值");
+                    _translations["test_key"] = "测试文本";
+                }
 
                 IsReady = true;
-                Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {language}, "
-                          + $"条目: {_translations.Count}");
+                Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {language}, 条目: {_translations.Count}");
                 return true;
             }
             catch (System.Exception ex)
@@ -97,6 +108,21 @@ namespace ZWebGLFrameWork.Data
             if (CurrentLanguage == language) return;
             Init(language);
             OnLanguageChanged?.Invoke(language);
+        }
+
+        // ==================== 内部数据结构 ====================
+
+        [System.Serializable]
+        private class LocalizationData
+        {
+            public List<LocalizationEntry> entries;
+        }
+
+        [System.Serializable]
+        private class LocalizationEntry
+        {
+            public string key;
+            public string value;
         }
     }
 }

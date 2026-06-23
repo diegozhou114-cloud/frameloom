@@ -47,5 +47,9 @@ namespace ZWebGLFrameWork.Core
         public const string GuestLogin = "Login_Guest";
         /// <summary>离线模式按钮点击</summary>
         public const string OfflineLogin = "Login_Offline";
+        /// <summary>角色选择完成（携带 int slot）</summary>
+        public const string CharacterSelected = "CharacterSelected";
+        /// <summary>登录错误（携带 string 错误消息）</summary>
+        public const string LoginError = "LoginError";
     }
 }

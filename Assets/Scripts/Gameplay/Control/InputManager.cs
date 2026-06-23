@@ -28,7 +28,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 触摸输入管理器 — 手势识别，防止 UI 穿透。
     /// 识别结果通过 EventBus 广播。
     /// </summary>
-    public class InputManager : Singleton<InputManager>
+    public class InputManager : SingletonDontDestroy<InputManager>
     {
         /// <summary>EventBus 事件键：手势</summary>
         public const string EventGesture = "Gesture";

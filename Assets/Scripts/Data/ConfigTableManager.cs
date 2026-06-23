@@ -52,6 +52,7 @@ namespace ZWebGLFrameWork.Data
             {
                 Debug.LogError("[ConfigTableManager] ❌ 建筑配置表加载失败或为空");
                 allOk = false;
+                _buildings = null;
             }
             else
             {
@@ -64,6 +65,7 @@ namespace ZWebGLFrameWork.Data
             {
                 Debug.LogError("[ConfigTableManager] ❌ 兵种配置表加载失败或为空");
                 allOk = false;
+                _units = null;
             }
             else
             {
@@ -76,6 +78,7 @@ namespace ZWebGLFrameWork.Data
             {
                 Debug.LogError("[ConfigTableManager] ❌ 关卡配置表加载失败或为空");
                 allOk = false;
+                _levels = null;
             }
             else
             {
@@ -183,10 +186,24 @@ namespace ZWebGLFrameWork.Data
 
         // ==================== 内部实现 ====================
 
+        /// <summary>泛型静态缓存 Id 字段反射（只反射一次）</summary>
+        private static class IdFieldCache<T>
+        {
+            public static readonly System.Reflection.FieldInfo Field = typeof(T).GetField("Id");
+        }
+
         /// <summary>从 Resources 异步加载 JSON 数组配置表，按 Id 建立索引</summary>
         private async UniTask<Dictionary<int, T>> LoadConfigTableAsync<T>(string path)
             where T : class
         {
+            // 静态缓存 Id 字段反射（只反射一次）
+            var idField = IdFieldCache<T>.Field;
+            if (idField == null)
+            {
+                Debug.LogError($"[ConfigTableManager] {typeof(T).Name} 缺少 Id 字段");
+                return null;
+            }
+
             // 切换到线程池做 IO（避免主线程卡顿）
             await UniTask.SwitchToThreadPool();
 
@@ -201,19 +218,13 @@ namespace ZWebGLFrameWork.Data
             }
 
             if (items == null || items.Length == 0)
-                return new Dictionary<int, T>();
+            {
+                return null;
+            }
 
             var dict = new Dictionary<int, T>(items.Length);
             foreach (var item in items)
             {
-                // 反射获取 Id 字段（避免接口约束）
-                var idField = typeof(T).GetField("Id");
-                if (idField == null)
-                {
-                    Debug.LogError($"[ConfigTableManager] {typeof(T).Name} 缺少 Id 字段");
-                    continue;
-                }
-
                 int id = (int)idField.GetValue(item);
                 if (dict.ContainsKey(id))
                 {

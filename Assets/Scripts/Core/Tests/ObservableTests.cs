@@ -8,6 +8,31 @@ namespace ZWebGLFrameWork.Core.Tests
     [TestFixture]
     public class ObservableTests
     {
+        [Test]
+        public void ValueChanged_TriggersOnChanged()
+        {
+            var obs = new Observable<int>(0);
+            int oldVal = -1, newVal = -1;
+            obs.OnChanged += (o, n) => { oldVal = o; newVal = n; };
+            
+            obs.Value = 5;
+            
+            Assert.AreEqual(0, oldVal);
+            Assert.AreEqual(5, newVal);
+        }
+        
+        [Test]
+        public void SameValue_DoesNotTrigger()
+        {
+            var obs = new Observable<int>(10);
+            int callCount = 0;
+            obs.OnChanged += (o, n) => callCount++;
+            
+            obs.Value = 10;
+            
+            Assert.AreEqual(0, callCount);
+        }
+
         // --- Value change triggers OnChanged ---
 
         [Test]

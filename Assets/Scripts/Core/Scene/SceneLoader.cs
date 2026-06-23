@@ -63,16 +63,29 @@ namespace ZWebGLFrameWork.Core
             var op = SceneManager.LoadSceneAsync(sceneName, mode);
             if (op == null)
             {
-                Debug.LogError($"[SceneLoader] 场景不存在: {sceneName}");
+                Debug.LogError($"[SceneLoader] 场景不存在或未在 Build Settings 中注册: {sceneName}");
                 LoadingSceneName = null;
-                return;
+                throw new System.InvalidOperationException(
+                    $"场景 '{sceneName}' 未在 Build Settings 中注册");
             }
 
             op.allowSceneActivation = false;
 
+            float elapsed = 0f;
+            const float loadTimeout = 30f;
+
             while (op.progress < 0.9f)
             {
                 Progress = op.progress;
+                elapsed += Time.unscaledDeltaTime;
+
+                if (elapsed > loadTimeout)
+                {
+                    Debug.LogError($"[SceneLoader] ⏰ 场景加载超时: {sceneName} ({elapsed:F0}s)");
+                    LoadingSceneName = null;
+                    throw new System.TimeoutException($"场景 '{sceneName}' 加载超时 ({loadTimeout}s)");
+                }
+
                 await Cysharp.Threading.Tasks.UniTask.Yield();
             }
 

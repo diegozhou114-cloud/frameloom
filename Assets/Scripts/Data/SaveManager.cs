@@ -50,14 +50,21 @@ namespace ZWebGLFrameWork.Data
             {
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
                 string path = GetFilePath(targetSlot);
+                string tmpPath = path + ".tmp";
 
-                File.WriteAllText(path, json);
+                // 原子写入：先写临时文件，成功后再替换
+                File.WriteAllText(tmpPath, json);
+                if (File.Exists(path)) File.Delete(path);
+                File.Move(tmpPath, path);
+
                 Debug.Log($"[SaveManager] 保存成功: slot={targetSlot}, path={path}");
                 return true;
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[SaveManager] 保存失败: {ex.Message}");
+                // 清理残留 tmp 文件
+                try { File.Delete(GetFilePath(targetSlot) + ".tmp"); } catch { }
                 return false;
             }
         }
@@ -182,7 +189,16 @@ namespace ZWebGLFrameWork.Data
             if (data.Buildings != null)
             {
                 foreach (var b in data.Buildings)
+                {
+                    // 校验 TypeId 在配置表中存在
+                    if (ConfigTableManager.Instance.IsReady
+                        && ConfigTableManager.Instance.GetBuilding(b.TypeId) == null)
+                    {
+                        Debug.LogWarning($"[SaveManager] 存档中的建筑类型 {b.TypeId} 在配置表中不存在，跳过");
+                        continue;
+                    }
                     village.AddBuilding(BuildingData.Create(b.TypeId, b.GridX, b.GridY));
+                }
             }
 
             Debug.Log($"[SaveManager] 数据写入 DataManager: slot={targetSlot}");

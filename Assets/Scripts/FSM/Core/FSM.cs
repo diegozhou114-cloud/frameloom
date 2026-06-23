@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -93,8 +94,8 @@ namespace ZWebGLFrameWork.FSM
         {
             if (!_states.TryGetValue(stateId, out var newState))
             {
-                throw new InvalidOperationException(
-                    $"FSM: 状态 {stateId} 未注册。请先调用 AddState。");
+                Debug.LogError($"FSM: 状态 {stateId} 未注册。请先调用 AddState。");
+                return false;
             }
 
             // 不重复进入同一状态

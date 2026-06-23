@@ -25,10 +25,14 @@ namespace ZWebGLFrameWork.FSM
 
         private async UniTaskVoid RunInitPipeline()
         {
-            var cfg = GameLauncher.Config;
+            try
+            {
+                var cfg = GameLauncher.Config;
             if (cfg == null)
             {
                 Debug.LogError("[LaunchState] ❌ AppConfig 为空，初始化终止");
+                UIManager.Instance.Close<LoadingPanel>();
+                PublishError("AppConfig", "配置文件加载失败，请重新安装游戏", false);
                 return;
             }
 
@@ -101,6 +105,8 @@ namespace ZWebGLFrameWork.FSM
                         UIManager.Instance.Close<LoadingPanel>();
                         UIManager.Instance.Open<ForceUpdatePanel>(
                             HotUpdateManager.Instance.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                        // 发布错误事件通知用户
+                        PublishError("HotUpdate", "检测到强制更新，请前往商店下载最新版本", false);
                         return; // 终止初始化，等待用户手动更新
                     case VersionCheckResult.NeedUpdate:
                         await HotUpdateManager.Instance.DownloadUpdatesAsync();
@@ -123,7 +129,6 @@ namespace ZWebGLFrameWork.FSM
 
             // ─── ⑦ 完成 ───
             BootProfiler.EndPhase("Phase3_DataPreload");
-            BootProfiler.BeginPhase("Phase4_Transition");
             PublishProgress("即将进入游戏...", 1f);
             await UniTask.Delay(200);
 
@@ -147,6 +152,13 @@ namespace ZWebGLFrameWork.FSM
 
             Debug.Log("[LaunchState] ✅ 初始化完成 → Login");
             ChangeState(GameState.Login);
+            }
+            catch (System.Exception ex)
+            {
+                PublishError("LaunchPipeline", $"启动管线崩溃: {ex.Message}", false);
+                UIManager.Instance.Close<LoadingPanel>();
+                Debug.LogException(ex);
+            }
         }
 
         // ==================== 辅助方法 ====================
@@ -175,6 +187,7 @@ namespace ZWebGLFrameWork.FSM
 
         public override void OnExit()
         {
+            UIManager.Instance.Close<LoadingPanel>();
             base.OnExit();
             Debug.Log("[GameFSM] 退出启动状态");
         }

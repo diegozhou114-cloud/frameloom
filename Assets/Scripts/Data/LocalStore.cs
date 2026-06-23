@@ -159,11 +159,15 @@ namespace ZWebGLFrameWork.Data
             {
                 var data = StoreFileData.FromDictionary(_entries);
                 var json = JsonUtility.ToJson(data, prettyPrint: false);
-                File.WriteAllText(FilePath, json);
+                string tmpPath = FilePath + ".tmp";
+                File.WriteAllText(tmpPath, json);
+                if (File.Exists(FilePath)) File.Delete(FilePath);
+                File.Move(tmpPath, FilePath);
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[LocalStore] 写入文件失败: {ex.Message}");
+                try { File.Delete(FilePath + ".tmp"); } catch { }
             }
         }
 

@@ -32,6 +32,9 @@ namespace ZWebGLFrameWork.Data
                 return;
             }
 
+            // 清空旧池，防止重复预热导致内存泄漏
+            Clear();
+
             if (config == null || !config.IsReady)
             {
                 Debug.LogWarning("[PoolPrewarmer] ConfigTableManager 未就绪，跳过预热");
