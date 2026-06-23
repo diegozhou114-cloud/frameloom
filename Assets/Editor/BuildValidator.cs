@@ -68,6 +68,7 @@ namespace ZWebGLFrameWork.Editor
                 if (errors.Count == 0)
                 {
                     Debug.Log("<color=green>[BuildValidator] ✅ 编译通过，零错误！</color>");
+                    ValidateBootPipeline();
                     if (!Application.isBatchMode)
                         EditorUtility.DisplayDialog("编译验证", "✅ 所有程序集编译通过，零错误。", "确定");
                     return;
@@ -192,11 +193,59 @@ namespace ZWebGLFrameWork.Editor
             Debug.Log($"[BuildValidator] 开始构建: {platform}...");
             CompileAndValidate();
         }
+
+        // ==================== C.1 启动流程检查 ====================
+
+        private static void ValidateBootPipeline()
+        {
+            Debug.Log("[BuildValidator] 检查启动管线配置...");
+            int issues = 0;
+
+            // ① 检查 Resources/Config/ 下的必需配置文件
+            string[] requiredConfigs =
+            {
+                "Assets/Resources/Config/AppConfig.asset",
+                "Assets/Resources/Config/Buildings.json",
+                "Assets/Resources/Config/Units.json",
+                "Assets/Resources/Config/Levels.json",
+            };
+
+            foreach (var path in requiredConfigs)
+            {
+                if (!System.IO.File.Exists(path))
+                {
+                    Debug.LogWarning($"[BuildValidator] ⚠ 缺少配置文件: {path}");
+                    issues++;
+                }
+            }
+
+            // ② 检查 Build Settings 中是否有 Launcher 场景
+            var scenes = EditorBuildSettings.scenes;
+            bool hasLauncher = false;
+            foreach (var scene in scenes)
+            {
+                if (scene.path.Contains("Launcher"))
+                {
+                    hasLauncher = true;
+                    break;
+                }
+            }
+            if (!hasLauncher)
+            {
+                Debug.LogWarning("[BuildValidator] ⚠ Build Settings 中未找到 Launcher 场景");
+                issues++;
+            }
+
+            if (issues == 0)
+                Debug.Log("<color=green>[BuildValidator] ✅ 启动管线配置完整</color>");
+            else
+                Debug.LogWarning($"[BuildValidator] ⚠ 启动管线配置有 {issues} 个问题");
+        }
     }
 
-    internal enum ErrorSeverity { Fatal, Warning }
+    public enum ErrorSeverity { Fatal, Warning }
 
-    internal struct CompileError
+    public struct CompileError
     {
         public string File;
         public int Line;

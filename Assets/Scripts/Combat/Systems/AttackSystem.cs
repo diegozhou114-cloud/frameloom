@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.ECS;
 
@@ -16,18 +17,16 @@ namespace ZWebGLFrameWork.Combat
 
         public AttackSystem() { Order = 20; }
 
-        /// <summary>在 InitAsync 中创建，避免 Update 热路径中 new</summary>
-        public override async System.Threading.Tasks.Task InitAsync()
+        public override async UniTask InitAsync()
         {
             _targetEvaluator = new TargetEvaluator(World);
-            await System.Threading.Tasks.Task.CompletedTask;
         }
 
         public override void Update()
         {
             _currentTime = Time.time;
 
-            World.ForEachComponent<AttackComponent>((entity, ref attack) =>
+            World.ForEachComponent<AttackComponent>((entity, attack) =>
             {
                 if (!World.TryGetComponent<TransformComponent>(entity, out var transform)) return;
                 if (attack.IsOnCooldown(_currentTime)) return;
@@ -39,8 +38,8 @@ namespace ZWebGLFrameWork.Combat
                 var status = _targetEvaluator.Evaluate(entity, target, attack, transform);
                 if (status != TargetStatus.InRange) return;
 
-                // 开火！attack 已通过 ref 原位修改，无需写回
                 attack.LastAttackTime = _currentTime;
+                World.SetComponent(entity, attack);
 
                 World.EnqueueEvent(new DamageEvent
                 {

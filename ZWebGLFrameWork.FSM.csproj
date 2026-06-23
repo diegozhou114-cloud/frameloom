@@ -42,7 +42,6 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\PackageCache\com.unity.ext.nunit@2.0.3\net40\unity-custom\nunit.framework.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
@@ -53,7 +52,10 @@
     <Compile Include="Assets\Scripts\FSM\Game\GameState.cs" />
     <Compile Include="Assets\Scripts\FSM\Game\States\MainVillageState.cs" />
     <Compile Include="Assets\Scripts\FSM\Game\GameFSM.cs" />
+    <Compile Include="Assets\Scripts\FSM\Game\HotUpdateManager.cs" />
+    <Compile Include="Assets\Scripts\FSM\Game\GameLauncher.cs" />
     <Compile Include="Assets\Scripts\FSM\Core\FSM.cs" />
+    <Compile Include="Assets\Scripts\FSM\Game\UpdateManifest.cs" />
     <Compile Include="Assets\Scripts\FSM\Game\States\LoginState.cs" />
     <Compile Include="Assets\Scripts\FSM\Game\States\LaunchState.cs" />
     <Compile Include="Assets\Scripts\FSM\Core\FSMState.cs" />
@@ -703,6 +705,9 @@
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
     </Reference>
+    <Reference Include="UniTask">
+      <HintPath>F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\ScriptAssemblies\UniTask.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
     </Reference>
@@ -714,6 +719,22 @@
     <ProjectReference Include="ZWebGLFrameWork.Core.csproj">
       <Project>{9301b9d8-70a9-9b93-821c-7b410efefb26}</Project>
       <Name>ZWebGLFrameWork.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="ZWebGLFrameWork.Data.csproj">
+      <Project>{5be1399a-24bf-1615-7b65-2a80941a2466}</Project>
+      <Name>ZWebGLFrameWork.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="ZWebGLFrameWork.UI.csproj">
+      <Project>{7b814b62-ec63-c6c1-e361-c9a41d6cbfef}</Project>
+      <Name>ZWebGLFrameWork.UI</Name>
+    </ProjectReference>
+    <ProjectReference Include="ZWebGLFrameWork.Network.csproj">
+      <Project>{a1752a2a-05e8-07ec-d9fe-a7f183baf780}</Project>
+      <Name>ZWebGLFrameWork.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="ZWebGLFrameWork.Gameplay.csproj">
+      <Project>{89277801-7fa9-be50-d21b-b9b27dad143b}</Project>
+      <Name>ZWebGLFrameWork.Gameplay</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

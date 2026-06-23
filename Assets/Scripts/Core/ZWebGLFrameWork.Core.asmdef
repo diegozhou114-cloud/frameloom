@@ -1,7 +1,9 @@
 {
     "name": "ZWebGLFrameWork.Core",
     "rootNamespace": "ZWebGLFrameWork.Core",
-    "references": [],
+    "references": [
+        "UniTask"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

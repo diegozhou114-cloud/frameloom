@@ -42,17 +42,27 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\PackageCache\com.unity.ext.nunit@2.0.3\net40\unity-custom\nunit.framework.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Core\SDK\SDKManager.cs" />
     <Compile Include="Assets\Scripts\Core\Async\AsyncManager.cs" />
+    <Compile Include="Assets\Scripts\Core\Audio\AudioManager.cs" />
+    <Compile Include="Assets\Scripts\Core\Diagnostics\BootProfiler.cs" />
+    <Compile Include="Assets\Scripts\Core\Resource\IResourceProvider.cs" />
+    <Compile Include="Assets\Scripts\Core\Resource\AssetBundleProvider.cs" />
     <Compile Include="Assets\Scripts\Core\Singleton\SingletonDontDestroy.cs" />
+    <Compile Include="Assets\Scripts\Core\Event\BootEventPayload.cs" />
     <Compile Include="Assets\Scripts\Core\Singleton\Singleton.cs" />
     <Compile Include="Assets\Scripts\Core\Pool\ObjectPool.cs" />
     <Compile Include="Assets\Scripts\Core\Event\EventBus.cs" />
+    <Compile Include="Assets\Scripts\Core\Log\LogManager.cs" />
     <Compile Include="Assets\Scripts\Core\Event\IEventBus.cs" />
+    <Compile Include="Assets\Scripts\Core\Scene\SceneLoader.cs" />
+    <Compile Include="Assets\Scripts\Core\Resource\ResourceManager.cs" />
+    <Compile Include="Assets\Scripts\Core\Resource\ResourcesProvider.cs" />
+    <Compile Include="Assets\Scripts\Core\Coroutine\CoroutineManager.cs" />
     <None Include="Assets\Scripts\Core\ZWebGLFrameWork.Core.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
@@ -698,6 +708,9 @@
     </Reference>
     <Reference Include="System.Xml.XPath.XDocument">
       <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\UnityReferenceAssemblies\unity-4.8-api\Facades\System.Xml.XPath.XDocument.dll</HintPath>
+    </Reference>
+    <Reference Include="UniTask">
+      <HintPath>F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\ScriptAssemblies\UniTask.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>

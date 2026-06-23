@@ -74,6 +74,9 @@ namespace ZWebGLFrameWork.Network
     {
         // 基于 skywind3000/kcp 的 IKCPCB 结构
 
+        /// <summary>默认内部 flush 间隔 (ms)</summary>
+        public const int IKCP_INTERVAL = 10;
+
         private readonly uint _conv;          // 会话 ID（双方一致）
         private uint _mtu = 1400;              // 最大传输单元（含 KCP 头 24 字节）
         private uint _mss = 1376;              // 最大段大小 = MTU - KCP_OVERHEAD(24)
@@ -108,6 +111,14 @@ namespace ZWebGLFrameWork.Network
         // 时间
         private uint _current = 0;             // 当前时间 (ms)
         private uint _interval = 100;          // flush 间隔 (ms)
+
+        /// <summary>内部 flush 间隔 (ms)，最小 10</summary>
+        public uint Interval
+        {
+            get => _interval;
+            set => _interval = Math.Max(value, 10);
+        }
+
         private uint _tsFlush = 0;             // 下次 flush 时间
         private uint _nextUpdate = 0;          // 下次 update 需要的时间
 
@@ -188,6 +199,35 @@ namespace ZWebGLFrameWork.Network
                 count = SendMessage(data, offset, length);
             }
             return count;
+        }
+
+        /// <summary>窥探下一完整消息大小（不消费）</summary>
+        /// <returns>消息字节数，无完整消息返回 0</returns>
+        public int PeekSize()
+        {
+            if (_rcvQueue.Count == 0) return 0;
+
+            var peek = _rcvQueue.First.Value;
+            if (peek.Frg != 0) return 0; // 首包不完整
+
+            int totalLen = 0;
+            foreach (var seg in _rcvQueue)
+            {
+                totalLen += seg.Data.Length;
+                if (seg.Frg == 0) break;
+            }
+            return totalLen;
+        }
+
+        /// <summary>接收数据到缓冲区（标准 KCP Recv 重载）</summary>
+        /// <returns>实际接收字节数，无数据返回 -1</returns>
+        public int Recv(byte[] buffer)
+        {
+            var data = Recv();
+            if (data == null) return -1;
+            int len = Math.Min(data.Length, buffer.Length);
+            Buffer.BlockCopy(data, 0, buffer, 0, len);
+            return len;
         }
 
         /// <summary>接收数据</summary>
@@ -398,6 +438,14 @@ namespace ZWebGLFrameWork.Network
             if (rcvWnd > 0) _rcvWnd = (uint)Math.Max(rcvWnd, 16);
             return 0;
         }
+
+        /// <summary>无延迟模式（SetNoDelay 别名）</summary>
+        public int SetNoDelay(int nodelay, int interval, int resend, int nc)
+            => NoDelay(nodelay, interval, resend, nc);
+
+        /// <summary>设置窗口大小（SetWindowSize 别名）</summary>
+        public int SetWindowSize(int sndWnd, int rcvWnd)
+            => WndSize(sndWnd, rcvWnd);
 
         /// <summary>获取待发送队列大小</summary>
         public int WaitSnd => _sndBuf.Count + _sndQueue.Count;
@@ -915,5 +963,16 @@ namespace ZWebGLFrameWork.Network
         }
 
         #endregion
+
+        // ==================== 调试属性 ====================
+
+        public uint SndUna => _sndUna;
+        public uint SndNxt => _sndNxt;
+        public uint RcvNxt => _rcvNxt;
+        public uint Cwnd => _cwnd;
+        public uint RxSrtt => _rxSrtt;
+        public uint RxRto => _rxRto;
+        public int SndQueueCount => _sndQueue.Count;
+        public int RcvQueueCount => _rcvQueue.Count;
     }
 }

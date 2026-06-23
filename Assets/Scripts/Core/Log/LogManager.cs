@@ -80,7 +80,7 @@ namespace ZWebGLFrameWork.Core
 
         // ==================== 内部 ====================
 
-        private static void Log(LogLevel level, string tag, string message, object[] args)
+        private static void Log(LogLevel level, string tag, string message, object[] args = null)
         {
             if (level < MinLevel) return;
 

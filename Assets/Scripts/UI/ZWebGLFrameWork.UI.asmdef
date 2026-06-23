@@ -3,6 +3,7 @@
     "rootNamespace": "ZWebGLFrameWork.UI",
     "references": [
         "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

@@ -104,10 +104,9 @@ namespace ZWebGLFrameWork.Editor
                 if (!path.StartsWith("Assets/Scripts/") && !path.StartsWith("Assets/Editor/"))
                     continue;
 
-                var asmdef = AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(path);
+                var asmdef = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
                 if (asmdef == null) continue;
 
-                // 基本格式校验
                 try
                 {
                     var json = asmdef.text;

@@ -42,7 +42,6 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\PackageCache\com.unity.ext.nunit@2.0.3\net40\unity-custom\nunit.framework.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
@@ -51,6 +50,7 @@
     <Compile Include="Assets\Scripts\Gameplay\Control\InputManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Building\BuildingInteraction.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Grid\GridRenderer.cs" />
+    <Compile Include="Assets\Scripts\Gameplay\Economy\ResourceProducer.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Camera\CameraController.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Grid\GridManager.cs" />
     <Compile Include="Assets\Scripts\Gameplay\Control\SelectionManager.cs" />

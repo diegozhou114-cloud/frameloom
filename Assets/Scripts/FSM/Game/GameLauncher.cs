@@ -92,8 +92,8 @@ namespace ZWebGLFrameWork.FSM
 
             if (hasFocus)
             {
-                Application.targetFrameRate = Config.TargetFrameRate;
-                Debug.Log($"[GameLauncher] 恢复帧率: {Config.TargetFrameRate}");
+                Application.targetFrameRate = Config.RuntimeFrameRate;
+                Debug.Log($"[GameLauncher] 恢复帧率: {Config.RuntimeFrameRate}");
             }
             else
             {

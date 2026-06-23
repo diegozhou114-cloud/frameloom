@@ -34,6 +34,7 @@ namespace ZWebGLFrameWork.FSM
 
             // ─── 打开 Loading 遮罩 ───
             UIManager.Instance.Open<LoadingPanel>();
+            BootProfiler.BeginPhase("Phase0_Bootstrap");
             PublishProgress("引擎初始化中...", 0.05f);
 
             // ─── ① UIManager（确保 Canvas 在 ResourceManager 之前就绪）───
@@ -82,6 +83,8 @@ namespace ZWebGLFrameWork.FSM
             progress += step;
 
             // ─── ⑤ 热更新检查 ───
+            BootProfiler.EndPhase("Phase1_EngineInit");
+            BootProfiler.BeginPhase("Phase2_HotUpdate");
             if (cfg.EnableHotUpdate)
             {
                 PublishProgress("热更新检查...", progress);
@@ -106,11 +109,42 @@ namespace ZWebGLFrameWork.FSM
             }
             else Debug.Log("[LaunchState] ⏭ 热更已关闭");
 
-            // ─── ⑥ 完成 ───
+            // ─── ⑥ 数据预加载 (Phase 3) ───
+            BootProfiler.EndPhase("Phase2_HotUpdate");
+            BootProfiler.BeginPhase("Phase3_DataPreload");
+            PublishProgress("正在准备游戏数据...", 0.55f);
+            var configOk = await ConfigTableManager.Instance.PreloadAllAsync();
+            if (!configOk)
+                PublishError("ConfigTableManager", "部分配置表加载失败，可能影响游戏功能");
+
+            // 对象池预热（异步）
+            PublishProgress("预热对象池...", 0.70f);
+            await PoolPrewarmer.PrewarmFromConfigAsync(ConfigTableManager.Instance);
+
+            // ─── ⑦ 完成 ───
+            BootProfiler.EndPhase("Phase3_DataPreload");
+            BootProfiler.BeginPhase("Phase4_Transition");
             PublishProgress("即将进入游戏...", 1f);
-            await UniTask.Delay(200); // 让玩家看到 100%
+            await UniTask.Delay(200);
 
             UIManager.Instance.Close<LoadingPanel>();
+            BootProfiler.EndPhase("Phase4_Transition");
+            Debug.Log(BootProfiler.GetReport());
+
+            // ─── C.4 离线模式：无网络时跳过登录 (Phase 5) ───
+            if (cfg.EnableOfflineMode
+                && Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                Debug.Log("[LaunchState] 🔌 离线模式 + 无网络 → 跳过登录，直接进主城");
+                GameInitializer.EnsureSaveExists();
+                if (SaveManager.Exists(SaveManager.CurrentSlot))
+                {
+                    SaveManager.LoadToDataManager(SaveManager.CurrentSlot);
+                }
+                ChangeState(GameState.MainVillage);
+                return;
+            }
+
             Debug.Log("[LaunchState] ✅ 初始化完成 → Login");
             ChangeState(GameState.Login);
         }

@@ -26,7 +26,7 @@ namespace ZWebGLFrameWork.Combat
             Entity? bestTarget = null;
             float bestScore = float.MaxValue;
 
-            _world.ForEachComponent<TransformComponent>((entity, ref otherTransform) =>
+            _world.ForEachComponent<TransformComponent>((entity, otherTransform) =>
             {
                 if (!_world.TryGetComponent<TeamComponent>(entity, out var otherTeam)) return;
                 if (!_world.TryGetComponent<HealthComponent>(entity, out var hp) || !hp.IsAlive) return;

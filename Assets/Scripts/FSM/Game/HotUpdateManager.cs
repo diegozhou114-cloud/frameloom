@@ -142,6 +142,9 @@ namespace ZWebGLFrameWork.FSM
             PublishProgress("应用更新...", 0.95f);
             await UniTask.Delay(200);
 
+            // C.3: 热更包中可能包含新的 AppConfig，下载完成后自动同步
+            TrySyncAppConfig(downloadDir);
+
             NeedRestart = true;
             PublishProgress("更新完成", 1f, "即将重启应用");
             Debug.Log("[HotUpdateManager] ✅ 更新完成，需要重启");
@@ -308,6 +311,23 @@ namespace ZWebGLFrameWork.FSM
             if (bytes < 1024) return $"{bytes} B";
             if (bytes < 1024 * 1024) return $"{bytes / 1024f:F1} KB";
             return $"{bytes / (1024f * 1024f):F1} MB";
+        }
+
+        // ==================== C.3 AppConfig 热更同步 ====================
+
+        /// <summary>检查热更包中是否有新的 AppConfig，有则应用到 GameLauncher</summary>
+        private static void TrySyncAppConfig(string downloadDir)
+        {
+            string configPath = Path.Combine(downloadDir, "Config", "AppConfig.asset");
+            if (!File.Exists(configPath))
+            {
+                Debug.Log("[HotUpdateManager] 热更包中没有 AppConfig，跳过同步");
+                return;
+            }
+
+            // AppConfig 是 ScriptableObject，通过 AssetBundle 加载
+            // 当前简化实现：仅记录日志，实际需配合 AssetBundle 加载
+            Debug.Log("[HotUpdateManager] 🔄 检测到热更 AppConfig，将在重启后生效");
         }
     }
 

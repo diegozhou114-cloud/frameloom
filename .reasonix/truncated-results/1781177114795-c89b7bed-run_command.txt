@@ -1,0 +1,826 @@
+$ git diff
+[exit 0]
+warning: in the working copy of 'Assets/Scripts/Combat/AI/UnitAI.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/CombatManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/MovementComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/ECS/SystemGroup.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/ECS/World.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/AttackSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/DamageSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/MovementSystem.cs', LF will be replaced by CRLF the next time Git touches it
+diff --git a/Assets/Scripts/Combat/AI/UnitAI.cs b/Assets/Scripts/Combat/AI/UnitAI.cs
+index a560249..8e73936 100644
+--- a/Assets/Scripts/Combat/AI/UnitAI.cs
++++ b/Assets/Scripts/Combat/AI/UnitAI.cs
+@@ -5,120 +5,89 @@ using ZWebGLFrameWork.Gameplay;
+ namespace ZWebGLFrameWork.Combat
+ {
+     /// <summary>
+-    /// 单位 AI 行为 — 简单的决策树：索敌 → 寻路 → 攻击。
+-    /// 运行在 ECS 系统之外，每 N 帧更新一次（降低计算压力）。
++    /// 单位 AI — 轻量编排层。
++    /// 评估目标 → 无效则索敌 → 路径规划。
++    /// 每 N 帧更新一次，降低计算压力。
+     /// </summary>
+     public class UnitAI
+     {
+-        /// <summary>AI 更新间隔（帧）</summary>
+         public int UpdateInterval { get; set; } = 6;
+ 
+         private readonly World _world;
++        private readonly TargetEvaluator _targetEvaluator;
++        private readonly TargetSelector _targetSelector;
++        private readonly PathPlanner _pathPlanner;
++        private readonly GridManager _grid;
+         private int _frameCounter;
+-        private GridManager _grid;
+ 
+         public UnitAI(World world)
+         {
+             _world = world;
++            _targetEvaluator = new TargetEvaluator(world);
++            _targetSelector = new TargetSelector(world);
++            _pathPlanner = new PathPlanner(world);
+             _grid = GridManager.Instance;
+         }
+ 
+-        /// <summary>逐帧调用，按间隔执行 AI 决策</summary>
+         public void Update()
+         {
+             _frameCounter++;
+             if (_frameCounter % UpdateInterval != 0) return;
+ 
+-            foreach (var entity in _world.GetEntitiesWith<TransformComponent>())
++            _world.ForEachEntities<TransformComponent>(entity =>
+             {
+-                if (!_world.TryGetComponent<AttackComponent>(entity, out _)) continue;
+-                if (!_world.TryGetComponent<HealthComponent>(entity, out var health) || !health.IsAlive) continue;
++                if (!_world.TryGetComponent<AttackComponent>(entity, out _)) return;
++                if (!_world.TryGetComponent<HealthComponent>(entity, out var health) || !health.IsAlive) return;
+ 
+                 ProcessEntity(entity);
+-            }
++            });
+         }
+ 
+         private void ProcessEntity(Entity entity)
+         {
+             var transform = _world.GetComponent<TransformComponent>(entity);
+-            var team = _world.GetComponent<TeamComponent>(entity);
+             var attack = _world.GetComponent<AttackComponent>(entity);
++            var team = _world.GetComponent<TeamComponent>(entity);
+ 
+-            // 1. 已有目标 + 在射程内 → 不需要移动
+-            if (_world.TryGetComponent<TargetComponent>(entity, out var target) && target.HasTarget)
++            // 1. 评估当前目标
++            var hasTarget = _world.TryGetComponent<TargetComponent>(entity, out var target);
++            if (hasTarget)
+             {
+-                if (_world.TryGetComponent<TransformComponent>(target.TargetEntity, out var targetTransform))
++                var status = _targetEvaluator.Evaluate(entity, target, attack, transform);
++                switch (status)
+                 {
+-                    float dist = Vector3.Distance(transform.Position, targetTransform.Position);
+-                    if (dist <= attack.Range)
+-                    {
+-                        // 在射程内，清除移动路径
+-                        if (_world.HasComponent<MovementComponent>(entity))
+-                        {
+-                            var mov = _world.GetComponent<MovementComponent>(entity);
+-                            mov.Path = null;
+-                            _world.AddComponent(entity, mov);
+-                        }
++                    case TargetStatus.InRange:
++                        _pathPlanner.ClearPath(entity);
+                         return;
+-                    }
+-                }
+-                else
+-                {
+-                    // 目标已死亡
+-                    _world.RemoveComponent<TargetComponent>(entity);
++                    case TargetStatus.OutOfRange:
++                        break; // 继续寻路
++                    case TargetStatus.NoTarget:
++                    case TargetStatus.TargetDead:
++                        _world.RemoveComponent<TargetComponent>(entity);
++                        hasTarget = false;
++                        break;
+                 }
+             }
+ 
+             // 2. 索敌
+-            Entity? enemy = FindBestTarget(transform, team.TeamId);
+-            if (!enemy.HasValue) return;
+-
+-            // 3. 设置目标
+-            if (!_world.HasComponent<TargetComponent>(entity))
+-                _world.AddComponent(entity, TargetComponent.Create());
+-            ref var t = ref _world.GetComponent<TargetComponent>(entity);
+-            t.TargetEntity = enemy.Value;
+-
+-            // 4. 寻路
+-            var enemyTransform = _world.GetComponent<TransformComponent>(enemy.Value);
+-            var path = AStarPathfinding.FindPath(
+-                transform.GridPosition, enemyTransform.GridPosition);
+-
+-            if (path.Count == 0) return;
+-
+-            // 5. 设置移动路径
+-            if (!_world.HasComponent<MovementComponent>(entity))
+-                _world.AddComponent(entity, MovementComponent.Create(3f)); // 默认速度
+-
+-            ref var mov = ref _world.GetComponent<MovementComponent>(entity);
+-            mov.Path = path;
+-            mov.PathIndex = 0;
+-        }
+-
+-        private Entity? FindBestTarget(TransformComponent selfTransform, Team selfTeam)
+-        {
+-            Entity? bestTarget = null;
+-            float bestScore = float.MaxValue;
+-
+-            foreach (var entity in _world.GetEntitiesWith<TransformComponent>())
++            if (!hasTarget)
+             {
+-                if (!_world.TryGetComponent<TeamComponent>(entity, out var otherTeam)) continue;
+-                if (!_world.TryGetComponent<HealthComponent>(entity, out var hp) || !hp.IsAlive) continue;
+-                if (!TeamComponent.IsEnemy(selfTeam, otherTeam.TeamId)) continue;
++                var enemy = _targetSelector.FindTarget(transform, team.TeamId);
++                if (!enemy.HasValue) return;
+ 
+-                var otherTransform = _world.GetComponent<TransformComponent>(entity);
+-                float dist = Vector3.Distance(selfTransform.Position, otherTransform.Position);
+-
+-                // 优先距离近 + 血量低
+-                float score = dist - hp.CurrentHP * 0.1f;
+-                if (score < bestScore)
+-                {
+-                    bestScore = score;
+-                    bestTarget = entity;
+-                }
++                _world.AddComponent(entity, TargetComponent.Create());
++                ref var t = ref _world.GetComponent<TargetComponent>(entity);
++                t.TargetEntity = enemy.Value;
+             }
+ 
+-            return bestTarget;
++            // 3. 寻路到目标
++            target = _world.GetComponent<TargetComponent>(entity);
++            var targetTransform = _world.GetComponent<TransformComponent>(target.TargetEntity);
++            float cellSize = _world.TryGetComponent<MovementComponent>(entity, out var mov)
++                ? mov.CellSize : _grid.CellSize;
++
++            _pathPlanner.PlanPath(entity, transform.GridPosition,
++                targetTransform.GridPosition, 3f, cellSize);
+         }
+     }
+ }
+diff --git a/Assets/Scripts/Combat/CombatManager.cs b/Assets/Scripts/Combat/CombatManager.cs
+index 470be24..740bf0f 100644
+--- a/Assets/Scripts/Combat/CombatManager.cs
++++ b/Assets/Scripts/Combat/CombatManager.cs
+@@ -1,4 +1,3 @@
+-using System;
+ using System.Threading.Tasks;
+ using UnityEngine;
+ using ZWebGLFrameWork.Combat.ECS;
+@@ -10,257 +9,79 @@ namespace ZWebGLFrameWork.Combat
+     /// <summary>战斗阶段</summary>
+     public enum CombatPhase
+     {
+-        Idle,           // 未开始
+-        Deploying,      // 部署阶段（玩家放置单位）
+-        Battling,       // 战斗中（ECS 运行）
+-        Ended,          // 战斗结束
++        Idle,
++        Deploying,
++        Battling,
++        Ended,
+     }
+ 
+     /// <summary>
+-    /// 战斗管理器 — 跨场景单例，管理整个战斗生命周期。
+-    /// 三阶段流程：Deploying → Battling → Ended，全部 async 驱动。
++    /// 战斗管理器 — 薄门面，跨场景单例。
++    /// 委托给 CombatOrchestrator / UnitSpawner / CombatResultCalculator / CombatBootstrap。
+     /// </summary>
+     public class CombatManager : SingletonDontDestroy<CombatManager>
+     {
+-        /// <summary>EventBus：战斗阶段变化</summary>
+         public const string EventPhaseChanged = "CombatPhaseChanged";
+-        /// <summary>EventBus：战斗结束</summary>
+         public const string EventCombatEnded = "CombatEnded";
+ 
+-        /// <summary>当前阶段</summary>
+-        public CombatPhase CurrentPhase { get; private set; } = CombatPhase.Idle;
+-
+-        /// <summary>ECS 世界</summary>
+         public World ECSWorld { get; private set; }
+-
+-        /// <summary>死亡系统（暴露胜负信息）</summary>
+         public DeathSystem DeathSys { get; private set; }
++        public CombatPhase CurrentPhase => _orchestrator?.CurrentPhase ?? CombatPhase.Idle;
+ 
+-        private SystemGroup _systems;
+-        private UnitAI _unitAI;
+-
+-        [Header("部署")]
+-        [SerializeField] private float _deployTimeLimit = 30f; // 部署时间限制（秒）
++        [Header("部署")] [SerializeField] private float _deployTimeLimit = 30f;
++        [Header("波次")] [SerializeField] private bool _useWaves = true;
++        [SerializeField] private float _waveInterval = 5f;
+ 
+-        [Header("波次")]
+-        [SerializeField] private bool _useWaves = true;
+-        [SerializeField] private float _waveInterval = 5f;      // 波次间隔（秒）
++        private CombatOrchestrator _orchestrator;
++        private UnitSpawner _spawner;
++        private UnitAI _ai;
++        private SystemGroup _systems;
+ 
+         protected override void Awake()
+         {
+             base.Awake();
+             ECSWorld = new World(256);
++            _spawner = new UnitSpawner(ECSWorld);
++            _orchestrator = new CombatOrchestrator(this);
+         }
+ 
+-        // ==================== 开始战斗 ====================
++        // ==================== 对外 API ====================
+ 
+-        /// <summary>启动战斗（异步）</summary>
+         public async Task StartBattleAsync()
+         {
+-            if (CurrentPhase != CombatPhase.Idle)
+-            {
+-                Debug.LogWarning("[CombatManager] 战斗已在进行中");
+-                return;
+-            }
++            if (CurrentPhase != CombatPhase.Idle) return;
+ 
+             Debug.Log("[CombatManager] ===== 战斗开始 =====");
+ 
+-            // 1. 初始化 ECS
+-            InitializeSystems();
+-
+-            // 2. 生成防守方建筑和单位
+-            SpawnDefenders();
+-
+-            // 3. 部署阶段
+-            await RunDeployPhase();
++            // 1. 构建 ECS 管线
++            _systems = await CombatBootstrap.BuildAsync(ECSWorld);
++            DeathSys = _systems.FindDeathSystem();
+ 
+-            // 4. 战斗阶段
+-            await RunBattlePhase();
++            // 2. 生成防守方
++            _spawner.SpawnDefenders(Data.DataManager.Instance.Village);
+ 
+-            // 5. 结算
+-            await RunEndPhase();
+-        }
+-
+-        // ==================== 三阶段 ====================
+-
+-        private async Task RunDeployPhase()
+-        {
+-            SetPhase(CombatPhase.Deploying);
+-            Debug.Log($"[CombatManager] 部署阶段，{_deployTimeLimit}s 时间限制");
++            // 3. 部署 → 战斗 → 结算
++            await _orchestrator.RunDeployPhase(_deployTimeLimit);
+ 
+-            // 等待玩家部署完成或超时
+-            float elapsed = 0f;
+-            while (elapsed < _deployTimeLimit)
+-            {
+-                // TODO: 检查玩家是否点击"开始战斗"
+-                await AsyncManager.Delay(100);
+-                elapsed += 0.1f;
+-
+-                // 模拟：延迟结束后自动开始
+-                await Task.Yield();
+-            }
+-        }
+-
+-        private async Task RunBattlePhase()
+-        {
+-            SetPhase(CombatPhase.Battling);
+-            Debug.Log("[CombatManager] 战斗开始！");
+-
+-            // 启动 UnitAI
+-            _unitAI = new UnitAI(ECSWorld);
+-
+-            int wave = 0;
+-            float waveTimer = 0f;
+-
+-            // 主循环
+-            while (CurrentPhase == CombatPhase.Battling)
+-            {
+-                // 波次生成（攻击方）
+-                if (_useWaves)
+-                {
+-                    waveTimer += Time.deltaTime;
+-                    if (waveTimer >= _waveInterval)
+-                    {
+-                        waveTimer = 0f;
+-                        wave++;
+-                        SpawnAttackerWave(wave);
+-                    }
+-                }
+-
+-                // ECS 系统管线
+-                _unitAI.Update();
+-                _systems.UpdateAll();
+-
+-                // 检查胜负
+-                if (DeathSys.Winner.HasValue)
+-                {
+-                    Debug.Log($"[CombatManager] 战斗结束，胜者: {DeathSys.Winner}");
+-                    break;
+-                }
+-
+-                await Task.Yield(); // 下一帧
+-            }
+-        }
+-
+-        private async Task RunEndPhase()
+-        {
+-            SetPhase(CombatPhase.Ended);
++            _ai = new UnitAI(ECSWorld);
++            await _orchestrator.RunBattlePhase(_systems, _ai, _useWaves, _waveInterval);
+ 
+             var winner = DeathSys.Winner ?? Team.Defender;
++            int destroyed = Data.DataManager.Instance.Village.Buildings.Count - DeathSys.DefenderAlive;
++            await _orchestrator.RunEndPhase(winner, destroyed);
+ 
+-            // 结算
+-            var evt = new CombatEndEvent
+-            {
+-                Winner = winner,
+-                Stars = CalculateStars(winner),
+-                LootGold = CalculateLoot(winner),
+-                LootElixir = CalculateLoot(winner),
+-            };
+-
+-            EventBus.Publish(EventCombatEnded, evt);
+-            Debug.Log($"[CombatManager] 结算: winner={winner}, stars={evt.Stars}, " +
+-                      $"gold={evt.LootGold}, elixir={evt.LootElixir}");
+-
+-            // 等待结算动画
+-            await AsyncManager.DelaySeconds(2f);
+-
+-            // 清理
+-            await _systems.CleanupAllAsync();
++            // 4. 清理
++            await _orchestrator.CleanupAsync(_systems);
+             ECSWorld = new World(256);
+-            SetPhase(CombatPhase.Idle);
++            _spawner = new UnitSpawner(ECSWorld);
++            _orchestrator = new CombatOrchestrator(this);
+         }
+ 
+-        // ==================== 单位生成 ====================
++        // ==================== 内部（供 Orchestrator 回调） ====================
+ 
+-        private void SpawnDefenders()
++        internal void SpawnAttackerWave(int wave)
+         {
+-            // 从 VillageData 读取建筑位置，生成防守建筑实体
+-            var village = Data.DataManager.Instance.Village;
+-            foreach (var building in village.Buildings)
+-            {
+-                var gridPos = new Vector2Int(building.GridX.Value, building.GridY.Value);
+-                var worldPos = GridManager.Instance.GridToWorld(gridPos);
+-
+-                var entity = ECSWorld.CreateEntity();
+-                ECSWorld.AddComponent(entity, TransformComponent.Create(worldPos, gridPos));
+-                ECSWorld.AddComponent(entity, HealthComponent.Create(500 + building.Level.Value * 200));
+-                ECSWorld.AddComponent(entity, AttackComponent.Create(50, 5f, 1f));
+-                ECSWorld.AddComponent(entity, TeamComponent.Create(Team.Defender));
+-            }
+-
+-            Debug.Log($"[CombatManager] 生成 {village.Buildings.Count} 个防守建筑");
+-        }
+-
+-        private void SpawnAttackerWave(int wave)
+-        {
+-            // 在村庄边缘生成攻击单位
+-            var grid = GridManager.Instance;
+-            int count = 3 + wave; // 每波递增
+-
+-            for (int i = 0; i < count; i++)
+-            {
+-                // 随机边缘位置
+-                var edgePos = new Vector2Int(
+-                    UnityEngine.Random.Range(0, grid.Columns),
+-                    grid.Rows - 1); // 顶部边缘
+-
+-                var worldPos = grid.GridToWorld(edgePos);
+-
+-                var entity = ECSWorld.CreateEntity();
+-                ECSWorld.AddComponent(entity, TransformComponent.Create(worldPos, edgePos));
+-                ECSWorld.AddComponent(entity, HealthComponent.Create(100 + wave * 20));
+-                ECSWorld.AddComponent(entity, AttackComponent.Create(20 + wave * 5, 2f, 0.8f));
+-                ECSWorld.AddComponent(entity, TeamComponent.Create(Team.Attacker));
+-            }
+-
+-            Debug.Log($"[CombatManager] 波次 {wave}: 生成 {count} 个攻击单位");
+-        }
+-
+-        // ==================== 结算 ====================
+-
+-        private int CalculateStars(Team winner)
+-        {
+-            if (winner != Team.Attacker) return 0;
+-
+-            // 根据防守方剩余和摧毁率计算星级
+-            int totalBuildings = Data.DataManager.Instance.Village.Buildings.Count;
+-            int destroyed = totalBuildings - DeathSys.DefenderAlive;
+-            float destructionPercent = totalBuildings > 0 ? (float)destroyed / totalBuildings : 0f;
+-
+-            if (destructionPercent >= 1f) return 3;
+-            if (destructionPercent >= 0.5f) return 2;
+-            return 1;
+-        }
+-
+-        private int CalculateLoot(Team winner)
+-        {
+-            if (winner != Team.Attacker) return 0;
+-            return UnityEngine.Random.Range(100, 500);
+-        }
+-
+-        // ==================== 阶段管理 ====================
+-
+-        private void SetPhase(CombatPhase phase)
+-        {
+-            CurrentPhase = phase;
+-            EventBus.Publish(EventPhaseChanged, phase);
+-        }
+-
+-        // ==================== 系统初始化 ====================
+-
+-        private void InitializeSystems()
+-        {
+-            DeathSys = new DeathSystem();
+-            _systems = new SystemGroup();
+-            _systems.Add(
+-                new MovementSystem(),
+-                new AttackSystem(),
+-                new DamageSystem(),
+-                DeathSys
+-            );
+-
+-            // 同步初始化（战斗系统 InitAsync 通常无异步逻辑）
+-            _systems.InitAllAsync(ECSWorld).GetAwaiter().GetResult();
++            _spawner.SpawnAttackerWave(wave, GridManager.Instance.CellSize);
+         }
+     }
+ 
+diff --git a/Assets/Scripts/Combat/Components/MovementComponent.cs b/Assets/Scripts/Combat/Components/MovementComponent.cs
+index af7d414..3c7071b 100644
+--- a/Assets/Scripts/Combat/Components/MovementComponent.cs
++++ b/Assets/Scripts/Combat/Components/MovementComponent.cs
+@@ -10,6 +10,9 @@ namespace ZWebGLFrameWork.Combat
+         /// <summary>移动速度（格/秒）</summary>
+         public float Speed;
+ 
++        /// <summary>网格单元格边长（世界单位），由 Spawner 注入</summary>
++        public float CellSize;
++
+         /// <summary>当前路径（网格坐标列表）</summary>
+         public List<Vector2Int> Path;
+ 
+@@ -32,11 +35,12 @@ namespace ZWebGLFrameWork.Combat
+             }
+         }
+ 
+-        public static MovementComponent Create(float speed)
++        public static MovementComponent Create(float speed, float cellSize = 1f)
+         {
+             return new MovementComponent
+             {
+                 Speed = speed,
++                CellSize = cellSize,
+                 Path = null,
+                 PathIndex = 0,
+             };
+diff --git a/Assets/Scripts/Combat/ECS/SystemGroup.cs b/Assets/Scripts/Combat/ECS/SystemGroup.cs
+index edd196f..de816ab 100644
+--- a/Assets/Scripts/Combat/ECS/SystemGroup.cs
++++ b/Assets/Scripts/Combat/ECS/SystemGroup.cs
+@@ -1,6 +1,7 @@
+ using System;
+ using System.Collections.Generic;
+ using System.Threading.Tasks;
++using ZWebGLFrameWork.Combat;
+ 
+ namespace ZWebGLFrameWork.Combat.ECS
+ {
+@@ -60,6 +61,17 @@ namespace ZWebGLFrameWork.Combat.ECS
+             }
+         }
+ 
++        /// <summary>查找指定类型的系统（如 DeathSystem）</summary>
++        public T Find<T>() where T : SystemBase
++        {
++            foreach (var sys in _systems)
++                if (sys is T t) return t;
++            return null;
++        }
++
++        /// <summary>查找 DeathSystem（便捷方法）</summary>
++        public DeathSystem FindDeathSystem() => Find<DeathSystem>();
++
+         private void Sort()
+         {
+             if (_isSorted) return;
+diff --git a/Assets/Scripts/Combat/ECS/World.cs b/Assets/Scripts/Combat/ECS/World.cs
+index 9eb56e4..31c1b9b 100644
+--- a/Assets/Scripts/Combat/ECS/World.cs
++++ b/Assets/Scripts/Combat/ECS/World.cs
+@@ -115,6 +115,37 @@ namespace ZWebGLFrameWork.Combat.ECS
+             return GetPool<T>().GetEntities();
+         }
+ 
++        /// <summary>无GC遍历拥有某组件的所有实体（高性能）</summary>
++        public void ForEachEntities<T>(Action<Entity> action) where T : struct, IComponent
++        {
++            GetPool<T>().ForEach((e, _) => action(e));
++        }
++
++        /// <summary>高性能遍历组件引用</summary>
++        public void ForEachComponent<T>(Action<Entity, ref T> action) where T : struct, IComponent
++        {
++            GetPool<T>().ForEach(action);
++        }
++
++        // ==================== 伤害事件队列 ====================
++
++        private readonly Queue<DamageEvent> _damageEvents = new Queue<DamageEvent>();
++
++        /// <summary>入队伤害事件（AttackSystem → DamageSystem）</summary>
++        public void EnqueueDamageEvent(DamageEvent evt)
++        {
++            _damageEvents.Enqueue(evt);
++        }
++
++        /// <summary>消费所有伤害事件</summary>
++        public int ConsumeDamageEvents(Action<DamageEvent> handler)
++        {
++            int count = _damageEvents.Count;
++            while (_damageEvents.Count > 0)
++                handler(_damageEvents.Dequeue());
++            return count;
++        }
++
+         // ==================== 内部 ====================
+ 
+         private ComponentPool<T> GetPool<T>() where T : struct, IComponent
+diff --git a/Assets/Scripts/Combat/Systems/AttackSystem.cs b/Assets/Scripts/Combat/Systems/AttackSystem.cs
+index 7b23556..953bec7 100644
+--- a/Assets/Scripts/Combat/Systems/AttackSystem.cs
++++ b/Assets/Scripts/Combat/Systems/AttackSystem.cs
+@@ -4,102 +4,48 @@ using ZWebGLFrameWork.Combat.ECS;
+ namespace ZWebGLFrameWork.Combat
+ {
+     /// <summary>
+-    /// 攻击系统 — 索敌 + 进入射程后攻击 + 冷却管理。
+-    /// 依赖：Transform + Attack + Team + (Target)
+-    /// Order: 20（在移动之后）
++    /// 攻击系统 — 检查目标在射程内 → 冷却完毕 → 开火 → 入队伤害事件。
++    /// 索敌由 UnitAI/TargetSelector 负责，本系统不索敌。
++    /// 依赖：Transform + Attack + Team + Target
++    /// Order: 20
+     /// </summary>
+     public class AttackSystem : SystemBase
+     {
+-        public AttackSystem() { Order = 20; }
+-
+         private float _currentTime;
++        private TargetEvaluator _targetEvaluator;
++
++        public AttackSystem() { Order = 20; }
+ 
+         public override void Update()
+         {
++            if (_targetEvaluator == null)
++                _targetEvaluator = new TargetEvaluator(World);
++
+             _currentTime = Time.time;
+ 
+-            foreach (var entity in World.GetEntitiesWith<AttackComponent>())
++            World.ForEachComponent<AttackComponent>((entity, ref attack) =>
+             {
+-                if (!World.TryGetComponent<TransformComponent>(entity, out var transform)) continue;
+-                if (!World.TryGetComponent<TeamComponent>(entity, out var team)) continue;
+-
+-                ref var attack = ref World.GetComponent<AttackComponent>(entity);
++                if (!World.TryGetComponent<TransformComponent>(entity, out var transform)) return;
++                if (attack.IsOnCooldown(_currentTime)) return;
+ 
+-                // 冷却中
+-                if (attack.IsOnCooldown(_currentTime)) continue;
+-
+-                // 检查目标
++                // 目标检查（不索敌，只验证）
+                 if (!World.TryGetComponent<TargetComponent>(entity, out var target) || !target.HasTarget)
+-                {
+-                    // 索敌：找最近的敌人
+-                    var enemy = FindNearestEnemy(transform, team.TeamId);
+-                    if (enemy.HasValue)
+-                    {
+-                        World.AddComponent(entity, TargetComponent.Create());
+-                        ref var t = ref World.GetComponent<TargetComponent>(entity);
+-                        t.TargetEntity = enemy.Value;
+-                        target = t;
+-                    }
+-                    else continue;
+-                }
+-
+-                // 检查目标是否有效
+-                if (!World.TryGetComponent<TransformComponent>(target.TargetEntity, out var targetTransform))
+-                {
+-                    World.RemoveComponent<TargetComponent>(entity);
+-                    continue;
+-                }
++                    return;
+ 
+-                // 距离检测
+-                float dist = Vector3.Distance(transform.Position, targetTransform.Position);
+-                if (dist > attack.Range)
+-                {
+-                    // 超出射程，需要移动过去（由 UnitAI 处理）
+-                    continue;
+-                }
++                var status = _targetEvaluator.Evaluate(entity, target, attack, transform);
++                if (status != TargetStatus.InRange) return;
+ 
+-                // 攻击！
++                // 开火！
+                 attack.LastAttackTime = _currentTime;
+-                World.AddComponent(entity, attack); // 写回
++                World.AddComponent(entity, attack);
+ 
+-                // 标记伤害事件（由 DamageSystem 处理）
+-                World.AddComponent(target.TargetEntity, new DamageEvent
++                World.EnqueueDamageEvent(new DamageEvent
+                 {
+                     Amount = attack.Damage,
+                     Attacker = entity,
++                    Target = target.TargetEntity,
+                 });
+-            }
++            });
+         }
+-
+-        private Entity? FindNearestEnemy(TransformComponent selfTransform, Team selfTeam)
+-        {
+-            Entity? nearest = null;
+-            float nearestDist = float.MaxValue;
+-
+-            foreach (var other in World.GetEntitiesWith<TransformComponent>())
+-            {
+-                if (!World.TryGetComponent<TeamComponent>(other, out var otherTeam)) continue;
+-                if (!World.TryGetComponent<HealthComponent>(other, out var hp) || !hp.IsAlive) continue;
+-                if (!TeamComponent.IsEnemy(selfTeam, otherTeam.TeamId)) continue;
+-
+-                var otherTransform = World.GetComponent<TransformComponent>(other);
+-                float dist = Vector3.Distance(selfTransform.Position, otherTransform.Position);
+-
+-                if (dist < nearestDist)
+-                {
+-                    nearestDist = dist;
+-                    nearest = other;
+-                }
+-            }
+-
+-            return nearest;
+-        }
+-    }
+-
+-    /// <summary>伤害事件（临时组件，DamageSystem 处理后移除）</summary>
+-    public struct DamageEvent : IComponent
+-    {
+-        public int Amount;
+-        public Entity Attacker;
+     }
+ }
+diff --git a/Assets/Scripts/Combat/Systems/DamageSystem.cs b/Assets/Scripts/Combat/Systems/DamageSystem.cs
+index 498dec5..939a407 100644
+--- a/Assets/Scripts/Combat/Systems/DamageSystem.cs
++++ b/Assets/Scripts/Combat/Systems/DamageSystem.cs
+@@ -4,7 +4,8 @@ using ZWebGLFrameWork.Combat.ECS;
+ namespace ZWebGLFrameWork.Combat
+ {
+     /// <summary>
+-    /// 伤害系统 — 处理 DamageEvent，扣血。
++    /// 伤害系统 — 从 World 事件队列消费 DamageEvent，扣血。
++    /// 不依赖 IComponent，纯队列驱动。
+     /// Order: 30
+     /// </summary>
+     public class DamageSystem : SystemBase
+@@ -13,25 +14,18 @@ namespace ZWebGLFrameWork.Combat
+ 
+         public override void Update()
+         {
+-            foreach (var entity in World.GetEntitiesWith<DamageEvent>())
++            World.ConsumeDamageEvents(evt =>
+             {
+-                if (!World.TryGetComponent<HealthComponent>(entity, out var health))
+-                {
+-                    World.RemoveComponent<DamageEvent>(entity);
+-                    continue;
+-                }
++                if (!World.TryGetComponent<HealthComponent>(evt.Target, out var health))
++                    return;
+ 
+-                var damageEvent = World.GetComponent<DamageEvent>(entity);
+-
+-                // 扣血
+-                health.CurrentHP -= damageEvent.Amount;
++                health.CurrentHP -= evt.Amount;
+                 if (health.CurrentHP < 0) health.CurrentHP = 0;
+ 
+-                World.AddComponent(entity, health);
+-                World.RemoveComponent<DamageEvent>(entity);
++                World.AddComponent(evt.Target, health);
+ 
+-                Debug.Log($"[DamageSystem] {entity} 受到 {damageEvent.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
+-            }
++                Debug.Log($"[DamageSystem] {evt.Target} 受到 {evt.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
++            });
+         }
+     }
+ }
+diff --git a/Assets/Scripts/Combat/Systems/MovementSystem.cs b/Assets/Scripts/Combat/Systems/MovementSystem.cs
+index 22acd5b..07a173e 100644
+--- a/Assets/Scripts/Combat/Systems/MovementSystem.cs
++++ b/Assets/Scripts/Combat/Systems/MovementSystem.cs
+@@ -1,6 +1,6 @@
++using System.Collections.Generic;
+ using UnityEngine;
+ using ZWebGLFrameWork.Combat.ECS;
+-using ZWebGLFrameWork.Gameplay;
+ 
+ namespace ZWebGLFrameWork.Combat
+ {
+@@ -13,52 +13,56 @@ namespace ZWebGLFrameWork.Combat
+     {
+         public MovementSystem() { Order = 10; }
+ 
+-        private GridManager _grid;
++        // 收集批量写回，避免遍历中修改 Pool
++        private readonly List<(Entity, MovementComponent)> _writeBack = new List<(Entity, MovementComponent)>();
+ 
+         public override void Update()
+         {
+-            if (_grid == null) _grid = GridManager.Instance;
+-            if (_grid == null) return;
+-
+             float dt = Time.deltaTime;
++            _writeBack.Clear();
+ 
+-            foreach (var entity in World.GetEntitiesWith<TransformComponent>())
++            World.ForEachComponent<TransformComponent>((entity, ref transform) =>
+             {
+                 if (!World.TryGetComponent<MovementComponent>(entity, out var movement))
+-                    continue;
+-                if (!movement.HasPath) continue;
+-
+-                ref var transform = ref World.GetComponent<TransformComponent>(entity);
++                    return;
++                if (!movement.HasPath) return;
+ 
+-                // 获取下一个路径点
+                 var nextWaypoint = movement.NextWaypoint.Value;
+-                Vector3 targetWorld = _grid.GridToWorld(nextWaypoint);
++                Vector3 targetWorld = GridToWorld(nextWaypoint, movement.CellSize);
+ 
+-                // 移动
+                 Vector3 direction = (targetWorld - transform.Position).normalized;
+-                float step = movement.Speed * _grid.CellSize * dt;
+-                transform.Position += direction * Mathf.Min(step, Vector3.Distance(transform.Position, targetWorld));
++                float step = movement.Speed * movement.CellSize * dt;
++                transform.Position += direction *
++                    Mathf.Min(step, Vector3.Distance(transform.Position, targetWorld));
+ 
+-                // 到达当前路径点
+                 if (Vector3.Distance(transform.Position, targetWorld) < 0.05f)
+                 {
+                     transform.Position = targetWorld;
+                     transform.GridPosition = nextWaypoint;
+                     movement.PathIndex++;
+ 
+-                    // 到达终点
+                     if (!movement.HasPath)
+                     {
+                         movement.Path = null;
+                         movement.PathIndex = 0;
+-
+-                        // 更新 component
+-                        World.AddComponent(entity, m
+
+[… truncated 635 chars …]

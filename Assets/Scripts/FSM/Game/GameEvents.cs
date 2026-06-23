@@ -12,5 +12,7 @@ namespace ZWebGLFrameWork.FSM
     {
         public GameState TargetState;
         public object TargetData;
+        /// <summary>需要加载的场景名（null/empty = 仅过渡动画，不加载场景）</summary>
+        public string TargetScene;
     }
 }

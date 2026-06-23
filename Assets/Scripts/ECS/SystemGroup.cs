@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace ZWebGLFrameWork.ECS
 {
@@ -11,7 +11,7 @@ namespace ZWebGLFrameWork.ECS
         public void Add(SystemBase system) { _systems.Add(system); _isSorted = false; }
         public void Add(params SystemBase[] systems) { _systems.AddRange(systems); _isSorted = false; }
 
-        public async Task InitAllAsync(World world)
+        public async UniTask InitAllAsync(World world)
         {
             Sort();
             foreach (var sys in _systems)
@@ -28,7 +28,7 @@ namespace ZWebGLFrameWork.ECS
                 if (sys.Enabled) sys.Update();
         }
 
-        public async Task CleanupAllAsync()
+        public async UniTask CleanupAllAsync()
         {
             foreach (var sys in _systems)
                 if (sys.Enabled) await sys.CleanupAsync();

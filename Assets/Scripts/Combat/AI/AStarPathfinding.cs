@@ -120,7 +120,9 @@ namespace ZWebGLFrameWork.Combat
         private class Node
         {
             public Vector2Int Position;
-            public int G, H, F => G + H;
+            public int G;
+            public int H;
+            public int F => G + H;
             public Node Parent;
             public bool Closed;
             public bool InOpen;     // 是否在 open heap 中（替代 Contains 的 O(N) 查找）

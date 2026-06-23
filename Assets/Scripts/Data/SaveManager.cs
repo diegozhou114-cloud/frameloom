@@ -159,6 +159,36 @@ namespace ZWebGLFrameWork.Data
             return true;
         }
 
+        /// <summary>从存档槽位加载 PlayerSaveData 并写入 DataManager（离线模式入口）</summary>
+        public static bool LoadToDataManager(int? slot = null)
+        {
+            int targetSlot = slot ?? CurrentSlot;
+            var data = Load<PlayerSaveData>(targetSlot);
+            if (data == null) return false;
+
+            var player = DataManager.Instance.Player;
+            player.Name.Value = data.PlayerName;
+            player.Level.Value = data.PlayerLevel;
+            player.TownHallLevel.Value = data.TownHallLevel;
+            player.Gold.Value = data.Gold;
+            player.Elixir.Value = data.Elixir;
+            player.DarkElixir.Value = data.DarkElixir;
+            player.Gems.Value = data.Gems;
+            player.Trophies.Value = data.Trophies;
+            player.Exp.Value = data.Exp;
+
+            var village = DataManager.Instance.Village;
+            village.Buildings.Clear();
+            if (data.Buildings != null)
+            {
+                foreach (var b in data.Buildings)
+                    village.AddBuilding(BuildingData.Create(b.TypeId, b.GridX, b.GridY));
+            }
+
+            Debug.Log($"[SaveManager] 数据写入 DataManager: slot={targetSlot}");
+            return true;
+        }
+
         // ==================== 删除 ====================
 
         /// <summary>删除指定槽位的存档</summary>

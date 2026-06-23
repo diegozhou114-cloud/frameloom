@@ -16,8 +16,7 @@ namespace ZWebGLFrameWork.Combat
         {
             float dt = Time.deltaTime;
 
-            // 联合查询：两个 ref 都直接指向池内数组，写入立即生效，无需批量写回
-            World.ForEachEntities<TransformComponent, MovementComponent>((entity, ref transform, ref movement) =>
+            World.ForEachEntities<TransformComponent, MovementComponent>((entity, transform, movement) =>
             {
                 if (!movement.HasPath) return;
 
@@ -41,6 +40,9 @@ namespace ZWebGLFrameWork.Combat
                         movement.PathIndex = 0;
                     }
                 }
+
+                World.SetComponent(entity, transform);
+                World.SetComponent(entity, movement);
             });
         }
 

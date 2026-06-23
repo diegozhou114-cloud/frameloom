@@ -81,7 +81,39 @@ namespace ZWebGLFrameWork.Gameplay
 
         // ==================== 升级 ====================
 
-        /// <summary>开始升级当前选中建筑</summary>
+        /// <summary>升级当前选中建筑（从 ConfigTableManager 读取消耗和时间）</summary>
+        public void UpgradeSelected()
+        {
+            var building = _selection.SelectedBuilding;
+            if (building == null) return;
+
+            var config = ConfigTableManager.Instance.GetBuilding(building.TypeId);
+            if (config == null)
+            {
+                Debug.LogError($"[BuildingInteraction] 配置表中未找到建筑类型 {building.TypeId}");
+                return;
+            }
+
+            int nextLevel = building.Level.Value + 1;
+            if (nextLevel > config.MaxLevel)
+            {
+                Debug.LogWarning("[BuildingInteraction] 已是最高等级");
+                return;
+            }
+
+            int costGold = config.GetBuildCost(nextLevel);
+            int buildTime = config.GetBuildTime(nextLevel);
+
+            if (costGold < 0 || buildTime < 0)
+            {
+                Debug.LogError($"[BuildingInteraction] 配置数据异常: level={nextLevel}");
+                return;
+            }
+
+            UpgradeSelected(costGold, 0, buildTime);
+        }
+
+        /// <summary>开始升级当前选中建筑（手动指定消耗）</summary>
         public void UpgradeSelected(int costGold, int costElixir, int durationSeconds)
         {
             var building = _selection.SelectedBuilding;

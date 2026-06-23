@@ -4,6 +4,18 @@ using UnityEngine;
 
 namespace ZWebGLFrameWork.ECS
 {
+    /// <summary>支持 ref 参数的双参数委托</summary>
+    public delegate void RefAction<T1, T2>(T1 arg1, ref T2 arg2);
+
+    /// <summary>支持 ref 参数的三参数委托</summary>
+    public delegate void RefAction<T1, T2, T3>(T1 arg1, ref T2 arg2, ref T3 arg3);
+
+    /// <summary>值传递双参数委托</summary>
+    public delegate void ValAction<T1, T2>(T1 arg1, T2 arg2);
+
+    /// <summary>值传递三参数委托</summary>
+    public delegate void ValAction<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3);
+
     public class World
     {
         public int EntityCount => _entities.Count;
@@ -56,27 +68,21 @@ namespace ZWebGLFrameWork.ECS
         /// <summary>设置组件（存在则覆盖，不存在则新增）— 解决 TryGetComponent 副本修改后无法写回的问题</summary>
         public void SetComponent<T>(Entity entity, T component) where T : struct, IComponent => GetPool<T>().Set(entity, component);
         public IEnumerable<Entity> GetEntitiesWith<T>() where T : struct, IComponent => GetPool<T>().GetEntities();
-        public void ForEachEntities<T>(Action<Entity> action) where T : struct, IComponent => GetPool<T>().ForEach((e, _) => action(e));
-        public void ForEachComponent<T>(Action<Entity, ref T> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
+        public void ForEachEntities<T>(Action<Entity> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
+        public void ForEachComponent<T>(ValAction<Entity, T> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
 
-        /// <summary>
-        /// 两组件联合遍历 — 只遍历同时拥有 A 和 B 组件的实体。
-        /// 以较小的组件池驱动，两个 ref 都直接指向池内数组，支持写入。
-        /// </summary>
-        public void ForEachEntities<TA, TB>(Action<Entity, ref TA, ref TB> action)
+        /// <summary>两组件联合遍历（ref 版本，支持写入）</summary>
+        public void ForEachEntities<TA, TB>(RefAction<Entity, TA, TB> action)
             where TA : struct, IComponent where TB : struct, IComponent
         {
-            var poolA = GetPool<TA>();
-            var poolB = GetPool<TB>();
+            GetPool<TA>().ForEachRefPair(GetPool<TB>(), action);
+        }
 
-            if (poolA.Count <= poolB.Count)
-            {
-                poolA.ForEachRefPair(poolB, action);
-            }
-            else
-            {
-                poolB.ForEachRefPair<TA, TB>(poolA, (entity, ref b, ref a) => action(entity, ref a, ref b));
-            }
+        /// <summary>两组件联合遍历（值传递版本）</summary>
+        public void ForEachEntities<TA, TB>(ValAction<Entity, TA, TB> action)
+            where TA : struct, IComponent where TB : struct, IComponent
+        {
+            GetPool<TA>().ForEachRefPair(GetPool<TB>(), action);
         }
 
         // ==================== 通用事件队列（泛型，不耦合业务类型） ====================
@@ -217,14 +223,16 @@ namespace ZWebGLFrameWork.ECS
         }
 
         public IEnumerable<Entity> GetEntities() { for (int i = 0; i < _count; i++) yield return _denseEntities[i]; }
-        public void ForEach(Action<Entity, ref T> action) { for (int i = 0; i < _count; i++) action(_denseEntities[i], ref _denseComponents[i]); }
+        public void ForEach(Action<Entity> action) { for (int i = 0; i < _count; i++) action(_denseEntities[i]); }
+        public void ForEach(ValAction<Entity, T> action) { for (int i = 0; i < _count; i++) action(_denseEntities[i], _denseComponents[i]); }
+        public void ForEach(RefAction<Entity, T> action) { for (int i = 0; i < _count; i++) action(_denseEntities[i], ref _denseComponents[i]); }
 
         /// <summary>
         /// 联合遍历：遍历本池所有实体，对同时存在于 otherPool 的实体执行 action。
         /// 两个 ref 都直接引用各池的密集数组，支持写入。
         /// </summary>
         internal void ForEachRefPair<TOther>(ComponentPool<TOther> otherPool,
-            Action<Entity, ref T, ref TOther> action) where TOther : struct, IComponent
+            RefAction<Entity, T, TOther> action) where TOther : struct, IComponent
         {
             for (int i = 0; i < _count; i++)
             {
@@ -238,6 +246,26 @@ namespace ZWebGLFrameWork.ECS
                     {
                         action(entity, ref _denseComponents[i],
                             ref otherPool._denseComponents[otherIdx]);
+                    }
+                }
+            }
+        }
+
+        internal void ForEachRefPair<TOther>(ComponentPool<TOther> otherPool,
+            ValAction<Entity, T, TOther> action) where TOther : struct, IComponent
+        {
+            for (int i = 0; i < _count; i++)
+            {
+                var entity = _denseEntities[i];
+                int id = entity.Id;
+                if (id < otherPool._sparse.Length)
+                {
+                    int otherIdx = otherPool._sparse[id];
+                    if (otherIdx >= 0 && otherIdx < otherPool._count &&
+                        otherPool._denseEntities[otherIdx] == entity)
+                    {
+                        action(entity, _denseComponents[i],
+                            otherPool._denseComponents[otherIdx]);
                     }
                 }
             }

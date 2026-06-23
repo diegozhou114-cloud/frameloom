@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat
@@ -10,7 +10,7 @@ namespace ZWebGLFrameWork.Combat
     public static class CombatBootstrap
     {
         /// <summary>创建并初始化 ECS 管线</summary>
-        public static async Task<SystemGroup> BuildAsync(World world)
+        public static async UniTask<SystemGroup> BuildAsync(World world)
         {
             var systems = new SystemGroup();
             var deathSys = new DeathSystem();

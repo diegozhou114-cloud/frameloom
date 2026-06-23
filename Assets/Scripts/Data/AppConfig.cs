@@ -66,6 +66,21 @@ namespace ZWebGLFrameWork.Data
         [SerializeField] private bool _enableLocalization = false;
         public bool EnableLocalization => _enableLocalization;
 
+        /// <summary>是否启用离线模式：开启后跳过登录和网络连接，直接使用本地存档进主城</summary>
+        [Tooltip("开启后完全离线运行，本地存档自给自足")]
+        [SerializeField] private bool _enableOfflineMode = true;
+        public bool EnableOfflineMode => _enableOfflineMode;
+
+        /// <summary>默认服务器地址（联网模式使用）</summary>
+        [Tooltip("默认连接的服务器主机名或IP")]
+        [SerializeField] private string _defaultServerHost = "127.0.0.1";
+        public string DefaultServerHost => _defaultServerHost;
+
+        /// <summary>默认服务器端口</summary>
+        [Tooltip("默认服务器端口")]
+        [SerializeField] private int _defaultServerPort = 7777;
+        public int DefaultServerPort => _defaultServerPort;
+
         [Header("资源 — 加载方式切换")]
         /// <summary>资源加载提供者：Resources=本地开发 / AssetBundle=热更模式 / Addressables=生产环境</summary>
         [Tooltip("Resources=本地开发  AssetBundle=热更包  Addressables=远程资源")]

@@ -38,7 +38,7 @@ namespace ZWebGLFrameWork.Combat
             Winner = null;
             _deadList.Clear();
 
-            World.ForEachComponent<HealthComponent>((entity, ref health) =>
+            World.ForEachComponent<HealthComponent>((entity, health) =>
             {
                 if (!health.IsAlive)
                 {

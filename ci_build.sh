@@ -8,7 +8,21 @@
 
 set -e
 
-UNITY_PATH="${UNITY_PATH:-/Applications/Unity/Hub/Editor/2022.3.*/Unity.app/Contents/MacOS/Unity}"
+# 自动检测 Unity 路径（Windows / macOS / Linux）
+if [ -z "$UNITY_PATH" ]; then
+    if [ -d "/c/Program Files/Unity/Hub/Editor" ]; then
+        # Windows (Git Bash / WSL)
+        UNITY_PATH=$(ls -d "/c/Program Files/Unity/Hub/Editor/"*/Editor/Unity.exe 2>/dev/null | head -1)
+    elif [ -d "/Applications/Unity/Hub/Editor" ]; then
+        # macOS
+        UNITY_PATH=$(ls -d /Applications/Unity/Hub/Editor/*/Unity.app/Contents/MacOS/Unity 2>/dev/null | head -1)
+    fi
+fi
+
+if [ -z "$UNITY_PATH" ] || [ ! -f "$UNITY_PATH" ]; then
+    echo "[CI] ❌ 未找到 Unity 编辑器，请设置 UNITY_PATH 环境变量"
+    exit 1
+fi
 PROJECT_PATH="$(cd "$(dirname "$0")" && pwd)"
 BUILD_MODE="${1:-Validate}"
 LOG_FILE="$PROJECT_PATH/BuildLogs/${BUILD_MODE}_$(date +%Y%m%d_%H%M%S).log"

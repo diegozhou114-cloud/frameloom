@@ -39,4 +39,13 @@ namespace ZWebGLFrameWork.Core
 
         public static readonly string EventKey = "BootError";
     }
+
+    /// <summary>登录事件键（UI 面板 → LoginState 通信，避免 asmdef 循环依赖）</summary>
+    public static class LoginEvents
+    {
+        /// <summary>游客登录按钮点击</summary>
+        public const string GuestLogin = "Login_Guest";
+        /// <summary>离线模式按钮点击</summary>
+        public const string OfflineLogin = "Login_Offline";
+    }
 }

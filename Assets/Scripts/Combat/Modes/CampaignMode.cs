@@ -100,7 +100,7 @@ namespace ZWebGLFrameWork.Combat
             float speed = 2f + wave * 0.3f;
 
             spawner.SpawnAttackerWave(wave, 1f,
-                (int)hp, hp, damage, (int)(damage * 0.5f), 2.5f, 1f, speed);
+                (int)hp, (int)hp, damage, (int)(damage * 0.5f), 2.5f, 1f, speed);
         }
     }
 }

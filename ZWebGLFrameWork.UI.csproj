@@ -42,16 +42,21 @@
     <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="F:\PersionProJects\UnityPros\ZWbeglFrameWork\Library\PackageCache\com.unity.ext.nunit@2.0.3\net40\unity-custom\nunit.framework.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.62f3c1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\UI\Core\UIBase.cs" />
     <Compile Include="Assets\Scripts\UI\Core\UIScreenAdapter.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\LoadingPanel.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\ForceUpdatePanel.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\MainVillageHUD.cs" />
     <Compile Include="Assets\Scripts\UI\Core\UIDefine.cs" />
     <Compile Include="Assets\Scripts\UI\Core\UIAnimation.cs" />
     <Compile Include="Assets\Scripts\UI\Core\UIManager.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\LoginPanel.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\ErrorPanel.cs" />
+    <Compile Include="Assets\Scripts\UI\Panels\CharacterSelectPanel.cs" />
     <Compile Include="Assets\Scripts\UI\Core\UIStack.cs" />
     <None Include="Assets\Scripts\UI\ZWebGLFrameWork.UI.asmdef" />
     <Reference Include="UnityEngine">
@@ -710,6 +715,10 @@
     <ProjectReference Include="ZWebGLFrameWork.Core.csproj">
       <Project>{9301b9d8-70a9-9b93-821c-7b410efefb26}</Project>
       <Name>ZWebGLFrameWork.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="ZWebGLFrameWork.Data.csproj">
+      <Project>{5be1399a-24bf-1615-7b65-2a80941a2466}</Project>
+      <Name>ZWebGLFrameWork.Data</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

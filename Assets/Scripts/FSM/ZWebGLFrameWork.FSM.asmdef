@@ -5,8 +5,8 @@
         "ZWebGLFrameWork.Core",
         "ZWebGLFrameWork.Data",
         "ZWebGLFrameWork.UI",
-        "ZWebGLFr,
-        "ZWebGLFrameWork.Network"ameWork.Network",
+        "ZWebGLFrameWork.Network",
+        "ZWebGLFrameWork.Gameplay",
         "UniTask"
     ],
     "includePlatforms": [],

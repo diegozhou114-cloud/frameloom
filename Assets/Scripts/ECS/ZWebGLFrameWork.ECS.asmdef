@@ -2,7 +2,8 @@
     "name": "ZWebGLFrameWork.ECS",
     "rootNamespace": "ZWebGLFrameWork.ECS",
     "references": [
-        "ZWebGLFrameWork.Core"
+        "ZWebGLFrameWork.Core",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

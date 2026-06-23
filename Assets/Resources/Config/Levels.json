@@ -1,0 +1,75 @@
+[
+  {
+    "Id": 1,
+    "Name": "Goblin Village 1",
+    "WaveCount": 2,
+    "Waves": [
+      { "UnitId": 1, "Count": 10, "Level": 1 },
+      { "UnitId": 2, "Count": 5, "Level": 1 }
+    ],
+    "StarThresholds": [30, 60, 100],
+    "GoldReward": 500,
+    "ElixirReward": 300,
+    "TrophyChange": 5,
+    "TimeLimit": 180
+  },
+  {
+    "Id": 2,
+    "Name": "Goblin Village 2",
+    "WaveCount": 3,
+    "Waves": [
+      { "UnitId": 1, "Count": 15, "Level": 2 },
+      { "UnitId": 2, "Count": 8, "Level": 2 },
+      { "UnitId": 3, "Count": 2, "Level": 1 }
+    ],
+    "StarThresholds": [40, 70, 100],
+    "GoldReward": 1000,
+    "ElixirReward": 600,
+    "TrophyChange": 8,
+    "TimeLimit": 180
+  },
+  {
+    "Id": 3,
+    "Name": "Goblin Village 3",
+    "WaveCount": 3,
+    "Waves": [
+      { "UnitId": 10, "Count": 20, "Level": 3 },
+      { "UnitId": 4, "Count": 4, "Level": 2 },
+      { "UnitId": 2, "Count": 10, "Level": 3 }
+    ],
+    "StarThresholds": [40, 70, 100],
+    "GoldReward": 2000,
+    "ElixirReward": 1200,
+    "TrophyChange": 12,
+    "TimeLimit": 180
+  },
+  {
+    "Id": 4,
+    "Name": "Dragon's Lair",
+    "WaveCount": 2,
+    "Waves": [
+      { "UnitId": 6, "Count": 8, "Level": 4 },
+      { "UnitId": 8, "Count": 1, "Level": 1 }
+    ],
+    "StarThresholds": [50, 75, 100],
+    "GoldReward": 5000,
+    "ElixirReward": 3500,
+    "TrophyChange": 20,
+    "TimeLimit": 180
+  },
+  {
+    "Id": 5,
+    "Name": "P.E.K.K.A's Playhouse",
+    "WaveCount": 3,
+    "Waves": [
+      { "UnitId": 1, "Count": 25, "Level": 5 },
+      { "UnitId": 6, "Count": 12, "Level": 5 },
+      { "UnitId": 9, "Count": 2, "Level": 2 }
+    ],
+    "StarThresholds": [50, 75, 100],
+    "GoldReward": 10000,
+    "ElixirReward": 7000,
+    "TrophyChange": 30,
+    "TimeLimit": 210
+  }
+]

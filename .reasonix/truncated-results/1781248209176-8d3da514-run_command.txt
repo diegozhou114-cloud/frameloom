@@ -1,0 +1,355 @@
+$ git add Assets/ .gitignore ci_build.sh && git add -u Assets/Scripts/ && git status --short | findstr /V "Logs Packages ProjectSettings UserSettings truncated"
+[exit 0]
+warning: in the working copy of 'Assets/Scripts/Combat/AI/AStarPathfinding.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/UnitAI.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/CombatManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/AttackComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/HealthComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/MovementComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TargetComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TeamComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TransformComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/AttackSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/DamageSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/DeathSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/MovementSystem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Event/EventBus.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/SaveManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/GameFSM.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Building/BuildingInteraction.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Building/BuildingPlacer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Control/InputManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Grid/GridManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Editor/AutoFixProcessor.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Editor/BuildScript.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Editor/BuildValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Editor/CompileHook.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Editor/ZWebGLFrameWork.Editor.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/AStarPathfinding.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/PathPlanner.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/PathPlanner.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/TargetEvaluator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/TargetEvaluator.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/TargetSelector.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/TargetSelector.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/AI/UnitAI.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/CombatEvents.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/CombatEvents.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/CombatManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/AttackComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/HealthComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/MovementComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TargetComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TeamComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Components/TransformComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Core/CombatBootstrap.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Core/CombatBootstrap.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Core/CombatOrchestrator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Core/CombatOrchestrator.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/BuilderBaseMode.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/BuilderBaseMode.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/CampaignMode.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/CampaignMode.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/ClanWarMode.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/ClanWarMode.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/CombatMode.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/CombatMode.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/VillageAttackMode.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Modes/VillageAttackMode.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Spawner.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Spawner/UnitSpawner.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Spawner/UnitSpawner.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/AttackSystem.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/DamageSystem.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/DeathSystem.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/Systems/MovementSystem.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/ZWebGLFrameWork.Combat.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Combat/ZWebGLFrameWork.Combat.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Async.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Async/AsyncManager.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Async/AsyncManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Coroutine.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Event.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Event/EventBus.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Event/IEventBus.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Event/IEventBus.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Pool.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Pool/ObjectPool.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Singleton.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Singleton/Singleton.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/Singleton/SingletonDontDestroy.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/ZWebGLFrameWork.Core.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Core/ZWebGLFrameWork.Core.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/ConfigLoader.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Core/Observable.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Core/ObservableModel.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/DataManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Model.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Model/BuildingData.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Model/PlayerData.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/Model/VillageData.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/SaveManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/ZWebGLFrameWork.Data.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Data/ZWebGLFrameWork.Data.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/DamageEvent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/DamageEvent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/Entity.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/Entity.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/IComponent.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/IComponent.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/SystemBase.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/SystemBase.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/SystemGroup.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/SystemGroup.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/World.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/World.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/ZWebGLFrameWork.ECS.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/ECS/ZWebGLFrameWork.ECS.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Core/FSM.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Core/FSMState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/GameEvents.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/GameEvents.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/GameFSM.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/GameState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States/BattleState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States/LaunchState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States/LoadingState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States/LoginState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/Game/States/MainVillageState.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/ZWebGLFrameWork.FSM.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/FSM/ZWebGLFrameWork.FSM.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Building.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Building/BuildingInteraction.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Building/BuildingPlacer.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Camera.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Camera/CameraController.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Control.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Control/InputManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Control/SelectionManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Grid.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Grid/GridManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/Grid/GridRenderer.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/ZWebGLFrameWork.Gameplay.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Gameplay/ZWebGLFrameWork.Gameplay.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/AddressResolver.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/INetworkClient.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/MessageDispatcher.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/MessageProtocol.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/NetworkDefine.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Core/NetworkMonitor.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/KCP.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/KCP/KcpClient.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/KCP/KcpCore.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/NetworkManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Protocols.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Protocols/HttpClient.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Protocols/TcpClient.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/Protocols/UdpClient.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/ZWebGLFrameWork.Network.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/Network/ZWebGLFrameWork.Network.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIAnimation.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIBase.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIDefine.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIManager.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIScreenAdapter.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/Core/UIStack.cs.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/ZWebGLFrameWork.UI.asmdef', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Assets/Scripts/UI/ZWebGLFrameWork.UI.asmdef.meta', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'ci_build.sh', LF will be replaced by CRLF the next time Git touches it
+A  .gitignore
+A  Assets/Editor/AutoFixProcessor.cs
+A  Assets/Editor/BuildScript.cs
+A  Assets/Editor/BuildValidator.cs
+A  Assets/Editor/CompileHook.cs
+A  Assets/Editor/ZWebGLFrameWork.Editor.asmdef
+A  Assets/Scripts.meta
+A  Assets/Scripts/Combat.meta
+A  Assets/Scripts/Combat/AI.meta
+M  Assets/Scripts/Combat/AI/AStarPathfinding.cs
+A  Assets/Scripts/Combat/AI/AStarPathfinding.cs.meta
+A  Assets/Scripts/Combat/AI/PathPlanner.cs
+A  Assets/Scripts/Combat/AI/PathPlanner.cs.meta
+A  Assets/Scripts/Combat/AI/TargetEvaluator.cs
+A  Assets/Scripts/Combat/AI/TargetEvaluator.cs.meta
+A  Assets/Scripts/Combat/AI/TargetSelector.cs
+A  Assets/Scripts/Combat/AI/TargetSelector.cs.meta
+M  Assets/Scripts/Combat/AI/UnitAI.cs
+A  Assets/Scripts/Combat/AI/UnitAI.cs.meta
+D  Assets/Scripts/Combat/AsyncManager.cs
+A  Assets/Scripts/Combat/CombatEvents.cs
+A  Assets/Scripts/Combat/CombatEvents.cs.meta
+M  Assets/Scripts/Combat/CombatManager.cs
+A  Assets/Scripts/Combat/CombatManager.cs.meta
+A  Assets/Scripts/Combat/Components.meta
+M  Assets/Scripts/Combat/Components/AttackComponent.cs
+A  Assets/Scripts/Combat/Components/AttackComponent.cs.meta
+M  Assets/Scripts/Combat/Components/HealthComponent.cs
+A  Assets/Scripts/Combat/Components/HealthComponent.cs.meta
+M  Assets/Scripts/Combat/Components/MovementComponent.cs
+A  Assets/Scripts/Combat/Components/MovementComponent.cs.meta
+M  Assets/Scripts/Combat/Components/TargetComponent.cs
+A  Assets/Scripts/Combat/Components/TargetComponent.cs.meta
+M  Assets/Scripts/Combat/Components/TeamComponent.cs
+A  Assets/Scripts/Combat/Components/TeamComponent.cs.meta
+M  Assets/Scripts/Combat/Components/TransformComponent.cs
+A  Assets/Scripts/Combat/Components/TransformComponent.cs.meta
+A  Assets/Scripts/Combat/Core.meta
+A  Assets/Scripts/Combat/Core/CombatBootstrap.cs
+A  Assets/Scripts/Combat/Core/CombatBootstrap.cs.meta
+A  Assets/Scripts/Combat/Core/CombatOrchestrator.cs
+A  Assets/Scripts/Combat/Core/CombatOrchestrator.cs.meta
+D  Assets/Scripts/Combat/ECS/IComponent.cs
+D  Assets/Scripts/Combat/ECS/SystemBase.cs
+D  Assets/Scripts/Combat/ECS/SystemGroup.cs
+A  Assets/Scripts/Combat/Modes.meta
+A  Assets/Scripts/Combat/Modes/BuilderBaseMode.cs
+A  Assets/Scripts/Combat/Modes/BuilderBaseMode.cs.meta
+A  Assets/Scripts/Combat/Modes/CampaignMode.cs
+A  Assets/Scripts/Combat/Modes/CampaignMode.cs.meta
+A  Assets/Scripts/Combat/Modes/ClanWarMode.cs
+A  Assets/Scripts/Combat/Modes/ClanWarMode.cs.meta
+A  Assets/Scripts/Combat/Modes/CombatMode.cs
+A  Assets/Scripts/Combat/Modes/CombatMode.cs.meta
+A  Assets/Scripts/Combat/Modes/VillageAttackMode.cs
+A  Assets/Scripts/Combat/Modes/VillageAttackMode.cs.meta
+A  Assets/Scripts/Combat/Spawner.meta
+A  Assets/Scripts/Combat/Spawner/UnitSpawner.cs
+A  Assets/Scripts/Combat/Spawner/UnitSpawner.cs.meta
+A  Assets/Scripts/Combat/Systems.meta
+M  Assets/Scripts/Combat/Systems/AttackSystem.cs
+A  Assets/Scripts/Combat/Systems/AttackSystem.cs.meta
+M  Assets/Scripts/Combat/Systems/DamageSystem.cs
+A  Assets/Scripts/Combat/Systems/DamageSystem.cs.meta
+M  Assets/Scripts/Combat/Systems/DeathSystem.cs
+A  Assets/Scripts/Combat/Systems/DeathSystem.cs.meta
+M  Assets/Scripts/Combat/Systems/MovementSystem.cs
+A  Assets/Scripts/Combat/Systems/MovementSystem.cs.meta
+A  Assets/Scripts/Combat/ZWebGLFrameWork.Combat.asmdef
+A  Assets/Scripts/Combat/ZWebGLFrameWork.Combat.asmdef.meta
+A  Assets/Scripts/Core.meta
+A  Assets/Scripts/Core/Async.meta
+A  Assets/Scripts/Core/Async/AsyncManager.cs
+A  Assets/Scripts/Core/Async/AsyncManager.cs.meta
+A  Assets/Scripts/Core/Coroutine.meta
+D  Assets/Scripts/Core/Coroutine/CoroutineManager.cs
+A  Assets/Scripts/Core/Event.meta
+M  Assets/Scripts/Core/Event/EventBus.cs
+A  Assets/Scripts/Core/Event/EventBus.cs.meta
+A  Assets/Scripts/Core/Event/IEventBus.cs
+A  Assets/Scripts/Core/Event/IEventBus.cs.meta
+A  Assets/Scripts/Core/Pool.meta
+A  Assets/Scripts/Core/Pool/ObjectPool.cs.meta
+A  Assets/Scripts/Core/Singleton.meta
+A  Assets/Scripts/Core/Singleton/Singleton.cs.meta
+A  Assets/Scripts/Core/Singleton/SingletonDontDestroy.cs.meta
+A  Assets/Scripts/Core/ZWebGLFrameWork.Core.asmdef
+A  Assets/Scripts/Core/ZWebGLFrameWork.Core.asmdef.meta
+A  Assets/Scripts/Data.meta
+A  Assets/Scripts/Data/ConfigLoader.cs.meta
+A  Assets/Scripts/Data/Core.meta
+A  Assets/Scripts/Data/Core/Observable.cs.meta
+A  Assets/Scripts/Data/Core/ObservableModel.cs.meta
+A  Assets/Scripts/Data/DataManager.cs.meta
+A  Assets/Scripts/Data/Model.meta
+A  Assets/Scripts/Data/Model/BuildingData.cs.meta
+A  Assets/Scripts/Data/Model/PlayerData.cs.meta
+A  Assets/Scripts/Data/Model/VillageData.cs.meta
+M  Assets/Scripts/Data/SaveManager.cs
+A  Assets/Scripts/Data/SaveManager.cs.meta
+A  Assets/Scripts/Data/ZWebGLFrameWork.Data.asmdef
+A  Assets/Scripts/Data/ZWebGLFrameWork.Data.asmdef.meta
+A  Assets/Scripts/ECS.meta
+A  Assets/Scripts/ECS/DamageEvent.cs
+A  Assets/Scripts/ECS/DamageEvent.cs.meta
+R  Assets/Scripts/Combat/ECS/Entity.cs -> Assets/Scripts/ECS/Entity.cs
+A  Assets/Scripts/ECS/Entity.cs.meta
+A  Assets/Scripts/ECS/IComponent.cs
+A  Assets/Scripts/ECS/IComponent.cs.meta
+A  Assets/Scripts/ECS/SystemBase.cs
+A  Assets/Scripts/ECS/SystemBase.cs.meta
+A  Assets/Scripts/ECS/SystemGroup.cs
+A  Assets/Scripts/ECS/SystemGroup.cs.meta
+R  Assets/Scripts/Combat/ECS/World.cs -> Assets/Scripts/ECS/World.cs
+A  Assets/Scripts/ECS/World.cs.meta
+A  Assets/Scripts/ECS/ZWebGLFrameWork.ECS.asmdef
+A  Assets/Scripts/ECS/ZWebGLFrameWork.ECS.asmdef.meta
+A  Assets/Scripts/FSM.meta
+A  Assets/Scripts/FSM/Core.meta
+A  Assets/Scripts/FSM/Core/FSM.cs.meta
+A  Assets/Scripts/FSM/Core/FSMState.cs.meta
+A  Assets/Scripts/FSM/Game.meta
+A  Assets/Scripts/FSM/Game/GameEvents.cs
+A  Assets/Scripts/FSM/Game/GameEvents.cs.meta
+M  Assets/Scripts/FSM/Game/GameFSM.cs
+A  Assets/Scripts/FSM/Game/GameFSM.cs.meta
+A  Assets/Scripts/FSM/Game/GameState.cs.meta
+A  Assets/Scripts/FSM/Game/States.meta
+A  Assets/Scripts/FSM/Game/States/BattleState.cs.meta
+A  Assets/Scripts/FSM/Game/States/LaunchState.cs.meta
+A  Assets/Scripts/FSM/Game/States/LoadingState.cs.meta
+A  Assets/Scripts/FSM/Game/States/LoginState.cs.meta
+A  Assets/Scripts/FSM/Game/States/MainVillageState.cs.meta
+A  Assets/Scripts/FSM/ZWebGLFrameWork.FSM.asmdef
+A  Assets/Scripts/FSM/ZWebGLFrameWork.FSM.asmdef.meta
+A  Assets/Scripts/Gameplay.meta
+A  Assets/Scripts/Gameplay/Building.meta
+M  Assets/Scripts/Gameplay/Building/BuildingInteraction.cs
+A  Assets/Scripts/Gameplay/Building/BuildingInteraction.cs.meta
+M  Assets/Scripts/Gameplay/Building/BuildingPlacer.cs
+A  Assets/Scripts/Gameplay/Building/BuildingPlacer.cs.meta
+A  Assets/Scripts/Gameplay/Camera.meta
+A  Assets/Scripts/Gameplay/Camera/CameraController.cs.meta
+A  Assets/Scripts/Gameplay/Control.meta
+M  Assets/Scripts/Gameplay/Control/InputManager.cs
+A  Assets/Scripts/Gameplay/Control/InputManager.cs.meta
+A  Assets/Scripts/Gameplay/Control/SelectionManager.cs.meta
+A  Assets/Scripts/Gameplay/Grid.meta
+M  Assets/Scripts/Gameplay/Grid/GridManager.cs
+A  Assets/Scripts/Gameplay/Grid/GridManager.cs.meta
+A  Assets/Scripts/Gameplay/Grid/GridRenderer.cs.meta
+A  Assets/Scripts/Gameplay/ZWebGLFrameWork.Gameplay.asmdef
+A  Assets/Scripts/Gameplay/ZWebGLFrameWork.Gameplay.asmdef.meta
+A  Assets/Scripts/Network.meta
+A  Assets/Scripts/Network/Core.meta
+A  Assets/Scripts/Network/Core/AddressResolver.cs.meta
+A  Assets/Scripts/Network/Core/INetworkClient.cs.meta
+A  Assets/Scripts/Network/Core/MessageDispatcher.cs.meta
+A  Assets/Scripts/Network/Core/MessageProtocol.cs.meta
+A  Assets/Scripts/Network/Core/NetworkDefine.cs.meta
+A  Assets/Scripts/Network/Core/NetworkMonitor.cs.meta
+A  Assets/Scripts/Network/KCP.meta
+A  Assets/Scripts/Network/KCP/KcpClient.cs.meta
+A  Assets/Scripts/Network/KCP/KcpCore.cs.meta
+A  Assets/Scripts/Network/NetworkManager.cs.meta
+A  Assets/Scripts/Network/Protocols.meta
+A  Assets/Scripts/Network/Protocols/HttpClient.cs.meta
+A  Assets/Scripts/Network/Protocols/TcpClient.cs.meta
+A  Assets/Scripts/Network/Protocols/UdpClient.cs.meta
+A  Assets/Scripts/Network/ZWebGLFrameWork.Network.asmdef
+A  Assets/Scripts/Network/ZWebGLFrameWork.Network.asmdef.meta
+A  Assets/Scripts/UI.meta
+A  Assets/Scripts/UI/Core.meta
+A  Asset
+
+[… truncated 372 chars …]

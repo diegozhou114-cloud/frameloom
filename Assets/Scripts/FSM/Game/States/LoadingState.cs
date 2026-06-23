@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 
@@ -8,6 +9,9 @@ namespace ZWebGLFrameWork.FSM
     public class LoadingState : FSMState<GameState>
     {
         public float Progress { get; private set; }
+
+        /// <summary>当前正在执行的加载协程（OnExit 时停止以避免孤儿协程）</summary>
+        private Coroutine _activeCoroutine;
 
         public LoadingState() : base(GameState.Loading) { }
 
@@ -20,8 +24,7 @@ namespace ZWebGLFrameWork.FSM
             if (data is LoadingPayload payload)
             {
                 EventBus.Publish("LoadingStarted");
-                // 使用 CoroutineManager 替代 async void，保持 FSM 生命周期同步
-                CoroutineManager.Instance.StartCoroutine(LoadSequence(payload));
+                _activeCoroutine = CoroutineManager.StartCoroutine(LoadSequence(payload));
             }
             else
             {
@@ -32,16 +35,42 @@ namespace ZWebGLFrameWork.FSM
 
         private IEnumerator LoadSequence(LoadingPayload payload)
         {
-            yield return new WaitForSeconds(0.15f);
-            Progress = 0.5f;
-            yield return new WaitForSeconds(0.15f);
+            if (!string.IsNullOrEmpty(payload.TargetScene))
+            {
+                var loadTask = SceneLoader.Instance.LoadSceneAsync(payload.TargetScene);
+                while (loadTask.Status == UniTaskStatus.Pending)
+                {
+                    Progress = SceneLoader.Instance.Progress;
+                    yield return null;
+                }
+            }
+            else
+            {
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            // 检查协程是否已被外部停止（防止孤儿协程在状态切换后仍然变更 FSM）
+            if (_activeCoroutine == null)
+            {
+                Debug.LogWarning("[LoadingState] 加载协程已被取消，跳过状态切换");
+                yield break;
+            }
+
             Progress = 1.0f;
             EventBus.Publish("LoadingComplete");
+            _activeCoroutine = null;
             ChangeState(payload.TargetState, payload.TargetData);
         }
 
         public override void OnExit()
         {
+            // 停止未完成的加载协程，防止在退出后继续执行并覆盖 FSM 状态
+            if (_activeCoroutine != null)
+            {
+                CoroutineManager.StopCoroutine(_activeCoroutine);
+                _activeCoroutine = null;
+                Debug.Log("[GameFSM] 加载协程已取消");
+            }
             Progress = 1f;
             base.OnExit();
             Debug.Log("[GameFSM] 退出加载状态");

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.ECS;
@@ -42,7 +42,7 @@ namespace ZWebGLFrameWork.Combat
         }
 
         /// <summary>以指定模式启动战斗</summary>
-        public async Task StartBattleAsync(CombatMode mode)
+        public async UniTask StartBattleAsync(CombatMode mode)
         {
             if (CurrentPhase != CombatPhase.Idle) return;
             CurrentMode = mode;
@@ -61,7 +61,7 @@ namespace ZWebGLFrameWork.Combat
             if (mode.AllowDeployment)
                 await _orchestrator.RunDeployPhaseAsync(mode.DeployTimeLimit);
 
-            // 战斗阶段（非阻塞，由 Update Tick 驱动）
+            // 战斗阶段
             await _orchestrator.RunBattlePhaseAsync(_systems, _ai, DeathSys, mode, _spawner);
 
             // 结算
