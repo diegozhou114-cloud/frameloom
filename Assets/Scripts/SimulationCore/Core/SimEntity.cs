@@ -1,0 +1,30 @@
+using System;
+
+namespace ZWebGLFrameWork.SimulationCore
+{
+    /// <summary>
+    /// 仿真实体标识符 — 轻量值类型，由 SimWorld 分配。
+    /// 完全等价于现有 ECS 的 Entity，但属于 SimulationCore 命名空间。
+    /// </summary>
+    public readonly struct SimEntity : IEquatable<SimEntity>
+    {
+        public readonly int Id;
+        public readonly int Generation;
+        public static readonly SimEntity Invalid = new SimEntity(-1, -1);
+
+        internal SimEntity(int id, int generation)
+        {
+            Id = id;
+            Generation = generation;
+        }
+
+        public bool IsValid => Id >= 0;
+
+        public bool Equals(SimEntity other) => Id == other.Id && Generation == other.Generation;
+        public override bool Equals(object obj) => obj is SimEntity e && Equals(e);
+        public override int GetHashCode() => Id;
+        public static bool operator ==(SimEntity a, SimEntity b) => a.Equals(b);
+        public static bool operator !=(SimEntity a, SimEntity b) => !a.Equals(b);
+        public override string ToString() => IsValid ? $"SimEntity({Id}:{Generation})" : "SimEntity(Invalid)";
+    }
+}
