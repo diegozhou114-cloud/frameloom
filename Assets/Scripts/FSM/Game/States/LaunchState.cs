@@ -2,13 +2,14 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
+using ZWebGLFrameWork.UI;
 
 namespace ZWebGLFrameWork.FSM
 {
     /// <summary>
     /// 启动状态 — 按依赖顺序初始化全部核心模块。
-    /// 管线：资源配置 → 基础服务 → 热更检查 → 预热 → Login
-    /// 各模块受 AppConfig 功能开关控制，本地测试可按需关闭。
+    /// 管线：UI → 资源 → 基础服务 → 热更检查 → Login
+    /// 各模块受 AppConfig 功能开关控制，失败时通过 ErrorPanel 通知用户。
     /// </summary>
     public class LaunchState : FSMState<GameState>
     {
@@ -31,75 +32,111 @@ namespace ZWebGLFrameWork.FSM
                 return;
             }
 
-            Debug.Log($"[LaunchState] 开始初始化管线 — "
-                      + $"资源:{cfg.ResourceProvider}, 热更:{cfg.EnableHotUpdate}, "
-                      + $"音频:{cfg.EnableAudio}, SDK:{cfg.EnableSDK}, 本地化:{cfg.EnableLocalization}");
+            // ─── 打开 Loading 遮罩 ───
+            UIManager.Instance.Open<LoadingPanel>();
+            PublishProgress("引擎初始化中...", 0.05f);
 
-            // ===== ① 资源管理器（必须最先初始化）=====
-            ResourceManager.Instance.Init(CreateResourceProvider(cfg.ResourceProvider));
+            // ─── ① UIManager（确保 Canvas 在 ResourceManager 之前就绪）───
+            PublishProgress("UI 系统...", 0.08f);
+            // UIManager 是 SingletonDontDestroy，首次访问 .Instance 即自动初始化
 
-            // ===== ② 场景加载器（始终启用）=====
+            // ─── ② 资源管理器 ───
+            PublishProgress("资源管理器...", 0.10f);
+            if (!ResourceManager.Instance.Init(
+                CreateResourceProvider(cfg.ResourceProvider)))
+                PublishError("ResourceManager", "资源管理器初始化失败，将使用默认 Resources 模式");
+
+            // ─── ③ 场景加载器 ───
+            PublishProgress("场景加载器...", 0.15f);
             SceneLoader.Instance.Init();
 
-            // ===== ③ 功能开关控制的可选模块 =====
+            // ─── ④ 可选模块 ───
+            float progress = 0.20f;
+            float step = 0.08f;
+
             if (cfg.EnableAudio)
-                AudioManager.Instance.Init();
-            else
-                Debug.Log("[LaunchState] ⏭ 音频已关闭，跳过 AudioManager");
+            {
+                PublishProgress("音频系统...", progress);
+                if (!AudioManager.Instance.Init())
+                    PublishError("AudioManager", "音频初始化失败，游戏将静音运行");
+            }
+            else Debug.Log("[LaunchState] ⏭ 音频已关闭");
+            progress += step;
 
             if (cfg.EnableLocalization)
-                LocalizationManager.Instance.Init();
-            else
-                Debug.Log("[LaunchState] ⏭ 本地化已关闭，跳过 LocalizationManager");
+            {
+                PublishProgress("多语言...", progress);
+                if (!LocalizationManager.Instance.Init())
+                    PublishError("LocalizationManager", "多语言加载失败，将使用 key 原文");
+            }
+            else Debug.Log("[LaunchState] ⏭ 本地化已关闭");
+            progress += step;
 
             if (cfg.EnableSDK)
-                SDKManager.Instance.Init();
-            else
-                Debug.Log("[LaunchState] ⏭ SDK 已关闭，跳过 SDKManager");
+            {
+                PublishProgress("SDK 初始化...", progress);
+                if (!SDKManager.Instance.Init())
+                    PublishError("SDKManager", "SDK 初始化部分失败，可能影响广告/统计功能");
+            }
+            else Debug.Log("[LaunchState] ⏭ SDK 已关闭");
+            progress += step;
 
-            // ===== ④ 热更新检查 =====
+            // ─── ⑤ 热更新检查 ───
             if (cfg.EnableHotUpdate)
             {
-                HotUpdateManager.Instance.Init();
+                PublishProgress("热更新检查...", progress);
+                if (!HotUpdateManager.Instance.Init())
+                    PublishError("HotUpdateManager", "热更管理器初始化失败，将跳过更新");
+
                 var result = await HotUpdateManager.Instance.CheckVersionAsync();
+                PublishProgress("热更新检查...", progress + 0.1f,
+                    result == VersionCheckResult.NeedUpdate ? "发现新版本" : "");
 
                 switch (result)
                 {
                     case VersionCheckResult.ForceUpdate:
-                        Debug.Log("[LaunchState] 需要强制更新 → 跳转商店");
-                        Application.OpenURL("market://details?id=xxx");
-                        return;
+                        UIManager.Instance.Close<LoadingPanel>();
+                        UIManager.Instance.Open<ForceUpdatePanel>(
+                            HotUpdateManager.Instance.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                        return; // 终止初始化，等待用户手动更新
                     case VersionCheckResult.NeedUpdate:
-                        Debug.Log("[LaunchState] 发现热更新，开始下载...");
                         await HotUpdateManager.Instance.DownloadUpdatesAsync();
-                        break;
-                    case VersionCheckResult.UpToDate:
-                        Debug.Log("[LaunchState] 已是最新版本");
                         break;
                 }
             }
-            else
-            {
-                Debug.Log("[LaunchState] ⏭ 热更已关闭，跳过版本检查");
-            }
+            else Debug.Log("[LaunchState] ⏭ 热更已关闭");
 
-            // ===== ⑤ 预热 + 登录 =====
-            // TODO: ObjectPool 预热
-            // TODO: 配置表预加载
+            // ─── ⑥ 完成 ───
+            PublishProgress("即将进入游戏...", 1f);
+            await UniTask.Delay(200); // 让玩家看到 100%
 
+            UIManager.Instance.Close<LoadingPanel>();
             Debug.Log("[LaunchState] ✅ 初始化完成 → Login");
             ChangeState(GameState.Login);
         }
 
-        /// <summary>根据配置创建对应的资源加载器</summary>
+        // ==================== 辅助方法 ====================
+
         private static IResourceProvider CreateResourceProvider(ResourceProviderType type)
         {
             return type switch
             {
                 ResourceProviderType.AssetBundle => new AssetBundleProvider(),
-                // TODO: ResourceProviderType.Addressables => new AddressablesProvider(),
                 _ => new ResourcesProvider(),
             };
+        }
+
+        private static void PublishProgress(string phase, float progress, string hint = "")
+        {
+            EventBus.Publish(BootProgressEvent.EventKey,
+                new BootProgressEvent(phase, progress, hint));
+        }
+
+        private static void PublishError(string module, string message, bool canSkip = true)
+        {
+            EventBus.Publish(BootErrorEvent.EventKey,
+                new BootErrorEvent(module, message, canSkip));
+            Debug.LogError($"[LaunchState] ❌ {module}: {message}");
         }
 
         public override void OnExit()

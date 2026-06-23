@@ -43,23 +43,28 @@ namespace ZWebGLFrameWork.Data
         /// TODO: 接入 AppConfig 获取默认语言。
         /// </summary>
         /// <param name="language">语言代码，如 "zh-CN"</param>
-        public void Init(string language = "zh-CN")
+        public bool Init(string language = "zh-CN")
         {
-            CurrentLanguage = language;
-            _translations.Clear();
+            try
+            {
+                CurrentLanguage = language;
+                _translations.Clear();
 
-            // TODO: 实际加载语言文件
-            // var json = ResourceManager.Instance.Load<TextAsset>($"Lang/{language}");
-            // ParseLanguageJson(json.text);
+                // TODO: 实际加载语言文件
+                _translations["test_key"] = "测试文本";
+                _translations["login_title"] = "欢迎回来";
+                _translations["loading_tip"] = "正在加载...";
 
-            // 骨架阶段插入测试数据
-            _translations["test_key"] = "测试文本";
-            _translations["login_title"] = "欢迎回来";
-            _translations["loading_tip"] = "正在加载...";
-
-            IsReady = true;
-            Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {language}, "
-                      + $"条目: {_translations.Count}");
+                IsReady = true;
+                Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {language}, "
+                          + $"条目: {_translations.Count}");
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[LocalizationManager] ❌ 初始化失败: {ex.Message}");
+                return false;
+            }
         }
 
         // ==================== 公开 API ====================

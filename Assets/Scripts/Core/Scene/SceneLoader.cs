@@ -29,12 +29,21 @@ namespace ZWebGLFrameWork.Core
         /// 初始化场景加载器。
         /// TODO: 注册 SceneManager.sceneLoaded 事件，用于追踪场景切换。
         /// </summary>
-        public void Init()
+        public bool Init()
         {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
-            IsReady = true;
-            Debug.Log("[SceneLoader] ✅ 初始化完成");
+            try
+            {
+                SceneManager.sceneLoaded += OnSceneLoaded;
+                SceneManager.sceneUnloaded += OnSceneUnloaded;
+                IsReady = true;
+                Debug.Log("[SceneLoader] ✅ 初始化完成");
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[SceneLoader] ❌ 初始化失败: {ex.Message}");
+                return false;
+            }
         }
 
         // ==================== 公开 API ====================

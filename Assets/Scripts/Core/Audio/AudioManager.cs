@@ -36,29 +36,38 @@ namespace ZWebGLFrameWork.Core
         /// TODO: 从 AppConfig 读取默认音量。
         /// TODO: 创建 AudioSource 对象池（默认 4 个 SFX 通道）。
         /// </summary>
-        public void Init()
+        public bool Init()
         {
-            if (_bgmSource == null)
+            try
             {
-                var go = new GameObject("BGM_Source");
-                go.transform.SetParent(transform);
-                _bgmSource = go.AddComponent<AudioSource>();
-                _bgmSource.loop = true;
-                _bgmSource.playOnAwake = false;
-            }
+                if (_bgmSource == null)
+                {
+                    var go = new GameObject("BGM_Source");
+                    go.transform.SetParent(transform);
+                    _bgmSource = go.AddComponent<AudioSource>();
+                    _bgmSource.loop = true;
+                    _bgmSource.playOnAwake = false;
+                }
 
-            if (_sfxSource == null)
+                if (_sfxSource == null)
+                {
+                    var go = new GameObject("SFX_Source");
+                    go.transform.SetParent(transform);
+                    _sfxSource = go.AddComponent<AudioSource>();
+                    _sfxSource.loop = false;
+                    _sfxSource.playOnAwake = false;
+                }
+
+                ApplyVolumes();
+                IsReady = true;
+                Debug.Log("[AudioManager] ✅ 初始化完成");
+                return true;
+            }
+            catch (System.Exception ex)
             {
-                var go = new GameObject("SFX_Source");
-                go.transform.SetParent(transform);
-                _sfxSource = go.AddComponent<AudioSource>();
-                _sfxSource.loop = false;
-                _sfxSource.playOnAwake = false;
+                Debug.LogError($"[AudioManager] ❌ 初始化失败: {ex.Message}");
+                return false;
             }
-
-            ApplyVolumes();
-            IsReady = true;
-            Debug.Log("[AudioManager] ✅ 初始化完成");
         }
 
         // ==================== BGM ====================

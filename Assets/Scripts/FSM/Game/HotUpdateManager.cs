@@ -1,138 +1,313 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.Network;
 
 namespace ZWebGLFrameWork.FSM
 {
     /// <summary>
-    /// 热更新管理器 — 跨场景单例，负责资源热更与版本检查。
-    /// 流程：检查版本 → 下载清单 → 下载差异文件 → 校验 → 应用
-    ///
-    /// 用法：
-    ///   HotUpdateManager.Instance.Init();
-    ///   var result = await HotUpdateManager.Instance.CheckVersionAsync();
-    ///   var ok = await HotUpdateManager.Instance.DownloadUpdatesAsync();
+    /// 热更新管理器 — 版本检查 + 差异化下载 + MD5 校验 + 断点续传。
+    /// 通过 BootProgress / BootError 事件驱动 UI，与 LoadingPanel / ErrorPanel 解耦。
     /// </summary>
     public class HotUpdateManager : SingletonDontDestroy<HotUpdateManager>
     {
-        /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
-
-        /// <summary>热更进度（0~1）</summary>
         public float Progress { get; private set; }
-
-        /// <summary>当前阶段描述（用于 UI 显示）</summary>
         public string PhaseDescription { get; private set; }
-
-        /// <summary>下载总大小（字节）</summary>
         public long TotalDownloadBytes { get; private set; }
-
-        /// <summary>已下载大小（字节）</summary>
         public long DownloadedBytes { get; private set; }
-
-        /// <summary>是否需要重启应用</summary>
         public bool NeedRestart { get; private set; }
-
-        /// <summary>远程版本号（检查后有效）</summary>
         public string RemoteVersion { get; private set; }
-
-        /// <summary>本地版本号</summary>
         public string LocalVersion => Application.version;
+        public string HotUpdateBaseUrl { get; set; }  // 可在 AppConfig 中配置
+        public string HotUpdateManifestPath { get; set; } = "update_manifest.json";
+
+        private HttpClient _http;
 
         // ==================== 初始化 ====================
 
-        public void Init()
+        public bool Init()
         {
-            PhaseDescription = "等待检查";
-            IsReady = true;
-            Debug.Log($"[HotUpdateManager] ✅ 初始化完成 — 本地版本: {LocalVersion}");
+            try
+            {
+                _http = new HttpClient();
+                _http.Connect(HotUpdateBaseUrl ?? "https://your-cdn.com", 443);
+                PhaseDescription = "等待检查";
+                IsReady = true;
+                Debug.Log($"[HotUpdateManager] ✅ 初始化完成 — 本地: {LocalVersion}, CDN: {HotUpdateBaseUrl}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[HotUpdateManager] ❌ 初始化失败: {ex.Message}");
+                return false;
+            }
         }
 
         // ==================== 版本检查 ====================
 
-        /// <summary>
-        /// 向服务器请求版本信息，返回更新策略。
-        /// TODO: 实际 HTTP 请求远程版本清单 + 本地缓存验证。
-        /// </summary>
+        /// <summary>请求更新清单，返回更新策略</summary>
         public async UniTask<VersionCheckResult> CheckVersionAsync()
         {
-            PhaseDescription = "检查版本...";
-            Progress = 0f;
-            Debug.Log("[HotUpdateManager] 开始版本检查...");
+            PublishProgress("检查版本...", 0.05f, "正在连接更新服务器");
 
-            // TODO: 实际网络请求
-            await UniTask.Delay(300); // 模拟网络延迟
-            RemoteVersion = LocalVersion;
-            Progress = 0.2f;
-
-            var result = CompareVersion(LocalVersion, RemoteVersion);
-            PhaseDescription = result switch
+            try
             {
-                VersionCheckResult.UpToDate    => "已是最新版本",
-                VersionCheckResult.NeedUpdate  => $"发现新版本: {RemoteVersion}",
-                VersionCheckResult.ForceUpdate => $"需要强制更新: {RemoteVersion}",
-                _                              => "",
-            };
+                var manifest = await GetManifestAsync();
+                if (manifest == null)
+                {
+                    PublishError("版本检查失败", "无法连接到更新服务器", true);
+                    return VersionCheckResult.UpToDate;
+                }
 
-            Debug.Log($"[HotUpdateManager] 版本检查完成: {result}");
-            return result;
+                RemoteVersion = manifest.Version;
+                PublishProgress("检查版本...", 0.15f, $"远程: v{RemoteVersion}");
+
+                if (manifest.ForceUpdate)
+                {
+                    PublishProgress("需要强制更新", 0.2f, $"v{RemoteVersion}");
+                    return VersionCheckResult.ForceUpdate;
+                }
+
+                var result = CompareVersion(LocalVersion, RemoteVersion);
+                PhaseDescription = result switch
+                {
+                    VersionCheckResult.UpToDate   => "已是最新版本",
+                    VersionCheckResult.NeedUpdate => $"发现新版本 v{RemoteVersion}",
+                    _                              => "",
+                };
+
+                // 缓存文件清单供下载使用
+                _pendingManifest = result == VersionCheckResult.NeedUpdate ? manifest : null;
+
+                Debug.Log($"[HotUpdateManager] 版本检查完成: {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                PublishError("版本检查异常", ex.Message, true);
+                return VersionCheckResult.UpToDate;
+            }
         }
 
         // ==================== 下载更新 ====================
 
-        /// <summary>
-        /// 下载差异文件。
-        /// TODO: 断点续传 + 文件校验。
-        /// </summary>
+        private UpdateManifest _pendingManifest;
+
         public async UniTask<bool> DownloadUpdatesAsync()
         {
-            PhaseDescription = "下载更新...";
-            Progress = 0.2f;
-            Debug.Log("[HotUpdateManager] 开始下载更新...");
-
-            // TODO: 实际下载逻辑
-            TotalDownloadBytes = 10 * 1024 * 1024; // 模拟 10 MB
-            for (int i = 0; i <= 10; i++)
+            if (_pendingManifest == null || _pendingManifest.Files.Count == 0)
             {
-                await UniTask.Delay(100);
-                DownloadedBytes = i * 1024 * 1024;
-                Progress = 0.2f + 0.7f * (i / 10f);
-                PhaseDescription = $"下载中... {DownloadedBytes / 1024 / 1024}/{TotalDownloadBytes / 1024 / 1024} MB";
+                Debug.Log("[HotUpdateManager] 无文件需要下载");
+                return true;
             }
 
-            PhaseDescription = "校验文件...";
-            Progress = 0.95f;
+            var files = _pendingManifest.Files;
+            TotalDownloadBytes = 0;
+            DownloadedBytes = 0;
+            foreach (var f in files) TotalDownloadBytes += f.Size;
+
+            PublishProgress("开始下载", 0.2f, $"{files.Count} 个文件, {FormatSize(TotalDownloadBytes)}");
+
+            var downloadDir = Path.Combine(Application.persistentDataPath, "HotUpdate");
+            Directory.CreateDirectory(downloadDir);
+
+            int failed = 0;
+            for (int i = 0; i < files.Count; i++)
+            {
+                var file = files[i];
+                var ok = await DownloadFileAsync(file, downloadDir, i, files.Count);
+                if (!ok) failed++;
+            }
+
+            if (failed > 0)
+            {
+                PublishError("下载未完成", $"{failed}/{files.Count} 个文件下载失败", true);
+                return false;
+            }
+
+            // 校验 + 应用
+            PublishProgress("校验文件...", 0.9f);
+            if (!VerifyAllFiles(files, downloadDir))
+            {
+                PublishError("文件校验失败", "下载文件 MD5 不匹配，请重试", true);
+                return false;
+            }
+
+            PublishProgress("应用更新...", 0.95f);
             await UniTask.Delay(200);
 
-            PhaseDescription = "应用更新...";
-            await UniTask.Delay(100);
-
             NeedRestart = true;
-            Progress = 1f;
-            PhaseDescription = "更新完成，即将重启";
-            Debug.Log("[HotUpdateManager] ✅ 更新下载完成，需要重启应用");
+            PublishProgress("更新完成", 1f, "即将重启应用");
+            Debug.Log("[HotUpdateManager] ✅ 更新完成，需要重启");
             return true;
         }
 
-        // ==================== 内部 ====================
+        private async UniTask<bool> DownloadFileAsync(UpdateFileInfo file, string baseDir,
+            int index, int total)
+        {
+            var url = $"{HotUpdateBaseUrl}/{file.Name}";
+            var savePath = Path.Combine(baseDir, file.SubDir ?? "", file.Name);
+            var tmpPath = savePath + ".tmp";
+
+            // 断点续传：检查已下载的临时文件
+            long existingBytes = 0;
+            if (File.Exists(tmpPath))
+                existingBytes = new FileInfo(tmpPath).Length;
+
+            if (existingBytes >= file.Size)
+            {
+                // 已完成
+                DownloadedBytes += file.Size;
+                UpdateDownloadProgress(index, total);
+                return true;
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+
+            var request = UnityWebRequest.Get(url);
+            if (existingBytes > 0)
+                request.SetRequestHeader("Range", $"bytes={existingBytes}-");
+
+            var op = request.SendWebRequest();
+            while (!op.isDone)
+            {
+                var current = existingBytes + (long)request.downloadedBytes;
+                UpdateDownloadProgress(index, total);
+                PublishProgress($"下载中 ({index + 1}/{total})",
+                    0.2f + 0.7f * ((float)(DownloadedBytes + current) / TotalDownloadBytes),
+                    $"{FormatSize(DownloadedBytes + current)}/{FormatSize(TotalDownloadBytes)}");
+                await UniTask.Yield();
+            }
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"[HotUpdateManager] 下载失败: {file.Name} — {request.error}");
+                return false;
+            }
+
+            var data = request.downloadHandler.data;
+            if (existingBytes > 0)
+            {
+                // 追加写入
+                using (var fs = new FileStream(tmpPath, FileMode.Append))
+                    await fs.WriteAsync(data, 0, data.Length);
+            }
+            else
+            {
+                await File.WriteAllBytesAsync(tmpPath, data);
+            }
+
+            request.Dispose();
+            DownloadedBytes += data.Length;
+            UpdateDownloadProgress(index + 1, total);
+            return true;
+        }
+
+        private bool VerifyAllFiles(List<UpdateFileInfo> files, string baseDir)
+        {
+            foreach (var file in files)
+            {
+                var path = Path.Combine(baseDir, file.SubDir ?? "", file.Name);
+                var tmpPath = path + ".tmp";
+
+                if (!File.Exists(tmpPath)) return false;
+                if (!VerifyMD5(tmpPath, file.MD5)) return false;
+
+                // 原子替换
+                if (File.Exists(path)) File.Delete(path);
+                File.Move(tmpPath, path);
+                Debug.Log($"[HotUpdateManager] ✅ 校验通过: {file.Name}");
+            }
+            return true;
+        }
+
+        private bool VerifyMD5(string filePath, string expectedMD5)
+        {
+            if (string.IsNullOrEmpty(expectedMD5)) return true;
+            try
+            {
+                using var md5 = MD5.Create();
+                using var stream = File.OpenRead(filePath);
+                var hash = md5.ComputeHash(stream);
+                var actual = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                return actual == expectedMD5.ToLowerInvariant();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[HotUpdateManager] MD5 校验异常: {ex.Message}");
+                return false;
+            }
+        }
+
+        // ==================== HTTP ====================
+
+        private async UniTask<UpdateManifest> GetManifestAsync()
+        {
+            var url = $"{HotUpdateBaseUrl}/{HotUpdateManifestPath}?t={DateTime.UtcNow.Ticks}";
+            var request = UnityWebRequest.Get(url);
+            request.timeout = 10;
+            await request.SendWebRequest().ToUniTask();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"[HotUpdateManager] 获取清单失败: {request.error}");
+                request.Dispose();
+                return null;
+            }
+
+            var json = request.downloadHandler.text;
+            request.Dispose();
+            return JsonUtility.FromJson<UpdateManifest>(json);
+        }
+
+        // ==================== 辅助 ====================
+
+        private void UpdateDownloadProgress(int done, int total)
+        {
+            Progress = 0.2f + 0.7f * ((float)done / total);
+        }
+
+        private void PublishProgress(string phase, float progress, string hint = "")
+        {
+            PhaseDescription = phase;
+            Progress = progress;
+            EventBus.Publish(BootProgressEvent.EventKey,
+                new BootProgressEvent(phase, progress, hint));
+        }
+
+        private void PublishError(string module, string message, bool canSkip)
+        {
+            EventBus.Publish(BootErrorEvent.EventKey,
+                new BootErrorEvent(module, message, canSkip));
+        }
 
         private VersionCheckResult CompareVersion(string local, string remote)
         {
             if (string.IsNullOrEmpty(remote)) return VersionCheckResult.UpToDate;
             try
             {
-                var localVer = new Version(local);
-                var remoteVer = new Version(remote);
-                if (remoteVer > localVer)
-                    return VersionCheckResult.NeedUpdate;
-                return VersionCheckResult.UpToDate;
+                var l = new Version(local);
+                var r = new Version(remote);
+                return r > l ? VersionCheckResult.NeedUpdate : VersionCheckResult.UpToDate;
             }
             catch
             {
                 Debug.LogWarning($"[HotUpdateManager] 版本号解析失败: local={local}, remote={remote}");
                 return VersionCheckResult.UpToDate;
             }
+        }
+
+        private static string FormatSize(long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            if (bytes < 1024 * 1024) return $"{bytes / 1024f:F1} KB";
+            return $"{bytes / (1024f * 1024f):F1} MB";
         }
     }
 

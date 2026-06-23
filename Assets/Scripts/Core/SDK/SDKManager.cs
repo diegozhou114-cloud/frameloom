@@ -28,25 +28,36 @@ namespace ZWebGLFrameWork.Core
         /// TODO: 根据平台条件跳过不适用的 SDK（如 WebGL 跳过原生广告 SDK）。
         /// TODO: 接入 AppConfig 控制哪些 SDK 启用。
         /// </summary>
-        public void Init()
+        public bool Init()
         {
-            Debug.Log($"[SDKManager] 开始初始化 {_sdkProviders.Count} 个 SDK...");
-
-            foreach (var sdk in _sdkProviders)
+            try
             {
-                try
-                {
-                    sdk.Initialize();
-                    Debug.Log($"[SDKManager] ✅ {sdk.Name} 初始化成功");
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[SDKManager] ❌ {sdk.Name} 初始化失败: {ex.Message}");
-                }
-            }
+                Debug.Log($"[SDKManager] 开始初始化 {_sdkProviders.Count} 个 SDK...");
 
-            IsReady = true;
-            Debug.Log("[SDKManager] ✅ 全部 SDK 初始化完成");
+                int successCount = 0;
+                foreach (var sdk in _sdkProviders)
+                {
+                    try
+                    {
+                        sdk.Initialize();
+                        Debug.Log($"[SDKManager] ✅ {sdk.Name} 初始化成功");
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[SDKManager] ❌ {sdk.Name} 初始化失败: {ex.Message}");
+                    }
+                }
+
+                IsReady = true;
+                Debug.Log($"[SDKManager] ✅ 初始化完成 ({successCount}/{_sdkProviders.Count})");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SDKManager] ❌ 初始化异常: {ex.Message}");
+                return false;
+            }
         }
 
         // ==================== 注册 ====================

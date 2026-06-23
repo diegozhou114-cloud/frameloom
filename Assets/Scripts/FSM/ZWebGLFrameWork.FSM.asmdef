@@ -4,6 +4,9 @@
     "references": [
         "ZWebGLFrameWork.Core",
         "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.UI",
+        "ZWebGLFr,
+        "ZWebGLFrameWork.Network"ameWork.Network",
         "UniTask"
     ],
     "includePlatforms": [],
@@ -11,7 +14,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "UnityEngine.CoreModule.dll"
+        "UnityEngine.CoreModule.dll",
+        "UnityEngine.UnityWebRequestModule.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
