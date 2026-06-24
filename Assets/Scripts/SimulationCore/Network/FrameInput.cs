@@ -26,10 +26,26 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>创建部署输入</summary>
         public static FrameInput Deploy(uint sequence, int unitTypeId, int gridX, int gridY)
         {
+            // Clamp to 8-bit range (0-255) — values outside this range would be silently truncated
+            if (unitTypeId < 0 || unitTypeId > 255)
+            {
+                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: unitTypeId {unitTypeId} clamped to 8-bit range");
+                unitTypeId = Math.Clamp(unitTypeId, 0, 255);
+            }
+            if (gridX < 0 || gridX > 255)
+            {
+                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: gridX {gridX} clamped to 8-bit range");
+                gridX = Math.Clamp(gridX, 0, 255);
+            }
+            if (gridY < 0 || gridY > 255)
+            {
+                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: gridY {gridY} clamped to 8-bit range");
+                gridY = Math.Clamp(gridY, 0, 255);
+            }
             return new FrameInput
             {
                 Sequence = sequence,
-                Data = 1u | ((uint)(unitTypeId & 0xFF) << 8) | ((uint)(gridX & 0xFF) << 16) | ((uint)(gridY & 0xFF) << 24),
+                Data = 1u | ((uint)unitTypeId << 8) | ((uint)gridX << 16) | ((uint)gridY << 24),
             };
         }
 
@@ -54,22 +70,29 @@ namespace ZWebGLFrameWork.SimulationCore
             }
         }
 
-        /// <summary>序列化为 8 字节</summary>
+        /// <summary>序列化为 8 字节（显式小端序，跨平台一致）</summary>
         public byte[] ToBytes()
         {
             byte[] bytes = new byte[8];
-            BitConverter.GetBytes(Sequence).CopyTo(bytes, 0);
-            BitConverter.GetBytes(Data).CopyTo(bytes, 4);
+            // Little-endian: Sequence first
+            bytes[0] = (byte)(Sequence & 0xFF);
+            bytes[1] = (byte)((Sequence >> 8) & 0xFF);
+            bytes[2] = (byte)((Sequence >> 16) & 0xFF);
+            bytes[3] = (byte)((Sequence >> 24) & 0xFF);
+            bytes[4] = (byte)(Data & 0xFF);
+            bytes[5] = (byte)((Data >> 8) & 0xFF);
+            bytes[6] = (byte)((Data >> 16) & 0xFF);
+            bytes[7] = (byte)((Data >> 24) & 0xFF);
             return bytes;
         }
 
-        /// <summary>从 8 字节反序列化</summary>
+        /// <summary>从 8 字节反序列化（显式小端序，跨平台一致）</summary>
         public static FrameInput FromBytes(byte[] bytes, int offset = 0)
         {
             return new FrameInput
             {
-                Sequence = BitConverter.ToUInt32(bytes, offset),
-                Data = BitConverter.ToUInt32(bytes, offset + 4),
+                Sequence = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)),
+                Data = (uint)(bytes[offset + 4] | (bytes[offset + 5] << 8) | (bytes[offset + 6] << 16) | (bytes[offset + 7] << 24)),
             };
         }
     }

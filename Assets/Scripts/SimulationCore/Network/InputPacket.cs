@@ -23,7 +23,7 @@ namespace ZWebGLFrameWork.SimulationCore
             Inputs = new List<FrameInput>();
         }
 
-        /// <summary>序列化为字节数组</summary>
+        /// <summary>序列化为字节数组（显式小端序，跨平台一致）</summary>
         public byte[] ToBytes()
         {
             int count = Math.Min(Inputs.Count, MaxInputsPerPacket);
@@ -31,36 +31,59 @@ namespace ZWebGLFrameWork.SimulationCore
             byte[] bytes = new byte[size];
             int offset = 0;
 
-            BitConverter.GetBytes(NewestSequence).CopyTo(bytes, offset); offset += 4;
+            // NewestSequence — little-endian
+            bytes[offset]     = (byte)(NewestSequence & 0xFF);
+            bytes[offset + 1] = (byte)((NewestSequence >> 8) & 0xFF);
+            bytes[offset + 2] = (byte)((NewestSequence >> 16) & 0xFF);
+            bytes[offset + 3] = (byte)((NewestSequence >> 24) & 0xFF);
+            offset += 4;
+
             bytes[offset++] = (byte)count;
             for (int i = 0; i < count; i++)
             {
                 var input = Inputs[i];
-                BitConverter.GetBytes(input.Sequence).CopyTo(bytes, offset); offset += 4;
-                BitConverter.GetBytes(input.Data).CopyTo(bytes, offset); offset += 4;
+                // input.Sequence — little-endian
+                bytes[offset]     = (byte)(input.Sequence & 0xFF);
+                bytes[offset + 1] = (byte)((input.Sequence >> 8) & 0xFF);
+                bytes[offset + 2] = (byte)((input.Sequence >> 16) & 0xFF);
+                bytes[offset + 3] = (byte)((input.Sequence >> 24) & 0xFF);
+                offset += 4;
+                // input.Data — little-endian
+                bytes[offset]     = (byte)(input.Data & 0xFF);
+                bytes[offset + 1] = (byte)((input.Data >> 8) & 0xFF);
+                bytes[offset + 2] = (byte)((input.Data >> 16) & 0xFF);
+                bytes[offset + 3] = (byte)((input.Data >> 24) & 0xFF);
+                offset += 4;
             }
-            BitConverter.GetBytes(AckSequence).CopyTo(bytes, offset);
+            // AckSequence — little-endian
+            bytes[offset]     = (byte)(AckSequence & 0xFF);
+            bytes[offset + 1] = (byte)((AckSequence >> 8) & 0xFF);
+            bytes[offset + 2] = (byte)((AckSequence >> 16) & 0xFF);
+            bytes[offset + 3] = (byte)((AckSequence >> 24) & 0xFF);
 
             return bytes;
         }
 
-        /// <summary>从字节数组反序列化</summary>
+        /// <summary>从字节数组反序列化（显式小端序，跨平台一致）</summary>
         public static InputPacket FromBytes(byte[] bytes)
         {
             var packet = new InputPacket();
             int offset = 0;
-            packet.NewestSequence = BitConverter.ToUInt32(bytes, offset); offset += 4;
+            // NewestSequence — little-endian
+            packet.NewestSequence = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
+            offset += 4;
             int count = bytes[offset++];
             for (int i = 0; i < count; i++)
             {
                 packet.Inputs.Add(new FrameInput
                 {
-                    Sequence = BitConverter.ToUInt32(bytes, offset),
-                    Data = BitConverter.ToUInt32(bytes, offset + 4),
+                    Sequence = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)),
+                    Data = (uint)(bytes[offset + 4] | (bytes[offset + 5] << 8) | (bytes[offset + 6] << 16) | (bytes[offset + 7] << 24)),
                 });
                 offset += 8;
             }
-            packet.AckSequence = BitConverter.ToUInt32(bytes, offset);
+            // AckSequence — little-endian
+            packet.AckSequence = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
             return packet;
         }
     }
