@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
 {
@@ -15,11 +17,11 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             public IEnumerable<SimEntitySpawnInfo> GetInitialEntities()
             {
-                // 1 个防守方建筑
-                yield return new SimEntitySpawnInfo(1, 15, 15, SimTeam.Defender);
-                // 2 个攻击方单位
-                yield return new SimEntitySpawnInfo(2, 5, 5, SimTeam.Attacker);
-                yield return new SimEntitySpawnInfo(2, 5, 10, SimTeam.Attacker);
+                // 1 个防守方建筑 (Cannon)
+                yield return new SimEntitySpawnInfo(2, 15, 15, SimTeam.Defender);
+                // 2 个攻击方单位 (Barbarian)
+                yield return new SimEntitySpawnInfo(10, 5, 5, SimTeam.Attacker);
+                yield return new SimEntitySpawnInfo(10, 5, 10, SimTeam.Attacker);
             }
         }
 
@@ -100,6 +102,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 var systems = SimCombatBootstrap.Build(world);
                 var deathSys = systems.Find<SimDeathSystem>();
                 var orch = new SimOrchestrator(world, systems, deathSys, buffer, recorder, initializer,
+                    SimArchetypeRegistry.CreateDefault(),
                     deployTimeLimitSeconds: 5f, battleTimeoutSeconds: 60f, ticksPerSecond: 20);
 
                 orch.StartBattle();
@@ -123,6 +126,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 var deathSys = systems.Find<SimDeathSystem>();
                 var buffer = new CommandBuffer();
                 var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer,
+                    SimArchetypeRegistry.CreateDefault(),
                     deployTimeLimitSeconds: 5f, battleTimeoutSeconds: 60f, ticksPerSecond: 20);
 
                 orch.StartBattle();
@@ -148,6 +152,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var systems = SimCombatBootstrap.Build(world);
             var deathSys = systems.Find<SimDeathSystem>();
             var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer,
+                SimArchetypeRegistry.CreateDefault(),
                 ticksPerSecond: 20);
 
             orch.StartBattle();
@@ -166,6 +171,40 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var replay = new ReplayFile();
             Assert.That(replay.Version, Is.EqualTo(1),
                 "ReplayFile 必须有 Version 字段做格式兼容");
+        }
+
+        [Test]
+        public void ReplayFile_JsonRoundTrip_PreservesData()
+        {
+            var replay = new ReplayFile
+            {
+                Version = 1,
+                Seed = 42,
+                InitialLayout = new[]
+                {
+                    new SimEntitySpawnInfo(2, 10, 10, SimTeam.Defender),
+                    new SimEntitySpawnInfo(10, 5, 5, SimTeam.Attacker),
+                },
+                Records = new List<TickRecord>
+                {
+                    new TickRecord { Tick = 0, Checksum = 12345UL, Commands = new List<SerializableCommand>() },
+                    new TickRecord { Tick = 1, Checksum = 67890UL, Commands = new List<SerializableCommand>
+                    {
+                        new SerializableCommand { Type = "Deploy", Tick = 1, PlayerId = 0, UnitTypeId = 3, GridX = 7, GridY = 8 }
+                    }},
+                },
+            };
+
+            string json = replay.ToJson();
+            var restored = ReplayFile.FromJson(json);
+
+            Assert.That(restored.Version, Is.EqualTo(1));
+            Assert.That(restored.Seed, Is.EqualTo(42));
+            Assert.That(restored.InitialLayout.Length, Is.EqualTo(2));
+            Assert.That(restored.InitialLayout[0].ArchetypeId, Is.EqualTo(2));
+            Assert.That(restored.Records.Count, Is.EqualTo(2));
+            Assert.That(restored.Records[1].Commands[0].Type, Is.EqualTo("Deploy"));
+            Assert.That(restored.Records[1].Commands[0].UnitTypeId, Is.EqualTo(3));
         }
     }
 }

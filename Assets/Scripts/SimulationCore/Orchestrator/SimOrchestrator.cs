@@ -33,6 +33,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly CommandBuffer _buffer;
         private readonly CommandRecorder _recorder;
         private readonly ISimInitializer _initializer;
+        private readonly SimArchetypeRegistry _registry;
 
         private int _deployTimeLimit;   // 部署时间限制（Tick 数）
         private int _deployElapsed;
@@ -45,6 +46,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <param name="buffer">命令缓冲</param>
         /// <param name="recorder">命令录制器（可为 null，LocalMode 不需要）</param>
         /// <param name="initializer">初始布局（用于创建实体）</param>
+        /// <param name="registry">实体原型注册表（用于根据 ArchetypeId 创建组件）</param>
         /// <param name="deployTimeLimitSeconds">部署阶段时限（秒）</param>
         /// <param name="battleTimeoutSeconds">战斗超时（秒）</param>
         /// <param name="ticksPerSecond">逻辑帧率</param>
@@ -55,6 +57,7 @@ namespace ZWebGLFrameWork.SimulationCore
             CommandBuffer buffer,
             CommandRecorder recorder,
             ISimInitializer initializer,
+            SimArchetypeRegistry registry,
             float deployTimeLimitSeconds = 30f,
             float battleTimeoutSeconds = 180f,
             int ticksPerSecond = 20)
@@ -65,6 +68,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _buffer = buffer;
             _recorder = recorder;
             _initializer = initializer;
+            _registry = registry;
             _deployTimeLimit = (int)(deployTimeLimitSeconds * ticksPerSecond);
             _battleTimeout = (int)(battleTimeoutSeconds * ticksPerSecond);
         }
@@ -77,22 +81,14 @@ namespace ZWebGLFrameWork.SimulationCore
             _deployElapsed = 0;
             _battleElapsed = 0;
 
-            // 从 ISimInitializer 创建初始实体
+            // 从 ISimInitializer 创建初始实体，使用 Archetype 注册表
             foreach (var info in _initializer.GetInitialEntities())
             {
+                var archetype = _registry.Get(info.ArchetypeId);
+                if (archetype == null)
+                    continue;
                 var entity = _world.CreateEntity();
-                _world.AddComponent(entity, SimTransformComponent.Create(
-                    info.GridX, info.GridY, LogicInt.FromInt(1)));
-                _world.AddComponent(entity, SimHealthComponent.Create(
-                    info.TeamId == SimTeam.Defender ? 500 : 100));
-                _world.AddComponent(entity, SimTeamComponent.Create(info.TeamId));
-
-                if (info.TeamId == SimTeam.Attacker)
-                {
-                    _world.AddComponent(entity, SimMovementComponent.Create(2f, 1f));
-                    _world.AddComponent(entity, SimAttackComponent.Create(20, 3f, 1f, 20));
-                    _world.AddComponent(entity, SimTargetComponent.Create());
-                }
+                archetype.ApplyTo(_world, entity, info.GridX, info.GridY, info.TeamId);
             }
 
             // 进入部署阶段

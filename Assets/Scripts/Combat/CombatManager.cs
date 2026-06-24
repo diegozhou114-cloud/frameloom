@@ -113,7 +113,8 @@ namespace ZWebGLFrameWork.Combat
             _simDeathSys = _simSystems.Find<SimDeathSystem>();
             _simOrchestrator = new SimOrchestrator(
                 _simWorld, _simSystems, _simDeathSys, _simCommandBuffer,
-                recorder: null, initializer);
+                recorder: null, initializer,
+                SimArchetypeRegistry.CreateDefault());
             _simOrchestrator.StartBattle();
 
             var viewConfig = Resources.Load<ViewConfig>("Config/ViewConfig");
