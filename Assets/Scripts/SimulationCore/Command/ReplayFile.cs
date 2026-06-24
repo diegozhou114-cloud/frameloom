@@ -1,15 +1,34 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
+    /// <summary>可序列化的命令包装</summary>
+    [Serializable]
+    public class SerializableCommand
+    {
+        [JsonInclude] public string Type { get; set; }
+        [JsonInclude] public int Tick { get; set; }
+        [JsonInclude] public int PlayerId { get; set; }
+        [JsonInclude] public int UnitTypeId { get; set; }
+        [JsonInclude] public int EntityId { get; set; }
+        [JsonInclude] public int CasterId { get; set; }
+        [JsonInclude] public int SkillId { get; set; }
+        [JsonInclude] public int GridX { get; set; }
+        [JsonInclude] public int TargetX { get; set; }
+        [JsonInclude] public int GridY { get; set; }
+        [JsonInclude] public int TargetY { get; set; }
+    }
+
     /// <summary>单 Tick 的录制数据</summary>
     [Serializable]
-    public struct TickRecord
+    public class TickRecord
     {
-        public int Tick;
-        public byte[][] Commands;  // 序列化的命令数组
-        public ulong Checksum;
+        [JsonInclude] public int Tick { get; set; }
+        [JsonInclude] public List<SerializableCommand> Commands { get; set; } = new List<SerializableCommand>();
+        [JsonInclude] public ulong Checksum { get; set; }
     }
 
     /// <summary>
@@ -19,24 +38,30 @@ namespace ZWebGLFrameWork.SimulationCore
     [Serializable]
     public class ReplayFile
     {
-        /// <summary>格式版本号（递增兼容）</summary>
-        public int Version = 1;
-        /// <summary>随机种子</summary>
-        public int Seed;
-        /// <summary>初始实体布局（ISimInitializer 序列化）</summary>
-        public SimEntitySpawnInfo[] InitialLayout;
-        /// <summary>每 Tick 的录制数据</summary>
-        public List<TickRecord> Records = new List<TickRecord>();
+        [JsonInclude] public int Version { get; set; } = 1;
+        [JsonInclude] public int Seed { get; set; }
+        [JsonInclude] public SimEntitySpawnInfo[] InitialLayout { get; set; }
+        [JsonInclude] public List<TickRecord> Records { get; set; } = new List<TickRecord>();
 
-        /// <summary>战斗总 Tick 数</summary>
         public int TotalTicks => Records.Count;
 
-        /// <summary>获取指定 Tick 的校验和</summary>
         public ulong GetChecksum(int tick)
         {
             foreach (var r in Records)
                 if (r.Tick == tick) return r.Checksum;
             return 0;
+        }
+
+        /// <summary>序列化为 JSON 字符串</summary>
+        public string ToJson()
+        {
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        }
+
+        /// <summary>从 JSON 字符串反序列化</summary>
+        public static ReplayFile FromJson(string json)
+        {
+            return JsonSerializer.Deserialize<ReplayFile>(json);
         }
     }
 }

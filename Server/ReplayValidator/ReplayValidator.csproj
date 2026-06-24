@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>ZWebGLFrameWork.Server</RootNamespace>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Link SimulationCore source (no copy — single source of truth) -->
+    <Compile Include="..\..\Assets\Scripts\SimulationCore\**\*.cs" />
+    <!-- Exclude Unity-specific files that may have crept in -->
+    <Compile Remove="..\..\Assets\Scripts\SimulationCore\**\*.meta" />
+  </ItemGroup>
+</Project>

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -7,17 +9,19 @@ namespace ZWebGLFrameWork.SimulationCore
     /// SimulationCore 不依赖 VillageData/BuildingData 等 Unity 侧类型，
     /// 由宿主侧实现此接口完成数据转换。
     /// </summary>
+    [Serializable]
     public readonly struct SimEntitySpawnInfo
     {
         /// <summary>实体原型 ID（决定挂哪些逻辑组件和初始值）</summary>
-        public readonly int ArchetypeId;
+        [JsonInclude] public readonly int ArchetypeId;
         /// <summary>初始网格 X 坐标</summary>
-        public readonly int GridX;
+        [JsonInclude] public readonly int GridX;
         /// <summary>初始网格 Y 坐标</summary>
-        public readonly int GridY;
+        [JsonInclude] public readonly int GridY;
         /// <summary>所属队伍（SimTeam.Attacker=1, SimTeam.Defender=2）</summary>
-        public readonly int TeamId;
+        [JsonInclude] public readonly int TeamId;
 
+        [JsonConstructor]
         public SimEntitySpawnInfo(int archetypeId, int gridX, int gridY, int teamId)
         {
             ArchetypeId = archetypeId;
