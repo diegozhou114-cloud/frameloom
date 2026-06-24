@@ -197,6 +197,82 @@ namespace ZWebGLFrameWork.SimulationCore
             return bytes;
         }
 
+        // ==================== 快照导出/恢复 ====================
+
+        public PoolSnapshot ExportDense()
+        {
+            int compSize = System.Runtime.InteropServices.Marshal.SizeOf<T>();
+            byte[] compBytes = new byte[_count * compSize];
+            var snapshot = new PoolSnapshot
+            {
+                ComponentTypeName = typeof(T).FullName,
+                Sparse = new int[_sparse.Length],
+                DenseEntities = new SimEntity[_count],
+                DenseComponentsBytes = compBytes,
+                Count = _count,
+                ComponentByteSize = compSize,
+            };
+
+            // 复制 sparse 数组
+            Array.Copy(_sparse, snapshot.Sparse, _sparse.Length);
+
+            // 复制 dense entities
+            Array.Copy(_denseEntities, snapshot.DenseEntities, _count);
+
+            // 复制 dense components → 字节数组
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.AllocHGlobal(compSize);
+            try
+            {
+                for (int i = 0; i < _count; i++)
+                {
+                    System.Runtime.InteropServices.Marshal.StructureToPtr(_denseComponents[i], ptr, false);
+                    System.Runtime.InteropServices.Marshal.Copy(ptr, compBytes, i * compSize, compSize);
+                }
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
+            }
+
+            return snapshot;
+        }
+
+        public void RestoreDense(PoolSnapshot snapshot)
+        {
+            if (snapshot == null || snapshot.ComponentTypeName != typeof(T).FullName)
+                return;
+
+            _count = snapshot.Count;
+            int compSize = snapshot.ComponentByteSize;
+
+            // 恢复 sparse
+            if (_sparse.Length < snapshot.Sparse.Length)
+                _sparse = new int[snapshot.Sparse.Length];
+            Array.Copy(snapshot.Sparse, _sparse, snapshot.Sparse.Length);
+
+            // 恢复 dense entities + components
+            if (_denseEntities.Length < _count)
+                _denseEntities = new SimEntity[_count];
+            Array.Copy(snapshot.DenseEntities, _denseEntities, _count);
+
+            if (_denseComponents.Length < _count)
+                _denseComponents = new T[_count];
+
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.AllocHGlobal(compSize);
+            try
+            {
+                for (int i = 0; i < _count; i++)
+                {
+                    System.Runtime.InteropServices.Marshal.Copy(snapshot.DenseComponentsBytes, i * compSize, ptr, compSize);
+                    _denseComponents[i] = System.Runtime.InteropServices.Marshal.PtrToStructure<T>(ptr);
+                }
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
+            }
+        }
+
         // ==================== 内部 ====================
 
         private void ResizeSparse(int newSize)

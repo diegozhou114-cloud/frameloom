@@ -159,6 +159,47 @@ namespace ZWebGLFrameWork.SimulationCore
             // 组件数据恢复在 Phase 5c (FrameSync) 完善
         }
 
+        /// <summary>导出完整快照（含所有组件数据）</summary>
+        public TickSnapshot ExportFullSnapshot()
+        {
+            var snapshot = new TickSnapshot
+            {
+                NextId = _nextId,
+                Generations = (int[])_generations.Clone(),
+                Entities = _entities.ToArray(),
+                Pools = new List<PoolSnapshot>(),
+                Checksum = ComputeChecksum(),
+            };
+            foreach (var kv in _componentPools)
+            {
+                snapshot.Pools.Add(kv.Value.ExportDense());
+            }
+            return snapshot;
+        }
+
+        /// <summary>从完整快照恢复（含所有组件数据）</summary>
+        public void RestoreFromFull(TickSnapshot snapshot)
+        {
+            // 清空所有组件池
+            foreach (var pool in _componentPools.Values)
+                pool.Clear();
+
+            _nextId = snapshot.NextId;
+            _generations = (int[])snapshot.Generations.Clone();
+            _entities.Clear();
+            _entities.AddRange(snapshot.Entities);
+
+            // 恢复各组件池
+            foreach (var poolSnapshot in snapshot.Pools)
+            {
+                var type = Type.GetType(poolSnapshot.ComponentTypeName);
+                if (type != null && _componentPools.TryGetValue(type, out var pool))
+                {
+                    pool.RestoreDense(poolSnapshot);
+                }
+            }
+        }
+
         // ==================== 清理 ====================
 
         public void ClearPools()

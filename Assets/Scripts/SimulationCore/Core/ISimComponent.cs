@@ -12,5 +12,9 @@ namespace ZWebGLFrameWork.SimulationCore
         void Remove(SimEntity entity);
         void Clear();
         ulong AccumulateHash(ulong hash);
+        /// <summary>导出 dense 数组快照</summary>
+        PoolSnapshot ExportDense();
+        /// <summary>从快照恢复</summary>
+        void RestoreDense(PoolSnapshot snapshot);
     }
 }

@@ -120,5 +120,31 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                         $"run={run}: checksum 不一致");
             }
         }
+
+        [Test]
+        public void FullSnapshot_Restore_ChecksumIdentical()
+        {
+            var world = CreateWorld();
+            for (int i = 0; i < 10; i++)
+            {
+                var e = world.CreateEntity();
+                world.AddComponent(e, new TestPosition { X = i, Y = i * 2 });
+                world.AddComponent(e, new TestHealth { Current = 100 - i * 3, Max = 100 });
+            }
+
+            ulong csBefore = world.ComputeChecksum();
+            var snapshot = world.ExportFullSnapshot();
+
+            // 修改世界
+            world.DestroyEntity(new SimEntity(0, 1));
+            world.CreateEntity();
+
+            // 恢复
+            world.RestoreFromFull(snapshot);
+            ulong csAfter = world.ComputeChecksum();
+
+            Assert.That(csAfter, Is.EqualTo(csBefore),
+                "快照导出+恢复后 checksum 应与原始一致");
+        }
     }
 }
