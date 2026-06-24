@@ -160,41 +160,73 @@ namespace ZWebGLFrameWork.SimulationCore
 
         // ==================== 状态哈希 ====================
 
+        private static System.Reflection.FieldInfo[] _cachedFields;
+        private static Type _cachedType;
+
         public ulong AccumulateHash(ulong hash)
         {
             const ulong FNVPrime = 1099511628211UL;
+
+            // Cache field info per T (once per component type)
+            if (_cachedType != typeof(T))
+            {
+                _cachedType = typeof(T);
+                _cachedFields = typeof(T).GetFields(
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                // Sort by name for deterministic order across platforms
+                System.Array.Sort(_cachedFields, (a, b) => string.CompareOrdinal(a.Name, b.Name));
+            }
+
             for (int i = 0; i < _count; i++)
             {
+                // Hash entity identity
                 hash ^= (ulong)_denseEntities[i].Id;
                 hash *= FNVPrime;
                 hash ^= (ulong)_denseEntities[i].Generation;
                 hash *= FNVPrime;
 
-                byte[] bytes = StructToBytes(_denseComponents[i]);
-                foreach (byte b in bytes)
+                // Hash each field value deterministically
+                object boxed = _denseComponents[i]; // boxing — acceptable at 20Hz
+                foreach (var field in _cachedFields)
                 {
-                    hash ^= b;
-                    hash *= FNVPrime;
+                    object value = field.GetValue(boxed);
+                    if (value is int iv)
+                    {
+                        hash ^= (ulong)iv;
+                        hash *= FNVPrime;
+                    }
+                    else if (value is uint uv)
+                    {
+                        hash ^= (ulong)uv;
+                        hash *= FNVPrime;
+                    }
+                    else if (value is long lv)
+                    {
+                        hash ^= (ulong)lv;
+                        hash *= FNVPrime;
+                    }
+                    else if (value is float fv)
+                    {
+                        // Floats should not exist in SimComponents, but handle anyway
+                        byte[] floatBytes = System.BitConverter.GetBytes(fv);
+                        int bits = System.BitConverter.ToInt32(floatBytes, 0);
+                        hash ^= (uint)bits;
+                        hash *= FNVPrime;
+                    }
+                    else if (value is bool bv)
+                    {
+                        hash ^= bv ? 1UL : 0UL;
+                        hash *= FNVPrime;
+                    }
+                    else if (value is LogicInt li)
+                    {
+                        hash ^= (ulong)li.RawValue;
+                        hash *= FNVPrime;
+                    }
+                    // Ignore reference types (List, etc.) — components are pure value types
                 }
             }
             return hash;
-        }
-
-        private static byte[] StructToBytes(T value)
-        {
-            int size = System.Runtime.InteropServices.Marshal.SizeOf<T>();
-            byte[] bytes = new byte[size];
-            IntPtr ptr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
-            try
-            {
-                System.Runtime.InteropServices.Marshal.StructureToPtr(value, ptr, false);
-                System.Runtime.InteropServices.Marshal.Copy(ptr, bytes, 0, size);
-            }
-            finally
-            {
-                System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
-            }
-            return bytes;
         }
 
         // ==================== 快照导出/恢复 ====================

@@ -133,7 +133,10 @@ namespace ZWebGLFrameWork.SimulationCore
             ulong hash = 14695981039346656037UL; // FNV-1a offset basis
             hash ^= (ulong)_entities.Count;
             hash *= 1099511628211UL;
-            foreach (var kv in _componentPools)
+            // Iterate in sorted order by type name for deterministic checksum
+            var sortedPools = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Type, ISimComponentPool>>(_componentPools);
+            sortedPools.Sort((a, b) => string.CompareOrdinal(a.Key.FullName, b.Key.FullName));
+            foreach (var kv in sortedPools)
             {
                 hash = kv.Value.AccumulateHash(hash);
             }
@@ -170,7 +173,10 @@ namespace ZWebGLFrameWork.SimulationCore
                 Pools = new List<PoolSnapshot>(),
                 Checksum = ComputeChecksum(),
             };
-            foreach (var kv in _componentPools)
+            // Iterate in sorted order by type name for deterministic snapshot
+            var sortedPools = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<Type, ISimComponentPool>>(_componentPools);
+            sortedPools.Sort((a, b) => string.CompareOrdinal(a.Key.FullName, b.Key.FullName));
+            foreach (var kv in sortedPools)
             {
                 snapshot.Pools.Add(kv.Value.ExportDense());
             }
