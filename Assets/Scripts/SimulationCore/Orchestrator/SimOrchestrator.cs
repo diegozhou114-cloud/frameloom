@@ -35,6 +35,8 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly ISimInitializer _initializer;
         private readonly SimArchetypeRegistry _registry;
 
+        private readonly TickSnapshot[] _snapshotHistory = new TickSnapshot[64]; // 环形快照存储，用于回滚
+
         private int _deployTimeLimit;   // 部署时间限制（Tick 数）
         private int _deployElapsed;
         private int _battleElapsed;
@@ -125,6 +127,9 @@ namespace ZWebGLFrameWork.SimulationCore
             // 5. Perf counters
             Perf.RecordTick(CurrentTick, _world.EntityCount, drainMs, updateMs, hashMs);
 
+            // 5b. Snapshot recording (after perf, before CurrentTick++)
+            _snapshotHistory[CurrentTick % 64] = _world.ExportFullSnapshot();
+
             // 6. Phase logic
             switch (CurrentPhase)
             {
@@ -157,5 +162,50 @@ namespace ZWebGLFrameWork.SimulationCore
 
         /// <summary>强制设置阶段（用于测试）</summary>
         public void SetPhase(SimCombatPhase phase) => CurrentPhase = phase;
+
+        /// <summary>
+        /// 回滚到指定 Tick 的快照状态。
+        /// 用于 FrameSync：权威 Checksum 不一致时回滚修正。
+        /// tick=0 表示回滚到初始状态（StartBattle 之后）。
+        /// </summary>
+        public void RollbackTo(int tick)
+        {
+            if (tick == 0)
+            {
+                // 回到初始状态：重新 StartBattle
+                _world.ClearPools();
+                _world.OnEntityCreated = null;
+                _world.OnEntityDestroyed = null;
+                StartBattle();
+                return;
+            }
+
+            var snapshot = _snapshotHistory[tick % 64];
+            if (snapshot != null && snapshot.NextId > 0)
+            {
+                _world.RestoreFromFull(snapshot);
+                CurrentTick = tick;
+                _battleElapsed = tick; // rough approximation
+            }
+        }
+
+        /// <summary>
+        /// 从快照回滚然后重放到目标 Tick。
+        /// 从 replayBuffer 中取出对应 Tick 的命令注入模拟。
+        /// </summary>
+        public void ReplayFrom(int fromTick, int toTick, CommandBuffer replayBuffer)
+        {
+            RollbackTo(fromTick);
+
+            for (int t = fromTick; t <= toTick; t++)
+            {
+                // Inject commands from replay buffer for this tick
+                var cmds = replayBuffer.Peek(t);
+                foreach (var cmd in cmds)
+                    _buffer.AddCommand(cmd);
+
+                Tick();
+            }
+        }
     }
 }

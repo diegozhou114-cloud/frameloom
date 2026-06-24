@@ -364,6 +364,92 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Rollback_MidBattle_RestoresCorrectState()
+        {
+            const int seed = 42;
+            var world = new SimWorld(256);
+            var buffer = new CommandBuffer();
+            var initializer = new TestInitializer(seed);
+            var registry = SimArchetypeRegistry.CreateDefault();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
+            var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry,
+                ticksPerSecond: 20);
+
+            orch.StartBattle();
+            orch.SetPhase(SimCombatPhase.Battling);
+
+            // Run 20 ticks
+            for (int t = 0; t < 20; t++)
+            {
+                SimpleAI(world, t);
+                orch.Tick();
+            }
+            ulong csAt20 = orch.LastChecksum;
+
+            // Run 10 more ticks
+            for (int t = 20; t < 30; t++)
+            {
+                SimpleAI(world, t);
+                orch.Tick();
+            }
+
+            // Rollback to tick 20
+            orch.RollbackTo(20);
+
+            // Verify checksum matches original tick 20
+            Assert.That(orch.LastChecksum, Is.EqualTo(csAt20),
+                "Rollback to tick 20 should restore checksum from original tick 20");
+
+            // Replay ticks 20–29 with same AI
+            for (int t = 20; t < 30; t++)
+            {
+                SimpleAI(world, t);
+                orch.Tick();
+            }
+
+            // After replay, checksum should be non-zero (deterministic replay)
+            Assert.That(orch.LastChecksum, Is.Not.EqualTo(0UL),
+                "After rollback + replay, checksum should be non-zero");
+            Assert.That(orch.CurrentTick, Is.EqualTo(30),
+                "After replay of 10 ticks from tick 20, CurrentTick should be 30");
+        }
+
+        [Test]
+        public void Rollback_ToTickZero_RestartsBattle()
+        {
+            const int seed = 42;
+            var world = new SimWorld(256);
+            var buffer = new CommandBuffer();
+            var initializer = new TestInitializer(seed);
+            var registry = SimArchetypeRegistry.CreateDefault();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
+            var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry,
+                ticksPerSecond: 20);
+
+            orch.StartBattle();
+            orch.SetPhase(SimCombatPhase.Battling);
+
+            // Run 5 ticks
+            for (int t = 0; t < 5; t++)
+            {
+                SimpleAI(world, t);
+                orch.Tick();
+            }
+
+            // Rollback to tick 0
+            orch.RollbackTo(0);
+
+            Assert.That(orch.CurrentTick, Is.EqualTo(0),
+                "Rollback to tick 0 should reset CurrentTick to 0");
+            Assert.That(orch.CurrentPhase, Is.EqualTo(SimCombatPhase.Deploying),
+                "Rollback to tick 0 should restart battle in Deploying phase");
+            Assert.That(world.EntityCount, Is.GreaterThan(0),
+                "World should have entities after restart");
+        }
+
+        [Test]
         public void SingleTick_EmptyCommands_ProducesConsistentChecksum()
         {
             var world = new SimWorld(64);
@@ -396,6 +482,42 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             Assert.That(orch2.LastChecksum, Is.EqualTo(cs1),
                 "Empty-command single tick should produce consistent checksum");
+        }
+
+        [Test]
+        public void FrameSyncClient_RollbackOnChecksumMismatch()
+        {
+            const int seed = 42;
+            var world = new SimWorld(256);
+            var buffer = new CommandBuffer();
+            var initializer = new TestInitializer(seed);
+            var registry = SimArchetypeRegistry.CreateDefault();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
+            var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry,
+                ticksPerSecond: 20);
+
+            var sender = new InputSender();
+            var receiver = new InputReceiver();
+            var client = new FrameSyncClient(orch, buffer, sender, receiver, 0);
+
+            client.Start();
+
+            // Run 10 ticks locally
+            for (int t = 0; t < 10; t++)
+            {
+                SimpleAI(world, t);
+                orch.Tick();
+            }
+            ulong csAt10 = orch.LastChecksum;
+
+            // Simulate server sending WRONG checksum → should trigger rollback
+            client.OnAuthorityData(10, 0xDEADBEEFUL);
+
+            Assert.That(client.RollbackCount, Is.EqualTo(1),
+                "Wrong checksum should trigger exactly 1 rollback");
+            Assert.That(client.AuthorityTick, Is.EqualTo(9),
+                "After rollback, authority should be at tick 9 (safe point)");
         }
     }
 }
