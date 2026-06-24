@@ -12,8 +12,8 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 GridX = gridX,
                 GridY = gridY,
-                PosX = LogicInt.FromInt(gridX) * cellSize + cellSize / new LogicInt(2),
-                PosY = LogicInt.FromInt(gridY) * cellSize + cellSize / new LogicInt(2),
+                PosX = LogicInt.FromInt(gridX) * cellSize + cellSize / LogicInt.FromInt(2),
+                PosY = LogicInt.FromInt(gridY) * cellSize + cellSize / LogicInt.FromInt(2),
             };
         }
     }

@@ -25,8 +25,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (!wp.HasValue) return;
                 (int wx, int wy) = wp.Value;
 
-                LogicInt targetX = (LogicInt.FromInt(wx) * movement.CellSize) + (movement.CellSize / new LogicInt(2));
-                LogicInt targetY = (LogicInt.FromInt(wy) * movement.CellSize) + (movement.CellSize / new LogicInt(2));
+                LogicInt targetX = (LogicInt.FromInt(wx) * movement.CellSize) + (movement.CellSize / LogicInt.FromInt(2));
+                LogicInt targetY = (LogicInt.FromInt(wy) * movement.CellSize) + (movement.CellSize / LogicInt.FromInt(2));
 
                 LogicInt dx = targetX - transform.PosX;
                 LogicInt dy = targetY - transform.PosY;

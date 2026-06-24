@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
@@ -37,6 +38,9 @@ namespace ZWebGLFrameWork.Combat
         private SimulationSyncBridge _syncBridge;
         private Interpolator _interpolator;
         private float _simTickAccumulator;
+        private IntAStarPathfinding _simPathfinding;
+        private int _simAILastTick = -1;
+        private bool _simSpawnedAttackers;
         // -------------------------------
 
         protected override void Awake()
@@ -119,6 +123,14 @@ namespace ZWebGLFrameWork.Combat
             _interpolator = new Interpolator(20f);
             _simTickAccumulator = 0f;
 
+            // 确定性 A* 寻路（纯逻辑网格，无 Unity 依赖）
+            var grid = GridManager.Instance;
+            _simPathfinding = new IntAStarPathfinding(
+                grid.Columns, grid.Rows,
+                (x, y) => grid.IsInBounds(new Vector2Int(x, y)));
+            _simAILastTick = -1;
+            _simSpawnedAttackers = false;
+
             Debug.Log("[CombatManager] SimulationCore 战斗已启动");
         }
 
@@ -137,8 +149,107 @@ namespace ZWebGLFrameWork.Combat
                 if (_simOrchestrator.CurrentPhase == SimCombatPhase.Idle ||
                     _simOrchestrator.CurrentPhase == SimCombatPhase.Ended)
                     break;
+                SimAI(_simOrchestrator.CurrentTick);
                 _simOrchestrator.Tick();
             }
+        }
+
+        // ==================== SimulationCore AI ====================
+
+        /// <summary>简单 AI — 每 10 Tick 为攻击方寻找最近防守方并设置路径</summary>
+        private void SimAI(int tick)
+        {
+            // 首次调用：生成攻击方单位（部署阶段结束后才可操作）
+            if (!_simSpawnedAttackers && _simOrchestrator.CurrentPhase == SimCombatPhase.Battling)
+            {
+                SpawnSimAttackers();
+                _simSpawnedAttackers = true;
+            }
+
+            // 每 10 Tick 重新分配目标
+            if (tick % 10 != 0 || tick == _simAILastTick) return;
+            _simAILastTick = tick;
+
+            // 收集所有存活的防守方位置
+            var defenders = new List<(SimEntity entity, int gx, int gy)>();
+            _simWorld.ForEachEntities<SimHealthComponent>(entity =>
+            {
+                if (!_simWorld.TryGetComponent<SimTeamComponent>(entity, out var team)) return;
+                if (team.TeamId != SimTeam.Defender) return;
+                if (!_simWorld.TryGetComponent<SimHealthComponent>(entity, out var hp)) return;
+                if (!hp.IsAlive) return;
+                if (!_simWorld.TryGetComponent<SimTransformComponent>(entity, out var tf)) return;
+                defenders.Add((entity, tf.GridX, tf.GridY));
+            });
+
+            if (defenders.Count == 0) return;
+
+            // 为每个攻击方分配最近目标 + 路径
+            _simWorld.ForEachEntities<SimTransformComponent>(entity =>
+            {
+                if (!_simWorld.TryGetComponent<SimTeamComponent>(entity, out var team)) return;
+                if (team.TeamId != SimTeam.Attacker) return;
+                if (!_simWorld.TryGetComponent<SimTransformComponent>(entity, out var tf)) return;
+
+                // 找最近防守方
+                SimEntity nearest = SimEntity.Invalid;
+                int bestDist = int.MaxValue;
+                int bestGX = 0, bestGY = 0;
+                foreach (var (def, dgx, dgy) in defenders)
+                {
+                    int d = System.Math.Abs(tf.GridX - dgx) + System.Math.Abs(tf.GridY - dgy);
+                    if (d < bestDist) { bestDist = d; nearest = def; bestGX = dgx; bestGY = dgy; }
+                }
+
+                if (!nearest.IsValid) return;
+
+                // 设置目标
+                _simWorld.SetComponent(entity, new SimTargetComponent { TargetEntity = nearest });
+
+                // 寻路
+                var path = _simPathfinding.FindPath(tf.GridX, tf.GridY, bestGX, bestGY);
+                if (!_simWorld.TryGetComponent<SimMovementComponent>(entity, out var mov)) return;
+
+                if (path.Count > 0)
+                {
+                    var packed = new List<int>(path.Count);
+                    foreach (var (x, y) in path)
+                        packed.Add((x << 16) | y);
+                    mov.Path = packed;
+                    mov.PathIndex = 0;
+                    mov.TargetGridX = bestGX;
+                    mov.TargetGridY = bestGY;
+                }
+                else
+                {
+                    mov.Path = null;
+                    mov.PathIndex = 0;
+                }
+                _simWorld.SetComponent(entity, mov);
+            });
+        }
+
+        /// <summary>在网格边缘生成攻击方单位</summary>
+        private void SpawnSimAttackers()
+        {
+            var grid = GridManager.Instance;
+            int spawnCount = System.Math.Min(8, grid.Rows / 2);
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                int gx = 0; // 左边缘
+                int gy = 2 + i * (grid.Rows - 4) / System.Math.Max(1, spawnCount - 1);
+
+                var entity = _simWorld.CreateEntity();
+                _simWorld.AddComponent(entity, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
+                _simWorld.AddComponent(entity, SimHealthComponent.Create(100));
+                _simWorld.AddComponent(entity, SimTeamComponent.Create(SimTeam.Attacker));
+                _simWorld.AddComponent(entity, SimMovementComponent.Create(2f, 1f));
+                _simWorld.AddComponent(entity, SimAttackComponent.Create(20, 3f, 1f, 20));
+                _simWorld.AddComponent(entity, SimTargetComponent.Create());
+            }
+
+            Debug.Log($"[CombatManager] SimAI 已生成 {spawnCount} 个攻击方单位");
         }
 
         // ==================== 旧路径 ====================

@@ -15,7 +15,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public readonly int GridX;
         /// <summary>初始网格 Y 坐标</summary>
         public readonly int GridY;
-        /// <summary>所属队伍（0=Attacker, 1=Defender）</summary>
+        /// <summary>所属队伍（SimTeam.Attacker=1, SimTeam.Defender=2）</summary>
         public readonly int TeamId;
 
         public SimEntitySpawnInfo(int archetypeId, int gridX, int gridY, int teamId)

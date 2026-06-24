@@ -22,6 +22,9 @@ namespace ZWebGLFrameWork.SimulationCore
         private int[] _generations;
         private readonly Dictionary<Type, ISimComponentPool> _componentPools = new Dictionary<Type, ISimComponentPool>();
 
+        // ---- 事件队列（系统间通信，如 SimAttackSystem → SimDamageSystem） ----
+        private readonly Dictionary<Type, List<object>> _eventQueues = new Dictionary<Type, List<object>>();
+
         public SimWorld(int initialCapacity = 256, ISimLogger logger = null)
         {
             _logger = logger;
@@ -81,6 +84,44 @@ namespace ZWebGLFrameWork.SimulationCore
         public IEnumerable<SimEntity> GetEntitiesWith<T>() where T : struct, ISimComponent
             => GetPool<T>().GetEntities();
 
+        /// <summary>遍历拥有组件 T 的所有实体，传递实体+组件值（不修改组件）</summary>
+        public void ForEachComponent<T>(SimComponentPool<T>.ValAction<SimEntity, T> action) where T : struct, ISimComponent
+            => GetPool<T>().ForEach(action);
+
+        /// <summary>遍历拥有组件 T 的所有实体（仅实体，不含组件数据）</summary>
+        public void ForEachEntities<T>(Action<SimEntity> action) where T : struct, ISimComponent
+            => GetPool<T>().ForEach(action);
+
+        /// <summary>联合遍历同时拥有 T1 和 T2 的实体，ref 传递双组件（可用于修改）</summary>
+        public void ForEachEntities<T1, T2>(SimComponentPool<T1>.RefPairAction<SimEntity, T1, T2> action)
+            where T1 : struct, ISimComponent where T2 : struct, ISimComponent
+            => GetPool<T1>().ForEachRefPair(GetPool<T2>(), action);
+
+        // ==================== 帧内事件队列 ====================
+
+        /// <summary>入队一个事件（本 Tick 内消费）</summary>
+        public void EnqueueEvent<T>(T evt) where T : struct
+        {
+            var type = typeof(T);
+            if (!_eventQueues.TryGetValue(type, out var list))
+            {
+                list = new List<object>();
+                _eventQueues[type] = list;
+            }
+            list.Add(evt);
+        }
+
+        /// <summary>消费所有已入队的 T 类型事件（消费后清空）</summary>
+        public void ConsumeEvents<T>(Action<T> consumer) where T : struct
+        {
+            var type = typeof(T);
+            if (!_eventQueues.TryGetValue(type, out var list) || list.Count == 0)
+                return;
+            foreach (var obj in list)
+                consumer((T)obj);
+            list.Clear();
+        }
+
         // ==================== 状态校验 ====================
 
         /// <summary>
@@ -124,6 +165,8 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             foreach (var pool in _componentPools.Values)
                 pool.Clear();
+            foreach (var list in _eventQueues.Values)
+                list.Clear();
         }
 
         // ==================== 内部 ====================

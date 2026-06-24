@@ -29,7 +29,7 @@ namespace ZWebGLFrameWork.Combat
                     archetypeId: building.TypeId,
                     gridX: building.GridX.Value,
                     gridY: building.GridY.Value,
-                    teamId: 1 // Defender = 1 (matches SimEntitySpawnInfo convention: 0=Attacker, 1=Defender)
+                    teamId: SimTeam.Defender
                 );
             }
         }
