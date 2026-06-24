@@ -51,7 +51,20 @@ namespace ZWebGLFrameWork.SimulationCore
             => new LogicInt(a.RawValue * b);
 
         public static LogicInt operator *(LogicInt a, LogicInt b)
-            => new LogicInt((a.RawValue * b.RawValue) / Scale);
+        {
+            // 128-bit multiply → 64-bit divide. Safe against overflow.
+            long hi = Math.BigMul(a.RawValue, b.RawValue, out long lo);
+            if (hi == 0 && lo >= 0)
+                return new LogicInt(lo / Scale);
+            // Large values: divide the 128-bit number by Scale
+            // (hi*2^64 + lo) / Scale = hi*(2^64/Scale) + (hi*(2^64%Scale) + lo)/Scale
+            const ulong TwoPow64DivScale = 1844674407370955UL; // 2^64 / 10000
+            const ulong TwoPow64ModScale = 1616UL;              // 2^64 % 10000
+            ulong result = (ulong)hi * TwoPow64DivScale;
+            ulong remainder = (ulong)hi * TwoPow64ModScale + (ulong)lo;
+            result += remainder / Scale;
+            return new LogicInt((long)result);
+        }
 
         public static LogicInt operator /(LogicInt a, int b)
         {
@@ -92,14 +105,24 @@ namespace ZWebGLFrameWork.SimulationCore
         // ==================== 转换 ====================
 
         public int FloorToInt() => (int)(RawValue / Scale);
-        public int CeilToInt() => (int)((RawValue + Scale - 1) / Scale);
+        public int CeilToInt()
+        {
+            if (RawValue >= 0)
+                return (int)((RawValue + Scale - 1) / Scale);
+            else
+                return (int)(RawValue / Scale);
+        }
         public int RoundToInt() => (int)((RawValue + Half) / Scale);
         public float ToFloat() => (float)RawValue / Scale;
 
         // ==================== 工具方法 ====================
 
         public static LogicInt Abs(LogicInt value)
-            => new LogicInt(value.RawValue >= 0 ? value.RawValue : -value.RawValue);
+        {
+            if (value.RawValue == long.MinValue)
+                return new LogicInt(long.MaxValue); // Clamp to prevent overflow
+            return new LogicInt(value.RawValue >= 0 ? value.RawValue : -value.RawValue);
+        }
 
         public static LogicInt Max(LogicInt a, LogicInt b)
             => a.RawValue >= b.RawValue ? a : b;
