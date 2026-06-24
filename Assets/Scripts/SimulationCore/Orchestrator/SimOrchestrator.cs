@@ -83,6 +83,9 @@ namespace ZWebGLFrameWork.SimulationCore
             _deployElapsed = 0;
             _battleElapsed = 0;
 
+            // Clear snapshot ring buffer (Bug #18)
+            Array.Clear(_snapshotHistory, 0, _snapshotHistory.Length);
+
             // 从 ISimInitializer 创建初始实体，使用 Archetype 注册表
             foreach (var info in _initializer.GetInitialEntities())
             {
@@ -127,9 +130,6 @@ namespace ZWebGLFrameWork.SimulationCore
             // 5. Perf counters
             Perf.RecordTick(CurrentTick, _world.EntityCount, drainMs, updateMs, hashMs);
 
-            // 5b. Snapshot recording (after perf, before CurrentTick++)
-            _snapshotHistory[CurrentTick % 64] = _world.ExportFullSnapshot();
-
             // 6. Phase logic
             switch (CurrentPhase)
             {
@@ -157,6 +157,11 @@ namespace ZWebGLFrameWork.SimulationCore
                     break;
             }
 
+            // Snapshot recording AFTER phase transitions, before CurrentTick++ (Bug #6, #10)
+            var snap = _world.ExportFullSnapshot();
+            snap.Tick = CurrentTick;
+            _snapshotHistory[CurrentTick % 64] = snap;
+
             CurrentTick++;
         }
 
@@ -168,25 +173,29 @@ namespace ZWebGLFrameWork.SimulationCore
         /// 用于 FrameSync：权威 Checksum 不一致时回滚修正。
         /// tick=0 表示回滚到初始状态（StartBattle 之后）。
         /// </summary>
-        public void RollbackTo(int tick)
+        public void RollbackTo(int targetTick)
         {
-            if (tick == 0)
+            if (targetTick == 0)
             {
-                // 回到初始状态：重新 StartBattle
+                Array.Clear(_snapshotHistory, 0, _snapshotHistory.Length);
                 _world.ClearPools();
-                _world.OnEntityCreated = null;
-                _world.OnEntityDestroyed = null;
                 StartBattle();
                 return;
             }
 
-            var snapshot = _snapshotHistory[tick % 64];
-            if (snapshot != null && snapshot.NextId > 0)
+            var snapshot = _snapshotHistory[targetTick % 64];
+            // Bug #10: Validate snapshot exists and matches the requested tick
+            if (snapshot == null || snapshot.Tick != targetTick)
             {
-                _world.RestoreFromFull(snapshot);
-                CurrentTick = tick;
-                _battleElapsed = tick; // rough approximation
+                return;
             }
+
+            _world.RestoreFromFull(snapshot);
+            CurrentTick = targetTick;
+            // Bug #5: Restore phase counters
+            _battleElapsed = targetTick;
+            _deployElapsed = Math.Min(_deployElapsed, targetTick);
+            CurrentPhase = targetTick < _deployTimeLimit ? SimCombatPhase.Deploying : SimCombatPhase.Battling;
         }
 
         /// <summary>

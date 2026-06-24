@@ -401,6 +401,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(orch.LastChecksum, Is.EqualTo(csAt20),
                 "Rollback to tick 20 should restore checksum from original tick 20");
 
+            // Bug #5: Verify phase is correctly restored
+            Assert.That(orch.CurrentPhase, Is.EqualTo(SimCombatPhase.Battling),
+                "Phase should be Battling after rollback to tick 20");
+
             // Replay ticks 20–29 with same AI
             for (int t = 20; t < 30; t++)
             {

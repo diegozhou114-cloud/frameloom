@@ -18,5 +18,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public List<PoolSnapshot> Pools;
         /// <summary>该 Tick 的 Checksum</summary>
         public ulong Checksum;
+        /// <summary>快照对应的 Tick 号（用于回滚验证）</summary>
+        public int Tick;
     }
 }
