@@ -206,5 +206,196 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(restored.Records[1].Commands[0].Type, Is.EqualTo("Deploy"));
             Assert.That(restored.Records[1].Commands[0].UnitTypeId, Is.EqualTo(3));
         }
+
+        [Test]
+        public void FullBattle_ExportJson_ValidatorPasses()
+        {
+            const int seed = 42;
+            string json;
+            int totalTicks;
+
+            // ── Phase 1: Run battle with recording ──
+            {
+                var world = new SimWorld(256);
+                var buffer = new CommandBuffer();
+                var initializer = new TestInitializer(seed);
+                var recorder = new CommandRecorder(seed, initializer.GetInitialEntities(), buffer);
+                var registry = SimArchetypeRegistry.CreateDefault();
+                var systems = SimCombatBootstrap.Build(world);
+                var deathSys = systems.Find<SimDeathSystem>();
+                var orch = new SimOrchestrator(world, systems, deathSys, buffer, recorder, initializer, registry,
+                    ticksPerSecond: 20);
+
+                orch.StartBattle();
+                orch.SetPhase(SimCombatPhase.Battling);
+
+                for (int tick = 0; tick < 200; tick++)
+                {
+                    SimpleAI(world, tick);
+                    orch.Tick();
+                    if (orch.CurrentPhase == SimCombatPhase.Ended) break;
+                }
+
+                json = recorder.ExportJson();
+                totalTicks = orch.CurrentTick;
+                Assert.That(json, Is.Not.Null.And.Not.Empty, "JSON export should not be empty");
+            }
+
+            // ── Phase 2: Validate JSON directly ──
+            var replay = ReplayFile.FromJson(json);
+            Assert.That(replay.Version, Is.EqualTo(1));
+            Assert.That(replay.Seed, Is.EqualTo(seed));
+            Assert.That(replay.Records.Count, Is.GreaterThan(0));
+
+            // ── Phase 3: Validate through replay validator ──
+            // (in-process, same as server would do)
+            var world2 = new SimWorld(256);
+            var buffer2 = new CommandBuffer();
+            var initializer2 = new TestInitializer(seed);
+            var registry2 = SimArchetypeRegistry.CreateDefault();
+            var systems2 = SimCombatBootstrap.Build(world2);
+            var deathSys2 = systems2.Find<SimDeathSystem>();
+            var orch2 = new SimOrchestrator(world2, systems2, deathSys2, buffer2, null, initializer2, registry2,
+                ticksPerSecond: 20);
+
+            orch2.StartBattle();
+            orch2.SetPhase(SimCombatPhase.Battling);
+
+            for (int tick = 0; tick < replay.Records.Count; tick++)
+            {
+                // Inject commands from replay
+                var tickRecord = replay.Records.Find(r => r.Tick == tick);
+                if (tickRecord != null)
+                {
+                    foreach (var sc in tickRecord.Commands)
+                    {
+                        var cmd = CommandRecorder.DeserializeCommand(sc);
+                        if (cmd != null) buffer2.AddCommand(cmd);
+                    }
+                }
+
+                orch2.Tick();
+
+                if (orch2.CurrentPhase == SimCombatPhase.Ended) break;
+
+                ulong expected = tickRecord?.Checksum ?? 0;
+                ulong actual = orch2.LastChecksum;
+                Assert.That(actual, Is.EqualTo(expected),
+                    $"Tick {tick}: replay checksum mismatch. Expected={expected:X16}, Actual={actual:X16}");
+            }
+        }
+
+        [Test]
+        public void TamperedReplay_FailsValidation()
+        {
+            const int seed = 42;
+
+            // Run a battle and export
+            ReplayFile replay;
+            {
+                var world = new SimWorld(256);
+                var buffer = new CommandBuffer();
+                var initializer = new TestInitializer(seed);
+                var recorder = new CommandRecorder(seed, initializer.GetInitialEntities(), buffer);
+                var registry = SimArchetypeRegistry.CreateDefault();
+                var systems = SimCombatBootstrap.Build(world);
+                var deathSys = systems.Find<SimDeathSystem>();
+                var orch = new SimOrchestrator(world, systems, deathSys, buffer, recorder, initializer, registry,
+                    ticksPerSecond: 20);
+
+                orch.StartBattle();
+                orch.SetPhase(SimCombatPhase.Battling);
+
+                for (int tick = 0; tick < 100; tick++)
+                {
+                    SimpleAI(world, tick);
+                    orch.Tick();
+                    if (orch.CurrentPhase == SimCombatPhase.Ended) break;
+                }
+
+                replay = recorder.Export();
+            }
+
+            Assert.That(replay.Records.Count, Is.GreaterThan(1), "Need at least 2 ticks to tamper");
+
+            // Tamper: change a mid-battle checksum to a wrong value
+            int tamperTick = replay.Records.Count / 2;
+            replay.Records[tamperTick].Checksum = 0xDEADBEEFUL;
+
+            // Replay the tampered file
+            var world2 = new SimWorld(256);
+            var buffer2 = new CommandBuffer();
+            var initializer2 = new TestInitializer(seed);
+            var registry2 = SimArchetypeRegistry.CreateDefault();
+            var systems2 = SimCombatBootstrap.Build(world2);
+            var deathSys2 = systems2.Find<SimDeathSystem>();
+            var orch2 = new SimOrchestrator(world2, systems2, deathSys2, buffer2, null, initializer2, registry2,
+                ticksPerSecond: 20);
+
+            orch2.StartBattle();
+            orch2.SetPhase(SimCombatPhase.Battling);
+
+            bool mismatchFound = false;
+            for (int tick = 0; tick < replay.Records.Count; tick++)
+            {
+                var tickRecord = replay.Records.Find(r => r.Tick == tick);
+                if (tickRecord?.Commands != null)
+                {
+                    foreach (var sc in tickRecord.Commands)
+                    {
+                        var cmd = CommandRecorder.DeserializeCommand(sc);
+                        if (cmd != null) buffer2.AddCommand(cmd);
+                    }
+                }
+
+                orch2.Tick();
+                if (orch2.CurrentPhase == SimCombatPhase.Ended) break;
+
+                if (tickRecord != null && orch2.LastChecksum != tickRecord.Checksum)
+                {
+                    mismatchFound = true;
+                    Assert.That(tick, Is.EqualTo(tamperTick),
+                        $"Mismatch should occur at tampered tick {tamperTick}, but occurred at {tick}");
+                    break;
+                }
+            }
+
+            Assert.That(mismatchFound, Is.True, "Tampered replay should fail checksum validation");
+        }
+
+        [Test]
+        public void SingleTick_EmptyCommands_ProducesConsistentChecksum()
+        {
+            var world = new SimWorld(64);
+            var buffer = new CommandBuffer();
+            var initializer = new TestInitializer(42);
+            var registry = SimArchetypeRegistry.CreateDefault();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
+            var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry,
+                ticksPerSecond: 20);
+
+            orch.StartBattle();
+            orch.SetPhase(SimCombatPhase.Battling);
+
+            orch.Tick();
+            ulong cs1 = orch.LastChecksum;
+
+            // Replay same setup
+            var world2 = new SimWorld(64);
+            var buffer2 = new CommandBuffer();
+            var initializer2 = new TestInitializer(42);
+            var registry2 = SimArchetypeRegistry.CreateDefault();
+            var systems2 = SimCombatBootstrap.Build(world2);
+            var deathSys2 = systems2.Find<SimDeathSystem>();
+            var orch2 = new SimOrchestrator(world2, systems2, deathSys2, buffer2, null, initializer2, registry2,
+                ticksPerSecond: 20);
+            orch2.StartBattle();
+            orch2.SetPhase(SimCombatPhase.Battling);
+            orch2.Tick();
+
+            Assert.That(orch2.LastChecksum, Is.EqualTo(cs1),
+                "Empty-command single tick should produce consistent checksum");
+        }
     }
 }
