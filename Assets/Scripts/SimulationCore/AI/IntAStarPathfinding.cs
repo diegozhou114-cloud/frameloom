@@ -63,11 +63,13 @@ namespace ZWebGLFrameWork.SimulationCore
                     // 对角线穿墙检测
                     if (i % 2 == 1)
                     {
-                        int adj1x = current.X + _directions[(i + 2) % 8].dx;
-                        int adj1y = current.Y + _directions[(i + 2) % 8].dy;
-                        int adj2x = current.X + _directions[(i + 4) % 8].dx;
-                        int adj2y = current.Y + _directions[(i + 4) % 8].dy;
-                        if (!_isWalkable(adj1x, adj1y) && !_isWalkable(adj2x, adj2y))
+                        int adj1Idx = (i + 7) % 8;
+                        int adj2Idx = (i + 1) % 8;
+                        int adj1x = current.X + _directions[adj1Idx].dx;
+                        int adj1y = current.Y + _directions[adj1Idx].dy;
+                        int adj2x = current.X + _directions[adj2Idx].dx;
+                        int adj2y = current.Y + _directions[adj2Idx].dy;
+                        if (!_isWalkable(adj1x, adj1y) || !_isWalkable(adj2x, adj2y))
                             continue;
                     }
 
