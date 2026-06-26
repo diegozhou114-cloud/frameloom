@@ -9,7 +9,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public LogicInt Speed;
         /// <summary>网格单元格边长（逻辑单位）</summary>
         public LogicInt CellSize;
-        /// <summary>当前路径（网格坐标列表，GridX&lt;&lt;16|GridY）</summary>
+        /// <summary>当前路径 — 引用类型，HashInto 只哈希存在性不哈希内容（PathIndex/GridPos 已反映移动进度）</summary>
         public List<int> Path;
         /// <summary>当前路径索引</summary>
         public int PathIndex;

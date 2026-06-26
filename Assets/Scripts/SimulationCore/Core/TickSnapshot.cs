@@ -14,8 +14,6 @@ namespace ZWebGLFrameWork.SimulationCore
         public int[] Generations;
         /// <summary>所有活跃实体</summary>
         public SimEntity[] Entities;
-        /// <summary>所有组件池的快照</summary>
-        public List<PoolSnapshot> Pools;
         /// <summary>所有 Chunk 的快照（Archetype 模式）</summary>
         public List<ChunkSnapshot> ChunkSnapshots;
         /// <summary>该 Tick 的 Checksum</summary>

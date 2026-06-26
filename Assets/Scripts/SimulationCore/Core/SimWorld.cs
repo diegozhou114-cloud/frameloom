@@ -30,7 +30,10 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly Dictionary<string, SimArchetype> _archetypes = new Dictionary<string, SimArchetype>();
 
         // 帧内事件队列
-        private readonly Dictionary<Type, List<object>> _eventQueues = new Dictionary<Type, List<object>>();
+        private readonly Dictionary<Type, object> _eventQueues = new Dictionary<Type, object>();
+
+        // 排序键缓存（避免每 Tick 分配 List<string>）
+        private readonly List<string> _sortedKeys = new List<string>();
 
         public SimWorld(ComponentTypeRegistry registry, int initialCapacity = 256, ISimLogger logger = null)
         {
@@ -84,8 +87,8 @@ namespace ZWebGLFrameWork.SimulationCore
             object[] comps = new object[compTypeIds.Length];
             for (int c = 0; c < compTypeIds.Length; c++)
             {
-                Type compType = _registry.GetType(compTypeIds[c]);
-                comps[c] = Activator.CreateInstance(compType);
+                int typeId = compTypeIds[c];
+                comps[c] = SimChunkHelper.CreateDefault(typeId);
             }
 
             int localIdx = chunk.Count;
@@ -312,20 +315,21 @@ namespace ZWebGLFrameWork.SimulationCore
         public void EnqueueEvent<T>(T evt) where T : struct
         {
             var type = typeof(T);
-            if (!_eventQueues.TryGetValue(type, out var list))
+            if (!_eventQueues.TryGetValue(type, out var obj))
             {
-                list = new List<object>();
-                _eventQueues[type] = list;
+                _eventQueues[type] = new List<T>();
             }
-            list.Add(evt);
+            ((List<T>)_eventQueues[type]).Add(evt);
         }
 
         /// <summary>消费所有已入队的 T 类型事件（消费后清空）</summary>
         public void ConsumeEvents<T>(Action<T> consumer) where T : struct
         {
             var type = typeof(T);
-            if (!_eventQueues.TryGetValue(type, out var list) || list.Count == 0) return;
-            foreach (var obj in list) consumer((T)obj);
+            if (!_eventQueues.TryGetValue(type, out var obj)) return;
+            var list = (List<T>)obj;
+            if (list.Count == 0) return;
+            foreach (var item in list) consumer(item);
             list.Clear();
         }
 
@@ -342,9 +346,10 @@ namespace ZWebGLFrameWork.SimulationCore
             hash *= 1099511628211UL;
 
             // 按 Archetype Key 排序确保确定性
-            var sortedKeys = new List<string>(_archetypes.Keys);
-            sortedKeys.Sort();
-            foreach (var key in sortedKeys)
+            _sortedKeys.Clear();
+            _sortedKeys.AddRange(_archetypes.Keys);
+            _sortedKeys.Sort();
+            foreach (var key in _sortedKeys)
             {
                 var archetype = _archetypes[key];
                 foreach (var chunk in archetype.Chunks)
@@ -389,15 +394,15 @@ namespace ZWebGLFrameWork.SimulationCore
                 NextId = _nextId,
                 Generations = (int[])_generations.Clone(),
                 Entities = GetAllEntities(),
-                Pools = new List<PoolSnapshot>(),
                 Checksum = ComputeChecksum(),
                 ChunkSnapshots = new List<ChunkSnapshot>(),
             };
 
             // 按 Archetype Key 排序确保确定性
-            var sortedKeys = new List<string>(_archetypes.Keys);
-            sortedKeys.Sort();
-            foreach (var key in sortedKeys)
+            _sortedKeys.Clear();
+            _sortedKeys.AddRange(_archetypes.Keys);
+            _sortedKeys.Sort();
+            foreach (var key in _sortedKeys)
             {
                 var archetype = _archetypes[key];
                 foreach (var chunk in archetype.Chunks)
@@ -432,7 +437,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _entityChunkIndex = new int[_generationCap];
             _entityLocalIndex = new int[_generationCap];
             EntityCount = 0;
-            foreach (var list in _eventQueues.Values) list.Clear();
+            _eventQueues.Clear();
 
             // 从 Chunk 快照重建 Archetype 和 Chunk
             if (snapshot.ChunkSnapshots != null)
@@ -472,7 +477,7 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             _archetypes.Clear();
             EntityCount = 0;
-            foreach (var list in _eventQueues.Values) list.Clear();
+            _eventQueues.Clear();
         }
     }
 }

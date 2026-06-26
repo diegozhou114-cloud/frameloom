@@ -48,9 +48,6 @@ namespace ZWebGLFrameWork.SimulationCore
                         transform.PosY += fracY;
                     }
                 }
-
-                World.SetComponent(entity, transform);
-                World.SetComponent(entity, movement);
             });
         }
     }

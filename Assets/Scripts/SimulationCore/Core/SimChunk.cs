@@ -47,11 +47,10 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 if (ComponentColumns[c] == null)
                 {
-                    // 延迟分配列（按组件类型创建数组）
-                    Type compType = components[c].GetType();
-                    ComponentColumns[c] = Array.CreateInstance(compType, Capacity);
+                    int typeId = ComponentTypeIds[c];
+                    ComponentColumns[c] = SimChunkHelper.CreateColumn(typeId, Capacity);
                 }
-                ComponentColumns[c].SetValue(components[c], idx);
+                SimChunkHelper.SetValue(ComponentColumns[c], idx, components[c], ComponentTypeIds[c]);
             }
 
             Count++;
@@ -73,7 +72,9 @@ namespace ZWebGLFrameWork.SimulationCore
             for (int c = 0; c < ComponentColumns.Length; c++)
             {
                 Array col = ComponentColumns[c];
-                col.SetValue(col.GetValue(lastIdx), localIndex);
+                int typeId = ComponentTypeIds[c];
+                object val = SimChunkHelper.GetValue(col, lastIdx, typeId);
+                SimChunkHelper.SetValue(col, localIndex, val, typeId);
             }
 
             Count--;
@@ -120,8 +121,8 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 if (ComponentColumns[c] != null)
                 {
-                    Type elementType = ComponentColumns[c].GetType().GetElementType();
-                    Array copy = Array.CreateInstance(elementType, Count);
+                    int typeId = ComponentTypeIds[c];
+                    Array copy = SimChunkHelper.CreateColumn(typeId, Count);
                     Array.Copy(ComponentColumns[c], copy, Count);
                     snap.Columns[c] = copy;
                 }
@@ -141,10 +142,10 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 if (snap.Columns[c] != null)
                 {
-                    Type elementType = snap.Columns[c].GetType().GetElementType();
-                    if (ComponentColumns[c] == null || ComponentColumns[c].Length < Capacity)
+                    if (ComponentColumns[c] == null)
                     {
-                        ComponentColumns[c] = Array.CreateInstance(elementType, Capacity);
+                        int typeId = ComponentTypeIds[c];
+                        ComponentColumns[c] = SimChunkHelper.CreateColumn(typeId, Capacity);
                     }
                     Array.Copy(snap.Columns[c], ComponentColumns[c], snap.Count);
                 }

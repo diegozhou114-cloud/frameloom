@@ -25,7 +25,6 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (dx > attack.Range || dy > attack.Range) return;
 
                 attack.LastAttackTick = _currentTick;
-                World.SetComponent(entity, attack);
 
                 World.EnqueueEvent(new SimDamageEvent
                 {
