@@ -11,10 +11,17 @@ namespace ZWebGLFrameWork.SimulationCore
     }
 
     /// <summary>阵营组件 — 纯整数</summary>
-    public struct SimTeamComponent : ISimComponent
+    public struct SimTeamComponent : IHashableComponent
     {
         public int TeamId;
 
         public static SimTeamComponent Create(int teamId) => new SimTeamComponent { TeamId = teamId };
+
+        public ulong HashInto(ulong hash)
+        {
+            const ulong FNVPrime = 1099511628211UL;
+            hash ^= (ulong)TeamId; hash *= FNVPrime;
+            return hash;
+        }
     }
 }

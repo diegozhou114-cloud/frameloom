@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace ZWebGLFrameWork.SimulationCore
 {
     /// <summary>移动组件 — 使用 LogicInt，路径为网格坐标列表</summary>
-    public struct SimMovementComponent : ISimComponent
+    public struct SimMovementComponent : IHashableComponent
     {
         /// <summary>移动速度（逻辑单位/Tick）</summary>
         public LogicInt Speed;
@@ -37,6 +37,19 @@ namespace ZWebGLFrameWork.SimulationCore
                 Path = null,
                 PathIndex = 0,
             };
+        }
+
+        public ulong HashInto(ulong hash)
+        {
+            const ulong FNVPrime = 1099511628211UL;
+            hash ^= (ulong)Speed.RawValue; hash *= FNVPrime;
+            hash ^= (ulong)CellSize.RawValue; hash *= FNVPrime;
+            hash ^= (ulong)PathIndex; hash *= FNVPrime;
+            hash ^= (ulong)TargetGridX; hash *= FNVPrime;
+            hash ^= (ulong)TargetGridY; hash *= FNVPrime;
+            // Path reference type — hash by existence, not content (content changes are reflected in PathIndex/GridPos)
+            if (Path != null) { hash ^= 1UL; hash *= FNVPrime; }
+            return hash;
         }
     }
 }

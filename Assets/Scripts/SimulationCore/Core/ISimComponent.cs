@@ -17,4 +17,14 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>从快照恢复</summary>
         void RestoreDense(PoolSnapshot snapshot);
     }
+
+    /// <summary>
+    /// 可哈希组件 — 组件自行将字段值混入 FNV-1a 哈希，零装箱、零反射。
+    /// 用于 SimArchetypeWorld.Checksum 的高性能确定性校验。
+    /// </summary>
+    public interface IHashableComponent : ISimComponent
+    {
+        /// <summary>将本组件的所有字段混入 hash，返回新 hash</summary>
+        ulong HashInto(ulong hash);
+    }
 }

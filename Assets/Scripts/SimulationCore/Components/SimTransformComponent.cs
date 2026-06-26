@@ -1,7 +1,7 @@
 namespace ZWebGLFrameWork.SimulationCore
 {
     /// <summary>位置组件 — 逻辑坐标（无 Unity Vector3）</summary>
-    public struct SimTransformComponent : ISimComponent
+    public struct SimTransformComponent : IHashableComponent
     {
         public LogicInt PosX, PosY;
         public int GridX, GridY;
@@ -15,6 +15,16 @@ namespace ZWebGLFrameWork.SimulationCore
                 PosX = LogicInt.FromInt(gridX) * cellSize + cellSize / LogicInt.FromInt(2),
                 PosY = LogicInt.FromInt(gridY) * cellSize + cellSize / LogicInt.FromInt(2),
             };
+        }
+
+        public ulong HashInto(ulong hash)
+        {
+            const ulong FNVPrime = 1099511628211UL;
+            hash ^= (ulong)PosX.RawValue; hash *= FNVPrime;
+            hash ^= (ulong)PosY.RawValue; hash *= FNVPrime;
+            hash ^= (ulong)GridX; hash *= FNVPrime;
+            hash ^= (ulong)GridY; hash *= FNVPrime;
+            return hash;
         }
     }
 }
