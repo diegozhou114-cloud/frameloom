@@ -356,12 +356,22 @@ namespace ZWebGLFrameWork.SimulationCore
                         hash ^= (ulong)chunk.EntityIds[i]; hash *= prime;
                         hash ^= (ulong)chunk.Generations[i]; hash *= prime;
 
-                        // 哈希每个组件（通过 IHashableComponent 零装箱）
+                        // 哈希每个组件（直接类型转换，零装箱）
                         for (int c = 0; c < archetype.ComponentTypeIds.Length; c++)
                         {
-                            var comp = chunk.ComponentColumns[c].GetValue(i);
-                            if (comp is IHashableComponent hc)
-                                hash = hc.HashInto(hash);
+                            Array col = chunk.ComponentColumns[c];
+                            if (col is SimTransformComponent[] tCol)
+                                hash = tCol[i].HashInto(hash);
+                            else if (col is SimHealthComponent[] hCol)
+                                hash = hCol[i].HashInto(hash);
+                            else if (col is SimTeamComponent[] teamCol)
+                                hash = teamCol[i].HashInto(hash);
+                            else if (col is SimMovementComponent[] mCol)
+                                hash = mCol[i].HashInto(hash);
+                            else if (col is SimAttackComponent[] aCol)
+                                hash = aCol[i].HashInto(hash);
+                            else if (col is SimTargetComponent[] tgtCol)
+                                hash = tgtCol[i].HashInto(hash);
                         }
                     }
                 }
