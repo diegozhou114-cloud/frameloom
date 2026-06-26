@@ -16,6 +16,8 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimEntity[] Entities;
         /// <summary>所有组件池的快照</summary>
         public List<PoolSnapshot> Pools;
+        /// <summary>所有 Chunk 的快照（Archetype 模式）</summary>
+        public List<ChunkSnapshot> ChunkSnapshots;
         /// <summary>该 Tick 的 Checksum</summary>
         public ulong Checksum;
         /// <summary>快照对应的 Tick 号（用于回滚验证）</summary>

@@ -215,6 +215,33 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void FullSnapshot_Restore_ChecksumIdentical()
+        {
+            var world = CreateWorld();
+            for (int i = 0; i < 10; i++)
+            {
+                var e = world.CreateEntity(
+                    typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
+                world.SetComponent(e, SimTransformComponent.Create(i, i * 2, LogicInt.FromInt(1)));
+                world.SetComponent(e, new SimHealthComponent { CurrentHP = 100, MaxHP = 100 });
+                world.SetComponent(e, new SimTeamComponent { TeamId = SimTeam.Defender });
+            }
+
+            ulong csBefore = world.ComputeChecksum();
+            var snapshot = world.ExportFullSnapshot();
+
+            // Create new entity (mutation)
+            world.CreateEntity(typeof(SimHealthComponent));
+
+            // Restore
+            world.RestoreFromFull(snapshot);
+            ulong csAfter = world.ComputeChecksum();
+
+            Assert.That(csAfter, Is.EqualTo(csBefore));
+            Assert.That(world.EntityCount, Is.EqualTo(10));
+        }
+
+        [Test]
         public void Benchmark_ArchetypeWorld_100Entities_100Ticks()
         {
             var world = CreateWorld();

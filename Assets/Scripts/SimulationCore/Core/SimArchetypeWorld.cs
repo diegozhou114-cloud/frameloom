@@ -381,7 +381,7 @@ namespace ZWebGLFrameWork.SimulationCore
 
         // ==================== 快照 ====================
 
-        /// <summary>导出完整 Tick 快照（含实体元数据 + Checksum）</summary>
+        /// <summary>导出完整 Tick 快照（含所有 Chunk 的组件列数据 + Checksum）</summary>
         public TickSnapshot ExportFullSnapshot()
         {
             var snapshot = new TickSnapshot
@@ -391,7 +391,21 @@ namespace ZWebGLFrameWork.SimulationCore
                 Entities = GetAllEntities(),
                 Pools = new List<PoolSnapshot>(),
                 Checksum = ComputeChecksum(),
+                ChunkSnapshots = new List<ChunkSnapshot>(),
             };
+
+            // 按 Archetype Key 排序确保确定性
+            var sortedKeys = new List<string>(_archetypes.Keys);
+            sortedKeys.Sort();
+            foreach (var key in sortedKeys)
+            {
+                var archetype = _archetypes[key];
+                foreach (var chunk in archetype.Chunks)
+                {
+                    snapshot.ChunkSnapshots.Add(chunk.ExportSnapshot());
+                }
+            }
+
             return snapshot;
         }
 
@@ -406,8 +420,7 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         /// <summary>
-        /// 从完整快照恢复元数据（Archetype 模式下简化实现）。
-        /// 完整 Chunk 级快照恢复将在 Phase 5c (FrameSync) 完善。
+        /// 从完整快照恢复 — 重建所有 Archetype/Chunk 及实体索引。
         /// </summary>
         public void RestoreFromFull(TickSnapshot snapshot)
         {
@@ -420,6 +433,36 @@ namespace ZWebGLFrameWork.SimulationCore
             _entityLocalIndex = new int[_generationCap];
             EntityCount = 0;
             foreach (var list in _eventQueues.Values) list.Clear();
+
+            // 从 Chunk 快照重建 Archetype 和 Chunk
+            if (snapshot.ChunkSnapshots != null)
+            {
+                foreach (var chunkSnap in snapshot.ChunkSnapshots)
+                {
+                    string key = SimArchetype.GetKey(chunkSnap.ComponentTypeIds);
+                    if (!_archetypes.TryGetValue(key, out var archetype))
+                    {
+                        archetype = new SimArchetype(chunkSnap.ComponentTypeIds);
+                        _archetypes[key] = archetype;
+                    }
+
+                    var chunk = new SimChunk(chunkSnap.ComponentTypeIds);
+                    chunk.RestoreFrom(chunkSnap);
+                    archetype.Chunks.Add(chunk);
+
+                    // 重建实体索引
+                    for (int i = 0; i < chunk.Count; i++)
+                    {
+                        int entityId = chunk.EntityIds[i];
+                        if (entityId >= _generationCap) continue;
+                        _entityArchetypeKey[entityId] = key;
+                        _entityChunkIndex[entityId] = archetype.Chunks.Count - 1;
+                        _entityLocalIndex[entityId] = i;
+                    }
+
+                    EntityCount += chunk.Count;
+                }
+            }
         }
 
         // ==================== 清理 ====================

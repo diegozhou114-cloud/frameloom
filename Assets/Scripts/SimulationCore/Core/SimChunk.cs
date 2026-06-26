@@ -100,5 +100,55 @@ namespace ZWebGLFrameWork.SimulationCore
             T[] col = (T[])ComponentColumns[columnIndex];
             col[localIndex] = value;
         }
+
+        /// <summary>导出 Chunk 快照 — 每列 Array.Copy，零装箱</summary>
+        public ChunkSnapshot ExportSnapshot()
+        {
+            var snap = new ChunkSnapshot
+            {
+                ComponentTypeIds = (int[])ComponentTypeIds.Clone(),
+                EntityIds = new int[Count],
+                Generations = new int[Count],
+                Count = Count,
+                Columns = new Array[ComponentColumns.Length],
+            };
+
+            Array.Copy(EntityIds, snap.EntityIds, Count);
+            Array.Copy(Generations, snap.Generations, Count);
+
+            for (int c = 0; c < ComponentColumns.Length; c++)
+            {
+                if (ComponentColumns[c] != null)
+                {
+                    Type elementType = ComponentColumns[c].GetType().GetElementType();
+                    Array copy = Array.CreateInstance(elementType, Count);
+                    Array.Copy(ComponentColumns[c], copy, Count);
+                    snap.Columns[c] = copy;
+                }
+            }
+
+            return snap;
+        }
+
+        /// <summary>从快照恢复 Chunk（覆盖当前数据）</summary>
+        public void RestoreFrom(ChunkSnapshot snap)
+        {
+            Count = snap.Count;
+            Array.Copy(snap.EntityIds, EntityIds, Count);
+            Array.Copy(snap.Generations, Generations, Count);
+
+            for (int c = 0; c < ComponentColumns.Length; c++)
+            {
+                if (snap.Columns[c] != null)
+                {
+                    Type elementType = snap.Columns[c].GetType().GetElementType();
+                    if (ComponentColumns[c] == null || ComponentColumns[c].Length < Capacity)
+                    {
+                        ComponentColumns[c] = Array.CreateInstance(elementType, Capacity);
+                    }
+                    Array.Copy(snap.Columns[c], ComponentColumns[c], snap.Count);
+                }
+            }
+        }
     }
 }
