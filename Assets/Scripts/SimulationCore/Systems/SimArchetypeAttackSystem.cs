@@ -18,11 +18,10 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (!World.TryGetComponent<SimTargetComponent>(entity, out var target) || !target.HasTarget)
                     return;
 
-                if (!World.TryGetComponent<SimTransformComponent>(target.TargetEntity, out var targetTransform))
-                    return;
-
-                LogicInt dx = LogicInt.Abs(transform.PosX - targetTransform.PosX);
-                LogicInt dy = LogicInt.Abs(transform.PosY - targetTransform.PosY);
+                // Use cached target position (populated by TargetCacheSystem)
+                // No remote entity lookup needed
+                LogicInt dx = LogicInt.Abs(transform.PosX - target.TargetPosX);
+                LogicInt dy = LogicInt.Abs(transform.PosY - target.TargetPosY);
                 if (dx > attack.Range || dy > attack.Range) return;
 
                 attack.LastAttackTick = _currentTick;

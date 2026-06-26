@@ -8,6 +8,7 @@ namespace ZWebGLFrameWork.SimulationCore
             var deathSys = new SimArchetypeDeathSystem();
 
             systems.Add(
+                new SimArchetypeTargetCacheSystem(),  // Order 5: cache target positions before attack
                 new SimArchetypeMovementSystem(),
                 new SimArchetypeAttackSystem(),
                 new SimArchetypeDamageSystem(),
