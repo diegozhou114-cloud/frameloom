@@ -1,9 +1,5 @@
 namespace ZWebGLFrameWork.SimulationCore
 {
-    /// <summary>
-    /// 确定性攻击系统 — 检查目标在射程内 → 冷却完毕 → 扣血。
-    /// Order: 20
-    /// </summary>
     public class SimAttackSystem : SimSystemBase
     {
         private int _currentTick;
@@ -22,12 +18,10 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (!World.TryGetComponent<SimTargetComponent>(entity, out var target) || !target.HasTarget)
                     return;
 
-                if (!World.TryGetComponent<SimTransformComponent>(target.TargetEntity, out var targetTransform))
-                    return;
-
-                // 简单距离检查（曼哈顿距离，确定性）
-                LogicInt dx = LogicInt.Abs(transform.PosX - targetTransform.PosX);
-                LogicInt dy = LogicInt.Abs(transform.PosY - targetTransform.PosY);
+                // Use cached target position (populated by TargetCacheSystem)
+                // No remote entity lookup needed
+                LogicInt dx = LogicInt.Abs(transform.PosX - target.TargetPosX);
+                LogicInt dy = LogicInt.Abs(transform.PosY - target.TargetPosY);
                 if (dx > attack.Range || dy > attack.Range) return;
 
                 attack.LastAttackTick = _currentTick;
@@ -42,7 +36,6 @@ namespace ZWebGLFrameWork.SimulationCore
             });
         }
 
-        /// <summary>重置 Tick 计数（战斗开始时调用）</summary>
         public void Reset() { _currentTick = 0; }
     }
 }

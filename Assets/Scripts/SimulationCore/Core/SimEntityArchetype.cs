@@ -36,21 +36,32 @@ namespace ZWebGLFrameWork.SimulationCore
             CanAttack = defaultDamage > 0;
         }
 
-        /// <summary>将原型应用到新创建的实体上</summary>
-        public void ApplyTo(SimWorld world, SimEntity entity, int gridX, int gridY, int teamId)
+        /// <summary>在新 SimWorld 中创建实体并设置初始组件值</summary>
+        public SimEntity CreateIn(SimWorld world, int gridX, int gridY, int teamId)
         {
-            world.AddComponent(entity, SimTransformComponent.Create(gridX, gridY, LogicInt.FromInt(1)));
-            world.AddComponent(entity, SimHealthComponent.Create(DefaultHealth));
-            world.AddComponent(entity, SimTeamComponent.Create(teamId));
-
-            if (CanMove)
-                world.AddComponent(entity, SimMovementComponent.Create(DefaultSpeed, 1f));
-
+            var types = new System.Collections.Generic.List<System.Type>
+            {
+                typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent)
+            };
+            if (CanMove) types.Add(typeof(SimMovementComponent));
             if (CanAttack)
             {
-                world.AddComponent(entity, SimAttackComponent.Create(DefaultDamage, DefaultRange, DefaultCooldown, 20));
-                world.AddComponent(entity, SimTargetComponent.Create());
+                types.Add(typeof(SimAttackComponent));
+                types.Add(typeof(SimTargetComponent));
             }
+
+            var entity = world.CreateEntity(types.ToArray());
+            world.SetComponent(entity, SimTransformComponent.Create(gridX, gridY, LogicInt.FromInt(1)));
+            world.SetComponent(entity, SimHealthComponent.Create(DefaultHealth));
+            world.SetComponent(entity, SimTeamComponent.Create(teamId));
+            if (CanMove)
+                world.SetComponent(entity, SimMovementComponent.Create(DefaultSpeed, 1f));
+            if (CanAttack)
+            {
+                world.SetComponent(entity, SimAttackComponent.Create(DefaultDamage, DefaultRange, DefaultCooldown, 20));
+                world.SetComponent(entity, SimTargetComponent.Create());
+            }
+            return entity;
         }
     }
 

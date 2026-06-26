@@ -2,15 +2,15 @@ using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
-    public class SimArchetypeSystemGroup
+    public class SimSystemGroup
     {
-        private readonly List<SimArchetypeSystemBase> _systems = new List<SimArchetypeSystemBase>();
+        private readonly List<SimSystemBase> _systems = new List<SimSystemBase>();
         private bool _isSorted = true;
 
-        public void Add(SimArchetypeSystemBase system) { _systems.Add(system); _isSorted = false; }
-        public void Add(params SimArchetypeSystemBase[] systems) { _systems.AddRange(systems); _isSorted = false; }
+        public void Add(SimSystemBase system) { _systems.Add(system); _isSorted = false; }
+        public void Add(params SimSystemBase[] systems) { _systems.AddRange(systems); _isSorted = false; }
 
-        public void InitAll(SimArchetypeWorld world)
+        public void InitAll(SimWorld world)
         {
             Sort();
             foreach (var sys in _systems)
@@ -33,7 +33,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (sys.Enabled) sys.Cleanup();
         }
 
-        public T Find<T>() where T : SimArchetypeSystemBase
+        public T Find<T>() where T : SimSystemBase
         {
             foreach (var sys in _systems)
                 if (sys is T t) return t;

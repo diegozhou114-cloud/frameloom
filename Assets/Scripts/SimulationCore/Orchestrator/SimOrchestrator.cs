@@ -92,8 +92,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 var archetype = _registry.Get(info.ArchetypeId);
                 if (archetype == null)
                     continue;
-                var entity = _world.CreateEntity();
-                archetype.ApplyTo(_world, entity, info.GridX, info.GridY, info.TeamId);
+                archetype.CreateIn(_world, info.GridX, info.GridY, info.TeamId);
             }
 
             // 进入部署阶段

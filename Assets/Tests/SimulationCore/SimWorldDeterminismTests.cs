@@ -3,22 +3,11 @@ using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
 {
-    /// <summary>测试组件 — 纯数据，用于验证确定性</summary>
-    public struct TestPosition : ISimComponent
-    {
-        public int X, Y;
-    }
-
-    public struct TestHealth : ISimComponent
-    {
-        public int Current, Max;
-    }
-
     public class SimWorldDeterminismTests
     {
         private SimWorld CreateWorld()
         {
-            return new SimWorld(64);
+            return new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
         }
 
         [Test]
@@ -29,13 +18,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             foreach (var world in new[] { w1, w2 })
             {
-                var e1 = world.CreateEntity();
-                world.AddComponent(e1, new TestPosition { X = 10, Y = 20 });
-                world.AddComponent(e1, new TestHealth { Current = 100, Max = 100 });
+                var e1 = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent));
+                world.SetComponent(e1, new SimTransformComponent { GridX = 10, GridY = 20 });
+                world.SetComponent(e1, new SimHealthComponent { CurrentHP = 100, MaxHP = 100 });
 
-                var e2 = world.CreateEntity();
-                world.AddComponent(e2, new TestPosition { X = 30, Y = 40 });
-                world.AddComponent(e2, new TestHealth { Current = 50, Max = 80 });
+                var e2 = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent));
+                world.SetComponent(e2, new SimTransformComponent { GridX = 30, GridY = 40 });
+                world.SetComponent(e2, new SimHealthComponent { CurrentHP = 50, MaxHP = 80 });
             }
 
             Assert.That(w1.ComputeChecksum(), Is.EqualTo(w2.ComputeChecksum()));
@@ -45,13 +34,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void DifferentPosition_DifferentChecksum()
         {
             var w1 = CreateWorld();
-            var e1 = w1.CreateEntity();
-            w1.AddComponent(e1, new TestPosition { X = 10, Y = 20 });
+            var e1 = w1.CreateEntity(typeof(SimTransformComponent));
+            w1.SetComponent(e1, new SimTransformComponent { GridX = 10, GridY = 20 });
             var cs1 = w1.ComputeChecksum();
 
             var w2 = CreateWorld();
-            var e2 = w2.CreateEntity();
-            w2.AddComponent(e2, new TestPosition { X = 99, Y = 99 });
+            var e2 = w2.CreateEntity(typeof(SimTransformComponent));
+            w2.SetComponent(e2, new SimTransformComponent { GridX = 99, GridY = 99 });
             var cs2 = w2.ComputeChecksum();
 
             Assert.That(cs1, Is.Not.EqualTo(cs2),
@@ -62,8 +51,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void DestroyEntity_ChangesChecksum()
         {
             var w1 = CreateWorld();
-            var e = w1.CreateEntity();
-            w1.AddComponent(e, new TestHealth { Current = 50, Max = 100 });
+            var e = w1.CreateEntity(typeof(SimHealthComponent));
+            w1.SetComponent(e, new SimHealthComponent { CurrentHP = 50, MaxHP = 100 });
             var csBefore = w1.ComputeChecksum();
 
             w1.DestroyEntity(e);
@@ -77,9 +66,9 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void EntityID_MonotonicIncrease()
         {
             var world = CreateWorld();
-            var e1 = world.CreateEntity();
-            var e2 = world.CreateEntity();
-            var e3 = world.CreateEntity();
+            var e1 = world.CreateEntity(typeof(SimHealthComponent));
+            var e2 = world.CreateEntity(typeof(SimHealthComponent));
+            var e3 = world.CreateEntity(typeof(SimHealthComponent));
 
             Assert.That(e1.Id, Is.EqualTo(0));
             Assert.That(e2.Id, Is.EqualTo(1));
@@ -90,9 +79,9 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void DestroyThenCreate_NewEntityHasNewId()
         {
             var world = CreateWorld();
-            var e1 = world.CreateEntity(); // Id=0
+            var e1 = world.CreateEntity(typeof(SimHealthComponent)); // Id=0
             world.DestroyEntity(e1);
-            var e2 = world.CreateEntity();
+            var e2 = world.CreateEntity(typeof(SimHealthComponent));
             // 不复用 Id — 单调递增
             Assert.That(e2.Id, Is.EqualTo(1));
         }
@@ -107,9 +96,9 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
                 for (int i = 0; i < 10; i++)
                 {
-                    var e = world.CreateEntity();
-                    world.AddComponent(e, new TestPosition { X = i, Y = i * 2 });
-                    world.AddComponent(e, new TestHealth { Current = 100 - i * 3, Max = 100 });
+                    var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent));
+                    world.SetComponent(e, new SimTransformComponent { GridX = i, GridY = i * 2 });
+                    world.SetComponent(e, new SimHealthComponent { CurrentHP = 100 - i * 3, MaxHP = 100 });
                 }
 
                 ulong cs = world.ComputeChecksum();
@@ -127,9 +116,9 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var world = CreateWorld();
             for (int i = 0; i < 10; i++)
             {
-                var e = world.CreateEntity();
-                world.AddComponent(e, new TestPosition { X = i, Y = i * 2 });
-                world.AddComponent(e, new TestHealth { Current = 100 - i * 3, Max = 100 });
+                var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent));
+                world.SetComponent(e, new SimTransformComponent { GridX = i, GridY = i * 2 });
+                world.SetComponent(e, new SimHealthComponent { CurrentHP = 100 - i * 3, MaxHP = 100 });
             }
 
             ulong csBefore = world.ComputeChecksum();
@@ -137,7 +126,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             // 修改世界
             world.DestroyEntity(new SimEntity(0, 1));
-            world.CreateEntity();
+            world.CreateEntity(typeof(SimHealthComponent));
 
             // 恢复
             world.RestoreFromFull(snapshot);

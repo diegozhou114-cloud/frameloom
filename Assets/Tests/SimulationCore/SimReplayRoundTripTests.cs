@@ -95,7 +95,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             // ── 第一遍：录制 ──
             var recorderChecksums = new List<ulong>();
             {
-                var world = new SimWorld(256);
+                var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
                 var buffer = new CommandBuffer();
                 var initializer = new TestInitializer(seed);
                 var recorder = new CommandRecorder(seed, initializer.GetInitialEntities(), buffer);
@@ -120,7 +120,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             // ── 第二遍：从 Replay 重放（同一个 seed+布局，应产生相同 checksum） ──
             {
-                var world = new SimWorld(256);
+                var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
                 var initializer = new TestInitializer(seed);
                 var systems = SimCombatBootstrap.Build(world);
                 var deathSys = systems.Find<SimDeathSystem>();
@@ -146,7 +146,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void EmptyCommandTick_ProducesValidChecksum()
         {
-            var world = new SimWorld(64);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
             var buffer = new CommandBuffer();
             var initializer = new TestInitializer(42);
             var systems = SimCombatBootstrap.Build(world);
@@ -216,7 +216,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             // ── Phase 1: Run battle with recording ──
             {
-                var world = new SimWorld(256);
+                var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
                 var buffer = new CommandBuffer();
                 var initializer = new TestInitializer(seed);
                 var recorder = new CommandRecorder(seed, initializer.GetInitialEntities(), buffer);
@@ -249,7 +249,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             // ── Phase 3: Validate through replay validator ──
             // (in-process, same as server would do)
-            var world2 = new SimWorld(256);
+            var world2 = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             var buffer2 = new CommandBuffer();
             var initializer2 = new TestInitializer(seed);
             var registry2 = SimArchetypeRegistry.CreateDefault();
@@ -293,7 +293,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             // Run a battle and export
             ReplayFile replay;
             {
-                var world = new SimWorld(256);
+                var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
                 var buffer = new CommandBuffer();
                 var initializer = new TestInitializer(seed);
                 var recorder = new CommandRecorder(seed, initializer.GetInitialEntities(), buffer);
@@ -323,7 +323,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             replay.Records[tamperTick].Checksum = 0xDEADBEEFUL;
 
             // Replay the tampered file
-            var world2 = new SimWorld(256);
+            var world2 = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             var buffer2 = new CommandBuffer();
             var initializer2 = new TestInitializer(seed);
             var registry2 = SimArchetypeRegistry.CreateDefault();
@@ -367,7 +367,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void Rollback_MidBattle_RestoresCorrectState()
         {
             const int seed = 42;
-            var world = new SimWorld(256);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             var buffer = new CommandBuffer();
             var initializer = new TestInitializer(seed);
             var registry = SimArchetypeRegistry.CreateDefault();
@@ -423,7 +423,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void Rollback_ToTickZero_RestartsBattle()
         {
             const int seed = 42;
-            var world = new SimWorld(256);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             var buffer = new CommandBuffer();
             var initializer = new TestInitializer(seed);
             var registry = SimArchetypeRegistry.CreateDefault();
@@ -456,7 +456,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void SingleTick_EmptyCommands_ProducesConsistentChecksum()
         {
-            var world = new SimWorld(64);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
             var buffer = new CommandBuffer();
             var initializer = new TestInitializer(42);
             var registry = SimArchetypeRegistry.CreateDefault();
@@ -472,7 +472,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ulong cs1 = orch.LastChecksum;
 
             // Replay same setup
-            var world2 = new SimWorld(64);
+            var world2 = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
             var buffer2 = new CommandBuffer();
             var initializer2 = new TestInitializer(42);
             var registry2 = SimArchetypeRegistry.CreateDefault();
@@ -492,7 +492,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void FrameSyncClient_RollbackOnChecksumMismatch()
         {
             const int seed = 42;
-            var world = new SimWorld(256);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             var buffer = new CommandBuffer();
             var initializer = new TestInitializer(seed);
             var registry = SimArchetypeRegistry.CreateDefault();

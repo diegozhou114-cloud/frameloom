@@ -106,7 +106,7 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>以 SimulationCore 引擎启动本地战斗</summary>
         public void StartSimBattle()
         {
-            _simWorld = new SimWorld(256);
+            _simWorld = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
             _simCommandBuffer = new CommandBuffer();
             var initializer = new SimInitializerImpl(Data.DataManager.Instance.Village, seed: 42);
             _simSystems = SimCombatBootstrap.Build(_simWorld);
@@ -241,13 +241,15 @@ namespace ZWebGLFrameWork.Combat
                 int gx = 0; // 左边缘
                 int gy = 2 + i * (grid.Rows - 4) / System.Math.Max(1, spawnCount - 1);
 
-                var entity = _simWorld.CreateEntity();
-                _simWorld.AddComponent(entity, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
-                _simWorld.AddComponent(entity, SimHealthComponent.Create(100));
-                _simWorld.AddComponent(entity, SimTeamComponent.Create(SimTeam.Attacker));
-                _simWorld.AddComponent(entity, SimMovementComponent.Create(2f, 1f));
-                _simWorld.AddComponent(entity, SimAttackComponent.Create(20, 3f, 1f, 20));
-                _simWorld.AddComponent(entity, SimTargetComponent.Create());
+                var entity = _simWorld.CreateEntity(
+                    typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent),
+                    typeof(SimMovementComponent), typeof(SimAttackComponent), typeof(SimTargetComponent));
+                _simWorld.SetComponent(entity, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
+                _simWorld.SetComponent(entity, SimHealthComponent.Create(100));
+                _simWorld.SetComponent(entity, SimTeamComponent.Create(SimTeam.Attacker));
+                _simWorld.SetComponent(entity, SimMovementComponent.Create(2f, 1f));
+                _simWorld.SetComponent(entity, SimAttackComponent.Create(20, 3f, 1f, 20));
+                _simWorld.SetComponent(entity, SimTargetComponent.Create());
             }
 
             Debug.Log($"[CombatManager] SimAI 已生成 {spawnCount} 个攻击方单位");

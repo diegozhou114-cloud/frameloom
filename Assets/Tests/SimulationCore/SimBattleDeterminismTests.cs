@@ -8,7 +8,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
     {
         private SimWorld CreateWorld()
         {
-            return new SimWorld(256);
+            return new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
         }
 
         /// <summary>创建简单战斗场景：2个攻击方 + 3个防守方，在网格上</summary>
@@ -17,26 +17,28 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             // 防守方建筑（不移动，高血量）
             for (int i = 0; i < 3; i++)
             {
-                var e = world.CreateEntity();
                 int gx = 10 + i * 8;
                 int gy = 15;
-                world.AddComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
-                world.AddComponent(e, SimHealthComponent.Create(200));
-                world.AddComponent(e, SimTeamComponent.Create(SimTeam.Defender));
+                var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
+                world.SetComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
+                world.SetComponent(e, SimHealthComponent.Create(200));
+                world.SetComponent(e, SimTeamComponent.Create(SimTeam.Defender));
             }
 
             // 攻击方单位（可移动，低血量）
             for (int i = 0; i < 2; i++)
             {
-                var e = world.CreateEntity();
                 int gx = 5;
                 int gy = 5 + i * 5;
-                world.AddComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
-                world.AddComponent(e, SimMovementComponent.Create(3f, 1f)); // speed=3
-                world.AddComponent(e, SimHealthComponent.Create(100));
-                world.AddComponent(e, SimTeamComponent.Create(SimTeam.Attacker));
-                world.AddComponent(e, SimAttackComponent.Create(25, 3f, 1f, 20)); // damage=25, range=3, cooldown=1s
-                world.AddComponent(e, SimTargetComponent.Create());
+                var e = world.CreateEntity(
+                    typeof(SimTransformComponent), typeof(SimMovementComponent), typeof(SimHealthComponent),
+                    typeof(SimTeamComponent), typeof(SimAttackComponent), typeof(SimTargetComponent));
+                world.SetComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
+                world.SetComponent(e, SimMovementComponent.Create(3f, 1f)); // speed=3
+                world.SetComponent(e, SimHealthComponent.Create(100));
+                world.SetComponent(e, SimTeamComponent.Create(SimTeam.Attacker));
+                world.SetComponent(e, SimAttackComponent.Create(25, 3f, 1f, 20)); // damage=25, range=3, cooldown=1s
+                world.SetComponent(e, SimTargetComponent.Create());
             }
         }
 
@@ -80,19 +82,23 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
                 if (closest == null) continue;
 
-                var target = world.GetComponent<SimTargetComponent>(attacker);
-                target.TargetEntity = closest.Value.entity;
-                world.SetComponent(attacker, target);
+                if (world.TryGetComponent<SimTargetComponent>(attacker, out var target))
+                {
+                    target.TargetEntity = closest.Value.entity;
+                    world.SetComponent(attacker, target);
+                }
 
                 var path = pathfinder.FindPath(ax, ay, closest.Value.x, closest.Value.y);
                 if (path.Count > 0)
                 {
-                    var mov = world.GetComponent<SimMovementComponent>(attacker);
-                    mov.Path = new List<int>();
-                    foreach (var (px, py) in path)
-                        mov.Path.Add((px << 16) | py);
-                    mov.PathIndex = 0;
-                    world.SetComponent(attacker, mov);
+                    if (world.TryGetComponent<SimMovementComponent>(attacker, out var mov))
+                    {
+                        mov.Path = new List<int>();
+                        foreach (var (px, py) in path)
+                            mov.Path.Add((px << 16) | py);
+                        mov.PathIndex = 0;
+                        world.SetComponent(attacker, mov);
+                    }
                 }
             }
         }
@@ -162,20 +168,21 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void Benchmark_100Entities_100Ticks()
         {
-            var world = new SimWorld(512);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 512);
             var rng = new DeterministicRandom(1);
 
             // 创建 100 个实体
             for (int i = 0; i < 50; i++)
             {
-                var e = world.CreateEntity();
-                world.AddComponent(e, SimTransformComponent.Create(i % 20, i / 20, LogicInt.FromInt(1)));
-                world.AddComponent(e, SimHealthComponent.Create(100));
-                world.AddComponent(e, SimTeamComponent.Create(i < 25 ? SimTeam.Attacker : SimTeam.Defender));
+                var e = world.CreateEntity(
+                    typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
+                world.SetComponent(e, SimTransformComponent.Create(i % 20, i / 20, LogicInt.FromInt(1)));
+                world.SetComponent(e, SimHealthComponent.Create(100));
+                world.SetComponent(e, SimTeamComponent.Create(i < 25 ? SimTeam.Attacker : SimTeam.Defender));
                 if (i % 2 == 0)
                 {
-                    world.AddComponent(e, SimAttackComponent.Create(10, 2f, 2f, 20));
-                    world.AddComponent(e, SimTargetComponent.Create());
+                    world.SetComponent(e, SimAttackComponent.Create(10, 2f, 2f, 20));
+                    world.SetComponent(e, SimTargetComponent.Create());
                 }
             }
 

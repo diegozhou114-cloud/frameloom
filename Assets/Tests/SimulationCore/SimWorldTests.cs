@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
 {
-    public class SimArchetypeWorldTests
+    public class SimWorldTests
     {
         private ComponentTypeRegistry _registry;
-        private SimArchetypeWorld CreateWorld()
+        private SimWorld CreateWorld()
         {
-            return new SimArchetypeWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
+            return new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
         }
 
         [SetUp]
@@ -144,8 +144,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 world.SetComponent(e, SimTargetComponent.Create());
             }
 
-            var systems = SimArchetypeCombatBootstrap.Build(world);
-            var deathSys = systems.Find<SimArchetypeDeathSystem>();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
 
             int tick;
             for (tick = 0; tick < 200; tick++)
@@ -159,8 +159,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(deathSys.Winner.HasValue, Is.True);
         }
 
-        // Simple AI adapted for SimArchetypeWorld
-        private void SimpleAI(SimArchetypeWorld world, int tick)
+        // Simple AI adapted for SimWorld
+        private void SimpleAI(SimWorld world, int tick)
         {
             if (tick % 10 != 0) return;
 
@@ -266,8 +266,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 }
             }
 
-            var systems = SimArchetypeCombatBootstrap.Build(world);
-            var deathSys = systems.Find<SimArchetypeDeathSystem>();
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
 
             var sw = System.Diagnostics.Stopwatch.StartNew();
             for (int t = 0; t < 100; t++)
@@ -278,7 +278,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             }
             sw.Stop();
 
-            TestContext.Progress.WriteLine($"[ArchetypeWorld] 100e × 100t: {sw.ElapsedMilliseconds}ms total, {sw.ElapsedMilliseconds / 100.0:F3}ms/tick");
+            TestContext.Progress.WriteLine($"[SimWorld] 100e × 100t: {sw.ElapsedMilliseconds}ms total, {sw.ElapsedMilliseconds / 100.0:F3}ms/tick");
             Assert.That(sw.ElapsedMilliseconds, Is.GreaterThan(0)); // just ensure it ran
         }
     }

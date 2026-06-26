@@ -5,9 +5,9 @@ namespace ZWebGLFrameWork.SimulationCore
     /// 消除 AttackSystem 中的 3 层间接寻址。
     /// Order: 5（最优先执行）
     /// </summary>
-    public class SimArchetypeTargetCacheSystem : SimArchetypeSystemBase
+    public class SimTargetCacheSystem : SimSystemBase
     {
-        public SimArchetypeTargetCacheSystem() { Order = 5; }
+        public SimTargetCacheSystem() { Order = 5; }
 
         public override void Update()
         {
