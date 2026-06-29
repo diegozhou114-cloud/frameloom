@@ -158,6 +158,14 @@ namespace ZWebGLFrameWork.UI
             }
         }
 
+        /// <summary>显示 Toast 提示（Tip 层，自动消失）</summary>
+        /// <param name="message">提示文本</param>
+        /// <param name="duration">显示时长（秒），默认 2 秒</param>
+        public void ShowToast(string message, float duration = 2f)
+        {
+            Open<ToastPanel>(System.Tuple.Create(message, duration));
+        }
+
         /// <summary>关闭所有面板</summary>
         public void CloseAll()
         {
