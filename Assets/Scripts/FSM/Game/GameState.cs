@@ -17,5 +17,8 @@ namespace ZWebGLFrameWork.FSM
 
         /// <summary>加载 — 场景/资源异步加载过渡</summary>
         Loading,
+
+        /// <summary>暂停 — 游戏暂停（手动或切后台）</summary>
+        Pause,
     }
 }

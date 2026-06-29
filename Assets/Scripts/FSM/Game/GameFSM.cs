@@ -46,12 +46,22 @@ namespace ZWebGLFrameWork.FSM
                     {
                         GameState.Battle,
                         GameState.Loading,
+                        GameState.Pause,
                     }
                 },
                 {
                     GameState.Battle, new HashSet<GameState>
                     {
                         GameState.MainVillage,
+                        GameState.Loading,
+                        GameState.Pause,
+                    }
+                },
+                {
+                    GameState.Pause, new HashSet<GameState>
+                    {
+                        GameState.MainVillage,
+                        GameState.Battle,
                         GameState.Loading,
                     }
                 },
@@ -65,6 +75,30 @@ namespace ZWebGLFrameWork.FSM
                     }
                 },
             };
+
+        private float _pauseStartTime;
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus)
+            {
+                // 切后台 → 进入暂停
+                if (CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
+                {
+                    _pauseStartTime = Time.realtimeSinceStartup;
+                    ChangeState(GameState.Pause, GamePauseEvent.Background);
+                }
+            }
+            else
+            {
+                // 回前台 → 恢复
+                if (CurrentState == GameState.Pause)
+                {
+                    float duration = Time.realtimeSinceStartup - _pauseStartTime;
+                    ChangeState(PreviousState, new GameResumeEvent { PausedDuration = duration });
+                }
+            }
+        }
 
         private bool _initialized;
 
@@ -95,7 +129,8 @@ namespace ZWebGLFrameWork.FSM
                 new LoginState(),
                 new MainVillageState(),
                 new BattleState(),
-                new LoadingState()
+                new LoadingState(),
+                new PauseState()
             );
 
             // 监听内部状态变更，转发到 EventBus
