@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
@@ -41,9 +42,10 @@ namespace ZWebGLFrameWork.FSM
                 return;
             }
 
-            // ② 监听战斗阶段 + 结束事件
+            // ② 监听战斗阶段 + 结束事件 + 返回主城
             EventBus.Subscribe<CombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
             EventBus.Subscribe<CombatEndEvent>(CombatManager.EventCombatEnded, OnCombatEnded);
+            EventBus.Subscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
             // ③ 启动战斗（异步，由 CombatManager.Update 驱动 Tick）
             _battleStarted = false;
@@ -64,6 +66,7 @@ namespace ZWebGLFrameWork.FSM
         {
             EventBus.Unsubscribe<CombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
             EventBus.Unsubscribe<CombatEndEvent>(CombatManager.EventCombatEnded, OnCombatEnded);
+            EventBus.Unsubscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
             UIManager.Instance.Close<DeployPanel>();
             UIManager.Instance.Close<BattleHUD>();
@@ -95,6 +98,12 @@ namespace ZWebGLFrameWork.FSM
         {
             Debug.Log($"[BattleState] 战斗结束: winner={result.Winner}, stars={result.Stars}");
             UIManager.Instance.Open<ResultPanel>(result);
+        }
+
+        private void OnReturnToVillage()
+        {
+            Debug.Log("[BattleState] 返回主城");
+            ChangeState(GameState.MainVillage);
         }
 
         // ==================== 内部 ====================

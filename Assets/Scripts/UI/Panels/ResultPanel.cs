@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
-using ZWebGLFrameWork.FSM;
 
 namespace ZWebGLFrameWork.UI
 {
@@ -63,7 +62,7 @@ namespace ZWebGLFrameWork.UI
                 new Vector2(0.75f, 0.30f), card.transform,
                 new Color(0.35f, 0.6f, 0.3f), () =>
             {
-                GameFSM.Instance.ChangeState(GameState.MainVillage);
+                EventBus.Publish("Battle_ReturnToVillage");
             });
         }
 

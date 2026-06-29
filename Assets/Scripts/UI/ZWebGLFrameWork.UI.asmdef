@@ -4,6 +4,8 @@
     "references": [
         "ZWebGLFrameWork.Core",
         "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.Combat",
+        "ZWebGLFrameWork.Gameplay",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],
