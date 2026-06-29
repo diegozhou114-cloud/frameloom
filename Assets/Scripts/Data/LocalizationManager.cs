@@ -30,6 +30,8 @@ namespace ZWebGLFrameWork.Data
         // 当前语言的翻译表
         private Dictionary<string, string> _translations = new();
 
+        private bool _scanned;
+
         // ==================== 初始化 ====================
 
         /// <summary>
@@ -118,6 +120,7 @@ namespace ZWebGLFrameWork.Data
         public void SwitchLanguage(string language)
         {
             if (CurrentLanguage == language) return;
+            _scanned = false;
             Init(language);
             OnLanguageChanged?.Invoke(language);
         }
@@ -142,6 +145,9 @@ namespace ZWebGLFrameWork.Data
         /// <summary>扫描 Resources/Config/Languages/ 下可用的语言文件</summary>
         private void ScanAvailableLanguages()
         {
+            if (_scanned) return;
+            _scanned = true;
+
             SupportedLanguages.Clear();
             string[] candidates = { "zh-CN", "zh-TW", "en-US", "ja-JP", "ko-KR", "de-DE", "fr-FR", "es-ES", "pt-BR" };
             foreach (var lang in candidates)

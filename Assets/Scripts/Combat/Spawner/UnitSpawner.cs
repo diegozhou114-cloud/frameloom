@@ -78,6 +78,11 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>在指定网格位置部署一个单位</summary>
         public Entity SpawnUnit(Vector2Int gridPos, UnitConfig config, Team team)
         {
+            if (config == null)
+            {
+                Debug.LogError("[UnitSpawner] SpawnUnit: config is null");
+                return Entity.Invalid;
+            }
             var worldPos = _grid.GridToWorld(gridPos);
             var entity = _world.CreateEntity();
             _world.AddComponent(entity, TransformComponent.Create(worldPos, gridPos));

@@ -116,18 +116,22 @@ namespace ZWebGLFrameWork.UI
 
             IsOpen = false;
             IsPaused = false;
-            OnClose();
 
             if (_animation != null)
             {
-                _animation.PlayClose(() => gameObject.SetActive(false));
+                _animation.PlayClose(() =>
+                {
+                    OnClose();
+                    gameObject.SetActive(false);
+                    OpenData = null;
+                });
             }
             else
             {
+                OnClose();
                 gameObject.SetActive(false);
+                OpenData = null;
             }
-
-            OpenData = null;
         }
 
         // ==================== 子类重写 ====================

@@ -99,6 +99,7 @@ namespace ZWebGLFrameWork.UI
 
             if (cm.CurrentPhase == CombatPhase.Deploying)
             {
+                if (cm.CurrentMode == null) return;
                 float elapsed = Time.time - _deployStartTime;
                 float remain = Mathf.Max(0, cm.CurrentMode.DeployTimeLimit - elapsed);
                 _timerText.text = $"{remain:F0}s";

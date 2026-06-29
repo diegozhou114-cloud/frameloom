@@ -15,6 +15,8 @@ namespace ZWebGLFrameWork.FSM
     {
         public LaunchState() : base(GameState.Launch) { }
 
+        private bool _pipelineRunning;
+
         public override void OnEnter(object data = null)
         {
             base.OnEnter(data);
@@ -27,6 +29,7 @@ namespace ZWebGLFrameWork.FSM
 
         private async UniTaskVoid RunInitPipeline()
         {
+            _pipelineRunning = true;
             try
             {
                 var cfg = GameLauncher.Config;
@@ -161,6 +164,7 @@ namespace ZWebGLFrameWork.FSM
                 UIManager.Instance.Close<LoadingPanel>();
                 Debug.LogException(ex);
             }
+            finally { _pipelineRunning = false; }
         }
 
         // ==================== 辅助方法 ====================
@@ -190,9 +194,13 @@ namespace ZWebGLFrameWork.FSM
 
         private void OnBootRetry()
         {
+            if (_pipelineRunning)
+            {
+                Debug.LogWarning("[LaunchState] 启动管线已在运行中，忽略重试");
+                return;
+            }
             Debug.Log("[LaunchState] 重试启动流程");
             UIManager.Instance.Close<ErrorPanel>();
-            // 重新运行启动管线
             RunInitPipeline().Forget();
         }
 

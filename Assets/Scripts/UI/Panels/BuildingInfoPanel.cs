@@ -18,6 +18,8 @@ namespace ZWebGLFrameWork.UI
         private Text _statusText;
         private Text _upgradeCostText;
 
+        private BuildingInteraction _interaction;
+
         public BuildingInfoPanel()
         {
             _layer = UILayer.Popup;
@@ -28,6 +30,9 @@ namespace ZWebGLFrameWork.UI
         {
             var building = data as BuildingData;
             if (building == null) return;
+
+            if (_interaction == null)
+                _interaction = Object.FindObjectOfType<BuildingInteraction>();
 
             BuildUI(building);
         }
@@ -86,15 +91,12 @@ namespace ZWebGLFrameWork.UI
                     new Vector2(0.7f, 0.28f), card.transform,
                     new Color(0.3f, 0.55f, 0.3f), () =>
                 {
-                    var interaction = Object.FindObjectOfType<BuildingInteraction>();
-                    if (interaction != null)
+                    if (_interaction != null)
                     {
-                        interaction.UpgradeSelected();
-                        // 刷新面板：关闭再重新打开
+                        _interaction.UpgradeSelected();
                         var bld = SelectionManager.Instance?.SelectedBuilding;
-                        Close();
                         if (bld != null)
-                            UIManager.Instance.Open<BuildingInfoPanel>(bld);
+                            Refresh(bld);
                     }
                 });
             }
@@ -103,6 +105,15 @@ namespace ZWebGLFrameWork.UI
             CreateButton("BtnClose", "✕", new Vector2(0.88f, 0.88f),
                 new Vector2(0.97f, 0.97f), card.transform,
                 new Color(0.5f, 0.2f, 0.2f), () => Close());
+        }
+
+        /// <summary>刷新面板数据（升级后调用，无闪烁）</summary>
+        public void Refresh(BuildingData building)
+        {
+            // 清除旧 UI 子节点
+            foreach (Transform child in transform)
+                Object.Destroy(child.gameObject);
+            BuildUI(building);
         }
 
         private Text MakeText(string name, string text, int fontSize, Vector2 anchor,

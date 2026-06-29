@@ -95,7 +95,13 @@ namespace ZWebGLFrameWork.FSM
                 if (CurrentState == GameState.Pause)
                 {
                     float duration = Time.realtimeSinceStartup - _pauseStartTime;
-                    ChangeState(PreviousState, new GameResumeEvent { PausedDuration = duration });
+                    var target = PreviousState;
+                    if (target != GameState.MainVillage && target != GameState.Battle)
+                    {
+                        Debug.LogWarning($"[GameFSM] 暂停前状态异常 ({target})，回退到 MainVillage");
+                        target = GameState.MainVillage;
+                    }
+                    ChangeState(target, new GameResumeEvent { PausedDuration = duration });
                 }
             }
         }
