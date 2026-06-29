@@ -7,7 +7,7 @@ Unity 2022.3 WebGL 框架 — Clash-of-Clans 风格的策略游戏，自研轻�
 - **引擎**: Unity 2022.3.62f3c1, C# 9.0, .NET Standard 2.1
 - **入口**: `Assets/Scripts/FSM/Game/GameFSM.cs` (全局状态机: Launch→Login→MainVillage→Battle)
 - **目标平台**: WebGL (主), Windows, Android, iOS
-- **8 个 Assembly Definitions** (`Assets/Scripts/*/ZWebGLFrameWork.*.asmdef`)
+- **9 个 Assembly Definitions** (`Assets/Scripts/*/ZWebGLFrameWork.*.asmdef` + SimulationCore)
 
 ## Commands
 
@@ -23,7 +23,7 @@ Unity 2022.3 WebGL 框架 — Clash-of-Clans 风格的策略游戏，自研轻�
 
 ```
 Assets/Scripts/
-├── Core/          # 基础层: Singleton, EventBus, ObjectPool, AsyncManager
+├── Core/          # 基础层: Singleton, EventBus, ObjectPool, CoroutineManager, Audio, Log, Resource, Scene, SDK
 ├── ECS/           # 自研轻量ECS: World, Entity, ComponentPool<SparseSet>, SystemBase
 ├── FSM/           # 状态机: FSM<T>, GameFSM(5状态+转换规则表+Loading过渡)
 ├── Data/          # 数据层: Observable<T>, ObservableModel, DataManager, SaveManager(5槽位JSON), ConfigLoader
@@ -34,7 +34,8 @@ Assets/Scripts/
 Assets/Editor/     # 编辑器: CompileHook, BuildScript, BuildValidator
 ```
 
-**模块依赖链**: Core ← ECS ← FSM / Data / Network / UI ← Combat / Gameplay
+**模块依赖链**: Core ← ECS ← FSM / Data / Network ← Combat / Gameplay / UI
+(Fully acyclic; UI→Combat/Gameplay, FSM→Combat/UI)
 
 ## Conventions
 
@@ -50,7 +51,6 @@ Assets/Editor/     # 编辑器: CompileHook, BuildScript, BuildValidator
 
 ## Notes
 
-- 当前项目 **零测试覆盖** — 需要建立 EditMode + PlayMode test assembly
-- Core/Coroutine 目录已创建但为空 — 待实现统一协程管理器
-- 缺少: Audio, Scene, Logging, Localization, Resource/Asset 管理模块
+- 测试: Core/Tests/ (EventBus + Observable), Tests/SimulationCore/ (determinism + replay + LogicInt)
+- 所有基础设施模块已就绪: Audio, Scene, Logging, Localization, Resource, Coroutine, SDK, Diagnostics
 - Reasonix 工作流定义在 `.reasonix/workflow.md`，任务状态机在 `.reasonix/task-router.md`
