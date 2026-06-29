@@ -22,12 +22,7 @@ namespace ZWebGLFrameWork.Data
         public string CurrentLanguage { get; private set; }
 
         /// <summary>支持的语言列表</summary>
-        public List<string> SupportedLanguages { get; private set; } = new()
-        {
-            "zh-CN",
-            "en-US",
-            // TODO: 从配置表动态加载支持的语言列表
-        };
+        public List<string> SupportedLanguages { get; private set; } = new();
 
         /// <summary>语言切换事件（key: 新语言代码）</summary>
         public System.Action<string> OnLanguageChanged;
@@ -39,18 +34,23 @@ namespace ZWebGLFrameWork.Data
 
         /// <summary>
         /// 初始化本地化系统，加载指定语言的翻译表。
-        /// TODO: 从 Resources 或 AssetBundle 加载语言 JSON 文件。
-        /// TODO: 接入 AppConfig 获取默认语言。
+        /// 若未指定语言，从 SystemLanguage 自动检测。
         /// </summary>
-        /// <param name="language">语言代码，如 "zh-CN"</param>
-        public bool Init(string language = "zh-CN")
+        public bool Init(string language = null)
         {
             try
             {
+                // 自动检测语言
+                if (string.IsNullOrEmpty(language))
+                    language = DetectSystemLanguage();
+
                 CurrentLanguage = language;
                 _translations.Clear();
 
-                // 从 Resources 加载语言文件
+                // 扫描可用语言文件
+                ScanAvailableLanguages();
+
+                // 加载翻译表
                 var asset = Resources.Load<TextAsset>($"Config/Languages/{language}");
                 if (asset != null)
                 {
@@ -63,12 +63,24 @@ namespace ZWebGLFrameWork.Data
                 }
                 else
                 {
-                    Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，使用硬编码默认值");
-                    _translations["test_key"] = "测试文本";
+                    Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，尝试 en-US");
+                    asset = Resources.Load<TextAsset>("Config/Languages/en-US");
+                    if (asset != null)
+                    {
+                        CurrentLanguage = "en-US";
+                        var data = JsonUtility.FromJson<LocalizationData>(asset.text);
+                        if (data?.entries != null)
+                            foreach (var entry in data.entries)
+                                _translations[entry.key] = entry.value;
+                    }
+                    else
+                    {
+                        _translations["test_key"] = "测试文本";
+                    }
                 }
 
                 IsReady = true;
-                Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {language}, 条目: {_translations.Count}");
+                Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {CurrentLanguage}, 条目: {_translations.Count}");
                 return true;
             }
             catch (System.Exception ex)
@@ -108,6 +120,36 @@ namespace ZWebGLFrameWork.Data
             if (CurrentLanguage == language) return;
             Init(language);
             OnLanguageChanged?.Invoke(language);
+        }
+
+        /// <summary>从系统语言自动检测最佳匹配</summary>
+        private static string DetectSystemLanguage()
+        {
+            return Application.systemLanguage switch
+            {
+                SystemLanguage.ChineseSimplified => "zh-CN",
+                SystemLanguage.ChineseTraditional => "zh-TW",
+                SystemLanguage.Japanese => "ja-JP",
+                SystemLanguage.Korean => "ko-KR",
+                SystemLanguage.German => "de-DE",
+                SystemLanguage.French => "fr-FR",
+                SystemLanguage.Spanish => "es-ES",
+                SystemLanguage.Portuguese => "pt-BR",
+                _ => "en-US",
+            };
+        }
+
+        /// <summary>扫描 Resources/Config/Languages/ 下可用的语言文件</summary>
+        private void ScanAvailableLanguages()
+        {
+            SupportedLanguages.Clear();
+            string[] candidates = { "zh-CN", "zh-TW", "en-US", "ja-JP", "ko-KR", "de-DE", "fr-FR", "es-ES", "pt-BR" };
+            foreach (var lang in candidates)
+            {
+                if (Resources.Load<TextAsset>($"Config/Languages/{lang}") != null)
+                    SupportedLanguages.Add(lang);
+            }
+            Debug.Log($"[LocalizationManager] 可用语言: {string.Join(", ", SupportedLanguages)}");
         }
 
         // ==================== 内部数据结构 ====================
