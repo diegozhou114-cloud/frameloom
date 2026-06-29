@@ -19,9 +19,13 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>每秒圣水产出入</summary>
         public float ElixirPerSecond { get; private set; }
 
+        /// <summary>每秒暗黑重油产出</summary>
+        public float DarkElixirPerSecond { get; private set; }
+
         // 累积小数部分（避免每帧 FloorToInt 丢失精度）
         private float _goldAccum;
         private float _elixirAccum;
+        private float _darkElixirAccum;
 
         public ResourceProducer(VillageData village)
         {
@@ -32,7 +36,7 @@ namespace ZWebGLFrameWork.Gameplay
         {
             RecalculateRates();
             _isRunning = true;
-            Debug.Log($"[ResourceProducer] 启动: 金币 +{GoldPerSecond:F1}/s, 圣水 +{ElixirPerSecond:F1}/s");
+            Debug.Log($"[ResourceProducer] 启动: 金币 +{GoldPerSecond:F1}/s, 圣水 +{ElixirPerSecond:F1}/s, 暗黑重油 +{DarkElixirPerSecond:F1}/s");
         }
 
         /// <summary>每帧调用，累积产出并按整数增量写入 PlayerData</summary>
@@ -45,9 +49,11 @@ namespace ZWebGLFrameWork.Gameplay
 
             _goldAccum += GoldPerSecond * deltaTime;
             _elixirAccum += ElixirPerSecond * deltaTime;
+            _darkElixirAccum += DarkElixirPerSecond * deltaTime;
 
             int goldAdd = Mathf.FloorToInt(_goldAccum);
             int elixirAdd = Mathf.FloorToInt(_elixirAccum);
+            int darkElixirAdd = Mathf.FloorToInt(_darkElixirAccum);
 
             if (goldAdd > 0)
             {
@@ -59,6 +65,12 @@ namespace ZWebGLFrameWork.Gameplay
             {
                 player.Elixir.Value += elixirAdd;
                 _elixirAccum -= elixirAdd;
+            }
+
+            if (darkElixirAdd > 0)
+            {
+                player.DarkElixir.Value += darkElixirAdd;
+                _darkElixirAccum -= darkElixirAdd;
             }
         }
 
@@ -72,6 +84,7 @@ namespace ZWebGLFrameWork.Gameplay
         {
             float goldRate = 0f;
             float elixirRate = 0f;
+            float darkElixirRate = 0f;
 
             foreach (var building in _village.Buildings)
             {
@@ -85,11 +98,12 @@ namespace ZWebGLFrameWork.Gameplay
                 else if (config.Name.Contains("Elixir") || config.Name.Contains("Collector"))
                     elixirRate += baseRate;
                 else if (config.Name.Contains("Dark"))
-                    ; // 暗黑重油产出（后续扩展）
+                    darkElixirRate += baseRate;
             }
 
             GoldPerSecond = goldRate;
             ElixirPerSecond = elixirRate;
+            DarkElixirPerSecond = darkElixirRate;
         }
     }
 }

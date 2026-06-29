@@ -22,6 +22,9 @@ namespace ZWebGLFrameWork.ECS
         public event Action<Entity> OnEntityCreated;
         public event Action<Entity> OnEntityDestroyed;
 
+        /// <summary>组件变更事件（Entity, ComponentType, Added=true表示新增/false表示移除）</summary>
+        public event Action<Entity, Type, bool> OnComponentChanged;
+
         private readonly List<Entity> _entities = new List<Entity>();
         private readonly Queue<int> _freeIds = new Queue<int>();
         private int[] _generations;
@@ -59,11 +62,21 @@ namespace ZWebGLFrameWork.ECS
             OnEntityDestroyed?.Invoke(entity);
         }
 
-        public void AddComponent<T>(Entity entity, T component) where T : struct, IComponent => GetPool<T>().Add(entity, component);
+        public void AddComponent<T>(Entity entity, T component) where T : struct, IComponent
+        {
+            bool added = !HasComponent<T>(entity);
+            GetPool<T>().Add(entity, component);
+            if (added) OnComponentChanged?.Invoke(entity, typeof(T), true);
+        }
         public ref T GetComponent<T>(Entity entity) where T : struct, IComponent => ref GetPool<T>().Get(entity);
         public bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponent => GetPool<T>().TryGet(entity, out component);
         public bool HasComponent<T>(Entity entity) where T : struct, IComponent => GetPool<T>().Has(entity);
-        public void RemoveComponent<T>(Entity entity) where T : struct, IComponent => GetPool<T>().Remove(entity);
+        public void RemoveComponent<T>(Entity entity) where T : struct, IComponent
+        {
+            bool removed = HasComponent<T>(entity);
+            GetPool<T>().Remove(entity);
+            if (removed) OnComponentChanged?.Invoke(entity, typeof(T), false);
+        }
 
         /// <summary>设置组件（存在则覆盖，不存在则新增）— 解决 TryGetComponent 副本修改后无法写回的问题</summary>
         public void SetComponent<T>(Entity entity, T component) where T : struct, IComponent => GetPool<T>().Set(entity, component);
@@ -123,6 +136,20 @@ namespace ZWebGLFrameWork.ECS
         {
             foreach (var pool in _componentPools.Values)
                 pool.Clear();
+        }
+
+        /// <summary>完全重置 World（清空所有实体、组件、事件队列）</summary>
+        public void Reset()
+        {
+            _entities.Clear();
+            _freeIds.Clear();
+            _nextId = 0;
+            foreach (var pool in _componentPools.Values)
+            {
+                pool.Clear();
+            }
+            // 清理事件队列（清空字典即可，GetEventQueue 会按需重建）
+            _eventQueues.Clear();
         }
 
         private ComponentPool<T> GetPool<T>() where T : struct, IComponent
