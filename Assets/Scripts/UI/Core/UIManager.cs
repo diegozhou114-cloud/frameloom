@@ -34,6 +34,9 @@ namespace ZWebGLFrameWork.UI
             _stack = new UIStack();
             CreateUIRoot();
             CreateLayerCanvases();
+
+            if (GetComponent<BuildingInfoController>() == null)
+                gameObject.AddComponent<BuildingInfoController>();
         }
 
         // ==================== 初始化 ====================

@@ -50,19 +50,12 @@ namespace ZWebGLFrameWork.Gameplay
         private void OnSelectionChanged(SelectionEvent evt)
         {
             if (evt.Type != SelectionType.Building) return;
-
             var building = DataManager.Instance.Village.GetBuilding(evt.BuildingId);
             if (building == null) return;
-
-            // TODO: 弹出建筑信息面板（用 UIManager）
-            Debug.Log($"[BuildingInteraction] 选中建筑: {evt.BuildingId}, " +
-                      $"type={building.TypeId}, level={building.Level.Value}, " +
-                      $"upgrading={building.IsUpgrading}");
         }
 
         private void OnDeselected()
         {
-            // TODO: 关闭建筑信息面板
         }
 
         // ==================== 手势处理 ====================
