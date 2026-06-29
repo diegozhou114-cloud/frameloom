@@ -2,8 +2,7 @@
     "name": "ZWebGLFrameWork.Core.Tests",
     "rootNamespace": "ZWebGLFrameWork.Core.Tests",
     "references": [
-        "ZWebGLFrameWork.Core",
-        "ZWebGLFrameWork.Data"
+        "ZWebGLFrameWork.Core"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,13 +11,12 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "UnityEngine.CoreModule.dll"
+        "nunit.framework.dll"
     ],
-    "autoReferenced": true,
-    "defineConstraints": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
     "versionDefines": [],
-    "noEngineReferences": false,
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ]
+    "noEngineReferences": false
 }

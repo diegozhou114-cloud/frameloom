@@ -2,9 +2,7 @@
     "name": "ZWebGLFrameWork.SimulationCore.Tests",
     "rootNamespace": "ZWebGLFrameWork.SimulationCore.Tests",
     "references": [
-        "ZWebGLFrameWork.SimulationCore",
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "ZWebGLFrameWork.SimulationCore"
     ],
     "includePlatforms": [
         "Editor"
