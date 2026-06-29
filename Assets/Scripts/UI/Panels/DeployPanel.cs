@@ -16,6 +16,9 @@ namespace ZWebGLFrameWork.UI
     {
         private List<UnitConfig> _availableUnits;
         private UnitConfig _selectedUnit;
+        private List<Image> _buttonImages = new List<Image>();
+        private static readonly Color SelectedColor = new Color(0.5f, 0.75f, 0.4f);
+        private static readonly Color NormalColor = new Color(0.3f, 0.5f, 0.3f);
         private Text _timerText;
         private Text _countText;
         private int _deployedCount;
@@ -56,17 +59,20 @@ namespace ZWebGLFrameWork.UI
                 new Color(0, 0, 0, 0.6f));
 
             float btnW = 1f / Mathf.Max(_availableUnits.Count, 1);
+            _buttonImages.Clear();
             for (int i = 0; i < _availableUnits.Count; i++)
             {
                 int idx = i;
                 var unit = _availableUnits[i];
-                CreateButton($"UnitBtn_{unit.Id}", $"{unit.Name}\n{unit.TrainingCost}",
+                var btn = CreateButton($"UnitBtn_{unit.Id}",
+                    $"{unit.Name}\n💰{unit.TrainingCost}",
                     new Vector2(i * btnW, 0), new Vector2((i + 1) * btnW, 1),
-                    bottomBar.transform, new Color(0.3f, 0.5f, 0.3f), () =>
-                {
-                    _selectedUnit = unit;
-                    Debug.Log($"[DeployPanel] 选择兵种: {unit.Name}");
-                });
+                    bottomBar.transform,
+                    (idx == 0) ? SelectedColor : NormalColor,
+                    () => SelectUnit(idx));
+
+                var img = btn.GetComponent<Image>();
+                _buttonImages.Add(img);
             }
 
             // 顶部计时 + 计数
@@ -125,6 +131,20 @@ namespace ZWebGLFrameWork.UI
             var gridPos = GridManager.Instance.WorldToGrid(worldPos);
 
             DeployAt(gridPos);
+        }
+
+        private void SelectUnit(int index)
+        {
+            if (index < 0 || index >= _availableUnits.Count) return;
+
+            _selectedUnit = _availableUnits[index];
+            Debug.Log($"[DeployPanel] 选择兵种: {_selectedUnit.Name}");
+
+            // 更新按钮高亮
+            for (int i = 0; i < _buttonImages.Count; i++)
+            {
+                _buttonImages[i].color = (i == index) ? SelectedColor : NormalColor;
+            }
         }
 
         private void DeployAt(Vector2Int gridPos)
