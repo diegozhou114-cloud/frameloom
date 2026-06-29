@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.ECS;
 using ZWebGLFrameWork.FSM;
 using ZWebGLFrameWork.Gameplay;
@@ -22,6 +23,27 @@ namespace ZWebGLFrameWork.Combat
         internal DeathSystem DeathSys { get; private set; }
         public CombatPhase CurrentPhase => _orchestrator.CurrentPhase;
         public CombatMode CurrentMode { get; private set; }
+
+        /// <summary>当前波次（供 BattleHUD 读取）</summary>
+        public int CurrentWave => _orchestrator?.CurrentWave ?? 0;
+
+        /// <summary>攻击方存活数（供 BattleHUD 读取）</summary>
+        public int AttackerAliveCount => DeathSys?.AttackerAlive ?? 0;
+
+        /// <summary>防守方存活数（供 BattleHUD 读取）</summary>
+        public int DefenderAliveCount => DeathSys?.DefenderAlive ?? 0;
+
+        /// <summary>在指定网格部署一个攻击方单位（供 DeployPanel 调用）</summary>
+        public void SpawnDeployUnit(Vector2Int gridPos, UnitConfig config)
+        {
+            _spawner?.SpawnUnit(gridPos, config, Team.Attacker);
+        }
+
+        /// <summary>手动结束部署阶段（供 DeployPanel "开始战斗" 按钮调用）</summary>
+        public void EndDeployPhase()
+        {
+            _orchestrator?.EndDeployPhase();
+        }
 
         private CombatOrchestrator _orchestrator;
         private UnitSpawner _spawner;

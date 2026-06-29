@@ -84,6 +84,19 @@ namespace ZWebGLFrameWork.Combat
 
         public bool IsRunning => CurrentPhase != CombatPhase.Idle;
 
+        /// <summary>当前波次（供外部读取）</summary>
+        public int CurrentWave => _battleWave;
+
+        /// <summary>手动结束部署阶段</summary>
+        public void EndDeployPhase()
+        {
+            if (CurrentPhase == CombatPhase.Deploying)
+            {
+                _deployTcs?.TrySetResult(true);
+                Debug.Log("[CombatOrchestrator] 手动结束部署阶段");
+            }
+        }
+
         public async UniTask CleanupAsync(SystemGroup systems)
         {
             await systems.CleanupAllAsync();
