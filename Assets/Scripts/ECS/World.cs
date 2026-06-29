@@ -125,12 +125,6 @@ namespace ZWebGLFrameWork.ECS
                 pool.Clear();
         }
 
-        [Obsolete("使用 EnqueueEvent<DamageEvent> 替代")]
-        public void EnqueueDamageEvent(DamageEvent evt) => EnqueueEvent(evt);
-
-        [Obsolete("使用 ConsumeEvents<DamageEvent> 替代")]
-        public int ConsumeDamageEvents(Action<DamageEvent> handler) => ConsumeEvents(handler);
-
         private ComponentPool<T> GetPool<T>() where T : struct, IComponent
         {
             var type = typeof(T);

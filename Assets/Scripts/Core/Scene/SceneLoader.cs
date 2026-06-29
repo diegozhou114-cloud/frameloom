@@ -27,7 +27,6 @@ namespace ZWebGLFrameWork.Core
 
         /// <summary>
         /// 初始化场景加载器。
-        /// TODO: 注册 SceneManager.sceneLoaded 事件，用于追踪场景切换。
         /// </summary>
         public bool Init()
         {
@@ -57,7 +56,7 @@ namespace ZWebGLFrameWork.Core
             Progress = 0f;
             Debug.Log($"[SceneLoader] 开始加载场景: {sceneName} (mode={mode})");
 
-            // TODO: 触发 UIManager 显示 Loading 面板
+            EventBus.Publish("SceneLoadStarted", sceneName);
             // TODO: 使用 Addressables 或 AssetBundle 加载场景
 
             var op = SceneManager.LoadSceneAsync(sceneName, mode);

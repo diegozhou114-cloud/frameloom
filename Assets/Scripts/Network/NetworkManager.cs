@@ -35,6 +35,7 @@ namespace ZWebGLFrameWork.Network
 
         private string _lastHost;
         private int _lastPort;
+        private ConnectionState _previousState = ConnectionState.Disconnected;
 
         protected override void Awake()
         {
@@ -160,11 +161,12 @@ namespace ZWebGLFrameWork.Network
         {
             var evt = new NetworkStateChangedEvent
             {
-                OldState = ConnectionState.Disconnected,
+                OldState = _previousState,
                 NewState = newState,
                 Protocol = CurrentProtocol,
                 Message = message ?? "",
             };
+            _previousState = newState;
 
             EventBus.Publish(EventNetworkStateChanged, evt);
         }
