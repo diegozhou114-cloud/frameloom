@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.UI
@@ -165,6 +166,66 @@ namespace ZWebGLFrameWork.UI
         protected void SendUIEvent<T>(string eventKey, T arg)
         {
             EventBus.Publish(eventKey, arg);
+        }
+
+        // ==================== UI 快捷构造（子类复用） ====================
+
+        /// <summary>创建全屏半透明/纯色背景条</summary>
+        protected GameObject MakeBar(string name, Vector2 anchorMin, Vector2 anchorMax, Color color)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            go.GetComponent<Image>().color = color;
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            return go;
+        }
+
+        /// <summary>创建 Text 控件（锚点定位）</summary>
+        protected Text CreateText(string name, string text, int fontSize, Vector2 anchor,
+            Transform parent, TextAnchor align, Color color, float w = 200, float h = 28)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var txt = go.AddComponent<Text>();
+            txt.text = text;
+            txt.fontSize = fontSize;
+            txt.color = color;
+            txt.alignment = align;
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.rectTransform.anchorMin = txt.rectTransform.anchorMax = anchor;
+            txt.rectTransform.sizeDelta = new Vector2(w, h);
+            return txt;
+        }
+
+        /// <summary>创建按钮（锚点区域定位，anchorMin↔anchorMax）</summary>
+        protected Button CreateButton(string name, string label, Vector2 anchorMin, Vector2 anchorMax,
+            Transform parent, Color color, UnityEngine.Events.UnityAction onClick, int fontSize = 18)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(parent, false);
+            go.GetComponent<Image>().color = color;
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            go.GetComponent<Button>().onClick.AddListener(onClick);
+
+            var labelGo = new GameObject("Label", typeof(RectTransform));
+            labelGo.transform.SetParent(go.transform, false);
+            var lt = labelGo.AddComponent<Text>();
+            lt.text = label;
+            lt.fontSize = fontSize;
+            lt.color = Color.white;
+            lt.alignment = TextAnchor.MiddleCenter;
+            lt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            lt.rectTransform.anchorMin = Vector2.zero;
+            lt.rectTransform.anchorMax = Vector2.one;
+            return go.GetComponent<Button>();
         }
     }
 }

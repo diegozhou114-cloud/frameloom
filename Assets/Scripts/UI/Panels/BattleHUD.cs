@@ -38,11 +38,11 @@ namespace ZWebGLFrameWork.UI
             rt.offsetMin = Vector2.zero;
             rt.offsetMax = Vector2.zero;
 
-            _timerText = MakeText("Timer", "3:00", 22, new Vector2(0.05f, 0.5f),
+            _timerText = CreateText("Timer", "3:00", 22, new Vector2(0.05f, 0.5f),
                 bar.transform, TextAnchor.MiddleLeft, Color.white);
-            _waveText = MakeText("Wave", "波次: 0", 18, new Vector2(0.4f, 0.5f),
+            _waveText = CreateText("Wave", "波次: 0", 18, new Vector2(0.4f, 0.5f),
                 bar.transform, TextAnchor.MiddleCenter, Color.yellow);
-            _aliveText = MakeText("Alive", "⚔ 0 vs 0 🛡", 18, new Vector2(0.7f, 0.5f),
+            _aliveText = CreateText("Alive", "⚔ 0 vs 0 🛡", 18, new Vector2(0.7f, 0.5f),
                 bar.transform, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.5f));
         }
 
@@ -65,20 +65,6 @@ namespace ZWebGLFrameWork.UI
             _waveText.text = $"波次: {cm.CurrentWave}";
         }
 
-        private Text MakeText(string name, string text, int fontSize, Vector2 anchor,
-            Transform parent, TextAnchor align, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var txt = go.AddComponent<Text>();
-            txt.text = text;
-            txt.fontSize = fontSize;
-            txt.color = color;
-            txt.alignment = align;
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.rectTransform.anchorMin = txt.rectTransform.anchorMax = anchor;
-            txt.rectTransform.sizeDelta = new Vector2(200, 28);
-            return txt;
-        }
+
     }
 }
