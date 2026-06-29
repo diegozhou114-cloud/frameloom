@@ -15,6 +15,9 @@ namespace ZWebGLFrameWork.FSM
     public class MainVillageState : FSMState<GameState>
     {
         private ResourceProducer _resourceProducer;
+        private float _autoSaveTimer;
+        private int _lastGold;
+        private int _lastElixir;
 
         public MainVillageState() : base(GameState.MainVillage) { }
 
@@ -41,11 +44,31 @@ namespace ZWebGLFrameWork.FSM
             EventBus.Subscribe("MainVillage_Attack", OnAttackClicked);
 
             EventBus.Publish("MainVillageEntered");
+
+            // 自动存档状态初始化
+            _autoSaveTimer = 0f;
+            _lastGold = DataManager.Instance.Player.Gold.Value;
+            _lastElixir = DataManager.Instance.Player.Elixir.Value;
         }
 
         public override void OnUpdate()
         {
             _resourceProducer?.Tick(Time.deltaTime);
+
+            // 自动存档：每 30 秒检查资源变化
+            _autoSaveTimer += Time.deltaTime;
+            if (_autoSaveTimer >= 30f)
+            {
+                _autoSaveTimer = 0f;
+                var p = DataManager.Instance.Player;
+                if (p.Gold.Value != _lastGold || p.Elixir.Value != _lastElixir)
+                {
+                    SaveManager.SaveGame();
+                    _lastGold = p.Gold.Value;
+                    _lastElixir = p.Elixir.Value;
+                    Debug.Log("[MainVillageState] 自动存档");
+                }
+            }
         }
 
         public override void OnExit()

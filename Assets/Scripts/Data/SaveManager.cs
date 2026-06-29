@@ -74,57 +74,36 @@ namespace ZWebGLFrameWork.Data
         {
             int targetSlot = slot ?? CurrentSlot;
 
-            var saveData = new GameSaveData
+            var player = DataManager.Instance.Player;
+            var village = DataManager.Instance.Village;
+
+            var saveData = new PlayerSaveData
             {
-                PlayerEntries = ToSerializable(DataManager.Instance.Player.GetSnapshot()),
-                VillageEntries = ToSerializable(DataManager.Instance.Village.GetSnapshot()),
+                PlayerName = player.Name.Value,
+                PlayerLevel = player.Level.Value,
+                TownHallLevel = player.TownHallLevel.Value,
+                Gold = player.Gold.Value,
+                Elixir = player.Elixir.Value,
+                DarkElixir = player.DarkElixir.Value,
+                Gems = player.Gems.Value,
+                Trophies = player.Trophies.Value,
+                Exp = player.Exp.Value,
+                Buildings = new System.Collections.Generic.List<BuildingSaveData>(),
                 SaveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
-            return Save(saveData, targetSlot);
-        }
-
-        private static List<SerializableKVP> ToSerializable(Dictionary<string, object> dict)
-        {
-            var list = new List<SerializableKVP>();
-            foreach (var kv in dict)
+            foreach (var b in village.Buildings)
             {
-                var val = kv.Value;
-                list.Add(new SerializableKVP
+                saveData.Buildings.Add(new BuildingSaveData
                 {
-                    Key = kv.Key,
-                    Value = val?.ToString() ?? "",
-                    TypeName = val?.GetType().Name ?? "null",
+                    TypeId = b.TypeId,
+                    GridX = b.GridX.Value,
+                    GridY = b.GridY.Value,
+                    Level = b.Level.Value,
                 });
             }
-            return list;
-        }
 
-        private static Dictionary<string, object> FromSerializable(List<SerializableKVP> list)
-        {
-            var dict = new Dictionary<string, object>();
-            if (list != null)
-                foreach (var kv in list)
-                    dict[kv.Key] = ParseTyped(kv.Value, kv.TypeName);
-            return dict;
-        }
-
-        /// <summary>按类型名还原值（int/float/bool/enum 等常见类型）</summary>
-        private static object ParseTyped(string value, string typeName)
-        {
-            if (string.IsNullOrEmpty(value)) return null;
-
-            return typeName switch
-            {
-                "Int32" => int.TryParse(value, out var i) ? i : 0,
-                "Single" => float.TryParse(value,
-                    System.Globalization.NumberStyles.Float,
-                    System.Globalization.CultureInfo.InvariantCulture, out var f) ? f : 0f,
-                "Int64" => long.TryParse(value, out var l) ? l : 0L,
-                "Boolean" => bool.TryParse(value, out var b) && b,
-                "String" => value,
-                _ => value, // 枚举和其他类型由 ObservableModel.RestoreSnapshot 处理
-            };
+            return Save(saveData, targetSlot);
         }
 
         // ==================== 加载 ====================
@@ -151,19 +130,6 @@ namespace ZWebGLFrameWork.Data
                 Debug.LogError($"[SaveManager] 加载失败: {ex.Message}");
                 return null;
             }
-        }
-
-        /// <summary>加载游戏完整状态</summary>
-        public static bool LoadGame(int? slot = null)
-        {
-            var saveData = Load<GameSaveData>(slot);
-            if (saveData == null) return false;
-
-            DataManager.Instance.Player.RestoreSnapshot(FromSerializable(saveData.PlayerEntries));
-            DataManager.Instance.Village.RestoreSnapshot(FromSerializable(saveData.VillageEntries));
-
-            Debug.Log($"[SaveManager] 加载成功: slot={slot ?? CurrentSlot}, time={saveData.SaveTime}");
-            return true;
         }
 
         /// <summary>从存档槽位加载 PlayerSaveData 并写入 DataManager（离线模式入口）</summary>
@@ -234,22 +200,5 @@ namespace ZWebGLFrameWork.Data
                 Delete(i);
             }
         }
-    }
-
-    /// <summary>游戏完整存档数据</summary>
-    [Serializable]
-    public class GameSaveData
-    {
-        public List<SerializableKVP> PlayerEntries;
-        public List<SerializableKVP> VillageEntries;
-        public string SaveTime;
-    }
-
-    [Serializable]
-    public class SerializableKVP
-    {
-        public string Key;
-        public string Value;
-        public string TypeName;
     }
 }

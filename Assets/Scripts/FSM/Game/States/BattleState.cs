@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.UI;
 
 namespace ZWebGLFrameWork.FSM
@@ -44,6 +45,9 @@ namespace ZWebGLFrameWork.FSM
             EventBus.Subscribe<CombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
             EventBus.Subscribe<CombatEndEvent>(CombatManager.EventCombatEnded, OnCombatEnded);
             EventBus.Subscribe("Battle_ReturnToVillage", OnReturnToVillage);
+
+            // ②.⑤ 进入战斗前存档
+            SaveManager.SaveGame();
 
             // ③ 启动战斗（异步，由 CombatManager.Update 驱动 Tick）
             _battleStarted = false;
