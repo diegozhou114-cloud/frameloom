@@ -35,6 +35,8 @@ namespace ZWebGLFrameWork.UI
         /// <summary>关联的 CanvasGroup（用于动画和交互控制）</summary>
         public CanvasGroup CanvasGroup { get; private set; }
 
+        private UIAnimation _animation;
+
         /// <summary>打开时传入的数据</summary>
         public object OpenData { get; private set; }
 
@@ -59,6 +61,8 @@ namespace ZWebGLFrameWork.UI
             if (CanvasGroup == null)
                 CanvasGroup = gameObject.AddComponent<CanvasGroup>();
 
+            _animation = GetComponent<UIAnimation>();
+
             // 默认隐藏
             gameObject.SetActive(false);
         }
@@ -74,7 +78,15 @@ namespace ZWebGLFrameWork.UI
             gameObject.SetActive(true);
             IsOpen = true;
             IsPaused = false;
-            OnOpen(data);
+
+            if (_animation != null)
+            {
+                _animation.PlayOpen(() => OnOpen(data));
+            }
+            else
+            {
+                OnOpen(data);
+            }
         }
 
         /// <summary>面板暂停时调用（被上层面板遮挡）</summary>
@@ -105,7 +117,16 @@ namespace ZWebGLFrameWork.UI
             IsOpen = false;
             IsPaused = false;
             OnClose();
-            gameObject.SetActive(false);
+
+            if (_animation != null)
+            {
+                _animation.PlayClose(() => gameObject.SetActive(false));
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
+
             OpenData = null;
         }
 
