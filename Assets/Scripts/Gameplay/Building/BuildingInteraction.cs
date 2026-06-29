@@ -21,11 +21,13 @@ namespace ZWebGLFrameWork.Gameplay
 
         [SerializeField] private SelectionManager _selection;
         [SerializeField] private BuildingPlacer _placer;
+        [SerializeField] private GridRenderer _gridRenderer;
 
         private void Start()
         {
             if (_selection == null) _selection = FindObjectOfType<SelectionManager>();
             if (_placer == null) _placer = FindObjectOfType<BuildingPlacer>();
+            if (_gridRenderer == null) _gridRenderer = FindObjectOfType<GridRenderer>();
 
             EventBus.Subscribe<SelectionEvent>(SelectionManager.EventSelectionChanged, OnSelectionChanged);
             EventBus.Subscribe(SelectionManager.EventSelectionCleared, OnDeselected);
@@ -187,7 +189,12 @@ namespace ZWebGLFrameWork.Gameplay
         {
             IsEditMode = true;
             Debug.Log("[BuildingInteraction] 进入编辑模式");
-            // TODO: 所有建筑进入可移动状态，显示网格
+
+            // 显示网格
+            if (_gridRenderer != null)
+                _gridRenderer.gameObject.SetActive(true);
+
+            EventBus.Publish("EditModeEntered");
         }
 
         /// <summary>退出编辑模式</summary>
@@ -195,6 +202,12 @@ namespace ZWebGLFrameWork.Gameplay
         {
             IsEditMode = false;
             Debug.Log("[BuildingInteraction] 退出编辑模式");
+
+            // 隐藏网格
+            if (_gridRenderer != null)
+                _gridRenderer.gameObject.SetActive(false);
+
+            EventBus.Publish("EditModeExited");
         }
 
         /// <summary>移动建筑到新位置（编辑模式下）</summary>
@@ -205,9 +218,29 @@ namespace ZWebGLFrameWork.Gameplay
             var building = DataManager.Instance.Village.GetBuilding(buildingId);
             if (building == null) return;
 
-            // TODO: 检查新位置是否合法（需要知道建筑尺寸）
+            // 从配置表获取建筑尺寸
+            var config = ConfigTableManager.Instance.GetBuilding(building.TypeId);
+            int width = config != null ? config.SizeX : 1;
+            int height = config != null ? config.SizeY : 1;
+
+            // 检查新位置是否在边界内
+            var grid = GridManager.Instance;
+            if (!grid.IsInBounds(newGridPos, width, height))
+            {
+                Debug.LogWarning($"[BuildingInteraction] 建筑超出边界: {newGridPos}, size=({width},{height})");
+                return;
+            }
+
+            // 检查新位置是否被其他建筑占用（排除自身）
+            if (grid.IsAreaOccupied(newGridPos, width, height, building.Id))
+            {
+                Debug.LogWarning($"[BuildingInteraction] 位置被占用: {newGridPos}");
+                return;
+            }
+
             building.GridX.Value = newGridPos.x;
             building.GridY.Value = newGridPos.y;
+            Debug.Log($"[BuildingInteraction] 建筑移动: {buildingId} → {newGridPos}");
         }
     }
 }
