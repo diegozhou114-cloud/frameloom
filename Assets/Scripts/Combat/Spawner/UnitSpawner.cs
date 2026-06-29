@@ -75,6 +75,22 @@ namespace ZWebGLFrameWork.Combat
             Debug.Log($"[UnitSpawner] 生成 {village.Buildings.Count} 个防守建筑");
         }
 
+        /// <summary>在指定网格位置部署一个单位</summary>
+        public Entity SpawnUnit(Vector2Int gridPos, UnitConfig config, Team team)
+        {
+            var worldPos = _grid.GridToWorld(gridPos);
+            var entity = _world.CreateEntity();
+            _world.AddComponent(entity, TransformComponent.Create(worldPos, gridPos));
+            _world.AddComponent(entity, HealthComponent.Create(config.HP));
+            _world.AddComponent(entity, AttackComponent.Create(
+                config.Damage, config.Range, config.AttackSpeed));
+            _world.AddComponent(entity, MovementComponent.Create(config.MoveSpeed, 1f));
+            _world.AddComponent(entity, TeamComponent.Create(team));
+            _world.AddComponent(entity, TargetComponent.Create());
+            Debug.Log($"[UnitSpawner] 部署 {config.Name} 在 {gridPos}");
+            return entity;
+        }
+
         public World World => _world;
     }
 }
