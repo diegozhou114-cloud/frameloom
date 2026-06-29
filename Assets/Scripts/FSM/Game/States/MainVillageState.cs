@@ -1,4 +1,5 @@
 using UnityEngine;
+using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.Gameplay;
@@ -62,7 +63,17 @@ namespace ZWebGLFrameWork.FSM
         private void OnAttackClicked()
         {
             Debug.Log("[MainVillageState] ⚔ 攻击按钮 → Battle");
-            ChangeState(GameState.Battle);
+
+            var village = DataManager.Instance.Village;
+            if (village == null || village.Buildings.Count == 0)
+            {
+                Debug.LogWarning("[MainVillageState] 村庄无建筑，无法发起战斗");
+                return;
+            }
+
+            // 创建攻击参数：攻击自己的村庄（PvE 模式）
+            var bp = BattleParams.VillageAttack(village, village);
+            ChangeState(GameState.Battle, bp);
         }
 
         // ==================== 辅助 ====================
