@@ -20,6 +20,8 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入启动状态");
             EventBus.Publish("LaunchStarted");
+            EventBus.Subscribe("Boot_Retry", OnBootRetry);
+            EventBus.Subscribe("Boot_SkipToOffline", OnBootSkip);
             RunInitPipeline().Forget();
         }
 
@@ -180,14 +182,32 @@ namespace ZWebGLFrameWork.FSM
 
         private static void PublishError(string module, string message, bool canSkip = true)
         {
+            UIManager.Instance.Open<ErrorPanel>();
             EventBus.Publish(BootErrorEvent.EventKey,
                 new BootErrorEvent(module, message, canSkip));
             Debug.LogError($"[LaunchState] ❌ {module}: {message}");
         }
 
+        private void OnBootRetry()
+        {
+            Debug.Log("[LaunchState] 重试启动流程");
+            UIManager.Instance.Close<ErrorPanel>();
+            // 重新运行启动管线
+            RunInitPipeline().Forget();
+        }
+
+        private void OnBootSkip()
+        {
+            Debug.Log("[LaunchState] 跳过错误 → 离线模式");
+            UIManager.Instance.Close<ErrorPanel>();
+            ChangeState(GameState.Login);
+        }
+
         public override void OnExit()
         {
             UIManager.Instance.Close<LoadingPanel>();
+            EventBus.Unsubscribe("Boot_Retry", OnBootRetry);
+            EventBus.Unsubscribe("Boot_SkipToOffline", OnBootSkip);
             base.OnExit();
             Debug.Log("[GameFSM] 退出启动状态");
         }

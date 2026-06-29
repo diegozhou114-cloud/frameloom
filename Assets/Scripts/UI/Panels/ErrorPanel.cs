@@ -131,22 +131,10 @@ namespace ZWebGLFrameWork.UI
             _messageText.text = $"[{evt.Module}]\n{evt.Message}";
             _skipButton.gameObject.SetActive(evt.CanSkip);
 
-            _onRetry = null;
-            _onSkip = null;
-
-            // 由 LaunchState 提供重试/跳过回调，通过 Open(data) 传入
-            if (OpenData is BootErrorCallbacks cbs)
-            {
-                _onRetry = cbs.OnRetry;
-                _onSkip = cbs.OnSkip;
-            }
+            // 通过 EventBus 事件通信（避免硬依赖 LaunchState）
+            _onRetry = () => EventBus.Publish("Boot_Retry");
+            _onSkip = () => EventBus.Publish("Boot_SkipToOffline");
         }
     }
 
-    /// <summary>ErrorPanel 回调（由 LaunchState 通过 Open 传入）</summary>
-    public class BootErrorCallbacks
-    {
-        public System.Action OnRetry;
-        public System.Action OnSkip;
-    }
 }
