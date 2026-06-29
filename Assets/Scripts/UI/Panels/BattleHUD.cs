@@ -54,6 +54,7 @@ namespace ZWebGLFrameWork.UI
             if (cm == null || cm.CurrentPhase != CombatPhase.Battling) return;
 
             var mode = cm.CurrentMode;
+            if (mode == null) return;
             float elapsed = Time.time - _battleStartTime;
             float remain = Mathf.Max(0, mode.BattleTimeout - elapsed);
             int min = (int)(remain / 60);

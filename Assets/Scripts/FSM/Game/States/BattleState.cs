@@ -14,8 +14,6 @@ namespace ZWebGLFrameWork.FSM
     /// </summary>
     public class BattleState : FSMState<GameState>
     {
-        private CombatMode _mode;
-        private BattleParams _params;
         private bool _battleStarted;
 
         public BattleState() : base(GameState.Battle) { }
@@ -25,8 +23,8 @@ namespace ZWebGLFrameWork.FSM
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入战斗状态");
 
-            _params = data as BattleParams;
-            if (_params == null)
+            var bp = data as BattleParams;
+            if (bp == null)
             {
                 Debug.LogError("[BattleState] 未传入 BattleParams，返回主城");
                 ChangeState(GameState.MainVillage);
@@ -34,10 +32,10 @@ namespace ZWebGLFrameWork.FSM
             }
 
             // ① 解析战斗模式
-            _mode = CreateMode(_params.ModeId);
-            if (_mode == null)
+            var mode = CreateMode(bp.ModeId);
+            if (mode == null)
             {
-                Debug.LogError($"[BattleState] 未知模式: {_params.ModeId}");
+                Debug.LogError($"[BattleState] 未知模式: {bp.ModeId}");
                 ChangeState(GameState.MainVillage);
                 return;
             }
@@ -49,7 +47,7 @@ namespace ZWebGLFrameWork.FSM
 
             // ③ 启动战斗（异步，由 CombatManager.Update 驱动 Tick）
             _battleStarted = false;
-            CombatManager.Instance.StartBattleAsync(_mode).Forget();
+            CombatManager.Instance.StartBattleAsync(mode).Forget();
         }
 
         public override void OnUpdate()

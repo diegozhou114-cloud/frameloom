@@ -19,6 +19,7 @@ namespace ZWebGLFrameWork.UI
         private Text _timerText;
         private Text _countText;
         private int _deployedCount;
+        private float _deployStartTime;
 
         public DeployPanel()
         {
@@ -29,6 +30,7 @@ namespace ZWebGLFrameWork.UI
         protected override void OnOpen(object data)
         {
             _deployedCount = 0;
+            _deployStartTime = Time.time;
             var allUnits = ConfigTableManager.Instance?.GetAllUnits();
             _availableUnits = allUnits != null
                 ? new List<UnitConfig>(allUnits)
@@ -97,7 +99,8 @@ namespace ZWebGLFrameWork.UI
 
             if (cm.CurrentPhase == CombatPhase.Deploying)
             {
-                float remain = Mathf.Max(0, cm.CurrentMode.DeployTimeLimit - Time.time);
+                float elapsed = Time.time - _deployStartTime;
+                float remain = Mathf.Max(0, cm.CurrentMode.DeployTimeLimit - elapsed);
                 _timerText.text = $"{remain:F0}s";
             }
         }
