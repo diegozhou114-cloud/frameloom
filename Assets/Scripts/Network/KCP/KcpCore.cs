@@ -748,6 +748,7 @@ namespace ZWebGLFrameWork.Network
                     int totalLen = headerSize + seg.Data.Length;
 
                     // 使用预分配缓冲区（避免每包GC分配）
+                    // WARNING: _buffer 非线程安全；Flush 必须与 Input/Update 串行化
                     if (_buffer == null || _buffer.Length < totalLen)
                         _buffer = new byte[totalLen];
                     var tmpBuffer = _buffer;

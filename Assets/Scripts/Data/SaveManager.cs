@@ -154,7 +154,14 @@ namespace ZWebGLFrameWork.Data
             if (data.Version != SchemaVersion)
                 Debug.LogWarning($"[SaveManager] 存档版本不匹配: 存档={data.Version}, 当前={SchemaVersion}");
 
-            var player = DataManager.Instance.Player;
+            var dm = DataManager.Instance;
+            if (dm?.Player == null || dm?.Village == null)
+            {
+                Debug.LogError("[SaveManager] DataManager 未就绪，无法加载存档");
+                return false;
+            }
+
+            var player = dm.Player;
             player.Name.Value = data.PlayerName;
             player.Level.Value = data.PlayerLevel;
             player.TownHallLevel.Value = data.TownHallLevel;
@@ -165,7 +172,7 @@ namespace ZWebGLFrameWork.Data
             player.Trophies.Value = data.Trophies;
             player.Exp.Value = data.Exp;
 
-            var village = DataManager.Instance.Village;
+            var village = dm.Village;
             village.Buildings.Clear();
             if (data.Buildings != null)
             {

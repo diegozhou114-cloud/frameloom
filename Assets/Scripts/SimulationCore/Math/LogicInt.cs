@@ -54,7 +54,7 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             // 128-bit multiply → 64-bit divide, handling mixed signs correctly
             bool negative = (a.RawValue < 0) != (b.RawValue < 0);
-            // Use absolute values to avoid BigMul sign-extension issues
+            // 使用绝对值避免 BigMul 混合符号溢出（long.MinValue 会被 clamp 到 long.MaxValue，损失 1/Scale 精度）
             long absA = a.RawValue >= 0 ? a.RawValue : (a.RawValue == long.MinValue ? long.MaxValue : -a.RawValue);
             long absB = b.RawValue >= 0 ? b.RawValue : (b.RawValue == long.MinValue ? long.MaxValue : -b.RawValue);
             long hi = Math.BigMul(absA, absB, out long lo);

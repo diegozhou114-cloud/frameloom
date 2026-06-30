@@ -26,7 +26,7 @@ namespace ZWebGLFrameWork.Network
         private IPEndPoint _remoteEndPoint;
         private readonly byte[] _receiveBuffer = new byte[NetworkDefine.ReceiveBufferSize];
         private Thread _receiveThread;
-        private bool _isReceiving;
+        private volatile bool _isReceiving;
         private readonly ConcurrentQueue<byte[]> _pendingData = new ConcurrentQueue<byte[]>();
 
         // ==================== 连接 ====================

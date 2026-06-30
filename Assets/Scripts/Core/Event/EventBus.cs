@@ -16,7 +16,7 @@ namespace ZWebGLFrameWork.Core
         /// <summary>当前实例（默认 = 内置实现）</summary>
         public static IEventBus Instance
         {
-            get => _instance ?? _default;
+            get { lock (_instanceLock) { return _instance ?? _default; } }
             private set => _instance = value;
         }
 

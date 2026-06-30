@@ -255,6 +255,7 @@ namespace ZWebGLFrameWork.SimulationCore
 
         private void HandleDeploy(DeployCmd cmd)
         {
+            WarnIfStub();
             // TODO: 从配置表获取单位原型，在 _world 中创建 SimEntity
             // var entity = _world.CreateEntity(cmd.UnitTypeId, cmd.GridX, cmd.GridY, cmd.PlayerId);
             UnityEngine.Debug.Log($"[SimOrchestrator] DeployCmd: unitType={cmd.UnitTypeId} at ({cmd.GridX},{cmd.GridY}) player={cmd.PlayerId}");
@@ -262,14 +263,24 @@ namespace ZWebGLFrameWork.SimulationCore
 
         private void HandleMove(MoveCmd cmd)
         {
+            WarnIfStub();
             // TODO: 在 _world 中查找实体并设置其移动目标
             UnityEngine.Debug.Log($"[SimOrchestrator] MoveCmd: entity={cmd.EntityId} to ({cmd.TargetX},{cmd.TargetY})");
         }
 
         private void HandleSkill(SkillCmd cmd)
         {
+            WarnIfStub();
             // TODO: 在 _world 中查找施法者实体并释放技能
             UnityEngine.Debug.Log($"[SimOrchestrator] SkillCmd: caster={cmd.CasterId} skill={cmd.SkillId}");
+        }
+
+        private static bool _stubWarned;
+        private static void WarnIfStub()
+        {
+            if (_stubWarned) return;
+            _stubWarned = true;
+            UnityEngine.Debug.LogWarning("[SimOrchestrator] ⚠️ 命令处理为占位实现 — 单位不会被实际创建/移动/释放技能");
         }
     }
 }

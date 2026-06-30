@@ -148,26 +148,27 @@ namespace ZWebGLFrameWork.Network
             {
                 winnerSocket = await completedTask;
                 winnerFamily = completedTask == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
-                // 关闭失败方 Socket
-                CloseLoserSocket(loserTask);
             }
             catch
             {
                 // 第一个失败，等第二个
-                CloseLoserSocket(completedTask);
                 winnerSocket = await loserTask;
                 winnerFamily = loserTask == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
             }
+
+            // 关闭失败方 Socket（通过 continuation 确保在任务完成后关闭，而非仅在已完成时）
+            CloseLoserSocket(loserTask);
 
             return (winnerSocket, winnerFamily);
         }
 
         private static void CloseLoserSocket(Task<Socket> task)
         {
-            if (task.IsCompletedSuccessfully)
+            // 无论任务当前状态如何，注册 continuation 在完成时关闭
+            task.ContinueWith(t =>
             {
-                try { task.Result?.Close(); } catch { }
-            }
+                try { t.Result?.Close(); } catch { }
+            }, TaskContinuationOptions.NotOnCanceled);
         }
 
         private static async Task<Socket> ConnectAsync(string ip, int port,

@@ -169,14 +169,18 @@ namespace ZWebGLFrameWork.UI
         /// <summary>关闭所有面板</summary>
         public void CloseAll()
         {
+            // 先通过 UIStack 正常关闭（触发 DoClose 生命周期）
             foreach (var kv in _panelCache)
             {
                 if (kv.Value != null && kv.Value.IsOpen)
-                    kv.Value.DoClose();
+                    _stack.Pop(kv.Value);
+            }
+            // 然后销毁所有缓存的面板 GameObject
+            foreach (var kv in _panelCache)
+            {
                 if (kv.Value != null)
                     Destroy(kv.Value.gameObject);
             }
-            _stack.Clear();
             _panelCache.Clear();
         }
 
