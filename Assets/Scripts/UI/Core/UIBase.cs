@@ -100,13 +100,18 @@ namespace ZWebGLFrameWork.UI
             OnPause();
         }
 
-        /// <summary>面板恢复时调用（上层面板关闭）</summary>
-        internal void DoResume()
+        /// <summary>面板恢复时调用（上层面板关闭），可携带新数据</summary>
+        internal void DoResume(object data = null)
         {
             if (!IsOpen || !IsPaused) return;
 
             IsPaused = false;
             CanvasGroup.interactable = true;
+            if (data != null)
+            {
+                OpenData = data;
+                OnOpen(data); // 传递新数据
+            }
             OnResume();
         }
 

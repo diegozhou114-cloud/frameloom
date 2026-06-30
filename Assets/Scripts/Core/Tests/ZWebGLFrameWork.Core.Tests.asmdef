@@ -2,7 +2,8 @@
     "name": "ZWebGLFrameWork.Core.Tests",
     "rootNamespace": "ZWebGLFrameWork.Core.Tests",
     "references": [
-        "ZWebGLFrameWork.Core"
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data"
     ],
     "includePlatforms": [
         "Editor"

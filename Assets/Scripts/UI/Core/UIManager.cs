@@ -92,10 +92,10 @@ namespace ZWebGLFrameWork.UI
         {
             var type = typeof(T);
 
-            // 如果已打开且在同一层，直接返回
+            // 如果已打开且在同一层，恢复并传递新数据
             if (_panelCache.TryGetValue(type, out var existing) && existing.IsOpen)
             {
-                existing.DoResume();
+                existing.DoResume(data);
                 return existing as T;
             }
 
@@ -128,7 +128,7 @@ namespace ZWebGLFrameWork.UI
             if (panel == null || !panel.IsOpen) return;
 
             _stack.Pop(panel);
-            _panelCache.Remove(panel.GetType());
+            // 保留在缓存中以便复用，避免重复创建GameObject
         }
 
         /// <summary>关闭指定类型的面板</summary>
@@ -169,6 +169,13 @@ namespace ZWebGLFrameWork.UI
         /// <summary>关闭所有面板</summary>
         public void CloseAll()
         {
+            foreach (var kv in _panelCache)
+            {
+                if (kv.Value != null && kv.Value.IsOpen)
+                    kv.Value.DoClose();
+                if (kv.Value != null)
+                    Destroy(kv.Value.gameObject);
+            }
             _stack.Clear();
             _panelCache.Clear();
         }

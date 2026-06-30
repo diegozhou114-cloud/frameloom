@@ -52,10 +52,9 @@ namespace ZWebGLFrameWork.Data
                 string path = GetFilePath(targetSlot);
                 string tmpPath = path + ".tmp";
 
-                // 原子写入：先写临时文件，成功后再替换
+                // 原子写入：先写临时文件，再用 File.Replace 原子替换
                 File.WriteAllText(tmpPath, json);
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(tmpPath, path);
+                File.Replace(tmpPath, path, null);
 
                 Debug.Log($"[SaveManager] 保存成功: slot={targetSlot}, path={path}");
                 return true;
@@ -72,10 +71,17 @@ namespace ZWebGLFrameWork.Data
         /// <summary>保存游戏完整状态（Player + Village）</summary>
         public static bool SaveGame(int? slot = null)
         {
+            var dm = DataManager.Instance;
+            if (dm?.Player == null || dm?.Village == null)
+            {
+                Debug.LogError("[SaveManager] DataManager 未就绪，保存中止");
+                return false;
+            }
+
             int targetSlot = slot ?? CurrentSlot;
 
-            var player = DataManager.Instance.Player;
-            var village = DataManager.Instance.Village;
+            var player = dm.Player;
+            var village = dm.Village;
 
             var saveData = new PlayerSaveData
             {

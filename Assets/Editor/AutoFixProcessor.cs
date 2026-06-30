@@ -83,7 +83,7 @@ namespace ZWebGLFrameWork.Editor
                 if (insertPos < 0) continue;
 
                 string newContent = content.Insert(insertPos, usingToAdd + "\n");
-                File.WriteAllText(error.File, newContent);
+                SafeWriteAllText(error.File, newContent);
                 Debug.Log($"[AutoFix] 补充 using: {Path.GetFileName(error.File)} ← {usingToAdd}");
                 return true;
             }
@@ -110,12 +110,22 @@ namespace ZWebGLFrameWork.Editor
             }
 
             if (count > 0)
-                File.WriteAllText(filePath, content);
+                SafeWriteAllText(filePath, content);
 
             return count;
         }
 
-        private static int FindUsingInsertPosition(string content)
+        private static void SafeWriteAllText(string filePath, string content)
+        {
+            // 创建备份
+            string backupPath = filePath + ".bak";
+            if (File.Exists(filePath) && !File.Exists(backupPath))
+            {
+                File.Copy(filePath, backupPath, overwrite: true);
+                Debug.Log($"[AutoFix] 已备份: {backupPath}");
+            }
+            File.WriteAllText(filePath, content);
+        }
         {
             // 找到最后一个 using 语句的位置
             var match = Regex.Match(content, @"^using .+;\s*$", RegexOptions.Multiline);

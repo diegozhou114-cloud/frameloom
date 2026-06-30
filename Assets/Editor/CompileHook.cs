@@ -1,38 +1,38 @@
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace ZWebGLFrameWork.Editor
 {
     /// <summary>
     /// 编译钩子 — Unity 每次编译完成后自动触发验证。
-    /// 通过 [InitializeOnLoad] 在编辑器启动时注册回调。
+    /// 通过 [InitializeOnLoad] + CompilationPipeline 回调实现。
     /// </summary>
     [InitializeOnLoad]
     public static class CompileHook
     {
-        private static bool _wasCompiling;
+        private static bool _lastCompileHadErrors;
 
         static CompileHook()
         {
-            EditorApplication.update += OnEditorUpdate;
+            CompilationPipeline.compilationFinished += OnCompilationFinished;
+            CompilationPipeline.assemblyCompilationFinished += OnAssemblyCompilationFinished;
             Debug.Log("[CompileHook] ✅ 已注册编译后自动验证");
         }
 
-        private static void OnEditorUpdate()
+        private static void OnAssemblyCompilationFinished(string assemblyPath, CompilerMessage[] messages)
         {
-            bool isCompiling = EditorApplication.isCompiling;
-
-            // 编译完成：isCompiling 从 true → false
-            if (_wasCompiling && !isCompiling)
+            foreach (var msg in messages)
             {
-                _wasCompiling = false;
-                OnCompilationFinished();
+                if (msg.type == CompilerMessageType.Error)
+                {
+                    _lastCompileHadErrors = true;
+                    return;
+                }
             }
-
-            _wasCompiling = isCompiling;
         }
 
-        private static void OnCompilationFinished()
+        private static void OnCompilationFinished(object obj)
         {
             // 延迟一帧执行，确保所有程序集加载完毕
             EditorApplication.delayCall += RunValidation;
@@ -40,59 +40,15 @@ namespace ZWebGLFrameWork.Editor
 
         private static void RunValidation()
         {
-            // 检查是否有编译错误
-            if (HasCompileErrors())
+            if (_lastCompileHadErrors)
             {
-                Debug.LogError("[CompileHook] ❌ 检测到编译错误，请修复后重试。");
+                Debug.LogError($"[CompileHook] ❌ 检测到编译错误，请修复后重试。");
+                _lastCompileHadErrors = false;
                 return;
             }
 
-            // 验证程序集引用完整性
             ValidateAssemblyReferences();
-
             Debug.Log("<color=green>[CompileHook] ✅ 编译验证通过</color>");
-        }
-
-        private static bool HasCompileErrors()
-        {
-            // 通过检查 Console 窗口获取编译错误数
-            var logEntries = System.Type.GetType("UnityEditor.LogEntries, UnityEditor.dll");
-            if (logEntries == null) return false;
-
-            var getCountMethod = logEntries.GetMethod("GetCount");
-            var startMethod = logEntries.GetMethod("StartGettingEntries");
-            var getEntryMethod = logEntries.GetMethod("GetEntryInternal",
-                new[] { typeof(int), typeof(int) });
-            var endMethod = logEntries.GetMethod("EndGettingEntries");
-
-            if (getCountMethod == null || startMethod == null || endMethod == null)
-                return false;
-
-            startMethod.Invoke(null, null);
-            int count = (int)getCountMethod.Invoke(null, null);
-
-            int errorCount = 0;
-            for (int i = 0; i < count; i++)
-            {
-                // 检查是否是编译错误（mode == 0 为 Error）
-                var args = new object[] { i, 0 };
-                try { getEntryMethod?.Invoke(null, args); }
-                catch { continue; }
-
-                // args[0] = mode: 0=Error, 1=Warning, 2=Log
-                if (args.Length > 0 && args[0] is int mode && mode == 0)
-                    errorCount++;
-            }
-
-            endMethod.Invoke(null, null);
-
-            if (errorCount > 0)
-            {
-                Debug.LogError($"[CompileHook] 编译错误: {errorCount} 个");
-                return true;
-            }
-
-            return false;
         }
 
         private static void ValidateAssemblyReferences()

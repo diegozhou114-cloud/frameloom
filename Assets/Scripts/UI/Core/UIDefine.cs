@@ -5,11 +5,12 @@ namespace ZWebGLFrameWork.UI
     /// <summary>UI 层级 — 值越大显示越靠前</summary>
     public enum UILayer
     {
-        Background = 0,  // 背景层（HUD、状态栏等常驻界面）
-        Normal     = 1,  // 普通界面（主城、商店、背包等全屏界面）
-        Popup      = 2,  // 弹窗层（确认框、奖励弹窗等模态窗口）
-        Tip        = 3,  // 提示层（飘字、Tooltip 等短暂提示）
-        Top        = 4,  // 顶层（Loading遮罩、网络重连、系统通知）
+        Background = 0,  // 背景层
+        HUD        = 1,  // HUD层（战斗HUD、部署面板等常驻战斗界面）
+        Normal     = 2,  // 普通界面（主城、商店、背包等全屏界面）
+        Popup      = 3,  // 弹窗层（确认框、奖励弹窗等模态窗口）
+        Tip        = 4,  // 提示层（飘字、Tooltip 等短暂提示）
+        Top        = 5,  // 顶层（Loading遮罩、网络重连、系统通知）
     }
 
     /// <summary>UI 常量定义</summary>

@@ -204,9 +204,7 @@ namespace ZWebGLFrameWork.Data
                 return null;
             }
 
-            // 切换到线程池做 IO（避免主线程卡顿）
-            await UniTask.SwitchToThreadPool();
-
+            // Resources.Load 必须在主线程调用
             T[] items;
             try
             {
@@ -214,7 +212,7 @@ namespace ZWebGLFrameWork.Data
             }
             finally
             {
-                await UniTask.SwitchToMainThread();
+                // 已在主线程，无需切换
             }
 
             if (items == null || items.Length == 0)

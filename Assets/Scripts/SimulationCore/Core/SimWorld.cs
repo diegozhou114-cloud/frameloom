@@ -352,7 +352,15 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var key in _sortedKeys)
             {
                 var archetype = _archetypes[key];
-                foreach (var chunk in archetype.Chunks)
+                // 按 Chunk 首个 Entity ID 排序确保确定性（避免 swap-remove 导致的顺序变化）
+                var chunks = new List<SimChunk>(archetype.Chunks);
+                chunks.Sort((a, b) =>
+                {
+                    int aId = a.Count > 0 ? a.EntityIds[0] : int.MaxValue;
+                    int bId = b.Count > 0 ? b.EntityIds[0] : int.MaxValue;
+                    return aId.CompareTo(bId);
+                });
+                foreach (var chunk in chunks)
                 {
                     for (int i = 0; i < chunk.Count; i++)
                     {

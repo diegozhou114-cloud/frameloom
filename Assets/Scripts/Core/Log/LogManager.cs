@@ -31,15 +31,33 @@ namespace ZWebGLFrameWork.Core
             get => _minLevel;
             set => _minLevel = value;
         }
-        private static LogLevel _minLevel =
+        private static volatile LogLevel _minLevel =
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             LogLevel.Verbose;
 #else
             LogLevel.Warning;
 #endif
 
-        /// <summary>日志输出回调（可注入自定义收集器，如文件/网络上传）</summary>
-        public static event Action<LogLevel, string, string> OnLog;
+        private static event Action<LogLevel, string, string> _onLog;
+        private static readonly object _logLock = new object();
+
+        /// <summary>添加日志监听器（线程安全）</summary>
+        public static void AddLogListener(Action<LogLevel, string, string> listener)
+        {
+            lock (_logLock) { _onLog += listener; }
+        }
+
+        /// <summary>移除日志监听器（线程安全）</summary>
+        public static void RemoveLogListener(Action<LogLevel, string, string> listener)
+        {
+            lock (_logLock) { _onLog -= listener; }
+        }
+
+        /// <summary>清除所有日志监听器，防止内存泄漏</summary>
+        public static void ClearLogListeners()
+        {
+            lock (_logLock) { _onLog = null; }
+        }
 
         // ==================== 公开 API ====================
 
@@ -106,7 +124,9 @@ namespace ZWebGLFrameWork.Core
                     break;
             }
 
-            OnLog?.Invoke(level, tag, formatted);
+            Action<LogLevel, string, string> handler;
+            lock (_logLock) { handler = _onLog; }
+            handler?.Invoke(level, tag, formatted);
         }
     }
 }

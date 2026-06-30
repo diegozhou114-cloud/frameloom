@@ -30,6 +30,7 @@ namespace ZWebGLFrameWork.ECS
         private int[] _generations;
         private int _nextId;
         private readonly Dictionary<Type, IComponentPool> _componentPools = new Dictionary<Type, IComponentPool>();
+        private readonly Dictionary<int, int> _entityIndexMap = new Dictionary<int, int>();
 
         public World(int initialCapacity = 256) { _generations = new int[initialCapacity]; }
 
@@ -45,19 +46,36 @@ namespace ZWebGLFrameWork.ECS
             }
             var entity = new Entity(id, _generations[id]);
             _entities.Add(entity);
+            _entityIndexMap[id] = _entities.Count - 1;
             OnEntityCreated?.Invoke(entity);
             return entity;
         }
 
         public void DestroyEntity(Entity entity)
         {
-            if (!entity.IsValid) return;
+            // 验证 entity 句柄有效性（ID 范围 + Generation 匹配）
+            if (entity.Id < 0 || entity.Id >= _generations.Length) return;
+            if (entity.Generation != _generations[entity.Id]) return;
+
             // 通过 IComponentPool 接口移除所有组件 — 零反射
             foreach (var pool in _componentPools.Values)
             {
                 pool.Remove(entity);
             }
-            _entities.RemoveAll(e => e == entity);
+
+            // O(1) swap-remove 从 _entities 列表移除
+            if (_entityIndexMap.TryGetValue(entity.Id, out int index))
+            {
+                int lastIdx = _entities.Count - 1;
+                if (index != lastIdx)
+                {
+                    _entities[index] = _entities[lastIdx];
+                    _entityIndexMap[_entities[index].Id] = index;
+                }
+                _entities.RemoveAt(lastIdx);
+                _entityIndexMap.Remove(entity.Id);
+            }
+
             _freeIds.Enqueue(entity.Id);
             OnEntityDestroyed?.Invoke(entity);
         }
@@ -142,6 +160,7 @@ namespace ZWebGLFrameWork.ECS
         public void Reset()
         {
             _entities.Clear();
+            _entityIndexMap.Clear();
             _freeIds.Clear();
             _nextId = 0;
             foreach (var pool in _componentPools.Values)

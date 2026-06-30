@@ -16,9 +16,12 @@ namespace ZWebGLFrameWork.FSM
     {
         public LoginState() : base(GameState.Login) { }
 
+        private System.Threading.CancellationTokenSource _loginCts;
+
         public override void OnEnter(object data = null)
         {
             base.OnEnter(data);
+            _loginCts = new System.Threading.CancellationTokenSource();
             Debug.Log("[GameFSM] 进入登录状态");
             EventBus.Publish("LoginStarted");
 
@@ -46,6 +49,9 @@ namespace ZWebGLFrameWork.FSM
 
         public override void OnExit()
         {
+            _loginCts?.Cancel();
+            _loginCts?.Dispose();
+            _loginCts = null;
             EventBus.Unsubscribe(LoginEvents.GuestLogin, OnGuestLogin);
             EventBus.Unsubscribe(LoginEvents.OfflineLogin, OnOfflineLogin);
             EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
@@ -60,17 +66,24 @@ namespace ZWebGLFrameWork.FSM
 
         private async void OnGuestLogin()
         {
+            var token = _loginCts?.Token ?? System.Threading.CancellationToken.None;
             UIManager.Instance.Close<LoginPanel>();
 
             var cfg = GameLauncher.Config;
             string host = cfg?.DefaultServerHost ?? "127.0.0.1";
             int port = cfg?.DefaultServerPort ?? 7777;
 
-            // NetworkStateChanged 已在 OnEnter 中统一注册，此处不再重复 Subscribe
             NetworkManager.Instance.Connect(NetworkProtocol.TCP, host, port);
 
-            // 10 秒超时检测
-            await UniTask.Delay(10000);
+            // 10 秒超时检测（支持取消）
+            try
+            {
+                await UniTask.Delay(10000, cancellationToken: token);
+            }
+            catch (System.OperationCanceledException)
+            {
+                return; // 状态已退出，静默终止
+            }
 
             if (!NetworkManager.Instance.IsConnected)
             {

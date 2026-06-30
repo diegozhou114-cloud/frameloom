@@ -161,8 +161,7 @@ namespace ZWebGLFrameWork.Data
                 var json = JsonUtility.ToJson(data, prettyPrint: false);
                 string tmpPath = FilePath + ".tmp";
                 File.WriteAllText(tmpPath, json);
-                if (File.Exists(FilePath)) File.Delete(FilePath);
-                File.Move(tmpPath, FilePath);
+                File.Replace(tmpPath, FilePath, null);
             }
             catch (Exception ex)
             {

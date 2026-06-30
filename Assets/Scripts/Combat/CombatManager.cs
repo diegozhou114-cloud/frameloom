@@ -93,7 +93,19 @@ namespace ZWebGLFrameWork.Combat
 
             Debug.Log($"[CombatManager] ===== 战斗开始 [{mode.DisplayName}] =====");
 
-            _pathfinding = new AStarPathfinding(GridManager.Instance);
+            var gridManager = GridManager.Instance;
+            if (gridManager == null)
+            {
+                Debug.LogError("[CombatManager] GridManager 未初始化，无法开始战斗");
+                return;
+            }
+            if (Data.DataManager.Instance?.Village == null)
+            {
+                Debug.LogError("[CombatManager] VillageData 未就绪，无法开始战斗");
+                return;
+            }
+
+            _pathfinding = new AStarPathfinding(gridManager);
             _systems = await CombatBootstrap.BuildAsync(ECSWorld);
             DeathSys = _systems.Find<DeathSystem>();
             _ai = new UnitAI(ECSWorld, _pathfinding);
@@ -110,9 +122,14 @@ namespace ZWebGLFrameWork.Combat
 
             // 结算
             var winner = DeathSys.Winner ?? Team.Defender;
-            var village = Data.DataManager.Instance.Village;
-            int destroyed = village.Buildings.Count - DeathSys.DefenderAlive;
-            var result = mode.CalculateResult(winner, village.Buildings.Count, destroyed,
+            if (winner == Team.None)
+            {
+                Debug.LogWarning("[CombatManager] 双方同时全灭，平局按攻方失败处理");
+                winner = Team.Defender;
+            }
+            var village = Data.DataManager.Instance?.Village;
+            int destroyed = (village?.Buildings?.Count ?? 0) - DeathSys.DefenderAlive;
+            var result = mode.CalculateResult(winner, village?.Buildings?.Count ?? 0, destroyed,
                 Time.time);
 
             EventBus.Publish(CombatOrchestrator.EventCombatEnded, result);

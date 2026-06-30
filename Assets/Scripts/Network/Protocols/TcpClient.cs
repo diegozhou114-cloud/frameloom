@@ -43,7 +43,7 @@ namespace ZWebGLFrameWork.Network
             _lastHost = host;
             _lastPort = port;
             State = ConnectionState.Connecting;
-            _reconnectAttempts = 0;
+            // _reconnectAttempts 不清零 — 保持指数退避，仅在连接成功时重置
 
             try
             {
@@ -114,9 +114,18 @@ namespace ZWebGLFrameWork.Network
 
             try
             {
-                _socket.Send(data, offset, length, SocketFlags.None);
+                _socket.BeginSend(data, offset, length, SocketFlags.None, ar =>
+                {
+                    try
+                    {
+                        _socket?.EndSend(ar);
+                    }
+                    catch (ObjectDisposedException) { }
+                    catch (SocketException) { }
+                }, null);
             }
-            catch (Exception ex)
+            catch (ObjectDisposedException) { }
+            catch (SocketException ex)
             {
                 Debug.LogError($"[TcpClient] 发送失败: {ex.Message}");
                 HandleDisconnect("发送失败");

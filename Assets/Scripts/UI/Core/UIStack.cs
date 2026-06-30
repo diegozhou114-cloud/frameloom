@@ -111,6 +111,11 @@ namespace ZWebGLFrameWork.UI
             {
                 RemoveFromMiddle(stack, panel);
                 panel.DoClose();
+                // 恢复被中间面板阻挡的下层
+                if (stack.Count > 0 && panel.PauseLowerPanels)
+                {
+                    stack.Peek().DoResume();
+                }
                 return;
             }
 

@@ -52,18 +52,29 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public static LogicInt operator *(LogicInt a, LogicInt b)
         {
-            // 128-bit multiply → 64-bit divide. Safe against overflow.
-            long hi = Math.BigMul(a.RawValue, b.RawValue, out long lo);
+            // 128-bit multiply → 64-bit divide, handling mixed signs correctly
+            bool negative = (a.RawValue < 0) != (b.RawValue < 0);
+            // Use absolute values to avoid BigMul sign-extension issues
+            long absA = a.RawValue >= 0 ? a.RawValue : (a.RawValue == long.MinValue ? long.MaxValue : -a.RawValue);
+            long absB = b.RawValue >= 0 ? b.RawValue : (b.RawValue == long.MinValue ? long.MaxValue : -b.RawValue);
+            long hi = Math.BigMul(absA, absB, out long lo);
+            long result;
             if (hi == 0 && lo >= 0)
-                return new LogicInt(lo / Scale);
-            // Large values: divide the 128-bit number by Scale
-            // (hi*2^64 + lo) / Scale = hi*(2^64/Scale) + (hi*(2^64%Scale) + lo)/Scale
-            const ulong TwoPow64DivScale = 1844674407370955UL; // 2^64 / 10000
-            const ulong TwoPow64ModScale = 1616UL;              // 2^64 % 10000
-            ulong result = (ulong)hi * TwoPow64DivScale;
-            ulong remainder = (ulong)hi * TwoPow64ModScale + (ulong)lo;
-            result += remainder / Scale;
-            return new LogicInt((long)result);
+            {
+                result = lo / Scale;
+            }
+            else
+            {
+                // Large values: divide the 128-bit number by Scale
+                const ulong TwoPow64DivScale = 1844674407370955UL; // 2^64 / 10000
+                const ulong TwoPow64ModScale = 1616UL;              // 2^64 % 10000
+                ulong uResult = (ulong)hi * TwoPow64DivScale;
+                ulong uRemainder = (ulong)hi * TwoPow64ModScale + (ulong)lo;
+                uResult += uRemainder / Scale;
+                result = (long)uResult;
+            }
+            if (negative) result = -result;
+            return new LogicInt(result);
         }
 
         public static LogicInt operator /(LogicInt a, int b)

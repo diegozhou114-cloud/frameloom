@@ -14,15 +14,11 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public int Count => _idToType.Length;
 
-        /// <param name="componentTypes">所有组件类型（去重，自动排序）</param>
+        /// <param name="componentTypes">所有组件类型（顺序即ID分配顺序，调用者负责保持与SimChunkHelper一致）</param>
         public ComponentTypeRegistry(IEnumerable<Type> componentTypes)
         {
-            var sorted = new List<Type>(componentTypes);
-            sorted.Sort((a, b) => string.CompareOrdinal(a.FullName, b.FullName));
-
-            // 去重
             var unique = new List<Type>();
-            foreach (var t in sorted)
+            foreach (var t in componentTypes)
                 if (!unique.Contains(t))
                     unique.Add(t);
 
@@ -49,7 +45,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>检查类型是否已注册</summary>
         public bool Has(Type type) => _typeToId.ContainsKey(type);
 
-        /// <summary>创建默认注册表（战斗用的 6 种组件，按名排序）</summary>
+        /// <summary>创建默认注册表（战斗用的 6 种组件，顺序与 SimChunkHelper 硬编码一致）</summary>
         public static ComponentTypeRegistry CreateCombatRegistry()
         {
             return new ComponentTypeRegistry(new Type[]

@@ -138,25 +138,36 @@ namespace ZWebGLFrameWork.Network
                 System.Net.Sockets.AddressFamily.InterNetwork);
 
             // 竞速：取先成功的
-            var winner = await Task.WhenAny(ipv6Task, ipv4Task);
+            var completedTask = await Task.WhenAny(ipv6Task, ipv4Task);
+            var loserTask = completedTask == ipv6Task ? ipv4Task : ipv6Task;
 
             Socket winnerSocket;
             AddressFamily winnerFamily;
 
             try
             {
-                winnerSocket = await winner;
-                winnerFamily = winner == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
+                winnerSocket = await completedTask;
+                winnerFamily = completedTask == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
+                // 关闭失败方 Socket
+                CloseLoserSocket(loserTask);
             }
             catch
             {
                 // 第一个失败，等第二个
-                var other = winner == ipv6Task ? ipv4Task : ipv6Task;
-                winnerSocket = await other;
-                winnerFamily = other == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
+                CloseLoserSocket(completedTask);
+                winnerSocket = await loserTask;
+                winnerFamily = loserTask == ipv6Task ? Network.AddressFamily.IPv6 : Network.AddressFamily.IPv4;
             }
 
             return (winnerSocket, winnerFamily);
+        }
+
+        private static void CloseLoserSocket(Task<Socket> task)
+        {
+            if (task.IsCompletedSuccessfully)
+            {
+                try { task.Result?.Close(); } catch { }
+            }
         }
 
         private static async Task<Socket> ConnectAsync(string ip, int port,

@@ -75,6 +75,8 @@ namespace ZWebGLFrameWork.Combat
                 Winner = Team.Defender;
             else if (DefenderAlive == 0 && AttackerAlive > 0)
                 Winner = Team.Attacker;
+            else if (AttackerAlive == 0 && DefenderAlive == 0)
+                Winner = Team.None; // 明确标记平局
         }
 
         /// <summary>攻击方摧毁防守方的百分比（0~1）</summary>

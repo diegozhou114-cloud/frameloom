@@ -16,6 +16,7 @@ namespace ZWebGLFrameWork.Core
     {
         /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
+        private bool _initialized = false;
 
         /// <summary>当前正在加载的场景名（null 表示无加载任务）</summary>
         public string LoadingSceneName { get; private set; }
@@ -30,10 +31,12 @@ namespace ZWebGLFrameWork.Core
         /// </summary>
         public bool Init()
         {
+            if (_initialized) return true;
             try
             {
                 SceneManager.sceneLoaded += OnSceneLoaded;
                 SceneManager.sceneUnloaded += OnSceneUnloaded;
+                _initialized = true;
                 IsReady = true;
                 Debug.Log("[SceneLoader] ✅ 初始化完成");
                 return true;
@@ -122,6 +125,8 @@ namespace ZWebGLFrameWork.Core
 
         protected override void OnDestroy()
         {
+            if (!_initialized) return;
+            _initialized = false;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
             base.OnDestroy();

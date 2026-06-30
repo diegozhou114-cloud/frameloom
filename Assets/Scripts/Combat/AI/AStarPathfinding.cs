@@ -50,11 +50,12 @@ namespace ZWebGLFrameWork.Combat
                     var neighborPos = current.Position + _directions[i];
                     if (!_grid.IsInBounds(neighborPos)) continue;
 
-                    // 对角线穿墙检测
+                    // 对角线穿墙检测：检查两个相邻的 cardinal 方向
                     if (i % 2 == 1)
                     {
-                        var adj1 = current.Position + _directions[(i + 2) % 8];
-                        var adj2 = current.Position + _directions[(i + 4) % 8];
+                        // 正确的 cardinal 邻居索引：方向 (i+7)%8 和 (i+1)%8 总是指向相邻的正方向
+                        var adj1 = current.Position + _directions[(i + 7) % 8];
+                        var adj2 = current.Position + _directions[(i + 1) % 8];
                         if (IsBlocked(adj1, excludeBuildingId) && IsBlocked(adj2, excludeBuildingId))
                             continue;
                     }

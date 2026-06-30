@@ -288,6 +288,7 @@ namespace ZWebGLFrameWork.Network
             uint oldUna = _sndUna;
             int maxAck = 0;
             int flag = 0;
+            uint receivedUna = _sndUna;
 
             // 解析数据包（可能包含多个 KCP 段）
             int pos = offset;
@@ -308,6 +309,9 @@ namespace ZWebGLFrameWork.Network
 
                 pos += KcpOverhead;
                 if (pos + dataLen > offset + length) break;
+
+                flag = 1; // 标记有有效数据包
+                if (una > receivedUna) receivedUna = una;
 
                 // 处理各类命令
                 switch (cmd)
@@ -331,9 +335,10 @@ namespace ZWebGLFrameWork.Network
                 pos += dataLen;
             }
 
-            // 处理累积 ACK (una)
+            // 处理累积 ACK (una) — 更新对端已连续收到的序列号
             if (flag != 0)
             {
+                _sndUna = receivedUna;
                 ParseUnalignedAck(maxAck);
             }
 
@@ -742,8 +747,10 @@ namespace ZWebGLFrameWork.Network
                     int headerSize = KcpOverhead;
                     int totalLen = headerSize + seg.Data.Length;
 
-                    // 使用临时缓冲区封装
-                    var tmpBuffer = new byte[totalLen];
+                    // 使用预分配缓冲区（避免每包GC分配）
+                    if (_buffer == null || _buffer.Length < totalLen)
+                        _buffer = new byte[totalLen];
+                    var tmpBuffer = _buffer;
                     WriteU32(tmpBuffer, 0, seg.Conv);
                     tmpBuffer[4] = seg.Cmd;
                     tmpBuffer[5] = seg.Frg;
@@ -760,7 +767,7 @@ namespace ZWebGLFrameWork.Network
                 node = node.Next;
             }
 
-            // 6. 更新拥塞窗口
+            // 6. 拥塞控制 — 仅在检测到新丢包时减半（不在每次Flush重复触发）
             if (resentCount > 0)
             {
                 _ssthresh = Math.Max(1, cwnd / 2);

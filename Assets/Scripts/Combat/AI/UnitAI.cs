@@ -34,6 +34,7 @@ namespace ZWebGLFrameWork.Combat
             _world.ForEachEntities<TransformComponent>(entity =>
             {
                 if (!_world.TryGetComponent<AttackComponent>(entity, out _)) return;
+                if (!_world.TryGetComponent<MovementComponent>(entity, out _)) return; // 跳过非移动实体（建筑等）
                 if (!_world.TryGetComponent<HealthComponent>(entity, out var health) || !health.IsAlive) return;
 
                 ProcessEntity(entity);

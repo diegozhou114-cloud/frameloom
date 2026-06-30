@@ -29,6 +29,7 @@ namespace ZWebGLFrameWork.Network
 
         private INetworkClient _currentClient;
         private INetworkClient _tcpClient;
+        private int _connectGeneration; // 每次 Connect 递增，用于忽略过期的异步回调
         private INetworkClient _udpClient;
         private INetworkClient _httpClient;
         private INetworkClient _kcpClient;
@@ -68,14 +69,28 @@ namespace ZWebGLFrameWork.Network
             _lastHost = host;
             _lastPort = port;
             CurrentProtocol = protocol;
+            int myGeneration = ++_connectGeneration; // 捕获当前连接代数
 
             _currentClient = GetOrCreateClient(protocol);
 
-            // 绑定事件
-            _currentClient.OnConnected += HandleConnected;
-            _currentClient.OnDisconnected += HandleDisconnected;
-            _currentClient.OnConnectFailed += HandleConnectFailed;
-            _currentClient.OnDataReceived += HandleDataReceived;
+            // 绑定事件（使用局部变量防止闭包捕获错误client）
+            var client = _currentClient;
+            client.OnConnected += () =>
+            {
+                if (_connectGeneration != myGeneration) return; // 忽略过期连接
+                HandleConnected();
+            };
+            client.OnDisconnected += () =>
+            {
+                if (_connectGeneration != myGeneration) return;
+                HandleDisconnected();
+            };
+            client.OnConnectFailed += () =>
+            {
+                if (_connectGeneration != myGeneration) return;
+                HandleConnectFailed();
+            };
+            client.OnDataReceived += HandleDataReceived;
 
             Debug.Log($"[NetworkManager] 正在连接: {protocol}://{host}:{port}");
             _currentClient.Connect(host, port);

@@ -24,6 +24,19 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>最近一次 Checksum</summary>
         public ulong LastChecksum { get; private set; }
 
+        /// <summary>获取指定 Tick 的 Checksum（用于 FrameSync 比对）</summary>
+        public bool TryGetChecksumForTick(int tick, out ulong checksum)
+        {
+            var snapshot = _snapshotHistory[tick % 64];
+            if (snapshot != null && snapshot.Tick == tick)
+            {
+                checksum = snapshot.Checksum;
+                return true;
+            }
+            checksum = 0;
+            return false;
+        }
+
         /// <summary>性能计数器</summary>
         public SimPerfCounters Perf { get; } = new SimPerfCounters();
 
@@ -108,9 +121,16 @@ namespace ZWebGLFrameWork.SimulationCore
             var sw = new System.Diagnostics.Stopwatch();
             float drainMs = 0, updateMs = 0, hashMs = 0;
 
-            // 1. Drain commands
+            // 1. Drain commands and dispatch
             sw.Restart();
             var cmds = _buffer.Drain(CurrentTick);
+            if (cmds != null)
+            {
+                foreach (var cmd in cmds)
+                {
+                    DispatchCommand(cmd);
+                }
+            }
             drainMs = (float)sw.Elapsed.TotalMilliseconds;
 
             // 2. Update systems
@@ -214,6 +234,41 @@ namespace ZWebGLFrameWork.SimulationCore
 
                 Tick();
             }
+        }
+        /// <summary>分发命令到对应的处理逻辑</summary>
+        private void DispatchCommand(ISimCommand cmd)
+        {
+            switch (cmd.Type)
+            {
+                case SimCommandType.Deploy:
+                    HandleDeploy((DeployCmd)cmd);
+                    break;
+                case SimCommandType.Move:
+                    HandleMove((MoveCmd)cmd);
+                    break;
+                case SimCommandType.Skill:
+                    HandleSkill((SkillCmd)cmd);
+                    break;
+            }
+        }
+
+        private void HandleDeploy(DeployCmd cmd)
+        {
+            // TODO: 从配置表获取单位原型，在 _world 中创建 SimEntity
+            // var entity = _world.CreateEntity(cmd.UnitTypeId, cmd.GridX, cmd.GridY, cmd.PlayerId);
+            UnityEngine.Debug.Log($"[SimOrchestrator] DeployCmd: unitType={cmd.UnitTypeId} at ({cmd.GridX},{cmd.GridY}) player={cmd.PlayerId}");
+        }
+
+        private void HandleMove(MoveCmd cmd)
+        {
+            // TODO: 在 _world 中查找实体并设置其移动目标
+            UnityEngine.Debug.Log($"[SimOrchestrator] MoveCmd: entity={cmd.EntityId} to ({cmd.TargetX},{cmd.TargetY})");
+        }
+
+        private void HandleSkill(SkillCmd cmd)
+        {
+            // TODO: 在 _world 中查找施法者实体并释放技能
+            UnityEngine.Debug.Log($"[SimOrchestrator] SkillCmd: caster={cmd.CasterId} skill={cmd.SkillId}");
         }
     }
 }

@@ -131,7 +131,8 @@ namespace ZWebGLFrameWork.Gameplay
         {
             if (_previewInstance == null) return;
 
-            var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+            Vector3 pointerPos = GetPointerPosition();
+            var ray = _mainCamera.ScreenPointToRay(pointerPos);
             var plane = new Plane(Vector3.up, Vector3.zero);
 
             if (!plane.Raycast(ray, out float enter)) return;
@@ -177,7 +178,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void TryPlace()
         {
-            var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+            var ray = _mainCamera.ScreenPointToRay(GetPointerPosition());
             var plane = new Plane(Vector3.up, Vector3.zero);
 
             if (!plane.Raycast(ray, out float enter)) return;
@@ -219,6 +220,18 @@ namespace ZWebGLFrameWork.Gameplay
                 return false;
 
             return true;
+        }
+
+        /// <summary>获取当前指针位置（兼容桌面鼠标和移动端触摸）</summary>
+        private static Vector3 GetPointerPosition()
+        {
+#if UNITY_ANDROID || UNITY_IOS
+            if (Input.touchCount > 0)
+                return Input.GetTouch(0).position;
+            return Vector3.zero;
+#else
+            return Input.mousePosition;
+#endif
         }
     }
 }

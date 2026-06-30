@@ -113,7 +113,7 @@ namespace ZWebGLFrameWork.UI
 
         private void UnbindObservables()
         {
-            var player = DataManager.Instance.Player;
+            var player = DataManager.Instance?.Player;
             if (player != null)
             {
                 player.Gold.OnChanged -= OnGoldChanged;

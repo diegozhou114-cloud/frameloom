@@ -62,7 +62,7 @@ namespace ZWebGLFrameWork.FSM
                 if (manifest == null)
                 {
                     PublishError("版本检查失败", "无法连接到更新服务器", true);
-                    return VersionCheckResult.UpToDate;
+                    return VersionCheckResult.Error;
                 }
 
                 RemoteVersion = manifest.Version;
@@ -91,7 +91,7 @@ namespace ZWebGLFrameWork.FSM
             catch (Exception ex)
             {
                 PublishError("版本检查异常", ex.Message, true);
-                return VersionCheckResult.UpToDate;
+                return VersionCheckResult.Error;
             }
         }
 
@@ -292,7 +292,7 @@ namespace ZWebGLFrameWork.FSM
 
         private VersionCheckResult CompareVersion(string local, string remote)
         {
-            if (string.IsNullOrEmpty(remote)) return VersionCheckResult.UpToDate;
+            if (string.IsNullOrEmpty(remote)) return VersionCheckResult.Error;
             try
             {
                 var l = new Version(local);
@@ -337,5 +337,6 @@ namespace ZWebGLFrameWork.FSM
         UpToDate,
         NeedUpdate,
         ForceUpdate,
+        Error,      // 检查失败（网络错误等）
     }
 }

@@ -45,6 +45,7 @@ namespace ZWebGLFrameWork.Gameplay
         // 手势状态
         private int _touchCount;
         private Vector2 _touchStartPos;
+        private Vector2 _lastDragPosition;
         private float _touchStartTime;
         private float _lastPinchDist;
         private bool _isDragging;
@@ -206,9 +207,11 @@ namespace ZWebGLFrameWork.Gameplay
 
                 if (_isDragging)
                 {
+                    if (_lastDragPosition.sqrMagnitude < 0.1f)
+                        _lastDragPosition = _touchStartPos; // 初始化
                     Vector3 worldDelta = ScreenToWorldDelta(
-                        (Vector2)Input.mousePosition - _touchStartPos);
-                    _touchStartPos = Input.mousePosition;
+                        (Vector2)Input.mousePosition - _lastDragPosition);
+                    _lastDragPosition = Input.mousePosition;
                     _cameraController?.Pan(worldDelta);
                 }
             }
@@ -233,9 +236,22 @@ namespace ZWebGLFrameWork.Gameplay
         {
             if (_mainCamera == null) return Vector3.zero;
 
-            // 近似转换：屏幕像素 → 世界偏移
-            float worldPerPixel = _mainCamera.orthographicSize * 2f / Screen.height;
-            return new Vector3(-screenDelta.x * worldPerPixel, 0f, -screenDelta.y * worldPerPixel);
+            if (_mainCamera.orthographic)
+            {
+                float worldPerPixel = _mainCamera.orthographicSize * 2f / Screen.height;
+                return new Vector3(-screenDelta.x * worldPerPixel, 0f, -screenDelta.y * worldPerPixel);
+            }
+            else
+            {
+                // 透视相机：在相机前方平面上计算世界空间偏移
+                Vector3 screenPointStart = new Vector3(0, 0, _mainCamera.nearClipPlane);
+                Vector3 screenPointEnd = new Vector3(screenDelta.x, screenDelta.y, _mainCamera.nearClipPlane);
+                Vector3 worldStart = _mainCamera.ScreenToWorldPoint(screenPointStart);
+                Vector3 worldEnd = _mainCamera.ScreenToWorldPoint(screenPointEnd);
+                Vector3 delta = worldEnd - worldStart;
+                delta.y = 0;
+                return new Vector3(-delta.x, 0f, -delta.z);
+            }
         }
 
         private void BroadcastGesture(GestureData data)
