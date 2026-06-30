@@ -14,6 +14,8 @@ namespace ZWebGLFrameWork.Combat
         public float CellSize;
 
         /// <summary>当前路径（网格坐标列表）</summary>
+        /// <remarks>注意：Path 是引用类型。复制此结构体时，新旧副本共享同一个 List 实例，
+        /// 对路径的修改会同时影响两者。如需独立副本请手动 new List&lt;Vector2Int&gt;(original.Path)。</remarks>
         public List<Vector2Int> Path;
 
         /// <summary>当前路径索引</summary>

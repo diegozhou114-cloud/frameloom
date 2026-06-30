@@ -13,7 +13,7 @@ namespace ZWebGLFrameWork.Data
         /// <summary>是否有任何存档存在</summary>
         public static bool HasAnySave()
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < SaveManager.MaxSaveSlots; i++)
             {
                 if (SaveManager.Exists(i)) return true;
             }

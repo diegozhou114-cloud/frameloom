@@ -100,7 +100,10 @@ namespace ZWebGLFrameWork.Gameplay
             {
                 for (int y = 0; y < height; y++)
                 {
-                    var building = village.GetBuildingAt(origin.x + x, origin.y + y);
+                    int gx = origin.x + x;
+                    int gy = origin.y + y;
+                    if (gx < 0 || gy < 0) return true; // 负坐标视为占用（安全防护）
+                    var building = village.GetBuildingAt(gx, gy);
                     if (building != null && building.Id != excludeBuildingId)
                         return true;
                 }

@@ -24,6 +24,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 选中管理器 — 监听 Tap 手势，射线检测命中建筑或空地。
     /// 选中变更通过 EventBus 广播。
     /// </summary>
+    /// <remarks>当前仅支持单选；多选（框选/Shift+点击）尚未实现。</remarks>
     public class SelectionManager : Singleton<SelectionManager>
     {
         /// <summary>EventBus：选中变更</summary>

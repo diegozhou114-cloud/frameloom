@@ -207,6 +207,7 @@ namespace ZWebGLFrameWork.Editor
             int issues = 0;
 
             // ① 检查 Resources/Config/ 下的必需配置文件
+            // 注意：若某些配置是可选的，此处会产生误报警告（false positive）。
             string[] requiredConfigs =
             {
                 "Assets/Resources/Config/AppConfig.asset",

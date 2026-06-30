@@ -13,6 +13,7 @@ on:
     paths:
       - "Assets/Scripts/**"
       - "Assets/Editor/**"
+      - "Assets/Tests/**"
 
 jobs:
   # ==================== 阶段1: 编译验证 ====================
@@ -27,7 +28,7 @@ jobs:
         with:
           lfs: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -67,7 +68,7 @@ jobs:
         with:
           lfs: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -98,17 +99,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        unityVersion: [2022.3.40f1]
         targetPlatform: [WebGL, StandaloneWindows64]
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-
+          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-${{ matrix.unityVersion }}-
 
       - name: Unity Build (${{ matrix.targetPlatform }})
         uses: game-ci/unity-builder@v4

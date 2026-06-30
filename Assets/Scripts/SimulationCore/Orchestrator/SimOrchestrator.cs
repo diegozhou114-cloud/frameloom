@@ -48,7 +48,8 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly ISimInitializer _initializer;
         private readonly SimArchetypeRegistry _registry;
 
-        private readonly TickSnapshot[] _snapshotHistory = new TickSnapshot[64]; // 环形快照存储，用于回滚
+        // 固定 64 槽环形快照 — 回滚超过 64 Tick 会命中过期快照，生产环境需按需扩容。
+        private readonly TickSnapshot[] _snapshotHistory = new TickSnapshot[64];
 
         private int _deployTimeLimit;   // 部署时间限制（Tick 数）
         private int _deployElapsed;

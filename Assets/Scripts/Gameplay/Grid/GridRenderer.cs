@@ -94,6 +94,9 @@ namespace ZWebGLFrameWork.Gameplay
             _highlightPlane.transform.SetParent(transform);
             _highlightPlane.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
+            // Quad 图元自带 MeshCollider，高亮面无需碰撞，移除以减少物理开销
+            Destroy(_highlightPlane.GetComponent<Collider>());
+
             _highlightRenderer = _highlightPlane.GetComponent<MeshRenderer>();
             _highlightMaterial = new Material(Shader.Find("Sprites/Default"));
             _highlightRenderer.material = _highlightMaterial;

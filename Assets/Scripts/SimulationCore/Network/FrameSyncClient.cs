@@ -125,6 +125,7 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             // 简化：只预测 AuthorityTick+1
             // 完整实现需接收服务器回传的双方输入 + Checksum 后比对
+            // TODO: Implement actual prediction simulation
             PredictedTick = AuthorityTick + 1;
         }
 

@@ -95,11 +95,14 @@ namespace ZWebGLFrameWork.Gameplay
             _targetPosition.z = Mathf.Clamp(_targetPosition.z, _mapMin.y, _mapMax.y);
         }
 
-        /// <summary>立刻设置位置</summary>
+        /// <summary>立刻设置位置（自动钳制到地图边界内）</summary>
         public void SetPosition(Vector3 position)
         {
-            _targetPosition = position;
-            _camTransform.position = position;
+            _targetPosition = new Vector3(
+                Mathf.Clamp(position.x, _mapMin.x, _mapMax.x),
+                position.y,
+                Mathf.Clamp(position.z, _mapMin.y, _mapMax.y));
+            _camTransform.position = _targetPosition;
         }
 
         /// <summary>聚焦到世界坐标</summary>

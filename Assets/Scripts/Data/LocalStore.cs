@@ -33,8 +33,9 @@ namespace ZWebGLFrameWork.Data
 
         // ==================== 公开 API ====================
 
-        /// <summary>写入一个值（自动序列化 + 落盘）</summary>
+        /// <summary>写入一个值（自动序列化 + 落盘）。</summary>
         /// <typeparam name="T">值类型（需可被 JsonUtility 序列化）</typeparam>
+        /// <remarks>传入 <c>null</c> 作为 value 会删除该 key，等同于调用 <see cref="Remove"/>。</remarks>
         public static void Set<T>(string key, T value)
         {
             EnsureLoaded();

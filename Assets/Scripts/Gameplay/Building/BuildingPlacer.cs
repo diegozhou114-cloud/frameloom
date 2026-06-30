@@ -205,6 +205,10 @@ namespace ZWebGLFrameWork.Gameplay
             Debug.Log($"[BuildingPlacer] 放置建筑: type={PlacingTypeId}, pos={gridPos}");
 
             // 完成放置
+            // NOTE: CancelPlacement() tears down placement state *before* the event publishes.
+            // Subscribers of EventPlacementComplete cannot inspect IsPlacing / PlacingTypeId —
+            // they receive the event after teardown. If any subscriber needs placement metadata,
+            // capture it before this call or restructure the ordering.
             CancelPlacement();
             EventBus.Publish(EventPlacementComplete, building);
         }

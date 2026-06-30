@@ -55,7 +55,7 @@ namespace ZWebGLFrameWork.FSM
 
             var go = new GameObject("GameLauncher");
             go.AddComponent<GameLauncher>();
-            DontDestroyOnLoad(go);
+            // DontDestroyOnLoad 由 Awake() 统一处理，此处无需重复调用
 
             Debug.Log("[GameLauncher] ✅ 自动创建完成 — Launcher 场景已就绪");
         }

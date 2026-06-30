@@ -143,7 +143,11 @@ namespace ZWebGLFrameWork.Core
             return obj;
         }
 
-        /// <summary>放回池中（失活状态）</summary>
+        /// <summary>
+        /// 放回池中（失活状态）。
+        /// 注意：出于性能考虑，此方法不验证传入的 GameObject 是否源自本池；
+        /// 调用方需确保只归还从本池 Get() 取出的对象，否则可能导致父节点错乱或重复入池。
+        /// </summary>
         public void Release(GameObject obj)
         {
             if (obj == null) return;

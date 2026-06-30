@@ -110,7 +110,11 @@ namespace ZWebGLFrameWork.Data
             var template = Get(key);
             if (args == null || args.Length == 0) return template;
             try { return string.Format(template, args); }
-            catch { return template; }
+            catch (System.FormatException ex)
+            {
+                Debug.LogWarning($"[LocalizationManager] 格式化失败 key={key}, template={template}: {ex.Message}");
+                return template;
+            }
         }
 
         /// <summary>判断 key 是否存在</summary>

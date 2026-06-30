@@ -22,6 +22,9 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public bool Equals(SimEntity other) => Id == other.Id && Generation == other.Generation;
         public override bool Equals(object obj) => obj is SimEntity e && Equals(e);
+        /// <summary>
+        /// 仅返回 Id — 回收后的实体可能 Hash 碰撞，但不会同时存在于 Hash 集合中，可接受。
+        /// </summary>
         public override int GetHashCode() => Id;
         public static bool operator ==(SimEntity a, SimEntity b) => a.Equals(b);
         public static bool operator !=(SimEntity a, SimEntity b) => !a.Equals(b);

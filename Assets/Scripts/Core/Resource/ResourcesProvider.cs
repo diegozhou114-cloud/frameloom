@@ -29,6 +29,10 @@ namespace ZWebGLFrameWork.Core
             return request.asset as T;
         }
 
+        /// <summary>
+        /// [无操作] Resources.UnloadAsset 不支持按路径卸载单个资源；
+        /// 调用方应使用 <see cref="UnloadUnused"/> 批量释放未使用的资源。
+        /// </summary>
         public void Unload(string path)
         {
             // Resources 模式无单资源卸载，调用方应使用 UnloadUnused

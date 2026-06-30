@@ -55,9 +55,9 @@ namespace ZWebGLFrameWork.SimulationCore
                     var packet = InputPacket.FromBytes(data);
                     OnPacketReceived?.Invoke(packet);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // 忽略损坏的包
+                    UnityEngine.Debug.LogWarning($"[KcpTransport] 丢弃损坏的数据包: {ex.Message}");
                 }
             }
         }

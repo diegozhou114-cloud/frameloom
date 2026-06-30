@@ -105,6 +105,7 @@ namespace ZWebGLFrameWork.Core
         public void PlaySFX(AudioClip clip, float volumeScale = 1f)
         {
             if (clip == null || _sfxPool == null) return;
+            if (_sfxIndex >= int.MaxValue - 1) _sfxIndex = 0;
             var src = _sfxPool[_sfxIndex % SfxPoolSize];
             _sfxIndex++;
             src.PlayOneShot(clip, volumeScale);

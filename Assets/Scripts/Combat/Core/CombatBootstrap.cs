@@ -12,6 +12,12 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>创建并初始化 ECS 管线</summary>
         public static async UniTask<SystemGroup> BuildAsync(World world)
         {
+            if (world == null)
+            {
+                Debug.LogError("[CombatBootstrap] BuildAsync: world 参数为 null，无法构建 ECS 管线");
+                return null;
+            }
+
             var systems = new SystemGroup();
             var deathSys = new DeathSystem();
 

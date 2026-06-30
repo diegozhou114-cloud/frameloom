@@ -26,13 +26,15 @@ namespace ZWebGLFrameWork.UI
             _pauseLowerPanels = false;
         }
 
+        private void Awake()
+        {
+            _interaction = Object.FindObjectOfType<BuildingInteraction>();
+        }
+
         protected override void OnOpen(object data)
         {
             var building = data as BuildingData;
             if (building == null) return;
-
-            if (_interaction == null)
-                _interaction = Object.FindObjectOfType<BuildingInteraction>();
 
             BuildUI(building);
         }

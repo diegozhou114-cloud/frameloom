@@ -15,7 +15,7 @@ namespace ZWebGLFrameWork.Data
         private const string SaveIndexKey = "Save_Index";     // 当前选中的存档槽位
         private const string SaveFilePrefix = "save_";        // 文件名前缀
         private const string SaveExtension = ".json";
-        private const int MaxSaveSlots = 5;
+        public const int MaxSaveSlots = 5;
 
         /// <summary>存档目录</summary>
         public static string SavePath => Application.persistentDataPath;

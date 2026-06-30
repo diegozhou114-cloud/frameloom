@@ -40,7 +40,7 @@ namespace ZWebGLFrameWork.Data
             return BuildCost[idx];
         }
 
-        /// <summary>获取指定等级的建筑时间（秒）</summary>
+        /// <summary>获取指定等级的建筑时间（秒）。超出范围返回 -1。</summary>
         public int GetBuildTime(int level)
         {
             int idx = level - 1;
@@ -49,7 +49,7 @@ namespace ZWebGLFrameWork.Data
             return BuildTime[idx];
         }
 
-        /// <summary>获取指定等级的生命值</summary>
+        /// <summary>获取指定等级的生命值。超出范围返回 -1。</summary>
         public int GetHP(int level)
         {
             int idx = level - 1;

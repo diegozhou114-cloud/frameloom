@@ -32,7 +32,8 @@ namespace ZWebGLFrameWork.Data
         /// <summary>大本营等级</summary>
         public Observable<int> TownHallLevel = new Observable<int>(1);
 
-        /// <summary>经验值到下一级的阈值</summary>
+        /// <summary>经验值到下一级的阈值。注意：此属性为计算值，非响应式；
+        /// UI 需在 Level/Exp 变化后手动刷新。</summary>
         public int ExpToNextLevel => Level.Value * 100;
     }
 }

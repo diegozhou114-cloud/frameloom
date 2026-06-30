@@ -17,10 +17,15 @@ namespace ZWebGLFrameWork.ECS
         /// </summary>
         public bool IsValid => Id >= 0;
 
-        /// <summary>检查世代是否匹配（供 World 内部使用）。外部代码请用 World.HasComponent 等验证。</summary>
-        internal bool IsGenerationValid(int currentGeneration) => Generation == currentGeneration;
         public bool Equals(Entity other) => Id == other.Id && Generation == other.Generation;
         public override bool Equals(object obj) => obj is Entity e && Equals(e);
+
+        /// <summary>
+        /// 仅基于 <see cref="Id"/> 计算哈希，不包含 Generation。
+        /// 这是有意为之：同一 Id 不同 Generation 的 Entity 会产生哈希碰撞，
+        /// 但因为 World 保证同一时刻不会有两个 Id 相同、Generation 不同的 Entity 同时存活，
+        /// 所以它们永远不会共存于同一个哈希集合中，碰撞不会造成实际问题。
+        /// </summary>
         public override int GetHashCode() => Id;
         public static bool operator ==(Entity a, Entity b) => a.Equals(b);
         public static bool operator !=(Entity a, Entity b) => !a.Equals(b);

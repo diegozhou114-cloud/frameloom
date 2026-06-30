@@ -32,6 +32,8 @@ namespace ZWebGLFrameWork.Combat
                 return TargetStatus.TargetDead;
 
             // 距离检测
+            // NOTE: Vector3.Distance (Euclidean) is fine for small counts, but on grid-aligned
+            // positions Manhattan or Chebyshev distance would be cheaper and equally correct.
             float dist = Vector3.Distance(selfTransform.Position, targetTransform.Position);
             if (dist <= attack.Range)
                 return TargetStatus.InRange;
