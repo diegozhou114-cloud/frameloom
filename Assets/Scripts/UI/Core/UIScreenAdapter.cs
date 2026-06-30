@@ -22,7 +22,8 @@ namespace ZWebGLFrameWork.UI
 
         private CanvasScaler _scaler;
         private Rect _lastSafeArea;
-        private Vector2 _lastScreenSize;
+        private int _lastWidth;
+        private int _lastHeight;
 
         private void Awake()
         {
@@ -41,8 +42,8 @@ namespace ZWebGLFrameWork.UI
         private void Update()
         {
             // 检测屏幕变化（旋转、分屏等）
-            if (Screen.width != _lastScreenSize.x ||
-                Screen.height != _lastScreenSize.y ||
+            if (Screen.width != _lastWidth ||
+                Screen.height != _lastHeight ||
                 Screen.safeArea != _lastSafeArea)
             {
                 ApplyAdaptation();
@@ -71,7 +72,8 @@ namespace ZWebGLFrameWork.UI
 
         public void ApplyAdaptation()
         {
-            _lastScreenSize = new Vector2(Screen.width, Screen.height);
+            _lastWidth = Screen.width;
+            _lastHeight = Screen.height;
             _lastSafeArea = Screen.safeArea;
 
             if (_enableAspectRatioFit)

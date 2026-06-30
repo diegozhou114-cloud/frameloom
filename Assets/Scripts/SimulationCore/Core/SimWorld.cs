@@ -167,6 +167,8 @@ namespace ZWebGLFrameWork.SimulationCore
         public ref T GetComponentRef<T>(SimEntity entity) where T : struct, ISimComponent
         {
             int id = entity.Id;
+            if (id >= _generationCap || _entityArchetypeKey[id] == null)
+                throw new InvalidOperationException($"Entity {id} is not valid or has been destroyed.");
             var archetype = _archetypes[_entityArchetypeKey[id]];
             int colIdx = archetype.ColumnIndex[_registry.GetId(typeof(T))];
             var chunk = archetype.Chunks[_entityChunkIndex[id]];

@@ -23,7 +23,7 @@ namespace ZWebGLFrameWork.Combat
         public void Update(float renderDt)
         {
             Alpha += renderDt / _logicDt;
-            if (Alpha >= 1f) Alpha -= 1f;
+            while (Alpha >= 1f) Alpha -= 1f;  // while handles frame spikes where Alpha may exceed 2f+
         }
 
         /// <summary>插值两个 Vector3 位置</summary>

@@ -17,9 +17,13 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>组件类型 ID → 在 ComponentColumns 中的索引</summary>
         public Dictionary<int, int> ColumnIndex { get; } = new Dictionary<int, int>();
 
+        /// <summary>缓存的排序 ID 字符串（避免每次 CreateEntity 重新分配）</summary>
+        public string Key { get; }
+
         public SimArchetype(int[] componentTypeIds)
         {
             ComponentTypeIds = componentTypeIds;
+            Key = GetKey(componentTypeIds);
             for (int i = 0; i < componentTypeIds.Length; i++)
                 ColumnIndex[componentTypeIds[i]] = i;
         }
@@ -41,8 +45,7 @@ namespace ZWebGLFrameWork.SimulationCore
             return string.Join(",", componentTypeIds);
         }
 
-        /// <summary>计算该组件的排序 ID 字符串</summary>
-        public string Key => GetKey(ComponentTypeIds);
+
     }
 
     /// <summary>

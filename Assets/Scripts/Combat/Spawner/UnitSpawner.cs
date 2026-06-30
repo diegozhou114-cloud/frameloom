@@ -34,6 +34,8 @@ namespace ZWebGLFrameWork.Combat
             return entity;
         }
 
+        // TODO: Consider WaveConfig parameter object instead of 9 primitive params
+        // to improve readability and make future extensions easier.
         /// <summary>生成攻击方波次（灵活参数）</summary>
         public int SpawnAttackerWave(int wave, float cellSize,
             int baseHp, int hpPerWave, int baseDmg, int dmgPerWave,

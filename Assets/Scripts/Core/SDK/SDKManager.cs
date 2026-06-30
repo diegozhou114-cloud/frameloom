@@ -73,6 +73,11 @@ namespace ZWebGLFrameWork.Core
         public void Register(ISDKProvider sdk)
         {
             if (sdk == null) return;
+            if (_sdkProviders.Exists(s => s.Name == sdk.Name))
+            {
+                Debug.LogWarning($"[SDKManager] SDK 已注册，跳过重复: {sdk.Name}");
+                return;
+            }
             _sdkProviders.Add(sdk);
             Debug.Log($"[SDKManager] 注册 SDK: {sdk.Name}");
         }

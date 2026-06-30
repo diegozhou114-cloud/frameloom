@@ -127,6 +127,9 @@ namespace ZWebGLFrameWork.Network
         {
             if (_kcp == null || _udpClient == null) return;
 
+            // NOTE: (uint)(Time.unscaledTime * 1000) loses precision after ~4.6 hours of uptime
+            // (float mantissa only has ~24 bits). For long-running sessions, consider:
+            //   uint current = (uint)(DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond);
             uint current = (uint)(Time.unscaledTime * 1000);
             _kcp.Update(current);
 

@@ -43,6 +43,11 @@ namespace ZWebGLFrameWork.UI
             _rectTransform = GetComponent<RectTransform>();
         }
 
+        private void OnDestroy()
+        {
+            _currentAnimation = null;
+        }
+
         /// <summary>播放打开动画</summary>
         public void PlayOpen(Action onComplete = null)
         {

@@ -184,6 +184,7 @@ namespace ZWebGLFrameWork.Editor
 
             EditorGUILayout.Space(8);
 
+            Undo.RecordObject(target, "Modify AppConfig");
             serializedObject.ApplyModifiedProperties();
         }
     }

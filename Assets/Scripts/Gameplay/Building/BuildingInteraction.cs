@@ -211,12 +211,23 @@ namespace ZWebGLFrameWork.Gameplay
         }
 
         /// <summary>移动建筑到新位置（编辑模式下）</summary>
+        /// <remarks>
+        /// 注意：传统 CoC 类游戏中升级中的建筑通常不可移动。
+        /// 当前实现对此做了保护——升级中的建筑会被拒绝移动。
+        /// </remarks>
         public void MoveBuilding(string buildingId, Vector2Int newGridPos)
         {
             if (!IsEditMode) return;
 
             var building = DataManager.Instance.Village.GetBuilding(buildingId);
             if (building == null) return;
+
+            // 升级中的建筑不允许移动（符合 CoC 风格预期）
+            if (building.IsUpgrading)
+            {
+                Debug.LogWarning($"[BuildingInteraction] 建筑正在升级中，无法移动: {buildingId}");
+                return;
+            }
 
             // 从配置表获取建筑尺寸
             var config = ConfigTableManager.Instance.GetBuilding(building.TypeId);

@@ -40,6 +40,8 @@ namespace ZWebGLFrameWork.Combat
             {
                 Winner = winner,
                 Stars = stars,
+                // NOTE: UnityEngine.Random.Range is non-deterministic; use DeterministicRandom
+                // for replay-compatible results when deterministic simulation is required.
                 LootGold = winner == Team.Attacker
                     ? UnityEngine.Random.Range(100, 500) : 0,
                 LootElixir = winner == Team.Attacker

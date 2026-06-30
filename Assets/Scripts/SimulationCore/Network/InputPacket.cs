@@ -73,6 +73,7 @@ namespace ZWebGLFrameWork.SimulationCore
             packet.NewestSequence = (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
             offset += 4;
             int count = bytes[offset++];
+            if (offset + count * 8 + 4 > bytes.Length) return null; // not enough bytes for inputs + ack
             for (int i = 0; i < count; i++)
             {
                 packet.Inputs.Add(new FrameInput

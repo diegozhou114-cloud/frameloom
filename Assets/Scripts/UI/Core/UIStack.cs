@@ -8,6 +8,7 @@ namespace ZWebGLFrameWork.UI
     /// </summary>
     public class UIStack
     {
+        private const int MaxStackDepth = 50;
         private readonly Dictionary<UILayer, Stack<UIBase>> _stacks = new Dictionary<UILayer, Stack<UIBase>>();
 
         public UIStack()
@@ -51,7 +52,8 @@ namespace ZWebGLFrameWork.UI
         public bool Contains(UIBase panel)
         {
             if (panel == null) return false;
-            return _stacks[panel.Layer].Contains(panel);
+            if (!_stacks.TryGetValue(panel.Layer, out var stack)) return false;
+            return stack.Contains(panel);
         }
 
         /// <summary>获取层级中面板数量</summary>
@@ -77,6 +79,12 @@ namespace ZWebGLFrameWork.UI
 
             var layer = panel.Layer;
             var stack = _stacks[layer];
+
+            if (stack.Count >= MaxStackDepth)
+            {
+                Debug.LogError($"[UIStack] 层级 {layer} 栈深度已达上限 {MaxStackDepth}，Push 被拒绝: {panel.name}");
+                return;
+            }
 
             // 暂停同层旧栈顶
             if (stack.Count > 0)

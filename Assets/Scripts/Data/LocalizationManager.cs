@@ -25,7 +25,7 @@ namespace ZWebGLFrameWork.Data
         public List<string> SupportedLanguages { get; private set; } = new();
 
         /// <summary>语言切换事件（key: 新语言代码）</summary>
-        public System.Action<string> OnLanguageChanged;
+        public event System.Action<string> OnLanguageChanged;
 
         // 当前语言的翻译表
         private Dictionary<string, string> _translations = new();

@@ -124,6 +124,11 @@ namespace ZWebGLFrameWork.Data
             return result;
         }
 
+        /// <summary>
+        /// 简易 CSV 解析器。
+        /// 注意：当前实现较为原始，不支持引号字段、嵌入式逗号、\r\n 换行等转义场景。
+        /// 若配置表包含复杂内容，建议替换为 CsvHelper 或类似成熟库。
+        /// </summary>
         private static List<Dictionary<string, string>> ParseCsv(string csvText)
         {
             var result = new List<Dictionary<string, string>>();

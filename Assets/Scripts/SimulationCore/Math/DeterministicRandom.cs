@@ -28,6 +28,9 @@ namespace ZWebGLFrameWork.SimulationCore
         public int Next(int max)
         {
             if (max <= 0) return 0;
+            // NOTE: Modulo bias — when max does not divide 2^64 evenly, smaller values are slightly
+            // over-represented. For uniform distribution, use rejection sampling: repeatedly draw
+            // NextULong() until the result is below the largest multiple of max, then return % max.
             return (int)(NextULong() % (ulong)max);
         }
 

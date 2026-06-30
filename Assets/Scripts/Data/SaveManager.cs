@@ -43,7 +43,11 @@ namespace ZWebGLFrameWork.Data
 
         // ==================== 保存 ====================
 
-        /// <summary>保存数据到当前槽位</summary>
+        /// <summary>
+        /// 保存数据到当前槽位。
+        /// 注意：当前保存为明文 JSON，无加密保护。
+        /// 生产环境建议对敏感数据（如玩家金币、宝石等）加密后再存储。
+        /// </summary>
         public static bool Save<T>(T data, int? slot = null)
         {
             int targetSlot = slot ?? CurrentSlot;

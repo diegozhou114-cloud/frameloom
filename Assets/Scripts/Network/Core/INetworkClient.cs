@@ -13,7 +13,10 @@ namespace ZWebGLFrameWork.Network
         /// <summary>协议类型</summary>
         NetworkProtocol Protocol { get; }
 
-        /// <summary>是否已连接</summary>
+        /// <summary>
+        /// 是否已连接 — 便捷快捷方式，等价于 <c>State == ConnectionState.Connected</c>。
+        /// 可能在后续版本中移除，推荐直接使用 <see cref="State"/> 判断。
+        /// </summary>
         bool IsConnected { get; }
 
         // ==================== 连接 ====================

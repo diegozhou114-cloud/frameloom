@@ -141,6 +141,8 @@ namespace ZWebGLFrameWork.Combat
         }
 
         // ==================== SimulationCore 路径 ====================
+        // TODO: Consider splitting Sim* methods (StartSimBattle, SimUpdate, SimAI, etc.)
+        // into a separate SimCombatRunner class to keep CombatManager focused on orchestration.
 
         /// <summary>以 SimulationCore 引擎启动本地战斗</summary>
         public void StartSimBattle()

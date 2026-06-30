@@ -288,18 +288,40 @@ namespace ZWebGLFrameWork.ECS
         internal void ForEachRefPair<TOther>(ComponentPool<TOther> otherPool,
             RefAction<Entity, T, TOther> action) where TOther : struct, IComponent
         {
-            for (int i = 0; i < _count; i++)
+            // 优化：遍历较小的池以减少迭代次数
+            if (_count <= otherPool._count)
             {
-                var entity = _denseEntities[i];
-                int id = entity.Id;
-                if (id < otherPool._sparse.Length)
+                for (int i = 0; i < _count; i++)
                 {
-                    int otherIdx = otherPool._sparse[id];
-                    if (otherIdx >= 0 && otherIdx < otherPool._count &&
-                        otherPool._denseEntities[otherIdx] == entity)
+                    var entity = _denseEntities[i];
+                    int id = entity.Id;
+                    if (id < otherPool._sparse.Length)
                     {
-                        action(entity, ref _denseComponents[i],
-                            ref otherPool._denseComponents[otherIdx]);
+                        int otherIdx = otherPool._sparse[id];
+                        if (otherIdx >= 0 && otherIdx < otherPool._count &&
+                            otherPool._denseEntities[otherIdx] == entity)
+                        {
+                            action(entity, ref _denseComponents[i],
+                                ref otherPool._denseComponents[otherIdx]);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < otherPool._count; i++)
+                {
+                    var entity = otherPool._denseEntities[i];
+                    int id = entity.Id;
+                    if (id < _sparse.Length)
+                    {
+                        int thisIdx = _sparse[id];
+                        if (thisIdx >= 0 && thisIdx < _count &&
+                            _denseEntities[thisIdx] == entity)
+                        {
+                            action(entity, ref _denseComponents[thisIdx],
+                                ref otherPool._denseComponents[i]);
+                        }
                     }
                 }
             }
@@ -308,18 +330,40 @@ namespace ZWebGLFrameWork.ECS
         internal void ForEachRefPair<TOther>(ComponentPool<TOther> otherPool,
             ValAction<Entity, T, TOther> action) where TOther : struct, IComponent
         {
-            for (int i = 0; i < _count; i++)
+            // 优化：遍历较小的池以减少迭代次数
+            if (_count <= otherPool._count)
             {
-                var entity = _denseEntities[i];
-                int id = entity.Id;
-                if (id < otherPool._sparse.Length)
+                for (int i = 0; i < _count; i++)
                 {
-                    int otherIdx = otherPool._sparse[id];
-                    if (otherIdx >= 0 && otherIdx < otherPool._count &&
-                        otherPool._denseEntities[otherIdx] == entity)
+                    var entity = _denseEntities[i];
+                    int id = entity.Id;
+                    if (id < otherPool._sparse.Length)
                     {
-                        action(entity, _denseComponents[i],
-                            otherPool._denseComponents[otherIdx]);
+                        int otherIdx = otherPool._sparse[id];
+                        if (otherIdx >= 0 && otherIdx < otherPool._count &&
+                            otherPool._denseEntities[otherIdx] == entity)
+                        {
+                            action(entity, _denseComponents[i],
+                                otherPool._denseComponents[otherIdx]);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < otherPool._count; i++)
+                {
+                    var entity = otherPool._denseEntities[i];
+                    int id = entity.Id;
+                    if (id < _sparse.Length)
+                    {
+                        int thisIdx = _sparse[id];
+                        if (thisIdx >= 0 && thisIdx < _count &&
+                            _denseEntities[thisIdx] == entity)
+                        {
+                            action(entity, _denseComponents[thisIdx],
+                                otherPool._denseComponents[i]);
+                        }
                     }
                 }
             }

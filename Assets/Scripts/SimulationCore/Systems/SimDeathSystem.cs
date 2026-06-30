@@ -22,10 +22,8 @@ namespace ZWebGLFrameWork.SimulationCore
             Winner = null;
             _deadList.Clear();
 
-            World.ForEachEntities<SimHealthComponent>(entity =>
+            World.ForEachComponent<SimHealthComponent>((entity, health) =>
             {
-                if (!World.TryGetComponent<SimHealthComponent>(entity, out var health)) return;
-
                 if (!health.IsAlive) { _deadList.Add(entity); return; }
 
                 if (World.TryGetComponent<SimTeamComponent>(entity, out var team))

@@ -47,6 +47,7 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public ulong GetChecksum(int tick)
         {
+            // TODO: Use Dictionary<int, TickRecord> for O(1) lookup in large replays
             foreach (var r in Records)
                 if (r.Tick == tick) return r.Checksum;
             return 0;

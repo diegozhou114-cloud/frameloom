@@ -25,6 +25,7 @@ namespace ZWebGLFrameWork.Gameplay
         [SerializeField] private float _dragSpeed = 0.5f;
         [SerializeField] private float _edgeScrollSize = 20f;   // 边缘滚动像素
         [SerializeField] private float _edgeScrollSpeed = 10f;
+        [SerializeField] private float _scrollSensitivity = 500f; // 滚轮缩放灵敏度（InputManager 应使用此值保持与手势缩放一致）
 
         [Header("边界")]
         [SerializeField] private Vector2 _mapMin = new Vector2(-20, -20);
@@ -125,6 +126,11 @@ namespace ZWebGLFrameWork.Gameplay
 
         // ==================== 边缘滚动 ====================
 
+        /// <summary>
+        /// 边缘滚动处理。注意：由于等距相机旋转（45°俯仰+45°偏航），
+        /// 屏幕边缘的上下左右输入经 TransformDirection 转换后会产生对角线方向的世界移动，
+        /// 这是等距视角的预期行为而非 bug。
+        /// </summary>
         private void HandleEdgeScroll()
         {
             Vector3 mouse = Input.mousePosition;
@@ -148,5 +154,8 @@ namespace ZWebGLFrameWork.Gameplay
 
         /// <summary>相机当前缩放值</summary>
         public float CurrentZoom => _camTransform.position.y;
+
+        /// <summary>滚轮缩放灵敏度（供 InputManager 等调用方使用）</summary>
+        public float ScrollSensitivity => _scrollSensitivity;
     }
 }
