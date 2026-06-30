@@ -98,10 +98,10 @@ namespace ZWebGLFrameWork.FSM
                 return false;
             }
 
-            // 不重复进入同一状态
+            // 不重复进入同一状态（静默拒绝 — 性能优先，调用方应自行预判避免）
             if (_currentState == newState) return false;
 
-            // 转换规则验证
+            // 转换规则验证（静默拒绝 — TransitionGuard 失败不抛异常，调用方应预验证）
             if (!CanTransitionTo(
                 _currentState != null ? _currentState.StateId : default,
                 stateId))

@@ -68,6 +68,10 @@ namespace ZWebGLFrameWork.Combat
             }
         }
 
+        // NOTE: SpawnAttackerWave is effectively dead code — UseWaves=false so the wave
+        // system never calls this. It always spawns 6 units ignoring the `wave` param,
+        // which is inconsistent with the abstract contract. If waves are never needed
+        // for BuilderBase, consider throwing NotSupportedException or removing the override.
         public override void SpawnAttackerWave(UnitSpawner spawner, int wave)
         {
             // 对抗模式一次性部署玩家选择的单位

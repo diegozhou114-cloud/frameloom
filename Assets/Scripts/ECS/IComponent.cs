@@ -1,6 +1,9 @@
 namespace ZWebGLFrameWork.ECS
 {
     /// <summary>ECS 组件标记接口 — 所有组件必须实现</summary>
+    // NOTE: IComponent is intentionally an empty marker. A static ComponentTypeId property
+    // convention (e.g. `public static int ComponentTypeId => Hash(typeof(T).Name)`) could
+    // enable type-index lookups without typeof(T), avoiding runtime reflection overhead.
     public interface IComponent { }
 
     /// <summary>

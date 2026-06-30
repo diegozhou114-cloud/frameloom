@@ -28,6 +28,7 @@ namespace ZWebGLFrameWork.FSM
             }
             else
             {
+                // 优雅降级：收到非预期 payload 类型时回退到主城，避免卡死在加载屏
                 Debug.LogWarning("[GameFSM] LoadingState 收到非LoadingPayload数据，回退到主城");
                 ChangeState(GameState.MainVillage);
             }
@@ -57,6 +58,7 @@ namespace ZWebGLFrameWork.FSM
             }
             else
             {
+                // 伪 0.1s 延迟：纯 UI 体验打磨，确保加载画面至少显示一瞬，避免闪烁
                 yield return new WaitForSeconds(0.1f);
             }
 

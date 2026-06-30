@@ -153,6 +153,9 @@ namespace ZWebGLFrameWork.Data
             _scanned = true;
 
             SupportedLanguages.Clear();
+            // TODO: Hardcoded 9-language list is brittle — new languages added as assets are
+            // ignored until this array is manually updated. Use Resources.LoadAll<TextAsset>
+            // to dynamically discover all language files under Config/Languages/ at runtime.
             string[] candidates = { "zh-CN", "zh-TW", "en-US", "ja-JP", "ko-KR", "de-DE", "fr-FR", "es-ES", "pt-BR" };
             foreach (var lang in candidates)
             {

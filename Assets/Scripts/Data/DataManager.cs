@@ -5,6 +5,7 @@ namespace ZWebGLFrameWork.Data
     /// <summary>
     /// 数据管理器 — 跨场景单例，持有所有游戏数据模型。
     /// 对外暴露 Player / Village 等数据入口。
+    /// 注意：存档/读档由 SaveManager 负责（职责分离），本类仅为纯运行时状态持有者。
     /// </summary>
     public class DataManager : SingletonDontDestroy<DataManager>
     {

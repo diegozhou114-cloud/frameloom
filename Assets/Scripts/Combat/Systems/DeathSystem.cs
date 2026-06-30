@@ -46,6 +46,8 @@ namespace ZWebGLFrameWork.Combat
                     return;
                 }
 
+                // 有 HealthComponent 但无 TeamComponent 的实体被视为中立单位，
+                // 不计入任一阵营的存活数 — 这是设计决策，不是遗漏
                 if (World.TryGetComponent<TeamComponent>(entity, out var team))
                 {
                     if (team.TeamId == Team.Attacker) AttackerAlive++;

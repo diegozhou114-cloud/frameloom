@@ -99,6 +99,9 @@ namespace ZWebGLFrameWork.Combat
             int damage = 15 + wave * 8;
             float speed = 2f + wave * 0.3f;
 
+            // NOTE: SpawnAttackerWave spawns player-side units (not enemy waves) —
+            // the method name is misleading. Consider renaming to SpawnReinforcements
+            // or SpawnPlayerWave to clarify it spawns attacker-team units, not enemies.
             spawner.SpawnAttackerWave(wave, 1f,
                 (int)hp, (int)hp, damage, (int)(damage * 0.5f), 2.5f, 1f, speed);
         }

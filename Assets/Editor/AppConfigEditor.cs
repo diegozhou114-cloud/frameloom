@@ -24,6 +24,11 @@ namespace ZWebGLFrameWork.Editor
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_enablePlatformAutoDetect"),
                 new GUIContent("平台自适应", "开启后根据平台自动调整帧率/画质，覆盖下方手动配置"));
+            // NOTE: HelpBox reads from `cfg` (cast target) while PropertyField writes to
+            // `serializedObject`. Until ApplyModifiedProperties runs at the bottom of
+            // OnInspectorGUI, `cfg` holds the *previous* frame's value — so the HelpBox
+            // text is one-frame-late when the user toggles a checkbox. Fix by reading
+            // serializedObject.FindProperty("_enablePlatformAutoDetect").boolValue instead.
             EditorGUILayout.HelpBox(cfg.EnablePlatformAutoDetect
                 ? "✅ 已开启 — 移动端→30FPS+低画质  WebGL→30FPS+低画质  桌面端→60FPS+中画质"
                 : "⏭ 未开启 — 使用下方手动配置的值", MessageType.None);

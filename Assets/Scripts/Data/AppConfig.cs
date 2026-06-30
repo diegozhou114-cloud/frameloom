@@ -192,6 +192,8 @@ namespace ZWebGLFrameWork.Data
         }
     }
 
+    // 若此文件超过 200 行，建议将以下枚举移至独立的 Enums.cs 以保持职责单一
+
     /// <summary>资源加载模式 — 决定游戏启动时如何加载核心模块</summary>
     public enum LoadingMode
     {

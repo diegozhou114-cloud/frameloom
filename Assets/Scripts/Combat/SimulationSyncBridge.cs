@@ -32,6 +32,7 @@ namespace ZWebGLFrameWork.Combat
             // 从 SimTransformComponent 获取初始网格位置确定 ArchetypeId
             // 简化：用 GridX/GridY 推断类型。实际应由 SimWorld 维护 ArchetypeId 组件。
             // 这里先根据是否同时有 AttackComponent 来区分攻守方
+            // TODO: Use ViewConfig.GetPrefab(archetypeId) for per-archetype visual prefabs instead of always using first entry
             var prefab = _viewConfig.Entries.Length > 0 ? _viewConfig.Entries[0].Prefab : null;
             if (prefab == null) return;
 

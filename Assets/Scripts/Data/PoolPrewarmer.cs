@@ -44,6 +44,9 @@ namespace ZWebGLFrameWork.Data
             int successCount = 0;
             foreach (var unit in config.GetAllUnits())
             {
+                // NOTE: prefab path $"Prefabs/Units/{unit.Name}" is fragile — if a prefab
+                // is renamed the lookup silently returns null and the unit is skipped.
+                // Consider storing the prefab GUID or using Addressables with a direct reference.
                 string prefabPath = $"Prefabs/Units/{unit.Name}";
                 var prefab = await ResourceManager.Instance.LoadAsync<GameObject>(prefabPath);
 

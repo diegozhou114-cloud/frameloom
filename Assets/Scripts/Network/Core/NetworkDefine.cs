@@ -27,7 +27,10 @@ namespace ZWebGLFrameWork.Network
         Cellular,
     }
 
-    /// <summary>IP 地址族</summary>
+    /// <summary>IP 地址族
+    /// 注意：与 System.Net.Sockets.AddressFamily 命名冲突，当前通过命名空间区分。
+    /// 若摩擦加剧可重命名为 IpAddressFamily 以彻底消除歧义。
+    /// </summary>
     public enum AddressFamily
     {
         IPv4,

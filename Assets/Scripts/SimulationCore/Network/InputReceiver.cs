@@ -14,7 +14,9 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>已收到的最大序列号（用于 Ack）</summary>
         public uint MaxReceivedSequence { get; private set; }
 
-        /// <summary>接收一个输入包，返回其中所有输入</summary>
+        /// <summary>接收一个输入包，返回其中所有输入
+        /// 注意：packet.NewestSequence 与 packet.AckSequence 当前未使用 — 可靠性协议（丢包重传/拥塞控制）需要这两个字段。
+        /// </summary>
         public void ReceivePacket(InputPacket packet)
         {
             foreach (var input in packet.Inputs)

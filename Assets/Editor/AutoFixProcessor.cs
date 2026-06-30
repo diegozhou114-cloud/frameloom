@@ -85,6 +85,9 @@ namespace ZWebGLFrameWork.Editor
                 string newContent = content.Insert(insertPos, usingToAdd + "\n");
                 SafeWriteAllText(error.File, newContent);
                 Debug.Log($"[AutoFix] 补充 using: {Path.GetFileName(error.File)} ← {usingToAdd}");
+                // NOTE: TryFix returns after the FIRST successful fix. A file with 2 missing
+                // usings (e.g. missing both `using UnityEngine;` and `using System.Collections.Generic;`)
+                // needs 2 compile cycles to be fully fixed — one fix per recompile.
                 return true;
             }
 

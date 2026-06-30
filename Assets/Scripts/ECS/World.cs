@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace ZWebGLFrameWork.ECS
 {
+    // NOTE: RefAction/ValAction delegates are defined here for ECS-internal use.
+    // If they become referenced outside the ECS assembly, consider moving them
+    // to a shared Delegates.cs to avoid coupling callers to the ECS namespace.
     /// <summary>支持 ref 参数的双参数委托</summary>
     public delegate void RefAction<T1, T2>(T1 arg1, ref T2 arg2);
 

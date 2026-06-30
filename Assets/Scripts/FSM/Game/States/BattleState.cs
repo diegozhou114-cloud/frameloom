@@ -16,6 +16,10 @@ namespace ZWebGLFrameWork.FSM
     public class BattleState : FSMState<GameState>
     {
         private bool _battleStarted;
+        /// <summary>
+        /// _battleStarted 标志防止在同一状态生命周期内重复打开 DeployPanel。
+        /// 若后续支持"重新部署"功能（retry），需在重新进入部署阶段前重置此标志。
+        /// </summary>
 
         public BattleState() : base(GameState.Battle) { }
 

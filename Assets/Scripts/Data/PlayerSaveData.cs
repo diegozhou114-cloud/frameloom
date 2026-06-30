@@ -31,6 +31,9 @@ namespace ZWebGLFrameWork.Data
         public int Trophies = 0;
         public int Exp = 0;
         public List<BuildingSaveData> Buildings = new List<BuildingSaveData>();
+        // NOTE: DateTime stored as formatted string — lossy without timezone offset.
+        // Acceptable for local saves where all timestamps share the device's local zone;
+        // if cross-device sync is added, switch to DateTimeOffset or UTC ISO-8601.
         public string SaveTime;
     }
 }

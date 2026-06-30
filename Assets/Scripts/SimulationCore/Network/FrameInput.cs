@@ -29,6 +29,8 @@ namespace ZWebGLFrameWork.SimulationCore
             // Clamp to 8-bit range (0-255) — values outside this range would be silently truncated
             if (unitTypeId < 0 || unitTypeId > 255)
             {
+                // 注意：UnityEngine.Debug.LogWarning 破坏了 SimulationCore 的零 Unity 依赖契约；
+                // 应改为 ISimLogger.LogWarning 以保持程序集纯净
                 UnityEngine.Debug.LogWarning($"FrameInput.Deploy: unitTypeId {unitTypeId} clamped to 8-bit range");
                 unitTypeId = Math.Clamp(unitTypeId, 0, 255);
             }

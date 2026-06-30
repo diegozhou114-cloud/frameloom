@@ -28,6 +28,9 @@ namespace ZWebGLFrameWork.Combat
                 transform.Position += direction *
                     Mathf.Min(step, Vector3.Distance(transform.Position, targetWorld));
 
+                // NOTE: arrival threshold 0.05f — high-speed units with large CellSize
+                // may overshoot if `step > threshold`, causing jitter or missed waypoints.
+                // Consider using `step >= distance` or a relative threshold (CellSize * 0.1f).
                 if (Vector3.Distance(transform.Position, targetWorld) < 0.05f)
                 {
                     transform.Position = targetWorld;

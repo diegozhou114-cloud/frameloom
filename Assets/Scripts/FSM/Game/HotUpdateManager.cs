@@ -27,6 +27,7 @@ namespace ZWebGLFrameWork.FSM
         public string HotUpdateBaseUrl { get; set; }  // 可在 AppConfig 中配置
         public string HotUpdateManifestPath { get; set; } = "update_manifest.json";
 
+        // TODO: Remove unused _http HttpClient or use it for manifest downloads
         private HttpClient _http;
 
         // ==================== 初始化 ====================

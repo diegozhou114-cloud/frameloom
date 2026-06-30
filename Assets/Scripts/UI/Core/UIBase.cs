@@ -156,7 +156,10 @@ namespace ZWebGLFrameWork.UI
 
         // ==================== 公共方法 ====================
 
-        /// <summary>关闭当前面板（委托给 UIManager）</summary>
+        /// <summary>关闭当前面板（委托给 UIManager）
+        /// 注意：此处与 UIManager 单例强耦合 — UI 层内部可接受，但会阻碍单元测试；
+        /// 若需测试，可提取 IUIManager 接口并通过依赖注入切换。
+        /// </summary>
         public void Close()
         {
             UIManager.Instance.Close(this);

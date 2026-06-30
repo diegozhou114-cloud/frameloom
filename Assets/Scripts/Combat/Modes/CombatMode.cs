@@ -8,6 +8,10 @@ namespace ZWebGLFrameWork.Combat
     /// 每个具体模式定义：部署规则、波次规则、胜负判定、结算计算、单位生成。
     /// 
     /// 用法：CombatManager.StartBattle(new VillageAttackMode());
+    ///
+    /// NOTE: Only VillageAttackMode can be trivially new'd up; other modes (CampaignMode,
+    /// BuilderBaseMode) lack a CreateFromParams(params) factory method, forcing callers to
+    /// set properties manually after construction. Consider a static factory per mode.
     /// </summary>
     public abstract class CombatMode
     {

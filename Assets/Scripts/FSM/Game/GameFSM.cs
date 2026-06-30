@@ -5,7 +5,7 @@ using ZWebGLFrameWork.Core;
 namespace ZWebGLFrameWork.FSM
 {
     /// <summary>
-    /// 游戏全局状态机 — 跨场景单例，管理 Launch/Login/MainVillage/Battle/Loading 五大状态。
+    /// 游戏全局状态机 — 跨场景单例，管理 Launch/Login/Loading/MainVillage/Battle/Pause 六大状态。
     /// 状态变更通过 EventBus 广播，UI 层可订阅响应。
     /// </summary>
     public class GameFSM : SingletonDontDestroy<GameFSM>
