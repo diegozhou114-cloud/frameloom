@@ -64,6 +64,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void Update()
         {
+            // 多指触控时 -1 只代表第一指；各触摸处理中再按 fingerId 二次验证
             IsOverUI = EventSystem.current != null &&
                        EventSystem.current.IsPointerOverGameObject(-1);
 
@@ -97,6 +98,8 @@ namespace ZWebGLFrameWork.Gameplay
             {
                 case TouchPhase.Began:
                     if (IsOverUI) return;
+                    if (EventSystem.current != null &&
+                        EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
                     _touchStartPos = touch.position;
                     _touchStartTime = Time.unscaledTime;
                     _isDragging = false;

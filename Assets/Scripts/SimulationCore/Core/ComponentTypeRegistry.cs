@@ -27,11 +27,21 @@ namespace ZWebGLFrameWork.SimulationCore
                 _typeToId[_idToType[i]] = i;
         }
 
-        /// <summary>Type → int Id（O(1)）</summary>
+        /// <summary>Type → int Id（O(1)）。未注册类型抛出 KeyNotFoundException。</summary>
+        /// <exception cref="KeyNotFoundException">类型未注册</exception>
         public int GetId(Type type)
         {
-            _typeToId.TryGetValue(type, out int id);
-            return id; // 0 if not found (valid: first registered type)
+            if (!_typeToId.TryGetValue(type, out int id))
+                throw new KeyNotFoundException(
+                    $"[ComponentTypeRegistry] 类型 '{type?.FullName ?? "null"}' 未注册。" +
+                    " 请确认已在组件类型列表中声明此类型。");
+            return id;
+        }
+
+        /// <summary>无异常的查询：Type → int Id（O(1)），未注册返回 false。</summary>
+        public bool TryGetId(Type type, out int id)
+        {
+            return _typeToId.TryGetValue(type, out id);
         }
 
         /// <summary>int Id → Type（O(1)）</summary>

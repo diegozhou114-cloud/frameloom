@@ -102,17 +102,22 @@ namespace ZWebGLFrameWork.Editor
             Application.logMessageReceived += _captureHandler;
         }
 
-        /// <summary>停止捕获并返回收集到的编译错误</summary>
+        /// <summary>停止捕获并返回收集到的编译错误。异常安全：保证取消订阅。</summary>
         private static List<CompileError> StopCapturingAndGetErrors()
         {
-            if (_captureHandler != null)
+            try
             {
-                Application.logMessageReceived -= _captureHandler;
-                _captureHandler = null;
+                return _capturedErrors ?? new List<CompileError>();
             }
-            var result = _capturedErrors ?? new List<CompileError>();
-            _capturedErrors = null;
-            return result;
+            finally
+            {
+                if (_captureHandler != null)
+                {
+                    Application.logMessageReceived -= _captureHandler;
+                    _captureHandler = null;
+                }
+                _capturedErrors = null;
+            }
         }
 
         private static CompileError? ParseCompileError(string message)

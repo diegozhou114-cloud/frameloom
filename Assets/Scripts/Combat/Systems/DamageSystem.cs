@@ -25,7 +25,9 @@ namespace ZWebGLFrameWork.Combat
                 // SetComponent 存在则覆盖（不触发 AddComponent 的 "if Has return" 导致写入丢失）
                 World.SetComponent(evt.Target, health);
 
+#if UNITY_EDITOR
                 Debug.Log($"[DamageSystem] {evt.Target} 受到 {evt.Amount} 伤害, HP={health.CurrentHP}/{health.MaxHP}");
+#endif
             });
         }
     }

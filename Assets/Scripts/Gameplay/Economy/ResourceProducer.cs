@@ -93,6 +93,8 @@ namespace ZWebGLFrameWork.Gameplay
 
                 float baseRate = building.Level.Value * 0.5f; // 每级 0.5/s
 
+                // TODO: 替换 string.Contains 为枚举字段 (如 ResourceType) 以支持本地化
+                // 当前按建筑名称子串分配资源类型，中文/多语言下会断裂
                 if (config.Name.Contains("Gold") || config.Name.Contains("Mine"))
                     goldRate += baseRate;
                 else if (config.Name.Contains("Elixir") || config.Name.Contains("Collector"))

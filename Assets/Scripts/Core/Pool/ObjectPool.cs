@@ -15,6 +15,7 @@ namespace ZWebGLFrameWork.Core
     public class ObjectPool<T> where T : class
     {
         private readonly Stack<T> _pool;
+        private readonly object _poolLock = new object();
         private readonly Func<T> _createFunc;
         private readonly Action<T> _onGet;
         private readonly Action<T> _onRelease;
@@ -49,25 +50,34 @@ namespace ZWebGLFrameWork.Core
         /// <summary>从池中获取一个实例（池空时自动创建）</summary>
         public T Get()
         {
-            T obj = _pool.Count > 0 ? _pool.Pop() : _createFunc();
-            _onGet?.Invoke(obj);
-            return obj;
+            lock (_poolLock)
+            {
+                T obj = _pool.Count > 0 ? _pool.Pop() : _createFunc();
+                _onGet?.Invoke(obj);
+                return obj;
+            }
         }
 
         /// <summary>将实例放回池中</summary>
         public void Release(T obj)
         {
             if (obj == null) return;
-            _onRelease?.Invoke(obj);
-            _pool.Push(obj);
+            lock (_poolLock)
+            {
+                _onRelease?.Invoke(obj);
+                _pool.Push(obj);
+            }
         }
 
         /// <summary>清空池并销毁所有实例</summary>
         public void Clear()
         {
-            while (_pool.Count > 0)
+            lock (_poolLock)
             {
-                _onDestroy?.Invoke(_pool.Pop());
+                while (_pool.Count > 0)
+                {
+                    _onDestroy?.Invoke(_pool.Pop());
+                }
             }
         }
     }
@@ -82,6 +92,7 @@ namespace ZWebGLFrameWork.Core
     public class GameObjectPool
     {
         private readonly Stack<GameObject> _pool = new Stack<GameObject>();
+        private readonly object _poolLock = new object();
         private readonly GameObject _prefab;
         private readonly Transform _parent;
 
@@ -106,18 +117,21 @@ namespace ZWebGLFrameWork.Core
         /// <summary>从池中取出（激活状态），池空时自动 Instantiate</summary>
         public GameObject Get()
         {
-            GameObject obj;
-            if (_pool.Count > 0)
+            lock (_poolLock)
             {
-                obj = _pool.Pop();
-            }
-            else
-            {
-                obj = UnityEngine.Object.Instantiate(_prefab, _parent);
-            }
+                GameObject obj;
+                if (_pool.Count > 0)
+                {
+                    obj = _pool.Pop();
+                }
+                else
+                {
+                    obj = UnityEngine.Object.Instantiate(_prefab, _parent);
+                }
 
-            obj.SetActive(true);
-            return obj;
+                obj.SetActive(true);
+                return obj;
+            }
         }
 
         /// <summary>从池中取出并设置位置/旋转/父节点</summary>
@@ -134,20 +148,26 @@ namespace ZWebGLFrameWork.Core
         {
             if (obj == null) return;
 
-            obj.SetActive(false);
-            obj.transform.SetParent(_parent);
-            _pool.Push(obj);
+            lock (_poolLock)
+            {
+                obj.SetActive(false);
+                obj.transform.SetParent(_parent);
+                _pool.Push(obj);
+            }
         }
 
         /// <summary>清空池并销毁所有对象</summary>
         public void Clear()
         {
-            while (_pool.Count > 0)
+            lock (_poolLock)
             {
-                var obj = _pool.Pop();
-                if (obj != null)
+                while (_pool.Count > 0)
                 {
-                    UnityEngine.Object.Destroy(obj);
+                    var obj = _pool.Pop();
+                    if (obj != null)
+                    {
+                        UnityEngine.Object.Destroy(obj);
+                    }
                 }
             }
         }

@@ -17,11 +17,12 @@ namespace ZWebGLFrameWork.Core
             {
                 if (_instance == null)
                 {
+                    var found = FindObjectOfType<T>();
                     lock (_lock)
                     {
                         if (_instance == null)
                         {
-                            _instance = FindObjectOfType<T>();
+                            _instance = found;
 
                             if (_instance == null)
                             {

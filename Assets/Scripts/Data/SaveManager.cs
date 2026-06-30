@@ -168,11 +168,17 @@ namespace ZWebGLFrameWork.Data
                 foreach (var b in data.Buildings)
                 {
                     // 校验 TypeId 在配置表中存在
-                    if (ConfigTableManager.Instance.IsReady
-                        && ConfigTableManager.Instance.GetBuilding(b.TypeId) == null)
+                    if (ConfigTableManager.Instance.IsReady)
                     {
-                        Debug.LogWarning($"[SaveManager] 存档中的建筑类型 {b.TypeId} 在配置表中不存在，跳过");
-                        continue;
+                        if (ConfigTableManager.Instance.GetBuilding(b.TypeId) == null)
+                        {
+                            Debug.LogWarning($"[SaveManager] 存档中的建筑类型 {b.TypeId} 在配置表中不存在，跳过");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[SaveManager] Configs not ready, skipping building validation for slot {targetSlot}");
                     }
                     village.AddBuilding(BuildingData.Create(b.TypeId, b.GridX, b.GridY));
                 }

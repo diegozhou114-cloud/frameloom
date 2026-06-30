@@ -24,12 +24,14 @@ namespace ZWebGLFrameWork.ECS
 
         public void UpdateAll()
         {
+            Sort();
             foreach (var sys in _systems)
                 if (sys.Enabled) sys.Update();
         }
 
         public async UniTask CleanupAllAsync()
         {
+            Sort();
             foreach (var sys in _systems)
                 if (sys.Enabled) await sys.CleanupAsync();
         }

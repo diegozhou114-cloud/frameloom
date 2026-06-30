@@ -36,6 +36,12 @@ namespace ZWebGLFrameWork.Data
         }
 
         /// <summary>重置所有数据（新游戏）</summary>
+        /// <remarks>
+        /// Buildings is a plain <see cref="System.Collections.Generic.List{T}"/>,
+        /// not an ObservableCollection, so <see cref="VillageData.Reset"/> does not
+        /// clear it. We explicitly call <c>Clear()</c> here to ensure buildings are
+        /// wiped on new game start.
+        /// </remarks>
         public void ResetAll()
         {
             Player.Reset();

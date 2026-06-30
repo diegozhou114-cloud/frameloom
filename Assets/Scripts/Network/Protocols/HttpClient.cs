@@ -34,7 +34,7 @@ namespace ZWebGLFrameWork.Network
         public HttpClient(MonoBehaviour coroutineOwner = null)
         {
             _coroutineOwner = coroutineOwner;
-            State = ConnectionState.Connected; // HTTP 无连接概念，始终就绪
+            State = ConnectionState.Disconnected; // HTTP 无持久连接
         }
 
         // ==================== INetworkClient 实现 ====================
@@ -117,6 +117,7 @@ namespace ZWebGLFrameWork.Network
         private IEnumerator GetCoroutine(string url, Action<byte[]> onSuccess,
             Action<string> onError, int retriesLeft)
         {
+            State = ConnectionState.Connected;
             using (var request = UnityWebRequest.Get(url))
             {
                 request.timeout = (int)Timeout;
@@ -138,11 +139,13 @@ namespace ZWebGLFrameWork.Network
                     onError?.Invoke(request.error);
                 }
             }
+            State = ConnectionState.Disconnected;
         }
 
         private IEnumerator PostCoroutine(string url, byte[] body, string contentType,
             Action<byte[]> onSuccess, Action<string> onError, int retriesLeft)
         {
+            State = ConnectionState.Connected;
             using (var request = new UnityWebRequest(url, "POST"))
             {
                 request.uploadHandler = new UploadHandlerRaw(body);
@@ -168,6 +171,7 @@ namespace ZWebGLFrameWork.Network
                     onError?.Invoke(request.error);
                 }
             }
+            State = ConnectionState.Disconnected;
         }
 
         private string BuildUrl(string path)

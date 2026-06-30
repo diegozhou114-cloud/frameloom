@@ -13,6 +13,7 @@ namespace ZWebGLFrameWork.Core
         public bool SupportsSyncLoad => false;
 
         private readonly Dictionary<string, AssetBundle> _loadedBundles = new();
+        private readonly object _bundleLock = new object();
         private AssetBundleManifest _manifest;
 
         /// <summary>加载 Manifest（必须最先调用）</summary>
@@ -26,8 +27,11 @@ namespace ZWebGLFrameWork.Core
         /// <summary>异步加载 Bundle</summary>
         public async UniTask<AssetBundle> LoadBundleAsync(string bundleName)
         {
-            if (_loadedBundles.TryGetValue(bundleName, out var cached))
-                return cached;
+            lock (_bundleLock)
+            {
+                if (_loadedBundles.TryGetValue(bundleName, out var cached))
+                    return cached;
+            }
 
             var request = AssetBundle.LoadFromFileAsync(
                 System.IO.Path.Combine(Application.streamingAssetsPath, bundleName));
@@ -35,7 +39,12 @@ namespace ZWebGLFrameWork.Core
 
             var bundle = request.assetBundle;
             if (bundle != null)
-                _loadedBundles[bundleName] = bundle;
+            {
+                lock (_bundleLock)
+                {
+                    _loadedBundles[bundleName] = bundle;
+                }
+            }
             return bundle;
         }
 
@@ -82,19 +91,25 @@ namespace ZWebGLFrameWork.Core
 
         public void Unload(string bundleName)
         {
-            if (_loadedBundles.TryGetValue(bundleName, out var bundle))
+            lock (_bundleLock)
             {
-                bundle.Unload(false);
-                _loadedBundles.Remove(bundleName);
+                if (_loadedBundles.TryGetValue(bundleName, out var bundle))
+                {
+                    bundle.Unload(false);
+                    _loadedBundles.Remove(bundleName);
+                }
             }
         }
 
         public void UnloadUnused()
         {
-            foreach (var bundle in _loadedBundles.Values)
-                bundle.Unload(false);
-            _loadedBundles.Clear();
-            _manifest = null;
+            lock (_bundleLock)
+            {
+                foreach (var bundle in _loadedBundles.Values)
+                    bundle.Unload(false);
+                _loadedBundles.Clear();
+                _manifest = null;
+            }
         }
     }
 }

@@ -116,6 +116,7 @@ namespace ZWebGLFrameWork.Combat
 
         private void TickBattle(float dt)
         {
+            // 安全守卫：若外部直接调用 TickBattle 而非通过 Tick()，防止在错误阶段执行战斗逻辑
             if (CurrentPhase != CombatPhase.Battling) return;
 
             _battleElapsed += dt;

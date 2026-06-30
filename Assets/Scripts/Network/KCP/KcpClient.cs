@@ -25,6 +25,7 @@ namespace ZWebGLFrameWork.Network
         private KcpCore _kcp;
         private UdpClient _udpClient;
         private uint _conv;
+        private bool _connecting;
         private readonly MessageProtocol _protocol = new MessageProtocol();
         private readonly object _protocolLock = new object();
 
@@ -50,7 +51,13 @@ namespace ZWebGLFrameWork.Network
         public void Connect(string host, int port)
         {
             if (State == ConnectionState.Connected) return;
+            if (_connecting)
+            {
+                Debug.LogWarning("[KcpClient] Connect 正在进行中，忽略重复调用");
+                return;
+            }
 
+            _connecting = true;
             _conv = (uint)new System.Random().Next(1, int.MaxValue);
             _kcp = new KcpCore(_conv, OnKcpOutput);
             _kcp.SetNoDelay(1, KcpCore.IKCP_INTERVAL, 2, 1); // nodelay 模式
@@ -61,7 +68,11 @@ namespace ZWebGLFrameWork.Network
             _udpClient.OnConnected += HandleUdpConnected;
             _udpClient.OnDataReceived += OnUdpData;
             _udpClient.OnDisconnected += HandleUdpDisconnected;
-            _udpClient.OnConnectFailed += (err) => OnConnectFailed?.Invoke(err);
+            _udpClient.OnConnectFailed += (err) =>
+            {
+                _connecting = false;
+                OnConnectFailed?.Invoke(err);
+            };
 
             _udpClient.Connect(host, port);
         }
@@ -154,6 +165,7 @@ namespace ZWebGLFrameWork.Network
 
         private void HandleUdpConnected()
         {
+            _connecting = false;
             State = ConnectionState.Connected;
             OnConnected?.Invoke();
             Debug.Log($"[KcpClient] KCP 连接建立, conv={_conv}");

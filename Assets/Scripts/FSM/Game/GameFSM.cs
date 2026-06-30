@@ -82,7 +82,8 @@ namespace ZWebGLFrameWork.FSM
             if (pauseStatus)
             {
                 // 切后台 → 进入暂停
-                if (CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
+                if (CurrentState == GameState.Launch || CurrentState == GameState.Login
+                    || CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
                 {
                     _pauseStartTime = Time.realtimeSinceStartup;
                     ChangeState(GameState.Pause, GamePauseEvent.Background);

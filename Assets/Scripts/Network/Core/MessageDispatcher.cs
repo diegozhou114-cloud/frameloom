@@ -144,8 +144,14 @@ namespace ZWebGLFrameWork.Network
             }
             else if (MessageIdSize == 4)
             {
-                return (ushort)((data[offset] << 24) | (data[offset + 1] << 16) |
-                                (data[offset + 2] << 8) | data[offset + 3]);
+                uint fullId = (uint)((data[offset] << 24) | (data[offset + 1] << 16) |
+                                     (data[offset + 2] << 8) | data[offset + 3]);
+                if ((fullId & 0xFFFF0000) != 0)
+                {
+                    UnityEngine.Debug.LogWarning(
+                        $"[MessageDispatcher] 消息 ID {fullId} 超出 ushort 范围，高 2 字节被截断");
+                }
+                return (ushort)fullId;
             }
             return 0;
         }
@@ -169,6 +175,31 @@ namespace ZWebGLFrameWork.Network
             var data = new byte[2];
             data[0] = (byte)((messageId >> 8) & 0xFF);
             data[1] = (byte)(messageId & 0xFF);
+
+            return MessageProtocol.Encode(data);
+        }
+
+        /// <summary>构建消息帧（4 字节消息 ID + 消息体），用于 MessageIdSize=4 的场景</summary>
+        public static byte[] BuildMessage(uint messageId, byte[] body)
+        {
+            var data = new byte[4 + body.Length];
+            data[0] = (byte)((messageId >> 24) & 0xFF);
+            data[1] = (byte)((messageId >> 16) & 0xFF);
+            data[2] = (byte)((messageId >> 8) & 0xFF);
+            data[3] = (byte)(messageId & 0xFF);
+            Buffer.BlockCopy(body, 0, data, 4, body.Length);
+
+            return MessageProtocol.Encode(data);
+        }
+
+        /// <summary>构建消息帧（仅 4 字节消息 ID，无消息体），用于 MessageIdSize=4 的场景</summary>
+        public static byte[] BuildMessage(uint messageId)
+        {
+            var data = new byte[4];
+            data[0] = (byte)((messageId >> 24) & 0xFF);
+            data[1] = (byte)((messageId >> 16) & 0xFF);
+            data[2] = (byte)((messageId >> 8) & 0xFF);
+            data[3] = (byte)(messageId & 0xFF);
 
             return MessageProtocol.Encode(data);
         }

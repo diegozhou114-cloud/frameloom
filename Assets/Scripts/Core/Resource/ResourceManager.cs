@@ -87,39 +87,52 @@ namespace ZWebGLFrameWork.Core
         /// <summary>卸载指定路径的资源</summary>
         public void Unload(string path)
         {
-            _cache.Remove(path);
+            lock (_cacheLock)
+            {
+                _cache.Remove(path);
+            }
             Provider.Unload(path);
         }
 
         /// <summary>清空所有缓存并卸载未使用资源</summary>
         public void ClearCache()
         {
-            _cache.Clear();
+            lock (_cacheLock)
+            {
+                _cache.Clear();
+            }
             Provider.UnloadUnused();
         }
 
         // ==================== 缓存 ====================
 
         private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _cache = new();
+        private readonly object _cacheLock = new object();
 
         private bool TryGetCache<T>(string key, out T asset) where T : UnityEngine.Object
         {
-            if (_cache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var obj))
+            lock (_cacheLock)
             {
-                if (obj is T t)
+                if (_cache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var obj))
                 {
-                    asset = t;
-                    return true;
+                    if (obj is T t)
+                    {
+                        asset = t;
+                        return true;
+                    }
+                    _cache.Remove(key); // 类型不匹配，移除
                 }
-                _cache.Remove(key); // 类型不匹配，移除
+                asset = null;
+                return false;
             }
-            asset = null;
-            return false;
         }
 
         private void SetCache<T>(string key, T asset) where T : UnityEngine.Object
         {
-            _cache[key] = new WeakReference<UnityEngine.Object>(asset);
+            lock (_cacheLock)
+            {
+                _cache[key] = new WeakReference<UnityEngine.Object>(asset);
+            }
         }
     }
 }

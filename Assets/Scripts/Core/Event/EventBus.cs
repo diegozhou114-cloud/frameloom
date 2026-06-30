@@ -11,6 +11,7 @@ namespace ZWebGLFrameWork.Core
     {
         private static IEventBus _instance;
         private static readonly DefaultEventBus _default = new DefaultEventBus();
+        private static readonly object _instanceLock = new object();
 
         /// <summary>当前实例（默认 = 内置实现）</summary>
         public static IEventBus Instance
@@ -20,10 +21,10 @@ namespace ZWebGLFrameWork.Core
         }
 
         /// <summary>注入自定义实现（单测用）</summary>
-        public static void SetInstance(IEventBus instance) => _instance = instance;
+        public static void SetInstance(IEventBus instance) { lock (_instanceLock) _instance = instance; }
 
         /// <summary>重置为默认实现</summary>
-        public static void ResetInstance() => _instance = null;
+        public static void ResetInstance() { lock (_instanceLock) _instance = null; }
 
         // ==================== 委托方法 ====================
         public static void Subscribe(string eventKey, Action handler)
