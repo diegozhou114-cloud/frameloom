@@ -60,7 +60,18 @@ namespace ZWebGLFrameWork.Core
 
         private static IEnumerator WaitUntilRoutine(Func<bool> predicate, Action onComplete)
         {
-            yield return new WaitUntil(predicate);
+            float elapsed = 0f;
+            const float defaultTimeout = 30f;
+            while (!predicate())
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (elapsed > defaultTimeout)
+                {
+                    Debug.LogWarning($"[CoroutineManager] WaitUntil 超时 ({defaultTimeout}s)");
+                    yield break;
+                }
+                yield return null;
+            }
             onComplete?.Invoke();
         }
     }

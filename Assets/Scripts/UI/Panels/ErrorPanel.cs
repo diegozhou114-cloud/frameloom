@@ -89,6 +89,7 @@ namespace ZWebGLFrameWork.UI
                 _onSkip?.Invoke();
                 Close();
             });
+            _skipButton.interactable = false;
 
             // 重试按钮
             _retryButton = CreateButton("RetryBtn", "重试",
@@ -98,6 +99,7 @@ namespace ZWebGLFrameWork.UI
                 _onRetry?.Invoke();
                 Close();
             });
+            _retryButton.interactable = false;
         }
 
         private Button CreateButton(string name, string label, Color color,
@@ -134,6 +136,9 @@ namespace ZWebGLFrameWork.UI
             // 通过 EventBus 事件通信（避免硬依赖 LaunchState）
             _onRetry = () => EventBus.Publish("Boot_Retry");
             _onSkip = () => EventBus.Publish("Boot_SkipToOffline");
+
+            _retryButton.interactable = true;
+            _skipButton.interactable = evt.CanSkip;
         }
     }
 

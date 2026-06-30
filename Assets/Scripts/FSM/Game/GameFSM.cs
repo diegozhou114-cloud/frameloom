@@ -68,7 +68,6 @@ namespace ZWebGLFrameWork.FSM
                 {
                     GameState.Loading, new HashSet<GameState>
                     {
-                        GameState.Launch,
                         GameState.Login,
                         GameState.MainVillage,
                         GameState.Battle,

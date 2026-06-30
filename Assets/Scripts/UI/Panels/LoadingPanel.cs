@@ -18,6 +18,7 @@ namespace ZWebGLFrameWork.UI
         private Text _versionText;
         private Text _hintText;
         private Image _logoImage;
+        private Sprite _logoSprite;
 
         private const string LogoResourcePath = "UI/Textures/Logo";
 
@@ -30,6 +31,11 @@ namespace ZWebGLFrameWork.UI
         protected override void OnClose()
         {
             EventBus.Unsubscribe<BootProgressEvent>(BootProgressEvent.EventKey, OnBootProgress);
+            if (_logoSprite != null)
+            {
+                Object.Destroy(_logoSprite);
+                _logoSprite = null;
+            }
         }
 
         private void BuildUI()
@@ -116,8 +122,9 @@ namespace ZWebGLFrameWork.UI
             var tex = Resources.Load<Texture2D>(LogoResourcePath);
             if (tex != null)
             {
-                _logoImage.sprite = Sprite.Create(tex,
+                _logoSprite = Sprite.Create(tex,
                     new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                _logoImage.sprite = _logoSprite;
             }
         }
 

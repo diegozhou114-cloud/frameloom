@@ -51,7 +51,7 @@ namespace ZWebGLFrameWork.FSM
 
             // ③ 启动战斗（异步，由 CombatManager.Update 驱动 Tick）
             _battleStarted = false;
-            CombatManager.Instance.StartBattleAsync(mode).Forget();
+            SafeStartBattle(mode);
         }
 
         public override void OnUpdate()
@@ -109,6 +109,18 @@ namespace ZWebGLFrameWork.FSM
         }
 
         // ==================== 内部 ====================
+
+        private async void SafeStartBattle(CombatMode mode)
+        {
+            try
+            {
+                await CombatManager.Instance.StartBattleAsync(mode);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[BattleState] 启动战斗失败: {ex}");
+            }
+        }
 
         private CombatMode CreateMode(string modeId)
         {

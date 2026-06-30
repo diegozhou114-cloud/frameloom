@@ -20,6 +20,7 @@ namespace ZWebGLFrameWork.Data
 
         private readonly List<string> _fieldNames = new List<string>();
         private readonly Dictionary<string, object> _fieldMap = new Dictionary<string, object>();
+        private readonly List<Action> _subscriptions = new List<Action>();
 
         protected ObservableModel()
         {
@@ -53,10 +54,20 @@ namespace ZWebGLFrameWork.Data
 
         private void SubscribeField<T>(Observable<T> observable, string fieldName)
         {
-            observable.OnChanged += (oldVal, newVal) =>
+            Action<T, T> handler = (oldVal, newVal) =>
             {
                 OnAnyChanged?.Invoke(fieldName, oldVal, newVal);
             };
+            observable.OnChanged += handler;
+            _subscriptions.Add(() => observable.OnChanged -= handler);
+        }
+
+        /// <summary>取消所有字段订阅</summary>
+        public void ClearSubscriptions()
+        {
+            foreach (var unsubscribe in _subscriptions)
+                unsubscribe();
+            _subscriptions.Clear();
         }
 
         // ==================== 公共方法 ====================

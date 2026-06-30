@@ -117,6 +117,12 @@ namespace ZWebGLFrameWork.Editor
             Directory.CreateDirectory(path);
             string scenePath = $"{path}/Default.unity";
 
+            if (File.Exists(scenePath))
+            {
+                Debug.LogWarning($"[BuildScript] Default.unity 已存在，跳过覆盖");
+                return scenePath;
+            }
+
             UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
             return scenePath;
         }

@@ -20,6 +20,7 @@ namespace ZWebGLFrameWork.Data
     [Serializable]
     public class PlayerSaveData
     {
+        public int Version = 1;
         public string PlayerName = "Villager";
         public int PlayerLevel = 1;
         public int TownHallLevel = 1;

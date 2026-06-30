@@ -78,7 +78,9 @@ namespace ZWebGLFrameWork.Network
 
             if (bodyLength <= 0 || bodyLength > MaxMessageSize)
             {
-                RemoveBytes(1);
+                // Corrupt frame: reset the entire buffer to resync on the next packet boundary
+                // instead of shifting by 1 byte which causes cascading desync.
+                Reset();
                 return null;
             }
 

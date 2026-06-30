@@ -11,6 +11,7 @@ namespace ZWebGLFrameWork.Data
     /// </summary>
     public static class SaveManager
     {
+        private const int SchemaVersion = 1;
         private const string SaveIndexKey = "Save_Index";     // 当前选中的存档槽位
         private const string SaveFilePrefix = "save_";        // 文件名前缀
         private const string SaveExtension = ".json";
@@ -85,6 +86,7 @@ namespace ZWebGLFrameWork.Data
 
             var saveData = new PlayerSaveData
             {
+                Version = SchemaVersion,
                 PlayerName = player.Name.Value,
                 PlayerLevel = player.Level.Value,
                 TownHallLevel = player.TownHallLevel.Value,
@@ -144,6 +146,9 @@ namespace ZWebGLFrameWork.Data
             int targetSlot = slot ?? CurrentSlot;
             var data = Load<PlayerSaveData>(targetSlot);
             if (data == null) return false;
+
+            if (data.Version != SchemaVersion)
+                Debug.LogWarning($"[SaveManager] 存档版本不匹配: 存档={data.Version}, 当前={SchemaVersion}");
 
             var player = DataManager.Instance.Player;
             player.Name.Value = data.PlayerName;

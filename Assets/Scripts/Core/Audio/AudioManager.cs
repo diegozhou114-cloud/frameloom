@@ -15,6 +15,7 @@ namespace ZWebGLFrameWork.Core
     {
         /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
+        private bool _initialized;
 
         [Header("音频源")]
         [SerializeField] private AudioSource _bgmSource;
@@ -40,6 +41,7 @@ namespace ZWebGLFrameWork.Core
         /// </summary>
         public bool Init()
         {
+            if (_initialized) return true;
             try
             {
                 // 音量使用 Inspector 默认值，后续可通过 SetMasterVolume/SetBGMVolume/SetSFXVolume 运行时调整
@@ -66,6 +68,7 @@ namespace ZWebGLFrameWork.Core
                 }
 
                 ApplyVolumes();
+                _initialized = true;
                 IsReady = true;
                 Debug.Log("[AudioManager] ✅ 初始化完成");
                 return true;
@@ -144,6 +147,12 @@ namespace ZWebGLFrameWork.Core
         }
 
         // ==================== 内部 ====================
+
+        protected override void OnDestroy()
+        {
+            _initialized = false;
+            base.OnDestroy();
+        }
 
         private void ApplyVolumes()
         {

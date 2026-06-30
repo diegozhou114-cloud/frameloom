@@ -20,6 +20,8 @@ namespace ZWebGLFrameWork.Gameplay
         private LineRenderer[] _lineRenderers;
         private GameObject _highlightPlane;
         private MeshRenderer _highlightRenderer;
+        private Material _lineMaterial;
+        private Material _highlightMaterial;
 
         private GridManager _grid => GridManager.Instance;
 
@@ -39,7 +41,8 @@ namespace ZWebGLFrameWork.Gameplay
             _lineRenderers = new LineRenderer[totalLines];
 
             var gridOrigin = _grid.GridOrigin;
-            var lineMat = new Material(Shader.Find("Sprites/Default"));
+            _lineMaterial = new Material(Shader.Find("Sprites/Default"));
+            var lineMat = _lineMaterial;
 
             int index = 0;
 
@@ -92,12 +95,13 @@ namespace ZWebGLFrameWork.Gameplay
             _highlightPlane.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
 
             _highlightRenderer = _highlightPlane.GetComponent<MeshRenderer>();
-            _highlightRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            _highlightMaterial = new Material(Shader.Find("Sprites/Default"));
+            _highlightRenderer.material = _highlightMaterial;
 
             // 透明
             var col = _validColor;
             col.a = 0.3f;
-            _highlightRenderer.material.color = col;
+            _highlightMaterial.color = col;
 
             _highlightPlane.SetActive(false);
         }
@@ -110,7 +114,7 @@ namespace ZWebGLFrameWork.Gameplay
             float w = width * _grid.CellSize;
             float h = height * _grid.CellSize;
 
-            _highlightPlane.transform.position = worldPos + new Vector3(w * 0.5f, 0.02f, h * 0.5f);
+            _highlightPlane.transform.position = worldPos + new Vector3(0f, 0.02f, 0f);
             _highlightPlane.transform.localScale = new Vector3(w, h, 1f);
 
             var col = valid ? _validColor : _invalidColor;
@@ -122,6 +126,14 @@ namespace ZWebGLFrameWork.Gameplay
         {
             if (_highlightPlane != null)
                 _highlightPlane.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            if (_lineMaterial != null)
+                Destroy(_lineMaterial);
+            if (_highlightMaterial != null)
+                Destroy(_highlightMaterial);
         }
 
         /// <summary>显示/隐藏网格线</summary>

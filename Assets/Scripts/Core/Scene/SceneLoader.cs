@@ -67,8 +67,7 @@ namespace ZWebGLFrameWork.Core
             {
                 Debug.LogError($"[SceneLoader] 场景不存在或未在 Build Settings 中注册: {sceneName}");
                 LoadingSceneName = null;
-                throw new System.InvalidOperationException(
-                    $"场景 '{sceneName}' 未在 Build Settings 中注册");
+                return;
             }
 
             op.allowSceneActivation = false;
@@ -85,7 +84,7 @@ namespace ZWebGLFrameWork.Core
                 {
                     Debug.LogError($"[SceneLoader] ⏰ 场景加载超时: {sceneName} ({elapsed:F0}s)");
                     LoadingSceneName = null;
-                    throw new System.TimeoutException($"场景 '{sceneName}' 加载超时 ({loadTimeout}s)");
+                    return;
                 }
 
                 await Cysharp.Threading.Tasks.UniTask.Yield();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -26,6 +27,7 @@ namespace ZWebGLFrameWork.Network
         private readonly byte[] _receiveBuffer = new byte[NetworkDefine.ReceiveBufferSize];
         private Thread _receiveThread;
         private bool _isReceiving;
+        private readonly ConcurrentQueue<byte[]> _pendingData = new ConcurrentQueue<byte[]>();
 
         // ==================== 连接 ====================
 
@@ -128,7 +130,18 @@ namespace ZWebGLFrameWork.Network
 
         public void Update()
         {
-            // UDP 无状态，无需额外维护
+            ProcessPendingData();
+        }
+
+        /// <summary>
+        /// 在主线程调用，将接收线程入队的数据安全地分发给上层。
+        /// </summary>
+        public void ProcessPendingData()
+        {
+            while (_pendingData.TryDequeue(out var data))
+            {
+                OnDataReceived?.Invoke(data);
+            }
         }
 
         // ==================== 接收线程 ====================
@@ -151,7 +164,7 @@ namespace ZWebGLFrameWork.Network
                     {
                         var data = new byte[received];
                         Buffer.BlockCopy(_receiveBuffer, 0, data, 0, received);
-                        OnDataReceived?.Invoke(data);
+                        _pendingData.Enqueue(data);
                     }
                 }
                 catch (SocketException)

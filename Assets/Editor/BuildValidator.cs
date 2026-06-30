@@ -170,17 +170,17 @@ namespace ZWebGLFrameWork.Editor
 
         // ==================== 快捷菜单 ====================
 
-        [MenuItem(MenuRoot + "Quick Build (WebGL)", false, 200)]
-        public static void QuickBuildWebGL() => BuildTarget("WebGL");
+        [MenuItem(MenuRoot + "Quick Validate (WebGL)", false, 200)]
+        public static void QuickValidateWebGL() => BuildTarget("WebGL");
 
-        [MenuItem(MenuRoot + "Quick Build (Windows)", false, 201)]
-        public static void QuickBuildWindows() => BuildTarget("StandaloneWindows64");
+        [MenuItem(MenuRoot + "Quick Validate (Windows)", false, 201)]
+        public static void QuickValidateWindows() => BuildTarget("StandaloneWindows64");
 
-        [MenuItem(MenuRoot + "Quick Build (Android)", false, 202)]
-        public static void QuickBuildAndroid() => BuildTarget("Android");
+        [MenuItem(MenuRoot + "Quick Validate (Android)", false, 202)]
+        public static void QuickValidateAndroid() => BuildTarget("Android");
 
-        [MenuItem(MenuRoot + "Quick Build (iOS)", false, 203)]
-        public static void QuickBuildiOS() => BuildTarget("iOS");
+        [MenuItem(MenuRoot + "Quick Validate (iOS)", false, 203)]
+        public static void QuickValidateiOS() => BuildTarget("iOS");
 
         private static void BuildTarget(string platform)
         {

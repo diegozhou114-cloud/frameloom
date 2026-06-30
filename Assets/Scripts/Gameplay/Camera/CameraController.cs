@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace ZWebGLFrameWork.Gameplay
@@ -37,12 +38,14 @@ namespace ZWebGLFrameWork.Gameplay
         private Vector3 _targetPosition;
         private Vector3 _moveVelocity;
         private Transform _camTransform;
+        private float _originalSmoothTime;
 
         private void Awake()
         {
             _camTransform = transform;
             _targetZoom = _defaultZoom;
             _targetPosition = _camTransform.position;
+            _originalSmoothTime = _moveSmoothTime;
 
             // 设置等距视角（如果未预设）
             SetIsometricView();
@@ -103,6 +106,14 @@ namespace ZWebGLFrameWork.Gameplay
         {
             _targetPosition = new Vector3(worldPos.x, _targetZoom, worldPos.z);
             _moveSmoothTime = duration;
+            StopAllCoroutines();
+            StartCoroutine(RestoreSmoothTime(duration));
+        }
+
+        private IEnumerator RestoreSmoothTime(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            _moveSmoothTime = _originalSmoothTime;
         }
 
         /// <summary>重置视角</summary>
