@@ -53,33 +53,7 @@ namespace ZWebGLFrameWork.Data
                 ScanAvailableLanguages();
 
                 // 加载翻译表
-                var asset = Resources.Load<TextAsset>($"Config/Languages/{language}");
-                if (asset != null)
-                {
-                    var data = JsonUtility.FromJson<LocalizationData>(asset.text);
-                    if (data?.entries != null)
-                    {
-                        foreach (var entry in data.entries)
-                            _translations[entry.key] = entry.value;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，尝试 en-US");
-                    asset = Resources.Load<TextAsset>("Config/Languages/en-US");
-                    if (asset != null)
-                    {
-                        CurrentLanguage = "en-US";
-                        var data = JsonUtility.FromJson<LocalizationData>(asset.text);
-                        if (data?.entries != null)
-                            foreach (var entry in data.entries)
-                                _translations[entry.key] = entry.value;
-                    }
-                    else
-                    {
-                        _translations["test_key"] = "测试文本";
-                    }
-                }
+                LoadLanguageFile(language);
 
                 IsReady = true;
                 Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {CurrentLanguage}, 条目: {_translations.Count}");
@@ -89,6 +63,37 @@ namespace ZWebGLFrameWork.Data
             {
                 Debug.LogError($"[LocalizationManager] ❌ 初始化失败: {ex.Message}");
                 return false;
+            }
+        }
+
+        private void LoadLanguageFile(string language)
+        {
+            var asset = Resources.Load<TextAsset>($"Config/Languages/{language}");
+            if (asset != null)
+            {
+                var data = JsonUtility.FromJson<LocalizationData>(asset.text);
+                if (data?.entries != null)
+                {
+                    foreach (var entry in data.entries)
+                        _translations[entry.key] = entry.value;
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，尝试 en-US");
+                asset = Resources.Load<TextAsset>("Config/Languages/en-US");
+                if (asset != null)
+                {
+                    CurrentLanguage = "en-US";
+                    var data = JsonUtility.FromJson<LocalizationData>(asset.text);
+                    if (data?.entries != null)
+                        foreach (var entry in data.entries)
+                            _translations[entry.key] = entry.value;
+                }
+                else
+                {
+                    _translations["test_key"] = "测试文本";
+                }
             }
         }
 

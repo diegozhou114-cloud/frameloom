@@ -45,46 +45,51 @@ namespace ZWebGLFrameWork.Combat
 
                 current.Closed = true;
 
-                for (int i = 0; i < _directions.Length; i++)
-                {
-                    var neighborPos = current.Position + _directions[i];
-                    if (!_grid.IsInBounds(neighborPos)) continue;
-
-                    // 对角线穿墙检测：检查两个相邻的 cardinal 方向
-                    if (i % 2 == 1)
-                    {
-                        // 正确的 cardinal 邻居索引：方向 (i+7)%8 和 (i+1)%8 总是指向相邻的正方向
-                        var adj1 = current.Position + _directions[(i + 7) % 8];
-                        var adj2 = current.Position + _directions[(i + 1) % 8];
-                        if (IsBlocked(adj1, excludeBuildingId) && IsBlocked(adj2, excludeBuildingId))
-                            continue;
-                    }
-
-                    if (IsBlocked(neighborPos, excludeBuildingId)) continue;
-
-                    var neighbor = GetNode(neighborPos);
-                    if (neighbor.Closed) continue;
-
-                    int newG = current.G + _costs[i];
-                    if (!neighbor.InOpen || newG < neighbor.G)
-                    {
-                        neighbor.G = newG;
-                        neighbor.H = Heuristic(neighborPos, end);
-                        neighbor.Parent = current;
-                        if (!neighbor.InOpen)
-                        {
-                            neighbor.InOpen = true;
-                            _openHeap.Push(neighbor);
-                        }
-                        else
-                        {
-                            _openHeap.Update(neighbor);
-                        }
-                    }
-                }
+                ExpandNeighbors(current, end, excludeBuildingId);
             }
 
             return new List<Vector2Int>();
+        }
+
+        private void ExpandNeighbors(Node current, Vector2Int end, string excludeBuildingId)
+        {
+            for (int i = 0; i < _directions.Length; i++)
+            {
+                var neighborPos = current.Position + _directions[i];
+                if (!_grid.IsInBounds(neighborPos)) continue;
+
+                // 对角线穿墙检测：检查两个相邻的 cardinal 方向
+                if (i % 2 == 1)
+                {
+                    // 正确的 cardinal 邻居索引：方向 (i+7)%8 和 (i+1)%8 总是指向相邻的正方向
+                    var adj1 = current.Position + _directions[(i + 7) % 8];
+                    var adj2 = current.Position + _directions[(i + 1) % 8];
+                    if (IsBlocked(adj1, excludeBuildingId) && IsBlocked(adj2, excludeBuildingId))
+                        continue;
+                }
+
+                if (IsBlocked(neighborPos, excludeBuildingId)) continue;
+
+                var neighbor = GetNode(neighborPos);
+                if (neighbor.Closed) continue;
+
+                int newG = current.G + _costs[i];
+                if (!neighbor.InOpen || newG < neighbor.G)
+                {
+                    neighbor.G = newG;
+                    neighbor.H = Heuristic(neighborPos, end);
+                    neighbor.Parent = current;
+                    if (!neighbor.InOpen)
+                    {
+                        neighbor.InOpen = true;
+                        _openHeap.Push(neighbor);
+                    }
+                    else
+                    {
+                        _openHeap.Update(neighbor);
+                    }
+                }
+            }
         }
 
         private static int Heuristic(Vector2Int a, Vector2Int b)

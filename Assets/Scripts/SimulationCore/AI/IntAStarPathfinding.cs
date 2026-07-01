@@ -52,52 +52,57 @@ namespace ZWebGLFrameWork.SimulationCore
 
                 current.Closed = true;
 
-                for (int i = 0; i < _directions.Length; i++)
-                {
-                    (int dx, int dy) = _directions[i];
-                    int nx = current.X + dx;
-                    int ny = current.Y + dy;
-
-                    if (!InBounds(nx, ny)) continue;
-
-                    // 对角线穿墙检测
-                    if (i % 2 == 1)
-                    {
-                        int adj1Idx = (i + 7) % 8;
-                        int adj2Idx = (i + 1) % 8;
-                        int adj1x = current.X + _directions[adj1Idx].dx;
-                        int adj1y = current.Y + _directions[adj1Idx].dy;
-                        int adj2x = current.X + _directions[adj2Idx].dx;
-                        int adj2y = current.Y + _directions[adj2Idx].dy;
-                        if (!_isWalkable(adj1x, adj1y) || !_isWalkable(adj2x, adj2y))
-                            continue;
-                    }
-
-                    if (!_isWalkable(nx, ny)) continue;
-
-                    var neighbor = GetNode(nx, ny);
-                    if (neighbor.Closed) continue;
-
-                    int newG = current.G + _costs[i];
-                    if (!neighbor.InOpen || newG < neighbor.G)
-                    {
-                        neighbor.G = newG;
-                        neighbor.H = Heuristic(nx, ny, endX, endY);
-                        neighbor.Parent = current;
-                        if (!neighbor.InOpen)
-                        {
-                            neighbor.InOpen = true;
-                            _openHeap.Push(neighbor);
-                        }
-                        else
-                        {
-                            _openHeap.Update(neighbor);
-                        }
-                    }
-                }
+                ExpandNeighbors(current, endX, endY);
             }
 
             return new List<(int, int)>();
+        }
+
+        private void ExpandNeighbors(Node current, int endX, int endY)
+        {
+            for (int i = 0; i < _directions.Length; i++)
+            {
+                (int dx, int dy) = _directions[i];
+                int nx = current.X + dx;
+                int ny = current.Y + dy;
+
+                if (!InBounds(nx, ny)) continue;
+
+                // 对角线穿墙检测
+                if (i % 2 == 1)
+                {
+                    int adj1Idx = (i + 7) % 8;
+                    int adj2Idx = (i + 1) % 8;
+                    int adj1x = current.X + _directions[adj1Idx].dx;
+                    int adj1y = current.Y + _directions[adj1Idx].dy;
+                    int adj2x = current.X + _directions[adj2Idx].dx;
+                    int adj2y = current.Y + _directions[adj2Idx].dy;
+                    if (!_isWalkable(adj1x, adj1y) || !_isWalkable(adj2x, adj2y))
+                        continue;
+                }
+
+                if (!_isWalkable(nx, ny)) continue;
+
+                var neighbor = GetNode(nx, ny);
+                if (neighbor.Closed) continue;
+
+                int newG = current.G + _costs[i];
+                if (!neighbor.InOpen || newG < neighbor.G)
+                {
+                    neighbor.G = newG;
+                    neighbor.H = Heuristic(nx, ny, endX, endY);
+                    neighbor.Parent = current;
+                    if (!neighbor.InOpen)
+                    {
+                        neighbor.InOpen = true;
+                        _openHeap.Push(neighbor);
+                    }
+                    else
+                    {
+                        _openHeap.Update(neighbor);
+                    }
+                }
+            }
         }
 
         private bool InBounds(int x, int y) => x >= 0 && x < _gridWidth && y >= 0 && y < _gridHeight;

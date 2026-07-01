@@ -33,14 +33,30 @@ namespace ZWebGLFrameWork.FSM
             try
             {
                 var cfg = GameLauncher.Config;
-            if (cfg == null)
-            {
-                Debug.LogError("[LaunchState] ❌ AppConfig 为空，初始化终止");
-                UIManager.Instance.Close<LoadingPanel>();
-                PublishError("AppConfig", "配置文件加载失败，请重新安装游戏", false);
-                return;
-            }
+                if (cfg == null)
+                {
+                    Debug.LogError("[LaunchState] ❌ AppConfig 为空，初始化终止");
+                    UIManager.Instance.Close<LoadingPanel>();
+                    PublishError("AppConfig", "配置文件加载失败，请重新安装游戏", false);
+                    return;
+                }
 
+                float progress = InitCoreModules(cfg);
+                if (!await HandleHotUpdate(cfg, progress)) return;
+                await PreloadAndTransition(cfg);
+            }
+            catch (System.Exception ex)
+            {
+                PublishError("LaunchPipeline", $"启动管线崩溃: {ex.Message}", false);
+                UIManager.Instance.Close<LoadingPanel>();
+                Debug.LogException(ex);
+            }
+            finally { _pipelineRunning = false; }
+        }
+
+        // ─── 管线步骤 ①~④：核心模块初始化 ───
+        private float InitCoreModules(AppConfig cfg)
+        {
             // ─── 打开 Loading 遮罩 ───
             UIManager.Instance.Open<LoadingPanel>();
             BootProfiler.BeginPhase("Phase0_Bootstrap");
@@ -91,8 +107,13 @@ namespace ZWebGLFrameWork.FSM
             else Debug.Log("[LaunchState] ⏭ SDK 已关闭");
             progress += step;
 
-            // ─── ⑤ 热更新检查 ───
             BootProfiler.EndPhase("Phase1_EngineInit");
+            return progress;
+        }
+
+        // ─── 管线步骤 ⑤：热更新检查 ───
+        private async UniTask<bool> HandleHotUpdate(AppConfig cfg, float progress)
+        {
             BootProfiler.BeginPhase("Phase2_HotUpdate");
             if (cfg.EnableHotUpdate)
             {
@@ -112,7 +133,7 @@ namespace ZWebGLFrameWork.FSM
                             HotUpdateManager.Instance.HotUpdateBaseUrl ?? "market://details?id=xxx");
                         // 发布错误事件通知用户
                         PublishError("HotUpdate", "检测到强制更新，请前往商店下载最新版本", false);
-                        return; // 终止初始化，等待用户手动更新
+                        return false; // 终止初始化，等待用户手动更新
                     case VersionCheckResult.NeedUpdate:
                         await HotUpdateManager.Instance.DownloadUpdatesAsync();
                         break;
@@ -120,6 +141,12 @@ namespace ZWebGLFrameWork.FSM
             }
             else Debug.Log("[LaunchState] ⏭ 热更已关闭");
 
+            return true;
+        }
+
+        // ─── 管线步骤 ⑥~⑦：数据预加载与场景跳转 ───
+        private async UniTask PreloadAndTransition(AppConfig cfg)
+        {
             // ─── ⑥ 数据预加载 (Phase 3) ───
             BootProfiler.EndPhase("Phase2_HotUpdate");
             BootProfiler.BeginPhase("Phase3_DataPreload");
@@ -157,14 +184,6 @@ namespace ZWebGLFrameWork.FSM
 
             Debug.Log("[LaunchState] ✅ 初始化完成 → Login");
             ChangeState(GameState.Login);
-            }
-            catch (System.Exception ex)
-            {
-                PublishError("LaunchPipeline", $"启动管线崩溃: {ex.Message}", false);
-                UIManager.Instance.Close<LoadingPanel>();
-                Debug.LogException(ex);
-            }
-            finally { _pipelineRunning = false; }
         }
 
         // ==================== 辅助方法 ====================

@@ -151,6 +151,18 @@ namespace ZWebGLFrameWork.SimulationCore
             Perf.RecordTick(CurrentTick, _world.EntityCount, drainMs, updateMs, hashMs);
 
             // 6. Phase logic
+            UpdatePhaseLogic();
+
+            // Snapshot recording AFTER phase transitions, before CurrentTick++ (Bug #6, #10)
+            var snap = _world.ExportFullSnapshot();
+            snap.Tick = CurrentTick;
+            _snapshotHistory[CurrentTick % 64] = snap;
+
+            CurrentTick++;
+        }
+
+        private void UpdatePhaseLogic()
+        {
             switch (CurrentPhase)
             {
                 case SimCombatPhase.Deploying:
@@ -176,13 +188,6 @@ namespace ZWebGLFrameWork.SimulationCore
                     // 已结束，不再推进
                     break;
             }
-
-            // Snapshot recording AFTER phase transitions, before CurrentTick++ (Bug #6, #10)
-            var snap = _world.ExportFullSnapshot();
-            snap.Tick = CurrentTick;
-            _snapshotHistory[CurrentTick % 64] = snap;
-
-            CurrentTick++;
         }
 
         /// <summary>强制设置阶段（用于测试）</summary>

@@ -96,65 +96,74 @@ namespace ZWebGLFrameWork.Gameplay
         {
             switch (touch.phase)
             {
-                case TouchPhase.Began:
-                    if (IsOverUI) return;
-                    if (EventSystem.current != null &&
-                        EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
-                    _touchStartPos = touch.position;
-                    _touchStartTime = Time.unscaledTime;
-                    _isDragging = false;
-                    _longPressTriggered = false;
-                    _tapBlocked = false;
-                    break;
+                case TouchPhase.Began:      HandleTouchBegan(touch);    break;
+                case TouchPhase.Moved:      HandleTouchMoved(touch);    break;
+                case TouchPhase.Ended:      HandleTouchEnded(touch);    break;
+                case TouchPhase.Stationary: HandleTouchStationary(touch); break;
+            }
+        }
 
-                case TouchPhase.Moved:
-                    float dist = Vector2.Distance(touch.position, _touchStartPos);
-                    if (dist > _tapMaxMovement && !_isDragging)
-                    {
-                        _isDragging = true;
-                        _tapBlocked = true;
-                    }
+        private void HandleTouchBegan(Touch touch)
+        {
+            if (IsOverUI) return;
+            if (EventSystem.current != null &&
+                EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
+            _touchStartPos = touch.position;
+            _touchStartTime = Time.unscaledTime;
+            _isDragging = false;
+            _longPressTriggered = false;
+            _tapBlocked = false;
+        }
 
-                    if (_isDragging)
-                    {
-                        // 相机平移
-                        Vector3 worldDelta = ScreenToWorldDelta(touch.deltaPosition);
-                        _cameraController?.Pan(worldDelta);
+        private void HandleTouchMoved(Touch touch)
+        {
+            float dist = Vector2.Distance(touch.position, _touchStartPos);
+            if (dist > _tapMaxMovement && !_isDragging)
+            {
+                _isDragging = true;
+                _tapBlocked = true;
+            }
 
-                        BroadcastGesture(new GestureData
-                        {
-                            Type = GestureType.Drag,
-                            ScreenPosition = touch.position,
-                            Delta = touch.deltaPosition,
-                        });
-                    }
-                    break;
+            if (_isDragging)
+            {
+                // 相机平移
+                Vector3 worldDelta = ScreenToWorldDelta(touch.deltaPosition);
+                _cameraController?.Pan(worldDelta);
 
-                case TouchPhase.Ended:
-                    float duration = Time.unscaledTime - _touchStartTime;
-                    if (!_tapBlocked && !_isDragging && duration <= _tapMaxDuration)
-                    {
-                        BroadcastGesture(new GestureData
-                        {
-                            Type = GestureType.Tap,
-                            ScreenPosition = touch.position,
-                        });
-                    }
-                    break;
+                BroadcastGesture(new GestureData
+                {
+                    Type = GestureType.Drag,
+                    ScreenPosition = touch.position,
+                    Delta = touch.deltaPosition,
+                });
+            }
+        }
 
-                case TouchPhase.Stationary:
-                    if (!_longPressTriggered && !_isDragging &&
-                        Time.unscaledTime - _touchStartTime >= _longPressDuration)
-                    {
-                        _longPressTriggered = true;
-                        _tapBlocked = true;
-                        BroadcastGesture(new GestureData
-                        {
-                            Type = GestureType.LongPress,
-                            ScreenPosition = touch.position,
-                        });
-                    }
-                    break;
+        private void HandleTouchEnded(Touch touch)
+        {
+            float duration = Time.unscaledTime - _touchStartTime;
+            if (!_tapBlocked && !_isDragging && duration <= _tapMaxDuration)
+            {
+                BroadcastGesture(new GestureData
+                {
+                    Type = GestureType.Tap,
+                    ScreenPosition = touch.position,
+                });
+            }
+        }
+
+        private void HandleTouchStationary(Touch touch)
+        {
+            if (!_longPressTriggered && !_isDragging &&
+                Time.unscaledTime - _touchStartTime >= _longPressDuration)
+            {
+                _longPressTriggered = true;
+                _tapBlocked = true;
+                BroadcastGesture(new GestureData
+                {
+                    Type = GestureType.LongPress,
+                    ScreenPosition = touch.position,
+                });
             }
         }
 

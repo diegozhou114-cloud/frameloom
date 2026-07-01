@@ -53,19 +53,7 @@ namespace ZWebGLFrameWork.Network
                     ? System.Net.Sockets.AddressFamily.InterNetworkV6
                     : System.Net.Sockets.AddressFamily.InterNetwork;
 
-                _socket = new Socket(addressFamily, SocketType.Dgram, ProtocolType.Udp);
-
-                // 双栈模式：IPv6 socket 同时支持 IPv4
-                if (addressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                {
-                    _socket.DualMode = true;
-                }
-
-                _socket.Bind(new IPEndPoint(
-                    addressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
-                        ? IPAddress.IPv6Any
-                        : IPAddress.Any,
-                    0));
+                CreateAndBindSocket(addressFamily);
 
                 _remoteEndPoint = new IPEndPoint(IPAddress.Parse(ip), port);
                 State = ConnectionState.Connected;
@@ -88,6 +76,23 @@ namespace ZWebGLFrameWork.Network
                 OnConnectFailed?.Invoke(ex.Message);
                 Debug.LogError($"[UdpClient] 绑定失败: {ex.Message}");
             }
+        }
+
+        private void CreateAndBindSocket(System.Net.Sockets.AddressFamily addressFamily)
+        {
+            _socket = new Socket(addressFamily, SocketType.Dgram, ProtocolType.Udp);
+
+            // 双栈模式：IPv6 socket 同时支持 IPv4
+            if (addressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                _socket.DualMode = true;
+            }
+
+            _socket.Bind(new IPEndPoint(
+                addressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+                    ? IPAddress.IPv6Any
+                    : IPAddress.Any,
+                0));
         }
 
         public void Disconnect()

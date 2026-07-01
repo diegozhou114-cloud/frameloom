@@ -105,19 +105,13 @@ namespace ZWebGLFrameWork.Network
 
             // 只有 IPv4
             if (dnsResult.HasIPv4 && !dnsResult.HasIPv6)
-            {
-                var socket = await ConnectAsync(dnsResult.IPv4Address, port, 
-                    System.Net.Sockets.AddressFamily.InterNetwork);
-                return (socket, Network.AddressFamily.IPv4);
-            }
+                return await ConnectSingleStack(dnsResult.IPv4Address, port,
+                    System.Net.Sockets.AddressFamily.InterNetwork, Network.AddressFamily.IPv4);
 
             // 只有 IPv6
             if (dnsResult.HasIPv6 && !dnsResult.HasIPv4)
-            {
-                var socket = await ConnectAsync(dnsResult.IPv6Address, port,
-                    System.Net.Sockets.AddressFamily.InterNetworkV6);
-                return (socket, Network.AddressFamily.IPv6);
-            }
+                return await ConnectSingleStack(dnsResult.IPv6Address, port,
+                    System.Net.Sockets.AddressFamily.InterNetworkV6, Network.AddressFamily.IPv6);
 
             // 双栈 → Happy Eyeballs
             // 优先发起 IPv6 连接
@@ -160,6 +154,14 @@ namespace ZWebGLFrameWork.Network
             CloseLoserSocket(loserTask);
 
             return (winnerSocket, winnerFamily);
+        }
+
+        private static async Task<(Socket socket, AddressFamily family)> ConnectSingleStack(
+            string ip, int port,
+            System.Net.Sockets.AddressFamily sockFamily, AddressFamily netFamily)
+        {
+            var socket = await ConnectAsync(ip, port, sockFamily);
+            return (socket, netFamily);
         }
 
         private static void CloseLoserSocket(Task<Socket> task)

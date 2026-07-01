@@ -162,6 +162,17 @@ namespace ZWebGLFrameWork.Data
             }
 
             var player = dm.Player;
+            RestorePlayer(player, data);
+
+            var village = dm.Village;
+            RestoreBuildings(village, data, targetSlot);
+
+            Debug.Log($"[SaveManager] 数据写入 DataManager: slot={targetSlot}");
+            return true;
+        }
+
+        private static void RestorePlayer(PlayerData player, PlayerSaveData data)
+        {
             player.Name.Value = data.PlayerName;
             player.Level.Value = data.PlayerLevel;
             player.TownHallLevel.Value = data.TownHallLevel;
@@ -171,8 +182,10 @@ namespace ZWebGLFrameWork.Data
             player.Gems.Value = data.Gems;
             player.Trophies.Value = data.Trophies;
             player.Exp.Value = data.Exp;
+        }
 
-            var village = dm.Village;
+        private static void RestoreBuildings(VillageData village, PlayerSaveData data, int targetSlot)
+        {
             village.Buildings.Clear();
             if (data.Buildings != null)
             {
@@ -194,9 +207,6 @@ namespace ZWebGLFrameWork.Data
                     village.AddBuilding(BuildingData.Create(b.TypeId, b.GridX, b.GridY));
                 }
             }
-
-            Debug.Log($"[SaveManager] 数据写入 DataManager: slot={targetSlot}");
-            return true;
         }
 
         // ==================== 删除 ====================

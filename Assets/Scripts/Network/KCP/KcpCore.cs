@@ -294,45 +294,9 @@ namespace ZWebGLFrameWork.Network
             int pos = offset;
             while (pos < offset + length)
             {
-                if (length - pos < KcpOverhead) break;
-
-                uint segConv = ReadU32(data, pos);
-                if (segConv != _conv) { pos += KcpOverhead; continue; }
-
-                byte cmd = data[pos + 4];
-                byte frg = data[pos + 5];
-                ushort wnd = ReadU16(data, pos + 6);
-                uint ts = ReadU32(data, pos + 8);
-                uint sn = ReadU32(data, pos + 12);
-                uint una = ReadU32(data, pos + 16);
-                int dataLen = (int)ReadU32(data, pos + 20);
-
-                pos += KcpOverhead;
-                if (pos + dataLen > offset + length) break;
-
-                flag = 1; // 标记有有效数据包
-                if (una > receivedUna) receivedUna = una;
-
-                // 处理各类命令
-                switch (cmd)
-                {
-                    case KcpCmd.Push:
-                        ParseData(sn, frg, ts, data, pos, dataLen);
-                        break;
-                    case KcpCmd.Ack:
-                        ParseAck(sn, ts);
-                        break;
-                    case KcpCmd.WAsk:
-                        ParseWAsk();
-                        break;
-                    case KcpCmd.Wins:
-                        ParseWins(wnd);
-                        break;
-                }
-
-                if (sn > maxAck) maxAck = (int)sn;
-
-                pos += dataLen;
+                int newPos = ParseKcpPacket(data, pos, offset + length, ref flag, ref receivedUna, ref maxAck);
+                if (newPos < 0) break;
+                pos = newPos;
             }
 
             // 处理累积 ACK (una) — 更新对端已连续收到的序列号
@@ -349,6 +313,51 @@ namespace ZWebGLFrameWork.Network
             }
 
             return 0;
+        }
+
+        /// <returns>New position after consuming this packet, or -1 if we should break the loop</returns>
+        private int ParseKcpPacket(byte[] data, int pos, int endPos,
+            ref int flag, ref uint receivedUna, ref int maxAck)
+        {
+            if (endPos - pos < KcpOverhead) return -1;
+
+            uint segConv = ReadU32(data, pos);
+            if (segConv != _conv) return pos + KcpOverhead;
+
+            byte cmd = data[pos + 4];
+            byte frg = data[pos + 5];
+            ushort wnd = ReadU16(data, pos + 6);
+            uint ts = ReadU32(data, pos + 8);
+            uint sn = ReadU32(data, pos + 12);
+            uint una = ReadU32(data, pos + 16);
+            int dataLen = (int)ReadU32(data, pos + 20);
+
+            pos += KcpOverhead;
+            if (pos + dataLen > endPos) return -1;
+
+            flag = 1; // 标记有有效数据包
+            if (una > receivedUna) receivedUna = una;
+
+            // 处理各类命令
+            switch (cmd)
+            {
+                case KcpCmd.Push:
+                    ParseData(sn, frg, ts, data, pos, dataLen);
+                    break;
+                case KcpCmd.Ack:
+                    ParseAck(sn, ts);
+                    break;
+                case KcpCmd.WAsk:
+                    ParseWAsk();
+                    break;
+                case KcpCmd.Wins:
+                    ParseWins(wnd);
+                    break;
+            }
+
+            if (sn > maxAck) maxAck = (int)sn;
+
+            return pos + dataLen;
         }
 
         /// <summary>定时更新 — 每 10~100ms 调用一次</summary>
@@ -676,6 +685,22 @@ namespace ZWebGLFrameWork.Network
             }
 
             // 3. 将 sndQueue 中的段移到 sndBuf（分配 SN）
+            MoveSegmentsToSendBuf(cwnd);
+
+            // 4. 发送 ACK
+            FlushAck();
+
+            // 5. 检查重传
+            uint rtomin = _nodelay != 0 ? 0 : _rxRto >> 3;
+            uint resentCount = ProcessRetransmissions(rtomin);
+
+            // 6. 拥塞控制
+            ApplyCongestionControl(cwnd, resentCount);
+        }
+
+        // ─── Flush 子步骤 3：从 sndQueue 搬移到 sndBuf 并分配 SN ───
+        private void MoveSegmentsToSendBuf(uint cwnd)
+        {
             while (_sndNxt < _sndUna + cwnd && _sndQueue.Count > 0)
             {
                 var seg = _sndQueue.First.Value;
@@ -693,13 +718,12 @@ namespace ZWebGLFrameWork.Network
 
                 _sndBuf.AddLast(seg);
             }
+        }
 
-            // 4. 发送 ACK
-            FlushAck();
-
-            // 5. 检查重传
+        // ─── Flush 子步骤 5：遍历 sndBuf，重传超时/快速重传段并输出到 UDP ───
+        private uint ProcessRetransmissions(uint rtomin)
+        {
             uint resentCount = 0;
-            uint rtomin = _nodelay != 0 ? 0 : _rxRto >> 3;
 
             var node = _sndBuf.First;
             while (node != null)
@@ -768,7 +792,13 @@ namespace ZWebGLFrameWork.Network
                 node = node.Next;
             }
 
-            // 6. 拥塞控制 — 仅在检测到新丢包时减半（不在每次Flush重复触发）
+            return resentCount;
+        }
+
+        // ─── Flush 子步骤 6：拥塞控制窗口更新 ───
+        private void ApplyCongestionControl(uint cwnd, uint resentCount)
+        {
+            // 拥塞控制 — 仅在检测到新丢包时减半（不在每次Flush重复触发）
             if (resentCount > 0)
             {
                 _ssthresh = Math.Max(1, cwnd / 2);

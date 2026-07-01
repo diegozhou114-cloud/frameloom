@@ -126,6 +126,18 @@ namespace ZWebGLFrameWork.Combat
             await _orchestrator.RunBattlePhaseAsync(_systems, _ai, DeathSys, mode, _spawner);
 
             // 结算
+            var result = CalculateResult(mode);
+
+            EventBus.Publish(CombatOrchestrator.EventCombatEnded, result);
+            Debug.Log($"[CombatManager] 结算: winner={result.Winner}, stars={result.Stars}");
+
+            await _orchestrator.RunEndPhaseAsync(result);
+            await _orchestrator.CleanupAsync(_systems);
+            FreshBattle();
+        }
+
+        private CombatEndEvent CalculateResult(CombatMode mode)
+        {
             var winner = DeathSys.Winner ?? Team.Defender;
             if (winner == Team.None)
             {
@@ -134,15 +146,8 @@ namespace ZWebGLFrameWork.Combat
             }
             var village = Data.DataManager.Instance?.Village;
             int destroyed = (village?.Buildings?.Count ?? 0) - DeathSys.DefenderAlive;
-            var result = mode.CalculateResult(winner, village?.Buildings?.Count ?? 0, destroyed,
+            return mode.CalculateResult(winner, village?.Buildings?.Count ?? 0, destroyed,
                 Time.time);
-
-            EventBus.Publish(CombatOrchestrator.EventCombatEnded, result);
-            Debug.Log($"[CombatManager] 结算: winner={result.Winner}, stars={result.Stars}");
-
-            await _orchestrator.RunEndPhaseAsync(result);
-            await _orchestrator.CleanupAsync(_systems);
-            FreshBattle();
         }
 
         // ==================== SimulationCore 路径 ====================
@@ -217,7 +222,20 @@ namespace ZWebGLFrameWork.Combat
             if (tick % AIUpdateInterval != 0 || tick == _simAILastTick) return;
             _simAILastTick = tick;
 
-            // 收集所有存活的防守方位置
+            var defenders = CollectAliveDefenders();
+            if (defenders.Count == 0) return;
+
+            _simWorld.ForEachEntities<SimTransformComponent>(entity =>
+            {
+                if (!_simWorld.TryGetComponent<SimTeamComponent>(entity, out var team)) return;
+                if (team.TeamId != SimTeam.Attacker) return;
+                if (!_simWorld.TryGetComponent<SimTransformComponent>(entity, out var tf)) return;
+                AssignTargetAndPath(entity, tf, defenders);
+            });
+        }
+
+        private List<(SimEntity entity, int gx, int gy)> CollectAliveDefenders()
+        {
             var defenders = new List<(SimEntity entity, int gx, int gy)>();
             _simWorld.ForEachEntities<SimHealthComponent>(entity =>
             {
@@ -228,52 +246,47 @@ namespace ZWebGLFrameWork.Combat
                 if (!_simWorld.TryGetComponent<SimTransformComponent>(entity, out var tf)) return;
                 defenders.Add((entity, tf.GridX, tf.GridY));
             });
+            return defenders;
+        }
 
-            if (defenders.Count == 0) return;
-
-            // 为每个攻击方分配最近目标 + 路径
-            _simWorld.ForEachEntities<SimTransformComponent>(entity =>
+        private void AssignTargetAndPath(SimEntity entity, SimTransformComponent tf,
+            List<(SimEntity entity, int gx, int gy)> defenders)
+        {
+            // 找最近防守方
+            SimEntity nearest = SimEntity.Invalid;
+            int bestDist = int.MaxValue;
+            int bestGX = 0, bestGY = 0;
+            foreach (var (def, dgx, dgy) in defenders)
             {
-                if (!_simWorld.TryGetComponent<SimTeamComponent>(entity, out var team)) return;
-                if (team.TeamId != SimTeam.Attacker) return;
-                if (!_simWorld.TryGetComponent<SimTransformComponent>(entity, out var tf)) return;
+                int d = System.Math.Abs(tf.GridX - dgx) + System.Math.Abs(tf.GridY - dgy);
+                if (d < bestDist) { bestDist = d; nearest = def; bestGX = dgx; bestGY = dgy; }
+            }
 
-                // 找最近防守方
-                SimEntity nearest = SimEntity.Invalid;
-                int bestDist = int.MaxValue;
-                int bestGX = 0, bestGY = 0;
-                foreach (var (def, dgx, dgy) in defenders)
-                {
-                    int d = System.Math.Abs(tf.GridX - dgx) + System.Math.Abs(tf.GridY - dgy);
-                    if (d < bestDist) { bestDist = d; nearest = def; bestGX = dgx; bestGY = dgy; }
-                }
+            if (!nearest.IsValid) return;
 
-                if (!nearest.IsValid) return;
+            // 设置目标
+            _simWorld.SetComponent(entity, new SimTargetComponent { TargetEntity = nearest });
 
-                // 设置目标
-                _simWorld.SetComponent(entity, new SimTargetComponent { TargetEntity = nearest });
+            // 寻路
+            var path = _simPathfinding.FindPath(tf.GridX, tf.GridY, bestGX, bestGY);
+            if (!_simWorld.TryGetComponent<SimMovementComponent>(entity, out var mov)) return;
 
-                // 寻路
-                var path = _simPathfinding.FindPath(tf.GridX, tf.GridY, bestGX, bestGY);
-                if (!_simWorld.TryGetComponent<SimMovementComponent>(entity, out var mov)) return;
-
-                if (path.Count > 0)
-                {
-                    var packed = new List<int>(path.Count);
-                    foreach (var (x, y) in path)
-                        packed.Add((x << 16) | y);
-                    mov.Path = packed;
-                    mov.PathIndex = 0;
-                    mov.TargetGridX = bestGX;
-                    mov.TargetGridY = bestGY;
-                }
-                else
-                {
-                    mov.Path = null;
-                    mov.PathIndex = 0;
-                }
-                _simWorld.SetComponent(entity, mov);
-            });
+            if (path.Count > 0)
+            {
+                var packed = new List<int>(path.Count);
+                foreach (var (x, y) in path)
+                    packed.Add((x << 16) | y);
+                mov.Path = packed;
+                mov.PathIndex = 0;
+                mov.TargetGridX = bestGX;
+                mov.TargetGridY = bestGY;
+            }
+            else
+            {
+                mov.Path = null;
+                mov.PathIndex = 0;
+            }
+            _simWorld.SetComponent(entity, mov);
         }
 
         /// <summary>在网格边缘生成攻击方单位</summary>

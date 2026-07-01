@@ -364,31 +364,37 @@ namespace ZWebGLFrameWork.SimulationCore
                 });
                 foreach (var chunk in chunks)
                 {
-                    for (int i = 0; i < chunk.Count; i++)
-                    {
-                        // 哈希 Entity ID + Generation
-                        const ulong prime = 1099511628211UL;
-                        hash ^= (ulong)chunk.EntityIds[i]; hash *= prime;
-                        hash ^= (ulong)chunk.Generations[i]; hash *= prime;
+                    hash = HashChunk(archetype, chunk, hash);
+                }
+            }
+            return hash;
+        }
 
-                        // 哈希每个组件（直接类型转换，零装箱）
-                        for (int c = 0; c < archetype.ComponentTypeIds.Length; c++)
-                        {
-                            Array col = chunk.ComponentColumns[c];
-                            if (col is SimTransformComponent[] tCol)
-                                hash = tCol[i].HashInto(hash);
-                            else if (col is SimHealthComponent[] hCol)
-                                hash = hCol[i].HashInto(hash);
-                            else if (col is SimTeamComponent[] teamCol)
-                                hash = teamCol[i].HashInto(hash);
-                            else if (col is SimMovementComponent[] mCol)
-                                hash = mCol[i].HashInto(hash);
-                            else if (col is SimAttackComponent[] aCol)
-                                hash = aCol[i].HashInto(hash);
-                            else if (col is SimTargetComponent[] tgtCol)
-                                hash = tgtCol[i].HashInto(hash);
-                        }
-                    }
+        private static ulong HashChunk(SimArchetype archetype, SimChunk chunk, ulong hash)
+        {
+            for (int i = 0; i < chunk.Count; i++)
+            {
+                // 哈希 Entity ID + Generation
+                const ulong prime = 1099511628211UL;
+                hash ^= (ulong)chunk.EntityIds[i]; hash *= prime;
+                hash ^= (ulong)chunk.Generations[i]; hash *= prime;
+
+                // 哈希每个组件（直接类型转换，零装箱）
+                for (int c = 0; c < archetype.ComponentTypeIds.Length; c++)
+                {
+                    Array col = chunk.ComponentColumns[c];
+                    if (col is SimTransformComponent[] tCol)
+                        hash = tCol[i].HashInto(hash);
+                    else if (col is SimHealthComponent[] hCol)
+                        hash = hCol[i].HashInto(hash);
+                    else if (col is SimTeamComponent[] teamCol)
+                        hash = teamCol[i].HashInto(hash);
+                    else if (col is SimMovementComponent[] mCol)
+                        hash = mCol[i].HashInto(hash);
+                    else if (col is SimAttackComponent[] aCol)
+                        hash = aCol[i].HashInto(hash);
+                    else if (col is SimTargetComponent[] tgtCol)
+                        hash = tgtCol[i].HashInto(hash);
                 }
             }
             return hash;

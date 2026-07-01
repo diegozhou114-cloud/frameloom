@@ -129,6 +129,17 @@ namespace ZWebGLFrameWork.FSM
             }
 
             // 校验 + 应用
+            if (!await VerifyAndApply(files, downloadDir))
+                return false;
+
+            NeedRestart = true;
+            PublishProgress("更新完成", 1f, "即将重启应用");
+            Debug.Log("[HotUpdateManager] ✅ 更新完成，需要重启");
+            return true;
+        }
+
+        private async UniTask<bool> VerifyAndApply(List<UpdateFileInfo> files, string downloadDir)
+        {
             PublishProgress("校验文件...", 0.9f);
             if (!VerifyAllFiles(files, downloadDir))
             {
@@ -141,10 +152,6 @@ namespace ZWebGLFrameWork.FSM
 
             // C.3: 热更包中可能包含新的 AppConfig，下载完成后自动同步
             TrySyncAppConfig(downloadDir);
-
-            NeedRestart = true;
-            PublishProgress("更新完成", 1f, "即将重启应用");
-            Debug.Log("[HotUpdateManager] ✅ 更新完成，需要重启");
             return true;
         }
 
@@ -192,6 +199,16 @@ namespace ZWebGLFrameWork.FSM
             }
 
             var data = request.downloadHandler.data;
+            await WriteDownloadedFile(tmpPath, data, existingBytes);
+
+            request.Dispose();
+            DownloadedBytes += data.Length;
+            UpdateDownloadProgress(index + 1, total);
+            return true;
+        }
+
+        private static async UniTask WriteDownloadedFile(string tmpPath, byte[] data, long existingBytes)
+        {
             if (existingBytes > 0)
             {
                 // 追加写入
@@ -202,11 +219,6 @@ namespace ZWebGLFrameWork.FSM
             {
                 await File.WriteAllBytesAsync(tmpPath, data);
             }
-
-            request.Dispose();
-            DownloadedBytes += data.Length;
-            UpdateDownloadProgress(index + 1, total);
-            return true;
         }
 
         private bool VerifyAllFiles(List<UpdateFileInfo> files, string baseDir)
