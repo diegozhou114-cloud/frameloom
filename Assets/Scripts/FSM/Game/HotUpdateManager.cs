@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using ZWebGLFrameWork.Core;
-using ZWebGLFrameWork.Network;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -27,8 +26,7 @@ namespace ZWebGLFrameWork.FSM
         public string HotUpdateBaseUrl { get; set; }  // 可在 AppConfig 中配置
         public string HotUpdateManifestPath { get; set; } = "update_manifest.json";
 
-        // TODO: Remove unused _http HttpClient or use it for manifest downloads
-        private HttpClient _http;
+        // TODO: HTTP is now done via UnityWebRequest (see GetManifestAsync / DownloadFileAsync)
 
         // ==================== 初始化 ====================
 
@@ -36,8 +34,6 @@ namespace ZWebGLFrameWork.FSM
         {
             try
             {
-                _http = new HttpClient();
-                _http.Connect(HotUpdateBaseUrl ?? "https://your-cdn.com", 443);
                 PhaseDescription = "等待检查";
                 IsReady = true;
                 Debug.Log($"[HotUpdateManager] ✅ 初始化完成 — 本地: {LocalVersion}, CDN: {HotUpdateBaseUrl}");

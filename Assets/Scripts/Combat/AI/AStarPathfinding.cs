@@ -130,6 +130,10 @@ namespace ZWebGLFrameWork.Combat
             public int HeapIndex = -1; // 在堆中的位置（用于 Update）
         }
 
+        // NOTE: This BinaryHeap is duplicated in SimulationCore/AI/IntAStarPathfinding.cs.
+        // Both are private inner classes tied to their respective Node types (Vector2Int vs int,int).
+        // TODO: Extract a shared generic BinaryHeap<T> utility — the algorithm is identical aside
+        // from the Compare key (F→H here vs F→H→X→Y in IntAStarPathfinding for determinism).
         /// <summary>最小二叉堆 — O(log N) 插入/弹出，支持更新优先级</summary>
         private class BinaryHeap
         {

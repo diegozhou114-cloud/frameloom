@@ -53,8 +53,7 @@ namespace ZWebGLFrameWork.Combat
 
         public override void SpawnAttackerWave(UnitSpawner spawner, int wave)
         {
-            // 部落战不支持波次，由部署阶段决定
-            Debug.LogWarning($"[ClanWarMode] SpawnAttackerWave(wave={wave}) 被意外调用 —— 部落战不应使用波次生成。UseWaves=false，请检查 CombatOrchestrator。");
+            throw new System.NotSupportedException("ClanWarMode does not use waves");
         }
     }
 }

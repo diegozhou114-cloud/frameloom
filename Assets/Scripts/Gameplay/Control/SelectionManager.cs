@@ -25,7 +25,7 @@ namespace ZWebGLFrameWork.Gameplay
     /// 选中变更通过 EventBus 广播。
     /// </summary>
     /// <remarks>当前仅支持单选；多选（框选/Shift+点击）尚未实现。</remarks>
-    public class SelectionManager : Singleton<SelectionManager>
+    public class SelectionManager : SingletonDontDestroy<SelectionManager>
     {
         /// <summary>EventBus：选中变更</summary>
         public const string EventSelectionChanged = "SelectionChanged";

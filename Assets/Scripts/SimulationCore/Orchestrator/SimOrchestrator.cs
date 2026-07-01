@@ -257,7 +257,6 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             WarnIfStub();
             // TODO: 从配置表获取单位原型，在 _world 中创建 SimEntity
-            // var entity = _world.CreateEntity(cmd.UnitTypeId, cmd.GridX, cmd.GridY, cmd.PlayerId);
             UnityEngine.Debug.Log($"[SimOrchestrator] DeployCmd: unitType={cmd.UnitTypeId} at ({cmd.GridX},{cmd.GridY}) player={cmd.PlayerId}");
         }
 

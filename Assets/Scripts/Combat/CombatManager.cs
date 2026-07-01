@@ -16,6 +16,11 @@ namespace ZWebGLFrameWork.Combat
     /// </summary>
     public class CombatManager : SingletonDontDestroy<CombatManager>
     {
+        private const int DefaultEntityCapacity = 256;
+        private const float SimTickRate = 20f;
+        private const int AIUpdateInterval = 10;
+        private const int MaxSpawnCount = 8;
+
         public static string EventPhaseChanged => CombatOrchestrator.EventPhaseChanged;
         public static string EventCombatEnded => CombatOrchestrator.EventCombatEnded;
 
@@ -147,7 +152,7 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>以 SimulationCore 引擎启动本地战斗</summary>
         public void StartSimBattle()
         {
-            _simWorld = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
+            _simWorld = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), DefaultEntityCapacity);
             _simCommandBuffer = new CommandBuffer();
             var initializer = new SimInitializerImpl(Data.DataManager.Instance.Village, seed: 42);
             _simSystems = SimCombatBootstrap.Build(_simWorld);
@@ -162,7 +167,7 @@ namespace ZWebGLFrameWork.Combat
             if (viewConfig == null)
                 viewConfig = ScriptableObject.CreateInstance<ViewConfig>();
             _syncBridge = new SimulationSyncBridge(_simWorld, viewConfig);
-            _interpolator = new Interpolator(20f);
+            _interpolator = new Interpolator(SimTickRate);
             _simTickAccumulator = 0f;
 
             // 确定性 A* 寻路（纯逻辑网格，无 Unity 依赖）
@@ -183,7 +188,7 @@ namespace ZWebGLFrameWork.Combat
             _interpolator.Update(dt);
             _syncBridge.SyncPositions(_interpolator);
 
-            const float simDt = 1f / 20f; // 20 ticks/second
+            const float simDt = 1f / SimTickRate;
             _simTickAccumulator += dt;
             while (_simTickAccumulator >= simDt)
             {
@@ -209,7 +214,7 @@ namespace ZWebGLFrameWork.Combat
             }
 
             // 每 10 Tick 重新分配目标
-            if (tick % 10 != 0 || tick == _simAILastTick) return;
+            if (tick % AIUpdateInterval != 0 || tick == _simAILastTick) return;
             _simAILastTick = tick;
 
             // 收集所有存活的防守方位置
@@ -275,7 +280,7 @@ namespace ZWebGLFrameWork.Combat
         private void SpawnSimAttackers()
         {
             var grid = GridManager.Instance;
-            int spawnCount = System.Math.Min(8, grid.Rows / 2);
+            int spawnCount = System.Math.Min(MaxSpawnCount, grid.Rows / 2);
 
             for (int i = 0; i < spawnCount; i++)
             {
@@ -300,7 +305,7 @@ namespace ZWebGLFrameWork.Combat
 
         private void FreshBattle()
         {
-            ECSWorld = new World(256);
+            ECSWorld = new World(DefaultEntityCapacity);
             _spawner = new UnitSpawner(ECSWorld);
             _orchestrator = new CombatOrchestrator();
         }
