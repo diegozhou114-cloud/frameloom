@@ -8,8 +8,10 @@ namespace ZWebGLFrameWork.SimulationCore
             var deathSys = new SimDeathSystem();
 
             systems.Add(
-                new SimTargetCacheSystem(),  // Order 5: cache target positions before attack
-                new SimMovementSystem(),
+                new SimTargetSelectionSystem(), // Order 5: stable target acquisition
+                new SimPathPlanningSystem(),    // Order 8: deterministic path planning
+                new SimTargetCacheSystem(),      // Order 9: cache target positions
+                new SimMovementSystem(),         // Order 10: move toward target
                 new SimAttackSystem(),
                 new SimDamageSystem(),
                 deathSys

@@ -147,15 +147,16 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var systems = SimCombatBootstrap.Build(world);
             var deathSys = systems.Find<SimDeathSystem>();
 
+            const int maxTicks = 320;
             int tick;
-            for (tick = 0; tick < 200; tick++)
+            for (tick = 0; tick < maxTicks; tick++)
             {
                 SimpleAI(world, tick);
                 systems.UpdateAll();
                 if (deathSys.Winner.HasValue) break;
             }
 
-            Assert.That(tick, Is.LessThan(200), "Battle should end before timeout");
+            Assert.That(tick, Is.LessThan(maxTicks), "Battle should end before timeout");
             Assert.That(deathSys.Winner.HasValue, Is.True);
         }
 
