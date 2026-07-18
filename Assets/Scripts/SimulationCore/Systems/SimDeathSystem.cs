@@ -51,5 +51,17 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         public void ForceWinner(int teamId) { Winner = teamId; }
+
+        public ulong HashInto(ulong hash)
+        {
+            var state = new DeterministicHash64(hash);
+            state.AddInt32(AttackerAlive);
+            state.AddInt32(DefenderAlive);
+            state.AddInt32(AttackerDead);
+            state.AddInt32(DefenderDead);
+            state.AddBool(Winner.HasValue);
+            if (Winner.HasValue) state.AddInt32(Winner.Value);
+            return state.Value;
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -342,11 +343,17 @@ namespace ZWebGLFrameWork.SimulationCore
         /// 计算当前世界状态的全量哈希 — FNV-1a。
         /// 按 Archetype Key 排序确保确定性，通过 IHashableComponent 零装箱哈希各组件。
         /// </summary>
-        public ulong ComputeChecksum()
+        public ulong ComputeChecksum() => HashInto(DeterministicHash64.OffsetBasis);
+
+        public ulong HashInto(ulong hash)
         {
-            ulong hash = 14695981039346656037UL;
-            hash ^= (ulong)EntityCount;
-            hash *= 1099511628211UL;
+            var allocator = new DeterministicHash64(hash);
+            allocator.AddInt32(SimComponentSchema.Version);
+            allocator.AddInt32(EntityCount);
+            allocator.AddInt32(_nextId);
+            for (int entityId = 0; entityId < _nextId; entityId++)
+                allocator.AddInt32(_generations[entityId]);
+            hash = allocator.Value;
 
             // 按 Archetype Key 排序确保确定性
             _sortedKeys.Clear();
@@ -355,6 +362,11 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var key in _sortedKeys)
             {
                 var archetype = _archetypes[key];
+                var schema = new DeterministicHash64(hash);
+                schema.AddInt32(archetype.ComponentTypeIds.Length);
+                foreach (int componentTypeId in archetype.ComponentTypeIds)
+                    schema.AddInt32(componentTypeId);
+                hash = schema.Value;
                 // 按 Chunk 首个 Entity ID 排序确保确定性（避免 swap-remove 导致的顺序变化）
                 var chunks = new List<SimChunk>(archetype.Chunks);
                 chunks.Sort((a, b) =>
@@ -368,7 +380,46 @@ namespace ZWebGLFrameWork.SimulationCore
                     hash = HashChunk(archetype, chunk, hash);
                 }
             }
-            return hash;
+            return HashPendingEvents(hash);
+        }
+
+        private ulong HashPendingEvents(ulong hash)
+        {
+            var types = new List<Type>();
+            foreach (var pair in _eventQueues)
+            {
+                if (pair.Value is System.Collections.ICollection values && values.Count > 0)
+                    types.Add(pair.Key);
+            }
+            types.Sort((left, right) => string.CompareOrdinal(left.FullName, right.FullName));
+
+            var state = new DeterministicHash64(hash);
+            state.AddInt32(types.Count);
+            foreach (Type type in types)
+            {
+                state.AddBytes(Encoding.UTF8.GetBytes(type.FullName ?? type.Name));
+                if (type == typeof(SimDamageEvent))
+                {
+                    var events = (List<SimDamageEvent>)_eventQueues[type];
+                    state.AddInt32(events.Count);
+                    foreach (SimDamageEvent damage in events)
+                    {
+                        state.AddInt32(damage.Amount);
+                        AddEntity(ref state, damage.Attacker);
+                        AddEntity(ref state, damage.Target);
+                    }
+                    continue;
+                }
+                throw new NotSupportedException($"No deterministic event hash registered for {type.FullName}.");
+            }
+            return state.Value;
+        }
+
+        private static void AddEntity(ref DeterministicHash64 state, SimEntity entity)
+        {
+            state.AddInt32(entity.Id);
+            state.AddInt32(entity.Generation);
+            state.AddInt32(entity.WorldEpoch);
         }
 
         private static ulong HashChunk(SimArchetype archetype, SimChunk chunk, ulong hash)

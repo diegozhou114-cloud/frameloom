@@ -32,11 +32,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 }
             }
             // 保持确定性：按 PlayerId 排序（同一 Tick 内多玩家命令的执行顺序）
-            result.Sort((a, b) =>
-            {
-                int player = a.PlayerId.CompareTo(b.PlayerId);
-                return player != 0 ? player : a.Sequence.CompareTo(b.Sequence);
-            });
+            result.Sort(CompareWithinTick);
             return result;
         }
 
@@ -47,12 +43,57 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var cmd in _pending)
                 if (cmd.Tick == tick)
                     result.Add(cmd);
-            result.Sort((a, b) =>
-            {
-                int player = a.PlayerId.CompareTo(b.PlayerId);
-                return player != 0 ? player : a.Sequence.CompareTo(b.Sequence);
-            });
+            result.Sort(CompareWithinTick);
             return result;
+        }
+
+        public ulong HashInto(ulong hash)
+        {
+            var ordered = new List<ISimCommand>(_pending);
+            ordered.Sort(CompareAll);
+            var state = new DeterministicHash64(hash);
+            state.AddInt32(ordered.Count);
+            foreach (ISimCommand command in ordered)
+            {
+                state.AddByte((byte)command.Type);
+                state.AddInt32(command.Tick);
+                state.AddInt32(command.PlayerId);
+                state.AddInt32(command.Sequence);
+                switch (command)
+                {
+                    case DeployCmd deploy:
+                        state.AddInt32(deploy.UnitTypeId);
+                        state.AddInt32(deploy.GridX);
+                        state.AddInt32(deploy.GridY);
+                        break;
+                    case MoveCmd move:
+                        state.AddInt32(move.EntityId);
+                        state.AddInt32(move.TargetX);
+                        state.AddInt32(move.TargetY);
+                        break;
+                    case SkillCmd skill:
+                        state.AddInt32(skill.CasterId);
+                        state.AddInt32(skill.SkillId);
+                        state.AddInt32(skill.TargetX);
+                        state.AddInt32(skill.TargetY);
+                        break;
+                }
+            }
+            return state.Value;
+        }
+
+        private static int CompareWithinTick(ISimCommand left, ISimCommand right)
+        {
+            int player = left.PlayerId.CompareTo(right.PlayerId);
+            if (player != 0) return player;
+            int sequence = left.Sequence.CompareTo(right.Sequence);
+            return sequence != 0 ? sequence : left.Type.CompareTo(right.Type);
+        }
+
+        private static int CompareAll(ISimCommand left, ISimCommand right)
+        {
+            int tick = left.Tick.CompareTo(right.Tick);
+            return tick != 0 ? tick : CompareWithinTick(left, right);
         }
 
         /// <summary>清空所有待处理命令</summary>
