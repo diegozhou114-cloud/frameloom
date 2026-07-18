@@ -395,6 +395,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         hash = aCol[i].HashInto(hash);
                     else if (col is SimTargetComponent[] tgtCol)
                         hash = tgtCol[i].HashInto(hash);
+                    else if (col is SimIdentityComponent[] identityCol)
+                        hash = identityCol[i].HashInto(hash);
                 }
             }
             return hash;
