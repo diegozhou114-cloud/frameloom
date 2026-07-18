@@ -100,9 +100,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 EntityId = entityId, TargetX = 12, TargetY = 2,
             });
 
-            Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.UnauthorizedEntity));
             TickResult result = session.Tick();
-            Assert.That(result.CommandOutcomes[0].Disposition, Is.EqualTo(CommandDisposition.UnauthorizedEntity));
             Assert.That(result.Checksum, Is.Not.EqualTo(0UL));
 
             using SimBattleSession baseline = SessionTestDriver.StartedBattle();
@@ -111,6 +110,93 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 Is.EqualTo(baselineResult.Presentation.Entities[0].GridX));
             Assert.That(result.Checksum, Is.EqualTo(baselineResult.Checksum));
             Assert.That(before, Is.Not.EqualTo(result.Checksum));
+        }
+
+        [Test]
+        public void SkillCommand_ValidSkillMutatesTargetHealthDeterministically()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            EntityPresentationState caster = session.State.Presentation.Entities[0];
+            EntityPresentationState target = session.State.Presentation.Entities[1];
+
+            CommandSubmitResult submitted = session.Submit(new SkillCmd
+            {
+                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+                CasterId = caster.EntityId, SkillId = 1,
+                TargetX = target.GridX, TargetY = target.GridY,
+            });
+
+            Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            TickResult result = session.Tick();
+            Assert.That(result.CommandOutcomes[0].Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(result.Presentation.Entities[1].Health, Is.EqualTo(target.Health - 30));
+            Assert.That(result.Events.Count, Is.EqualTo(1));
+            Assert.That(result.Events[0].Type, Is.EqualTo(SimBattleEventType.DamageApplied));
+            Assert.That(result.Events[0].Amount, Is.EqualTo(30));
+        }
+
+        [Test]
+        public void SkillCommand_UnknownSkillIsRejectedBeforeMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            EntityPresentationState caster = session.State.Presentation.Entities[0];
+            EntityPresentationState target = session.State.Presentation.Entities[1];
+
+            CommandSubmitResult rejected = session.Submit(new SkillCmd
+            {
+                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+                CasterId = caster.EntityId, SkillId = 99,
+                TargetX = target.GridX, TargetY = target.GridY,
+            });
+
+            Assert.That(rejected.Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            TickResult result = session.Tick();
+            Assert.That(result.CommandOutcomes, Is.Empty);
+            Assert.That(result.Presentation.Entities[1].Health, Is.EqualTo(target.Health));
+        }
+
+        [Test]
+        public void DeployCommand_UnknownArchetypeOrOccupiedCellIsRejectedBeforeMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedDeployingBattle();
+
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 999, GridX = 4, GridY = 4,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 8, GridY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(session.Tick().CommandOutcomes, Is.Empty);
+            Assert.That(session.State.Presentation.Entities.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ExecutedCommands_ContainsOnlyCommandsAcceptedAtExecution()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedDeployingBattle();
+
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+
+            TickResult result = session.Tick();
+
+            Assert.That(result.CommandOutcomes.Count, Is.EqualTo(2));
+            Assert.That(result.CommandOutcomes[0].Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(result.CommandOutcomes[1].Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(result.ExecutedCommands.Count, Is.EqualTo(1));
+            Assert.That(((DeployCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(1));
         }
     }
 }
