@@ -49,6 +49,8 @@ namespace ZWebGLFrameWork.Editor
             // 1. 编译验证
             Debug.Log($"[BuildScript] 开始构建: {target}");
             AssetDatabase.Refresh();
+            if (!BuildValidator.ValidateBootPipeline())
+                throw new BuildFailedException("Required runtime asset validation failed.");
 
             // 2. 按 Build Settings 中的启用顺序收集场景
             var scenes = GetEnabledScenePaths();

@@ -201,51 +201,31 @@ namespace ZWebGLFrameWork.Editor
 
         // ==================== C.1 启动流程检查 ====================
 
-        private static void ValidateBootPipeline()
+        public static bool ValidateBootPipeline()
         {
-            Debug.Log("[BuildValidator] 检查启动管线配置...");
-            int issues = 0;
+            Debug.Log("[BuildValidator] Checking boot pipeline and required runtime assets...");
+            var errors = new List<string>();
 
-            // ① 检查 Resources/Config/ 下的必需配置文件
-            // 注意：若某些配置是可选的，此处会产生误报警告（false positive）。
-            string[] requiredConfigs =
-            {
-                "Assets/Resources/Config/AppConfig.asset",
-                "Assets/Resources/Config/Buildings.json",
-                "Assets/Resources/Config/Units.json",
-                "Assets/Resources/Config/Levels.json",
-            };
+            var scenes = EditorBuildSettings.scenes.Where(scene => scene.enabled).ToArray();
+            if (scenes.Length == 0 || scenes[0].path != "Assets/Scence/Launcher.unity")
+                errors.Add("Launcher must be enabled scene zero.");
 
-            foreach (var path in requiredConfigs)
+            RequiredAssetValidationResult assetResult = RequiredAssetManifestValidator.Validate(
+                RequiredAssetManifestValidator.ManifestPath);
+            errors.AddRange(assetResult.Errors);
+
+            foreach (string error in errors)
+                Debug.LogError($"[BuildValidator] {error}");
+
+            if (errors.Count != 0)
             {
-                if (!System.IO.File.Exists(path))
-                {
-                    Debug.LogWarning($"[BuildValidator] ⚠ 缺少配置文件: {path}");
-                    issues++;
-                }
+                Debug.LogError(
+                    $"[BuildValidator] Boot pipeline validation failed: {errors.Count} errors.");
+                return false;
             }
 
-            // ② 检查 Build Settings 中是否有 Launcher 场景
-            var scenes = EditorBuildSettings.scenes;
-            bool hasLauncher = false;
-            foreach (var scene in scenes)
-            {
-                if (scene.path.Contains("Launcher"))
-                {
-                    hasLauncher = true;
-                    break;
-                }
-            }
-            if (!hasLauncher)
-            {
-                Debug.LogWarning("[BuildValidator] ⚠ Build Settings 中未找到 Launcher 场景");
-                issues++;
-            }
-
-            if (issues == 0)
-                Debug.Log("<color=green>[BuildValidator] ✅ 启动管线配置完整</color>");
-            else
-                Debug.LogWarning($"[BuildValidator] ⚠ 启动管线配置有 {issues} 个问题");
+            Debug.Log("[BuildValidator] Boot pipeline and required assets passed.");
+            return true;
         }
     }
 

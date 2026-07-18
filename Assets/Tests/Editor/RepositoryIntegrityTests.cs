@@ -44,5 +44,67 @@ namespace ZWebGLFrameWork.Editor.Tests
             Assert.That(BuildScript.GetEnabledScenePaths(), Is.EqualTo(enabled));
             Assert.That(File.Exists(enabled[0]), Is.True);
         }
+
+        [Test]
+        public void RequiredRuntimeAssets_AllProductionKeysResolve()
+        {
+            var result = RequiredAssetManifestValidator.Validate(
+                RequiredAssetManifestValidator.ManifestPath);
+
+            Assert.That(result.IsValid, Is.True, string.Join("\n", result.Errors));
+            Assert.That(BuildValidator.ValidateBootPipeline(), Is.True);
+        }
+
+        [Test]
+        public void RequiredAssetManifest_EmptyEntryArrayIsRejected()
+        {
+            var path = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(path,
+                    "{\"version\":1," +
+                    "\"supportedModes\":[\"builder_base\",\"campaign\",\"clan_war\",\"village_attack\"]," +
+                    "\"archetypeIds\":[1],\"unitIds\":[1],\"uiPanels\":[\"LoginPanel\"]," +
+                    "\"entries\":[]}");
+
+                var result = RequiredAssetManifestValidator.Validate(path);
+
+                Assert.That(result.Errors,
+                    Does.Contain("Manifest contains no required asset entries."));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
+
+        [Test]
+        public void RequiredAssetManifest_NullAndEmptyEntriesAreRejected()
+        {
+            var path = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(path,
+                    "{\"version\":1," +
+                    "\"supportedModes\":[\"builder_base\",\"campaign\",\"clan_war\",\"village_attack\"]," +
+                    "\"archetypeIds\":[1],\"unitIds\":[1],\"uiPanels\":[\"LoginPanel\"]," +
+                    "\"entries\":[null,{\"key\":\"\",\"assetPath\":\"\",\"expectedType\":\"\"}]}");
+
+                var result = RequiredAssetManifestValidator.Validate(path);
+
+                Assert.That(result.Errors,
+                    Does.Contain("Manifest contains a null required asset entry."));
+                Assert.That(result.Errors,
+                    Does.Contain("Required asset entry has an empty key."));
+                Assert.That(result.Errors,
+                    Does.Contain("Required asset entry <empty> has an empty path."));
+                Assert.That(result.Errors,
+                    Does.Contain("Required asset entry <empty> has an empty expected type."));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
     }
 }
