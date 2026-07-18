@@ -54,8 +54,17 @@ namespace ZWebGLFrameWork.Core
         /// <summary>切换加载器（自动清理旧缓存）</summary>
         public void SetProvider(IResourceProvider newProvider)
         {
+            if (newProvider == null)
+                throw new ArgumentNullException(nameof(newProvider));
+
+            lock (_cacheLock)
+            {
+                _cache.Clear();
+            }
+
             _provider?.UnloadUnused();
             _provider = newProvider;
+            IsReady = true;
         }
 
         // ==================== 公开 API ====================
