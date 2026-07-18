@@ -21,12 +21,17 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>录制一个 Tick 的数据</summary>
         public void Record(int tick, ulong checksum)
         {
-            var cmds = _buffer.Peek(tick);
+            Record(tick, checksum, _buffer.Peek(tick));
+        }
+
+        /// <summary>记录本 Tick 实际从缓冲区 Drain 并执行的命令。</summary>
+        public void Record(int tick, ulong checksum, List<ISimCommand> executedCommands)
+        {
             var record = new TickRecord
             {
                 Tick = tick,
                 Checksum = checksum,
-                Commands = SerializeCommands(cmds),
+                Commands = SerializeCommands(executedCommands),
             };
             _replay.Records.Add(record);
         }

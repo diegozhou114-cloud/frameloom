@@ -150,7 +150,7 @@ namespace ZWebGLFrameWork.SimulationCore
             hashMs = (float)sw.Elapsed.TotalMilliseconds;
 
             // 4. Record (if recording)
-            _recorder?.Record(CurrentTick, LastChecksum);
+            _recorder?.Record(CurrentTick, LastChecksum, cmds);
 
             // 5. Perf counters
             Perf.RecordTick(CurrentTick, _world.EntityCount, drainMs, updateMs, hashMs);
