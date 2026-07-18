@@ -14,6 +14,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly SimSystemGroup _systems;
         private readonly SimDeathSystem _deathSystem;
         private readonly SimDamageSystem _damageSystem;
+        private readonly SimAttackSystem _attackSystem;
         private readonly Dictionary<int, int> _lastSequenceByPlayer = new Dictionary<int, int>();
         private const int BasicSkillId = 1;
         private const int BasicSkillDamage = 30;
@@ -31,6 +32,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _systems = SimCombatBootstrap.Build(world);
             _deathSystem = _systems.Find<SimDeathSystem>();
             _damageSystem = _systems.Find<SimDamageSystem>();
+            _attackSystem = _systems.Find<SimAttackSystem>();
             _currentFrame = EmptyFrame();
             _state = new SimBattleState(SessionLifecycle.Created, SimCombatPhase.Idle,
                 -1, 0, 0, 0, _currentFrame, null);
@@ -54,7 +56,8 @@ namespace ZWebGLFrameWork.SimulationCore
             _lastSequenceByPlayer.Clear();
             _currentFrame = BuildFrame(true, -1, 0, 0);
             _state = new SimBattleState(SessionLifecycle.Running, SimCombatPhase.Deploying,
-                -1, 0, 0, _world.ComputeChecksum(), _currentFrame, null);
+                -1, 0, 0, 0, _currentFrame, null);
+            RefreshChecksum();
             _logger?.Log($"[SimBattleSession] Started match {init.MatchId}.");
             return new StartResult(StartCode.Accepted, _currentFrame);
         }
@@ -82,6 +85,7 @@ namespace ZWebGLFrameWork.SimulationCore
             }
             _lastSequenceByPlayer[command.PlayerId] = command.Sequence;
             _commandBuffer.AddCommand(command);
+            RefreshChecksum();
             return new CommandSubmitResult(CommandDisposition.Accepted);
         }
 
@@ -114,11 +118,11 @@ namespace ZWebGLFrameWork.SimulationCore
                 phase = SimCombatPhase.Ended;
                 lifecycle = SessionLifecycle.Ended;
             }
-            ulong checksum = _world.ComputeChecksum();
             _currentFrame = BuildFrame(false, completedTick, nextTick, revision);
             _state = new SimBattleState(lifecycle, phase,
-                completedTick, nextTick, revision, checksum,
+                completedTick, nextTick, revision, 0,
                 BuildFrame(true, completedTick, nextTick, revision), null);
+            ulong checksum = RefreshChecksum();
             return new TickResult(lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
                 completedTick, nextTick, revision,
                 acceptedCommands.ToArray(), outcomes.ToArray(),
@@ -157,7 +161,8 @@ namespace ZWebGLFrameWork.SimulationCore
             _disposed = true;
             _state = new SimBattleState(SessionLifecycle.Disposed, _state.Phase,
                 _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
-                _state.Checksum, _currentFrame, _state.Result);
+                0, _currentFrame, _state.Result);
+            RefreshChecksum();
         }
 
         private StartCode Validate(BattleInit init)
@@ -404,6 +409,44 @@ namespace ZWebGLFrameWork.SimulationCore
                     damage.Amount);
             }
             return events;
+        }
+
+        private ulong RefreshChecksum()
+        {
+            ulong checksum = ComputeChecksum();
+            _state = new SimBattleState(_state.Lifecycle, _state.Phase,
+                _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
+                checksum, _state.Presentation, _state.Result);
+            return checksum;
+        }
+
+        private ulong ComputeChecksum()
+        {
+            ulong commandHash = _commandBuffer.HashInto(DeterministicHash64.OffsetBasis);
+            var sessionState = new SessionChecksumState(
+                _init?.ProtocolVersion ?? 0,
+                _init?.SchemaVersion ?? SimComponentSchema.Version,
+                _manifest.ContentHash,
+                _init?.Seed ?? 0,
+                _state.Lifecycle,
+                _state.Phase,
+                _state.CompletedTick,
+                _state.NextTick,
+                commandHash);
+            ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
+            if (_attackSystem != null) hash = _attackSystem.HashInto(hash);
+            if (_deathSystem != null) hash = _deathSystem.HashInto(hash);
+            if (_state.Result != null)
+            {
+                var resultState = new DeterministicHash64(hash);
+                resultState.AddInt32(_state.Result.WinnerTeamId);
+                resultState.AddInt32(_state.Result.Stars);
+                resultState.AddInt32(_state.Result.LootGold);
+                resultState.AddInt32(_state.Result.LootElixir);
+                resultState.AddInt32(_state.Result.FinalTick);
+                hash = resultState.Value;
+            }
+            return _world.HashInto(hash);
         }
 
         private TickResult CreateTickResult(TickCode code)

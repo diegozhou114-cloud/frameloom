@@ -4,6 +4,8 @@ namespace ZWebGLFrameWork.SimulationCore
     {
         private int _currentTick;
 
+        public int CurrentTick => _currentTick;
+
         public SimAttackSystem() { Order = 20; }
 
         public override void Update()
@@ -36,5 +38,12 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         public void Reset() { _currentTick = 0; }
+
+        public ulong HashInto(ulong hash)
+        {
+            var state = new DeterministicHash64(hash);
+            state.AddInt32(_currentTick);
+            return state.Value;
+        }
     }
 }
