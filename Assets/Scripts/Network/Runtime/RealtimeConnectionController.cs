@@ -11,7 +11,7 @@ namespace ZWebGLFrameWork.Network.Runtime
         private readonly object _gate = new object();
         private readonly IRealtimeChannelFactory _factory;
         private IRealtimeChannel _current;
-        private CancellationTokenSource _connectCts;
+        private PendingConnect _pendingConnect;
         private int _generation;
 
         public IRealtimeChannel Current
@@ -43,16 +43,16 @@ namespace ZWebGLFrameWork.Network.Runtime
             if (credentials == null) throw new ArgumentNullException(nameof(credentials));
 
             int generation;
-            CancellationTokenSource ownedCts;
-            CancellationTokenSource previousCts;
+            PendingConnect ownedConnect;
+            PendingConnect previousConnect;
             lock (_gate)
             {
                 generation = ++_generation;
-                previousCts = _connectCts;
-                ownedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                _connectCts = ownedCts;
+                previousConnect = _pendingConnect;
+                ownedConnect = new PendingConnect(cancellationToken);
+                _pendingConnect = ownedConnect;
             }
-            CancelAndDispose(previousCts);
+            previousConnect?.RequestCancellation();
 
             IRealtimeChannel candidate = null;
             IRealtimeChannel previous = null;
@@ -60,31 +60,40 @@ namespace ZWebGLFrameWork.Network.Runtime
             {
                 candidate = _factory.Create(endpoint.Transport)
                     ?? throw new InvalidOperationException("Realtime channel factory returned null.");
-                await candidate.ConnectAsync(endpoint, credentials, ownedCts.Token);
+                await candidate.ConnectAsync(endpoint, credentials, ownedConnect.Token);
 
                 lock (_gate)
                 {
                     if (generation != _generation ||
-                        !ReferenceEquals(_connectCts, ownedCts) ||
-                        ownedCts.IsCancellationRequested)
+                        !ReferenceEquals(_pendingConnect, ownedConnect) ||
+                        ownedConnect.IsCancellationRequested)
                         return;
                     previous = _current;
                     _current = candidate;
                     candidate = null;
-                    _connectCts = null;
+                    _pendingConnect = null;
                 }
             }
-            catch (OperationCanceledException) when (ownedCts.IsCancellationRequested)
+            catch
             {
+                bool stale;
+                lock (_gate)
+                {
+                    stale = generation != _generation ||
+                        !ReferenceEquals(_pendingConnect, ownedConnect) ||
+                        ownedConnect.IsCancellationRequested;
+                }
+                if (!stale) throw;
             }
             finally
             {
                 candidate?.Dispose();
                 lock (_gate)
                 {
-                    if (ReferenceEquals(_connectCts, ownedCts)) _connectCts = null;
+                    if (ReferenceEquals(_pendingConnect, ownedConnect))
+                        _pendingConnect = null;
                 }
-                ownedCts.Dispose();
+                ownedConnect.Complete();
             }
 
             if (previous != null)
@@ -95,36 +104,85 @@ namespace ZWebGLFrameWork.Network.Runtime
 
         public async Task DisconnectAsync(CancellationToken cancellationToken)
         {
-            CancellationTokenSource pendingConnect;
+            PendingConnect pendingConnect;
             IRealtimeChannel current;
             lock (_gate)
             {
                 _generation++;
-                pendingConnect = _connectCts;
-                _connectCts = null;
+                pendingConnect = _pendingConnect;
+                _pendingConnect = null;
                 current = _current;
                 _current = null;
             }
-            CancelAndDispose(pendingConnect);
+            pendingConnect?.RequestCancellation();
             if (current != null)
                 await CloseAndDisposeAsync(
                     current, RealtimeCloseReason.Normal, cancellationToken,
                     suppressCloseErrors: false);
         }
 
-        private static void CancelAndDispose(CancellationTokenSource source)
+        private sealed class PendingConnect
         {
-            if (source == null) return;
-            try
+            private readonly object _gate = new object();
+            private readonly CancellationTokenSource _source;
+            private readonly CancellationToken _token;
+            private bool _cancelRequested;
+            private bool _cancelling;
+            private bool _completed;
+            private bool _disposed;
+
+            public CancellationToken Token => _token;
+            public bool IsCancellationRequested => _token.IsCancellationRequested;
+
+            public PendingConnect(CancellationToken cancellationToken)
             {
-                source.Cancel();
+                _source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _token = _source.Token;
             }
-            catch (ObjectDisposedException)
+
+            public void RequestCancellation()
             {
+                lock (_gate)
+                {
+                    if (_disposed || _cancelRequested) return;
+                    _cancelRequested = true;
+                    _cancelling = true;
+                }
+
+                try
+                {
+                    _source.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+                catch (AggregateException)
+                {
+                }
+                finally
+                {
+                    lock (_gate)
+                    {
+                        _cancelling = false;
+                        TryDisposeLocked();
+                    }
+                }
             }
-            finally
+
+            public void Complete()
             {
-                source.Dispose();
+                lock (_gate)
+                {
+                    _completed = true;
+                    TryDisposeLocked();
+                }
+            }
+
+            private void TryDisposeLocked()
+            {
+                if (_disposed || !_completed || _cancelling) return;
+                _disposed = true;
+                _source.Dispose();
             }
         }
 
