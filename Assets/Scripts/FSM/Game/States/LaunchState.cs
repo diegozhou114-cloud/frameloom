@@ -15,6 +15,8 @@ namespace ZWebGLFrameWork.FSM
     public class LaunchState : FSMState<GameState>
     {
         private readonly IBootPipeline _pipelineOverride;
+        private readonly OfflineSaveFlow _offlineSaveFlow =
+            new OfflineSaveFlow(new DefaultOfflineSaveGateway());
 
         public LaunchState() : this(null) { }
 
@@ -215,12 +217,13 @@ namespace ZWebGLFrameWork.FSM
                 && Application.internetReachability == NetworkReachability.NotReachable)
             {
                 Debug.Log("[LaunchState] 🔌 离线模式 + 无网络 → 跳过登录，直接进主城");
-                GameInitializer.EnsureSaveExists();
-                if (SaveManager.Exists(SaveManager.CurrentSlot))
+                if (_offlineSaveFlow.TryPrepareSlot(SaveManager.CurrentSlot))
                 {
-                    SaveManager.LoadToDataManager(SaveManager.CurrentSlot);
+                    ChangeState(GameState.MainVillage);
+                    return;
                 }
-                ChangeState(GameState.MainVillage);
+
+                PublishError("OfflineSave", "本地存档创建或加载失败，请重试", true);
                 return;
             }
 

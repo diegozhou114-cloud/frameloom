@@ -23,28 +23,30 @@ namespace ZWebGLFrameWork.Data
         /// <summary>
         /// 确保当前槽位存在存档。若不存在则创建默认新手数据并保存。
         /// </summary>
-        public static void EnsureSaveExists()
+        public static bool EnsureSaveExists()
         {
             int slot = SaveManager.CurrentSlot;
 
             if (SaveManager.Exists(slot))
             {
                 Debug.Log($"[GameInitializer] 存档已存在 slot={slot}，跳过初始化");
-                return;
+                return true;
             }
 
             Debug.Log($"[GameInitializer] 首次启动 slot={slot}，创建默认存档...");
-            CreateDefaultSave(slot);
+            return CreateDefaultSave(slot);
         }
 
         /// <summary>创建默认新手存档（Town Hall Lv1 + 基础建筑）</summary>
-        public static void CreateDefaultSave(int slot)
+        public static bool CreateDefaultSave(int slot)
         {
             var saveData = CreateDefaultSaveData();
-            SaveManager.Save(saveData, slot);
+            if (!SaveManager.Save(saveData, slot))
+                return false;
 
             Debug.Log($"[GameInitializer] ✅ 默认存档已创建 slot={slot}: " +
                       $"{saveData.PlayerName} Lv.{saveData.PlayerLevel}");
+            return true;
         }
 
         public static PlayerSaveData CreateDefaultSaveData()
