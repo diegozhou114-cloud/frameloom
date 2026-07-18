@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Network/Core/INetworkClient.cs" Link="Network/INetworkClient.cs" />
+    <Compile Include="../../Assets/Scripts/Network/Core/NetworkClientBinding.cs" Link="Network/NetworkClientBinding.cs" />
+    <Compile Include="../../Assets/Scripts/Network/Core/NetworkDefine.cs" Link="Network/NetworkDefine.cs" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

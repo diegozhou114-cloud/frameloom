@@ -28,6 +28,7 @@ namespace ZWebGLFrameWork.Network
         public MessageDispatcher Dispatcher { get; } = new MessageDispatcher();
 
         private INetworkClient _currentClient;
+        private NetworkClientBinding _clientBinding;
         private INetworkClient _tcpClient;
         private int _connectGeneration; // 每次 Connect 递增，用于忽略过期的异步回调
         private INetworkClient _udpClient;
@@ -73,24 +74,15 @@ namespace ZWebGLFrameWork.Network
 
             _currentClient = GetOrCreateClient(protocol);
 
-            // 绑定事件（使用局部变量防止闭包捕获错误client）
             var client = _currentClient;
-            client.OnConnected += () =>
-            {
-                if (_connectGeneration != myGeneration) return; // 忽略过期连接
-                HandleConnected();
-            };
-            client.OnDisconnected += () =>
-            {
-                if (_connectGeneration != myGeneration) return;
-                HandleDisconnected();
-            };
-            client.OnConnectFailed += () =>
-            {
-                if (_connectGeneration != myGeneration) return;
-                HandleConnectFailed();
-            };
-            client.OnDataReceived += HandleDataReceived;
+            _clientBinding = new NetworkClientBinding(
+                client,
+                myGeneration,
+                () => _connectGeneration,
+                HandleConnected,
+                HandleDisconnected,
+                HandleConnectFailed,
+                HandleDataReceived);
 
             Debug.Log($"[NetworkManager] 正在连接: {protocol}://{host}:{port}");
             _currentClient.Connect(host, port);
@@ -101,10 +93,8 @@ namespace ZWebGLFrameWork.Network
         {
             if (_currentClient != null)
             {
-                _currentClient.OnConnected -= HandleConnected;
-                _currentClient.OnDisconnected -= HandleDisconnected;
-                _currentClient.OnConnectFailed -= HandleConnectFailed;
-                _currentClient.OnDataReceived -= HandleDataReceived;
+                _clientBinding?.Dispose();
+                _clientBinding = null;
 
                 _currentClient.Disconnect();
                 _currentClient = null;
