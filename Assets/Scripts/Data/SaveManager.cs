@@ -16,6 +16,7 @@ namespace ZWebGLFrameWork.Data
         private const string SaveFilePrefix = "save_";        // 文件名前缀
         private const string SaveExtension = ".json";
         public const int MaxSaveSlots = 5;
+        private static readonly IAtomicTextWriter SaveWriter = new AtomicFileWriter();
 
         /// <summary>存档目录</summary>
         public static string SavePath => Application.persistentDataPath;
@@ -55,11 +56,12 @@ namespace ZWebGLFrameWork.Data
             {
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
                 string path = GetFilePath(targetSlot);
-                string tmpPath = path + ".tmp";
-
-                // 原子写入：先写临时文件，再用 File.Replace 原子替换
-                File.WriteAllText(tmpPath, json);
-                File.Replace(tmpPath, path, null);
+                FileWriteResult result = SaveWriter.Write(path, json);
+                if (!result.Succeeded)
+                {
+                    Debug.LogError($"[SaveManager] 保存失败: {result.Error}");
+                    return false;
+                }
 
                 Debug.Log($"[SaveManager] 保存成功: slot={targetSlot}, path={path}");
                 return true;
@@ -67,8 +69,6 @@ namespace ZWebGLFrameWork.Data
             catch (Exception ex)
             {
                 Debug.LogError($"[SaveManager] 保存失败: {ex.Message}");
-                // 清理残留 tmp 文件
-                try { File.Delete(GetFilePath(targetSlot) + ".tmp"); } catch { }
                 return false;
             }
         }
