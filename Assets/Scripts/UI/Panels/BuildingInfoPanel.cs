@@ -27,8 +27,9 @@ namespace ZWebGLFrameWork.UI
             _pauseLowerPanels = false;
         }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _interaction = Object.FindObjectOfType<BuildingInteraction>();
         }
 
