@@ -220,12 +220,18 @@ namespace ZWebGLFrameWork.SimulationCore
                 return;
             }
 
+            SimCombatPhase phaseBeforeRollback = CurrentPhase;
             _world.RestoreFromFull(snapshot);
+            LastChecksum = snapshot.Checksum;
             CurrentTick = targetTick;
             // Bug #5: Restore phase counters
             _battleElapsed = targetTick;
             _deployElapsed = Math.Min(_deployElapsed, targetTick);
-            CurrentPhase = targetTick < _deployTimeLimit ? SimCombatPhase.Deploying : SimCombatPhase.Battling;
+            CurrentPhase = phaseBeforeRollback == SimCombatPhase.Battling
+                ? SimCombatPhase.Battling
+                : targetTick < _deployTimeLimit
+                    ? SimCombatPhase.Deploying
+                    : SimCombatPhase.Battling;
         }
 
         /// <summary>
