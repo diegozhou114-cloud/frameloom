@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.Server
@@ -11,86 +11,87 @@ namespace ZWebGLFrameWork.Server
         public ulong ActualChecksum;
     }
 
-    /// <summary>
-    /// 重放验证器 — 接受 ReplayFile，用确定性仿真重放并逐 Tick 比对 Checksum。
-    /// 可在 .NET Core 服务器上运行，共享 SimulationCore 源码。
-    /// </summary>
     public class ReplayValidator
     {
+        private readonly ISimBattleSessionFactory _sessionFactory;
+        private readonly byte[] _canonicalManifestBytes;
         private readonly ISimLogger _logger;
 
-        public ReplayValidator(ISimLogger logger = null)
+        public ReplayValidator(ISimBattleSessionFactory sessionFactory,
+            byte[] canonicalManifestBytes, ISimLogger logger = null)
         {
+            _sessionFactory = sessionFactory ?? throw new ArgumentNullException(nameof(sessionFactory));
+            _canonicalManifestBytes = (byte[])(canonicalManifestBytes ??
+                throw new ArgumentNullException(nameof(canonicalManifestBytes))).Clone();
             _logger = logger;
         }
 
         public ReplayResult Validate(ReplayFile replay)
         {
-            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256, _logger);
-            var buffer = new CommandBuffer();
-            var systems = SimCombatBootstrap.Build(world);
-            var deathSys = systems.Find<SimDeathSystem>();
-            var registry = SimArchetypeRegistry.CreateDefault();
-
-            // 用 ReplayFile 中的数据构造 ISimInitializer
-            var initializer = new ReplayInitializer(replay);
-            var orchestrator = new SimOrchestrator(
-                world, systems, deathSys, buffer, null, initializer, registry, logger: _logger);
-
-            orchestrator.StartBattle();
-            // 跳过部署阶段，直接进战斗
-            orchestrator.SetPhase(SimCombatPhase.Battling);
-
-            for (int tick = 0; tick < replay.TotalTicks; tick++)
-            {
-                // 从 ReplayFile 注入命令到 Buffer
-                var tickRecord = replay.Records.Find(r => r.Tick == tick);
-                if (tickRecord != null)
+            if (replay == null) throw new ArgumentNullException(nameof(replay));
+            DeterministicContentManifest manifest =
+                DeterministicContentManifest.Parse(_canonicalManifestBytes);
+            InitialEntitySpec[] entities = ConvertInitialEntities(replay.InitialLayout);
+            var init = new BattleInit(1, SimComponentSchema.Version,
+                "replay-match", "replay-session", replay.Seed, 20,
+                SimCombatMode.VillageAttack, manifest.ContentHash,
+                new[]
                 {
-                    foreach (var sc in tickRecord.Commands)
-                    {
-                        var cmd = CommandRecorder.DeserializeCommand(sc);
-                        if (cmd != null)
-                            buffer.AddCommand(cmd);
-                    }
+                    new SimPlayerIdentity(0, "attacker"),
+                    new SimPlayerIdentity(1, "defender"),
+                },
+                entities,
+                6);
+
+            using ISimBattleSession session =
+                _sessionFactory.Create(_canonicalManifestBytes, _logger);
+            StartResult started = session.Start(init);
+            if (!started.Accepted)
+                return Invalid(-1, 0, session.State.Checksum);
+
+            foreach (TickRecord tickRecord in replay.Records)
+            {
+                foreach (SerializableCommand serialized in tickRecord.Commands)
+                {
+                    ISimCommand command = CommandRecorder.DeserializeCommand(serialized);
+                    if (command != null) session.Submit(command);
                 }
 
-                orchestrator.Tick();
-
-                if (orchestrator.CurrentPhase == SimCombatPhase.Ended)
-                    break;
-
-                // 比对 Checksum
-                ulong expected = tickRecord?.Checksum ?? 0;
-                ulong actual = orchestrator.LastChecksum;
-                if (expected != actual)
+                TickResult tick = session.Tick();
+                if (tick.Checksum != tickRecord.Checksum)
                 {
-                    _logger?.Error($"Tick {tick}: checksum mismatch! Expected={expected:X16} Actual={actual:X16}");
-                    return new ReplayResult
-                    {
-                        IsValid = false,
-                        FailedTick = tick,
-                        ExpectedChecksum = expected,
-                        ActualChecksum = actual,
-                    };
+                    _logger?.Error($"Tick {tickRecord.Tick}: checksum mismatch! " +
+                        $"Expected={tickRecord.Checksum:X16} Actual={tick.Checksum:X16}");
+                    return Invalid(tickRecord.Tick, tickRecord.Checksum, tick.Checksum);
                 }
             }
 
             return new ReplayResult { IsValid = true, FailedTick = -1 };
         }
 
-        /// <summary>从 ReplayFile 构造 ISimInitializer</summary>
-        private class ReplayInitializer : ISimInitializer
+        private static InitialEntitySpec[] ConvertInitialEntities(SimEntitySpawnInfo[] layout)
         {
-            private readonly ReplayFile _replay;
-            public int Seed => _replay.Seed;
-
-            public ReplayInitializer(ReplayFile replay) { _replay = replay; }
-
-            public IEnumerable<SimEntitySpawnInfo> GetInitialEntities()
+            if (layout == null) return Array.Empty<InitialEntitySpec>();
+            var entities = new InitialEntitySpec[layout.Length];
+            for (int index = 0; index < layout.Length; index++)
             {
-                return _replay.InitialLayout;
+                SimEntitySpawnInfo source = layout[index];
+                int owner = source.TeamId == SimTeam.Defender ? 1 : 0;
+                entities[index] = new InitialEntitySpec(source.ArchetypeId,
+                    source.GridX, source.GridY, source.TeamId, owner);
             }
+            return entities;
+        }
+
+        private static ReplayResult Invalid(int tick, ulong expected, ulong actual)
+        {
+            return new ReplayResult
+            {
+                IsValid = false,
+                FailedTick = tick,
+                ExpectedChecksum = expected,
+                ActualChecksum = actual,
+            };
         }
     }
 }

@@ -29,5 +29,21 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(init.InitialEntities[0].OwnerPlayerId, Is.EqualTo(1));
             Assert.That(init.InitialEntities[0].GridX, Is.EqualTo(21));
         }
+
+        [Test]
+        public void SessionFactory_StartsCanonicalBattleWithInitialFullFrame()
+        {
+            using ISimBattleSession session =
+                new SimBattleSessionFactory().Create(SessionTestDriver.ManifestBytes());
+
+            StartResult started = session.Start(SessionTestDriver.BattleInit(42));
+
+            Assert.That(started.Accepted, Is.True);
+            Assert.That(started.InitialFrame.IsFull, Is.True);
+            Assert.That(started.InitialFrame.CompletedTick, Is.EqualTo(-1));
+            Assert.That(started.InitialFrame.NextTick, Is.EqualTo(0));
+            Assert.That(started.InitialFrame.Entities.Count, Is.EqualTo(2));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Running));
+        }
     }
 }

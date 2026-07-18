@@ -55,6 +55,15 @@
         "type": "Transitive",
         "resolved": "1.6.0",
         "contentHash": "COC1aiAJjCoA5GBF+QKL2uLqEBew4JsCkQmoHKbN3TlOZKa2fKLz5CpiRQKDz0RsAOEGsVKqOD5bomsXq/4STQ=="
+      },
+      "replayvalidator": {
+        "type": "Project",
+        "dependencies": {
+          "ZWebGLFrameWork.SimulationCore": "[1.0.0, )"
+        }
+      },
+      "zwebglframework.simulationcore": {
+        "type": "Project"
       }
     }
   }

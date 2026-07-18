@@ -9,7 +9,7 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
     public sealed class ArchitectureTests
     {
         [Test]
-        public void SimulationCore_HasNoHostRuntimeReferences()
+        public void SimulationCore_HasNoUnityEngineReferences()
         {
             string root = RepositoryRoot();
             string core = Path.Combine(root, "Assets/Scripts/SimulationCore");
@@ -34,6 +34,18 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 "--warnaserror");
 
             Assert.That(result.ExitCode, Is.EqualTo(0), result.Output);
+        }
+
+        [Test]
+        public void ReplayValidator_ReferencesSharedSimulationCoreProject()
+        {
+            string root = RepositoryRoot();
+            string projectPath = Path.Combine(root, "Server/ReplayValidator/ReplayValidator.csproj");
+            string project = File.ReadAllText(projectPath);
+
+            Assert.That(project, Does.Contain("../SimulationCore/ZWebGLFrameWork.SimulationCore.csproj"));
+            Assert.That(project, Does.Not.Contain("Assets\\Scripts\\SimulationCore"));
+            Assert.That(project, Does.Not.Contain("Assets/Scripts/SimulationCore"));
         }
 
         private static string RepositoryRoot()
