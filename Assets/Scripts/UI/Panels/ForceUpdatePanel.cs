@@ -86,7 +86,7 @@ namespace ZWebGLFrameWork.UI
             go.transform.SetParent(parent, false);
             var txt = go.GetComponent<Text>();
             txt.text = content;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.fontSize = fontSize;
             txt.color = color;
             txt.alignment = TextAnchor.MiddleCenter;

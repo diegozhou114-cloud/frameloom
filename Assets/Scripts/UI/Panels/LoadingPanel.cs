@@ -107,7 +107,7 @@ namespace ZWebGLFrameWork.UI
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(transform, false);
             var text = go.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             text.fontSize = fontSize;
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
