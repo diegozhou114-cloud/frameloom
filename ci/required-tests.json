@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "modes": {
+    "EditMode": {
+      "assemblies": {
+        "ZWebGLFrameWork.Core.Tests": {
+          "minimumPassed": 28,
+          "requiredNames": ["SubscribeAndPublish_ZeroParams_HandlerIsCalled", "ValueChanged_TriggersOnChanged"]
+        },
+        "ZWebGLFrameWork.Editor.Tests": {
+          "minimumPassed": 10,
+          "requiredNames": [
+            "EditorAssembly_AutoFixProcessor_Compiles",
+            "SimulationSystems_RefDelegates_Compile",
+            "GameplayAssembly_ResourceProducer_Compiles",
+            "RepositoryMetaAudit_HasNoMissingOrOrphanedMeta",
+            "RequiredRuntimeAssets_AllProductionKeysResolve",
+            "BuildScenes_LauncherIsEnabledSceneZero",
+            "BuildScript_EmitsMachineReadableBuildReport",
+            "ProductionAssemblies_DoNotBypassSimulationSession",
+            "LegacyCombat_SourceAndToggleAreAbsent"
+          ]
+        },
+        "ZWebGLFrameWork.Network.Tests": {
+          "minimumPassed": 10,
+          "requiredNames": ["WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences", "NativeKcp_FragmentedMessage_RoundTrips"]
+        },
+        "ZWebGLFrameWork.SimulationCore.Tests": {
+          "minimumPassed": 60,
+          "requiredNames": [
+            "UnityAndValidator_SameBattleInitAndCommands_SameTickResults",
+            "Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence",
+            "ReplayExportParseValidate_RoundTripsExecutedCommands",
+            "SupportedModes_MatchApprovedBehaviorMatrix"
+          ]
+        }
+      }
+    },
+    "PlayMode": {
+      "assemblies": {
+        "ZWebGLFrameWork.Runtime.Tests": {
+          "minimumPassed": 20,
+          "requiredNames": [
+            "LauncherPlayMode_EntersInteractiveVillage",
+            "LauncherButton_PointerClick_InvokesAction",
+            "SceneChange_AllGameplayServices_RebindAndReleaseOldScene"
+          ]
+        },
+        "ZWebGLFrameWork.Combat.PlayModeTests": {
+          "minimumPassed": 1,
+          "requiredNames": [
+            "BattleState_UsesSingleSimulationSession_EndToEnd"
+          ]
+        }
+      }
+    }
+  }
+}
