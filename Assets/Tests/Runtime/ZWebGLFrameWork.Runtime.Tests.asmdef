@@ -1,0 +1,28 @@
+{
+    "name": "ZWebGLFrameWork.Runtime.Tests",
+    "rootNamespace": "ZWebGLFrameWork.Runtime.Tests",
+    "references": [
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.Gameplay",
+        "ZWebGLFrameWork.UI",
+        "ZWebGLFrameWork.FSM",
+        "ZWebGLFrameWork.Combat",
+        "UniTask",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
