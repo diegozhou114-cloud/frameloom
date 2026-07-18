@@ -137,7 +137,15 @@ namespace ZWebGLFrameWork.SimulationCore
         public void OnAuthorityData(int authorityTick, ulong authorityChecksum)
         {
             // 从快照历史中查找对应 Tick 的本地 Checksum
-            if (!_orchestrator.TryGetChecksumForTick(authorityTick, out ulong localChecksum))
+            int checksumTick = authorityTick;
+            if (!_orchestrator.TryGetChecksumForTick(checksumTick, out ulong localChecksum) &&
+                authorityTick > 0)
+            {
+                // AuthorityTick is the next tick after the latest completed 0-based snapshot.
+                checksumTick = authorityTick - 1;
+            }
+
+            if (!_orchestrator.TryGetChecksumForTick(checksumTick, out localChecksum))
             {
                 _logger?.Warn($"No local checksum for tick {authorityTick}, accepting authority");
                 AuthorityTick = authorityTick;

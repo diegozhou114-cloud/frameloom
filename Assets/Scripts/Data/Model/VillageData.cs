@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,19 @@ namespace ZWebGLFrameWork.Data
     /// <summary>村庄数据 — 管理所有建筑和网格布局</summary>
     public class VillageData : ObservableModel
     {
+        private readonly Func<int, BuildingConfig> _getBuildingConfig;
+
+        public VillageData()
+            : this(typeId => ConfigTableManager.Instance?.GetBuilding(typeId))
+        {
+        }
+
+        public VillageData(Func<int, BuildingConfig> getBuildingConfig)
+        {
+            _getBuildingConfig = getBuildingConfig
+                ?? throw new ArgumentNullException(nameof(getBuildingConfig));
+        }
+
         /// <summary>村庄名称</summary>
         public Observable<string> Name = new Observable<string>("My Village");
 
@@ -53,8 +67,19 @@ namespace ZWebGLFrameWork.Data
         /// <summary>获取指定位置的建筑</summary>
         public BuildingData GetBuildingAt(int gridX, int gridY)
         {
-            return Buildings.Find(b =>
-                b.GridX.Value == gridX && b.GridY.Value == gridY);
+            foreach (BuildingData building in Buildings)
+            {
+                BuildingConfig config = _getBuildingConfig(building.TypeId);
+                int width = Math.Max(1, config?.SizeX ?? 1);
+                int height = Math.Max(1, config?.SizeY ?? 1);
+                int originX = building.GridX.Value;
+                int originY = building.GridY.Value;
+                if (gridX >= originX && gridX < originX + width &&
+                    gridY >= originY && gridY < originY + height)
+                    return building;
+            }
+
+            return null;
         }
 
         /// <summary>是否已被占用</summary>

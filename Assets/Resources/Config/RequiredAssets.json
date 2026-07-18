@@ -1,0 +1,193 @@
+{
+    "version": 1,
+    "supportedModes": [
+        "builder_base",
+        "campaign",
+        "clan_war",
+        "village_attack"
+    ],
+    "archetypeIds": [
+        1,
+        2,
+        3,
+        10,
+        11
+    ],
+    "unitIds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+    ],
+    "uiPanels": [
+        "BattleHUD",
+        "BuildingInfoPanel",
+        "CharacterSelectPanel",
+        "DeployPanel",
+        "ErrorPanel",
+        "ForceUpdatePanel",
+        "LoadingPanel",
+        "LoginPanel",
+        "MainVillageHUD",
+        "ResultPanel",
+        "ToastPanel"
+    ],
+    "entries": [
+        {
+            "key": "archetype.0001",
+            "assetPath": "Assets/Resources/Prefabs/Buildings/TownHall.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "archetype.0002",
+            "assetPath": "Assets/Resources/Prefabs/Buildings/Cannon.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "archetype.0003",
+            "assetPath": "Assets/Resources/Prefabs/Buildings/ArcherTower.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "config.app",
+            "assetPath": "Assets/Resources/Config/AppConfig.asset",
+            "expectedType": "ScriptableObject"
+        },
+        {
+            "key": "config.buildings",
+            "assetPath": "Assets/Resources/Config/Buildings.json",
+            "expectedType": "TextAsset"
+        },
+        {
+            "key": "config.levels",
+            "assetPath": "Assets/Resources/Config/Levels.json",
+            "expectedType": "TextAsset"
+        },
+        {
+            "key": "config.units",
+            "assetPath": "Assets/Resources/Config/Units.json",
+            "expectedType": "TextAsset"
+        },
+        {
+            "key": "config.views",
+            "assetPath": "Assets/Resources/Config/ViewConfig.asset",
+            "expectedType": "ScriptableObject"
+        },
+        {
+            "key": "scene.launcher",
+            "assetPath": "Assets/Scence/Launcher.unity",
+            "expectedType": "SceneAsset"
+        },
+        {
+            "key": "ui.BattleHUD",
+            "assetPath": "Assets/Resources/UI/Panels/BattleHUD.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.BuildingInfoPanel",
+            "assetPath": "Assets/Resources/UI/Panels/BuildingInfoPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.CharacterSelectPanel",
+            "assetPath": "Assets/Resources/UI/Panels/CharacterSelectPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.DeployPanel",
+            "assetPath": "Assets/Resources/UI/Panels/DeployPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.ErrorPanel",
+            "assetPath": "Assets/Resources/UI/Panels/ErrorPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.ForceUpdatePanel",
+            "assetPath": "Assets/Resources/UI/Panels/ForceUpdatePanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.LoadingPanel",
+            "assetPath": "Assets/Resources/UI/Panels/LoadingPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.LoginPanel",
+            "assetPath": "Assets/Resources/UI/Panels/LoginPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.MainVillageHUD",
+            "assetPath": "Assets/Resources/UI/Panels/MainVillageHUD.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.ResultPanel",
+            "assetPath": "Assets/Resources/UI/Panels/ResultPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "ui.ToastPanel",
+            "assetPath": "Assets/Resources/UI/Panels/ToastPanel.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0001",
+            "assetPath": "Assets/Resources/Prefabs/Units/Barbarian.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0002",
+            "assetPath": "Assets/Resources/Prefabs/Units/Archer.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0003",
+            "assetPath": "Assets/Resources/Prefabs/Units/Giant.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0004",
+            "assetPath": "Assets/Resources/Prefabs/Units/Wall Breaker.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0005",
+            "assetPath": "Assets/Resources/Prefabs/Units/Balloon.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0006",
+            "assetPath": "Assets/Resources/Prefabs/Units/Wizard.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0007",
+            "assetPath": "Assets/Resources/Prefabs/Units/Healer.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0008",
+            "assetPath": "Assets/Resources/Prefabs/Units/Dragon.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0009",
+            "assetPath": "Assets/Resources/Prefabs/Units/P.E.K.K.A.prefab",
+            "expectedType": "GameObject"
+        },
+        {
+            "key": "unit.0010",
+            "assetPath": "Assets/Resources/Prefabs/Units/Goblin.prefab",
+            "expectedType": "GameObject"
+        }
+    ]
+}

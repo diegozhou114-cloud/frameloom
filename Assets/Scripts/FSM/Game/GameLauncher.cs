@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
+using ZWebGLFrameWork.Gameplay;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -39,25 +40,27 @@ namespace ZWebGLFrameWork.FSM
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoCreate()
         {
-            var sceneName = SceneManager.GetActiveScene().name;
-            if (sceneName != "Launcher")
+            if (SceneManager.GetActiveScene().name != "Launcher")
             {
-                Debug.Log($"[GameLauncher] 当前场景为「{sceneName}」，非启动场景，跳过自动创建");
+                Debug.Log($"[GameLauncher] 当前场景为「{SceneManager.GetActiveScene().name}」，非启动场景，跳过自动创建");
                 return;
             }
 
-            // 避免重复创建（场景中可能已手动放置）
-            if (FindObjectOfType<GameLauncher>() != null)
-            {
-                Debug.Log("[GameLauncher] 已存在，跳过自动创建");
-                return;
-            }
-
-            var go = new GameObject("GameLauncher");
-            go.AddComponent<GameLauncher>();
-            // DontDestroyOnLoad 由 Awake() 统一处理，此处无需重复调用
+            EnsureCreatedForActiveScene();
 
             Debug.Log("[GameLauncher] ✅ 自动创建完成 — Launcher 场景已就绪");
+        }
+
+        public static GameLauncher EnsureCreatedForActiveScene()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (!active.IsValid() || active.name != "Launcher")
+                throw new System.InvalidOperationException(
+                    "Active build scene must be Launcher");
+
+            GameLauncher existing = FindObjectOfType<GameLauncher>();
+            if (existing != null) return existing;
+            return new GameObject("GameLauncher").AddComponent<GameLauncher>();
         }
 
         // ==================== Unity 生命周期 ====================
@@ -79,6 +82,7 @@ namespace ZWebGLFrameWork.FSM
 
         private void Start()
         {
+            VillageRuntimeBootstrap.EnsureCreated();
             // 触发 GameFSM 实例化：SingletonDontDestroy 在首次访问 Instance 时自动创建，
             // 其 Awake 中注册所有状态，Start 中触发 Launch 状态
             var fsm = GameFSM.Instance;

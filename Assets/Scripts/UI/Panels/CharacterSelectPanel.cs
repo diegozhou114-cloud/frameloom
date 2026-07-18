@@ -12,7 +12,7 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            BuildUI();
+            BuildOnce(BuildUI);
             RefreshSlots();
         }
 
@@ -77,7 +77,11 @@ namespace ZWebGLFrameWork.UI
 
             if (!SaveManager.Exists(slot))
             {
-                GameInitializer.CreateDefaultSave(slot);
+                if (!GameInitializer.CreateDefaultSave(slot))
+                {
+                    EventBus.Publish(LoginEvents.LoginError, "创建本地存档失败，请重试");
+                    return;
+                }
             }
 
             // 通过 EventBus 通知 LoginState：角色已选择，槽位 N

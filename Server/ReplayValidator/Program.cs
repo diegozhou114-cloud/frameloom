@@ -8,25 +8,28 @@ namespace ZWebGLFrameWork.Server
     {
         static int Main(string[] args)
         {
-            if (args.Length < 1)
+            if (args.Length < 2)
             {
-                Console.WriteLine("Usage: ReplayValidator <replay.json>");
+                Console.WriteLine("Usage: ReplayValidator <replay.json> <authoritative-manifest.bin>");
                 return 1;
             }
 
             string filePath = args[0];
-            if (!File.Exists(filePath))
+            string manifestPath = args[1];
+            if (!File.Exists(filePath) || !File.Exists(manifestPath))
             {
-                Console.Error.WriteLine($"File not found: {filePath}");
+                Console.Error.WriteLine("Replay or manifest file not found.");
                 return 1;
             }
 
             try
             {
                 string json = File.ReadAllText(filePath);
-                var replay = ReplayFile.FromJson(json);
+                var replay = ServerReplayJsonCodec.Deserialize(json);
+                byte[] manifestBytes = File.ReadAllBytes(manifestPath);
 
-                var validator = new ReplayValidator(new ConsoleLogger());
+                var validator = new ReplayValidator(
+                    new SimBattleSessionFactory(), manifestBytes, new ConsoleLogger());
                 var result = validator.Validate(replay);
 
                 Console.WriteLine($"Valid: {result.IsValid}");

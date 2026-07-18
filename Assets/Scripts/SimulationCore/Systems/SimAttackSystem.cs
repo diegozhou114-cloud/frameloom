@@ -11,7 +11,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _currentTick++;
 
             World.ForEachEntities<SimAttackComponent, SimTransformComponent>(
-                (entity, ref attack, ref transform) =>
+                (SimEntity entity, ref SimAttackComponent attack, ref SimTransformComponent transform) =>
             {
                 if (attack.IsOnCooldown(_currentTick)) return;
 

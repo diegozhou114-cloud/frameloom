@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -51,31 +52,7 @@ namespace ZWebGLFrameWork.SimulationCore
             => new LogicInt(a.RawValue * b);
 
         public static LogicInt operator *(LogicInt a, LogicInt b)
-        {
-            // 128-bit multiply → 64-bit divide, handling mixed signs correctly
-            bool negative = (a.RawValue < 0) != (b.RawValue < 0);
-            // 使用绝对值避免 BigMul 混合符号溢出（long.MinValue 会被 clamp 到 long.MaxValue，损失 1/Scale 精度）
-            long absA = a.RawValue >= 0 ? a.RawValue : (a.RawValue == long.MinValue ? long.MaxValue : -a.RawValue);
-            long absB = b.RawValue >= 0 ? b.RawValue : (b.RawValue == long.MinValue ? long.MaxValue : -b.RawValue);
-            long hi = Math.BigMul(absA, absB, out long lo);
-            long result;
-            if (hi == 0 && lo >= 0)
-            {
-                result = lo / Scale;
-            }
-            else
-            {
-                // Large values: divide the 128-bit number by Scale
-                const ulong TwoPow64DivScale = 1844674407370955UL; // 2^64 / 10000
-                const ulong TwoPow64ModScale = 1616UL;              // 2^64 % 10000
-                ulong uResult = (ulong)hi * TwoPow64DivScale;
-                ulong uRemainder = (ulong)hi * TwoPow64ModScale + (ulong)lo;
-                uResult += uRemainder / Scale;
-                result = (long)uResult;
-            }
-            if (negative) result = -result;
-            return new LogicInt(result);
-        }
+            => new LogicInt(Saturate((BigInteger)a.RawValue * b.RawValue / Scale));
 
         public static LogicInt operator /(LogicInt a, int b)
         {
@@ -86,7 +63,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public static LogicInt operator /(LogicInt a, LogicInt b)
         {
             if (b.RawValue == 0) throw new DivideByZeroException("LogicInt division by zero");
-            return new LogicInt((a.RawValue * Scale) / b.RawValue);
+            return new LogicInt(Saturate((BigInteger)a.RawValue * Scale / b.RawValue));
         }
 
         public static LogicInt operator -(LogicInt a)
@@ -105,7 +82,14 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public static LogicInt ApplyPercent(LogicInt value, int basisPoints)
         {
-            return new LogicInt((value.RawValue * basisPoints) / 10000);
+            return new LogicInt(Saturate((BigInteger)value.RawValue * basisPoints / 10000));
+        }
+
+        private static long Saturate(BigInteger value)
+        {
+            if (value > long.MaxValue) return long.MaxValue;
+            if (value < long.MinValue) return long.MinValue;
+            return (long)value;
         }
 
         public int ToBasisPoints()

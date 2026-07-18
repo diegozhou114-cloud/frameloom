@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -49,13 +50,15 @@ namespace ZWebGLFrameWork.FSM
         // ==================== 版本检查 ====================
 
         /// <summary>请求更新清单，返回更新策略</summary>
-        public async UniTask<VersionCheckResult> CheckVersionAsync()
+        public async UniTask<VersionCheckResult> CheckVersionAsync(
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             PublishProgress("检查版本...", 0.05f, "正在连接更新服务器");
 
             try
             {
-                var manifest = await GetManifestAsync();
+                var manifest = await GetManifestAsync(token);
                 if (manifest == null)
                 {
                     PublishError("版本检查失败", "无法连接到更新服务器", true);
@@ -85,6 +88,10 @@ namespace ZWebGLFrameWork.FSM
                 Debug.Log($"[HotUpdateManager] 版本检查完成: {result}");
                 return result;
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 PublishError("版本检查异常", ex.Message, true);
@@ -96,8 +103,10 @@ namespace ZWebGLFrameWork.FSM
 
         private UpdateManifest _pendingManifest;
 
-        public async UniTask<bool> DownloadUpdatesAsync()
+        public async UniTask<bool> DownloadUpdatesAsync(
+            CancellationToken token = default)
         {
+            token.ThrowIfCancellationRequested();
             if (_pendingManifest == null || _pendingManifest.Files.Count == 0)
             {
                 Debug.Log("[HotUpdateManager] 无文件需要下载");
@@ -117,8 +126,9 @@ namespace ZWebGLFrameWork.FSM
             int failed = 0;
             for (int i = 0; i < files.Count; i++)
             {
+                token.ThrowIfCancellationRequested();
                 var file = files[i];
-                var ok = await DownloadFileAsync(file, downloadDir, i, files.Count);
+                var ok = await DownloadFileAsync(file, downloadDir, i, files.Count, token);
                 if (!ok) failed++;
             }
 
@@ -129,7 +139,7 @@ namespace ZWebGLFrameWork.FSM
             }
 
             // 校验 + 应用
-            if (!await VerifyAndApply(files, downloadDir))
+            if (!await VerifyAndApply(files, downloadDir, token))
                 return false;
 
             NeedRestart = true;
@@ -138,8 +148,10 @@ namespace ZWebGLFrameWork.FSM
             return true;
         }
 
-        private async UniTask<bool> VerifyAndApply(List<UpdateFileInfo> files, string downloadDir)
+        private async UniTask<bool> VerifyAndApply(
+            List<UpdateFileInfo> files, string downloadDir, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             PublishProgress("校验文件...", 0.9f);
             if (!VerifyAllFiles(files, downloadDir))
             {
@@ -148,7 +160,7 @@ namespace ZWebGLFrameWork.FSM
             }
 
             PublishProgress("应用更新...", 0.95f);
-            await UniTask.Delay(200);
+            await UniTask.Delay(200, cancellationToken: token);
 
             // C.3: 热更包中可能包含新的 AppConfig，下载完成后自动同步
             TrySyncAppConfig(downloadDir);
@@ -156,8 +168,9 @@ namespace ZWebGLFrameWork.FSM
         }
 
         private async UniTask<bool> DownloadFileAsync(UpdateFileInfo file, string baseDir,
-            int index, int total)
+            int index, int total, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             var url = $"{HotUpdateBaseUrl}/{file.Name}";
             var savePath = Path.Combine(baseDir, file.SubDir ?? "", file.Name);
             var tmpPath = savePath + ".tmp";
@@ -177,47 +190,59 @@ namespace ZWebGLFrameWork.FSM
 
             Directory.CreateDirectory(Path.GetDirectoryName(savePath));
 
-            var request = UnityWebRequest.Get(url);
-            if (existingBytes > 0)
-                request.SetRequestHeader("Range", $"bytes={existingBytes}-");
-
-            var op = request.SendWebRequest();
-            while (!op.isDone)
+            using (var request = UnityWebRequest.Get(url))
             {
-                var current = existingBytes + (long)request.downloadedBytes;
-                UpdateDownloadProgress(index, total);
-                PublishProgress($"下载中 ({index + 1}/{total})",
-                    0.2f + 0.7f * ((float)(DownloadedBytes + current) / TotalDownloadBytes),
-                    $"{FormatSize(DownloadedBytes + current)}/{FormatSize(TotalDownloadBytes)}");
-                await UniTask.Yield();
+                if (existingBytes > 0)
+                    request.SetRequestHeader("Range", $"bytes={existingBytes}-");
+
+                var op = request.SendWebRequest();
+                try
+                {
+                    while (!op.isDone)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        var current = existingBytes + (long)request.downloadedBytes;
+                        UpdateDownloadProgress(index, total);
+                        PublishProgress($"下载中 ({index + 1}/{total})",
+                            0.2f + 0.7f * ((float)(DownloadedBytes + current) / TotalDownloadBytes),
+                            $"{FormatSize(DownloadedBytes + current)}/{FormatSize(TotalDownloadBytes)}");
+                        await UniTask.Yield(token);
+                    }
+
+                    token.ThrowIfCancellationRequested();
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        Debug.LogError($"[HotUpdateManager] 下载失败: {file.Name} — {request.error}");
+                        return false;
+                    }
+
+                    var data = request.downloadHandler.data;
+                    await WriteDownloadedFile(tmpPath, data, existingBytes, token);
+                    DownloadedBytes += data.Length;
+                    UpdateDownloadProgress(index + 1, total);
+                    return true;
+                }
+                finally
+                {
+                    if (token.IsCancellationRequested && !op.isDone)
+                        request.Abort();
+                }
             }
-
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError($"[HotUpdateManager] 下载失败: {file.Name} — {request.error}");
-                return false;
-            }
-
-            var data = request.downloadHandler.data;
-            await WriteDownloadedFile(tmpPath, data, existingBytes);
-
-            request.Dispose();
-            DownloadedBytes += data.Length;
-            UpdateDownloadProgress(index + 1, total);
-            return true;
         }
 
-        private static async UniTask WriteDownloadedFile(string tmpPath, byte[] data, long existingBytes)
+        private static async UniTask WriteDownloadedFile(
+            string tmpPath, byte[] data, long existingBytes, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             if (existingBytes > 0)
             {
                 // 追加写入
                 using (var fs = new FileStream(tmpPath, FileMode.Append))
-                    await fs.WriteAsync(data, 0, data.Length);
+                    await fs.WriteAsync(data, 0, data.Length, token);
             }
             else
             {
-                await File.WriteAllBytesAsync(tmpPath, data);
+                await File.WriteAllBytesAsync(tmpPath, data, token);
             }
         }
 
@@ -259,23 +284,22 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== HTTP ====================
 
-        private async UniTask<UpdateManifest> GetManifestAsync()
+        private async UniTask<UpdateManifest> GetManifestAsync(CancellationToken token)
         {
             var url = $"{HotUpdateBaseUrl}/{HotUpdateManifestPath}?t={DateTime.UtcNow.Ticks}";
-            var request = UnityWebRequest.Get(url);
-            request.timeout = 10;
-            await request.SendWebRequest().ToUniTask();
-
-            if (request.result != UnityWebRequest.Result.Success)
+            using (var request = UnityWebRequest.Get(url))
             {
-                Debug.LogError($"[HotUpdateManager] 获取清单失败: {request.error}");
-                request.Dispose();
-                return null;
-            }
+                request.timeout = 10;
+                await request.SendWebRequest().ToUniTask(cancellationToken: token);
 
-            var json = request.downloadHandler.text;
-            request.Dispose();
-            return JsonUtility.FromJson<UpdateManifest>(json);
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"[HotUpdateManager] 获取清单失败: {request.error}");
+                    return null;
+                }
+
+                return JsonUtility.FromJson<UpdateManifest>(request.downloadHandler.text);
+            }
         }
 
         // ==================== 辅助 ====================

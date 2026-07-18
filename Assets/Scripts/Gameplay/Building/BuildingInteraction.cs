@@ -22,12 +22,13 @@ namespace ZWebGLFrameWork.Gameplay
         [SerializeField] private SelectionManager _selection;
         [SerializeField] private BuildingPlacer _placer;
         [SerializeField] private GridRenderer _gridRenderer;
+        private SceneServiceRegistry _sceneServices;
 
         private void Start()
         {
-            if (_selection == null) _selection = FindObjectOfType<SelectionManager>();
-            if (_placer == null) _placer = FindObjectOfType<BuildingPlacer>();
-            if (_gridRenderer == null) _gridRenderer = FindObjectOfType<GridRenderer>();
+            _sceneServices = SceneServiceRegistry.Instance;
+            _sceneServices.Changed += BindSceneServices;
+            BindSceneServices(_sceneServices.Current);
 
             EventBus.Subscribe<SelectionEvent>(SelectionManager.EventSelectionChanged, OnSelectionChanged);
             EventBus.Subscribe(SelectionManager.EventSelectionCleared, OnDeselected);
@@ -42,9 +43,21 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void OnDestroy()
         {
+            if (_sceneServices != null)
+                _sceneServices.Changed -= BindSceneServices;
             EventBus.Unsubscribe<SelectionEvent>(SelectionManager.EventSelectionChanged, OnSelectionChanged);
             EventBus.Unsubscribe(SelectionManager.EventSelectionCleared, OnDeselected);
             EventBus.Unsubscribe<GestureData>(InputManager.EventGesture, OnGesture);
+        }
+
+        private void BindSceneServices(SceneServices services)
+        {
+            if (services.Interaction != null && services.Interaction != this) return;
+            _selection = SelectionManager.HasInstance ? SelectionManager.Instance : null;
+            _placer = services.Placer;
+            _gridRenderer = services.GridRenderer;
+            if (_placer == null)
+                IsEditMode = false;
         }
 
         // ==================== 选中/取消选中 ====================
@@ -64,6 +77,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void OnGesture(GestureData gesture)
         {
+            if (_selection == null) return;
             if (gesture.Type == GestureType.LongPress)
             {
                 // 长按进入编辑模式
@@ -79,6 +93,7 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>升级当前选中建筑（从 ConfigTableManager 读取消耗和时间）</summary>
         public void UpgradeSelected()
         {
+            if (_selection == null) return;
             var building = _selection.SelectedBuilding;
             if (building == null) return;
 
@@ -111,6 +126,7 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>开始升级当前选中建筑（手动指定消耗）</summary>
         public void UpgradeSelected(int costGold, int costElixir, int durationSeconds)
         {
+            if (_selection == null) return;
             var building = _selection.SelectedBuilding;
             if (building == null) return;
 
@@ -145,6 +161,7 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>立即完成升级（宝石加速）</summary>
         public void InstantUpgrade(int gemCost)
         {
+            if (_selection == null) return;
             var building = _selection.SelectedBuilding;
             if (building == null || !building.IsUpgrading) return;
 
@@ -217,6 +234,7 @@ namespace ZWebGLFrameWork.Gameplay
         /// </remarks>
         public void MoveBuilding(string buildingId, Vector2Int newGridPos)
         {
+            if (_selection == null) return;
             if (!IsEditMode) return;
 
             var building = DataManager.Instance.Village.GetBuilding(buildingId);

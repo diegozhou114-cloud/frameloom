@@ -19,7 +19,7 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            BuildUI();
+            BuildOnce(BuildUI);
             EventBus.Subscribe<BootErrorEvent>(BootErrorEvent.EventKey, OnBootError);
         }
 
@@ -52,7 +52,7 @@ namespace ZWebGLFrameWork.UI
             iconGo.transform.SetParent(box.transform, false);
             var icon = iconGo.GetComponent<Text>();
             icon.text = "⚠";
-            icon.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            icon.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             icon.fontSize = 48;
             icon.color = new Color(1f, 0.8f, 0.2f);
             icon.alignment = TextAnchor.MiddleCenter;
@@ -64,7 +64,7 @@ namespace ZWebGLFrameWork.UI
             var msgGo = new GameObject("Message", typeof(RectTransform), typeof(Text));
             msgGo.transform.SetParent(box.transform, false);
             _messageText = msgGo.GetComponent<Text>();
-            _messageText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            _messageText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             _messageText.fontSize = 18;
             _messageText.color = Color.white;
             _messageText.alignment = TextAnchor.MiddleCenter;
@@ -117,7 +117,7 @@ namespace ZWebGLFrameWork.UI
             labelGo.transform.SetParent(go.transform, false);
             var txt = labelGo.GetComponent<Text>();
             txt.text = label;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.fontSize = 18;
             txt.color = Color.white;
             txt.alignment = TextAnchor.MiddleCenter;

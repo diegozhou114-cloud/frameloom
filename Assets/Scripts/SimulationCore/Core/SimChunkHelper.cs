@@ -3,7 +3,7 @@ using System;
 namespace ZWebGLFrameWork.SimulationCore
 {
     /// <summary>
-    /// SimChunk 辅助方法 — 硬编码 6 种组件类型的操作。
+    /// SimChunk 辅助方法 — 硬编码 schema 组件类型的操作。
     /// 零反射，全平台安全（IL2CPP/iOS/Android/WebGL/微信小游戏）。
     /// </summary>
     internal static class SimChunkHelper
@@ -13,12 +13,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeId)
             {
-                case 0: return new SimTransformComponent();
-                case 1: return new SimHealthComponent();
-                case 2: return new SimTeamComponent();
-                case 3: return new SimMovementComponent();
-                case 4: return new SimAttackComponent();
-                case 5: return new SimTargetComponent();
+                case SimComponentTypeId.Transform: return new SimTransformComponent();
+                case SimComponentTypeId.Health: return new SimHealthComponent();
+                case SimComponentTypeId.Team: return new SimTeamComponent();
+                case SimComponentTypeId.Movement: return new SimMovementComponent();
+                case SimComponentTypeId.Attack: return new SimAttackComponent();
+                case SimComponentTypeId.Target: return new SimTargetComponent();
+                case SimComponentTypeId.Identity: return new SimIdentityComponent();
                 default: return null;
             }
         }
@@ -28,12 +29,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeId)
             {
-                case 0: return new SimTransformComponent[capacity];
-                case 1: return new SimHealthComponent[capacity];
-                case 2: return new SimTeamComponent[capacity];
-                case 3: return new SimMovementComponent[capacity];
-                case 4: return new SimAttackComponent[capacity];
-                case 5: return new SimTargetComponent[capacity];
+                case SimComponentTypeId.Transform: return new SimTransformComponent[capacity];
+                case SimComponentTypeId.Health: return new SimHealthComponent[capacity];
+                case SimComponentTypeId.Team: return new SimTeamComponent[capacity];
+                case SimComponentTypeId.Movement: return new SimMovementComponent[capacity];
+                case SimComponentTypeId.Attack: return new SimAttackComponent[capacity];
+                case SimComponentTypeId.Target: return new SimTargetComponent[capacity];
+                case SimComponentTypeId.Identity: return new SimIdentityComponent[capacity];
                 default: return null;
             }
         }
@@ -43,12 +45,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeId)
             {
-                case 0: return ((SimTransformComponent[])col)[localIndex];
-                case 1: return ((SimHealthComponent[])col)[localIndex];
-                case 2: return ((SimTeamComponent[])col)[localIndex];
-                case 3: return ((SimMovementComponent[])col)[localIndex];
-                case 4: return ((SimAttackComponent[])col)[localIndex];
-                case 5: return ((SimTargetComponent[])col)[localIndex];
+                case SimComponentTypeId.Transform: return ((SimTransformComponent[])col)[localIndex];
+                case SimComponentTypeId.Health: return ((SimHealthComponent[])col)[localIndex];
+                case SimComponentTypeId.Team: return ((SimTeamComponent[])col)[localIndex];
+                case SimComponentTypeId.Movement: return ((SimMovementComponent[])col)[localIndex];
+                case SimComponentTypeId.Attack: return ((SimAttackComponent[])col)[localIndex];
+                case SimComponentTypeId.Target: return ((SimTargetComponent[])col)[localIndex];
+                case SimComponentTypeId.Identity: return ((SimIdentityComponent[])col)[localIndex];
                 default: return null;
             }
         }
@@ -58,12 +61,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeId)
             {
-                case 0: ((SimTransformComponent[])col)[localIndex] = (SimTransformComponent)value; break;
-                case 1: ((SimHealthComponent[])col)[localIndex] = (SimHealthComponent)value; break;
-                case 2: ((SimTeamComponent[])col)[localIndex] = (SimTeamComponent)value; break;
-                case 3: ((SimMovementComponent[])col)[localIndex] = (SimMovementComponent)value; break;
-                case 4: ((SimAttackComponent[])col)[localIndex] = (SimAttackComponent)value; break;
-                case 5: ((SimTargetComponent[])col)[localIndex] = (SimTargetComponent)value; break;
+                case SimComponentTypeId.Transform: ((SimTransformComponent[])col)[localIndex] = (SimTransformComponent)value; break;
+                case SimComponentTypeId.Health: ((SimHealthComponent[])col)[localIndex] = (SimHealthComponent)value; break;
+                case SimComponentTypeId.Team: ((SimTeamComponent[])col)[localIndex] = (SimTeamComponent)value; break;
+                case SimComponentTypeId.Movement: ((SimMovementComponent[])col)[localIndex] = (SimMovementComponent)value; break;
+                case SimComponentTypeId.Attack: ((SimAttackComponent[])col)[localIndex] = (SimAttackComponent)value; break;
+                case SimComponentTypeId.Target: ((SimTargetComponent[])col)[localIndex] = (SimTargetComponent)value; break;
+                case SimComponentTypeId.Identity: ((SimIdentityComponent[])col)[localIndex] = (SimIdentityComponent)value; break;
             }
         }
 
@@ -72,12 +76,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeId)
             {
-                case 0: return typeof(SimTransformComponent).FullName;
-                case 1: return typeof(SimHealthComponent).FullName;
-                case 2: return typeof(SimTeamComponent).FullName;
-                case 3: return typeof(SimMovementComponent).FullName;
-                case 4: return typeof(SimAttackComponent).FullName;
-                case 5: return typeof(SimTargetComponent).FullName;
+                case SimComponentTypeId.Transform: return typeof(SimTransformComponent).FullName;
+                case SimComponentTypeId.Health: return typeof(SimHealthComponent).FullName;
+                case SimComponentTypeId.Team: return typeof(SimTeamComponent).FullName;
+                case SimComponentTypeId.Movement: return typeof(SimMovementComponent).FullName;
+                case SimComponentTypeId.Attack: return typeof(SimAttackComponent).FullName;
+                case SimComponentTypeId.Target: return typeof(SimTargetComponent).FullName;
+                case SimComponentTypeId.Identity: return typeof(SimIdentityComponent).FullName;
                 default: return null;
             }
         }
@@ -87,12 +92,13 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             switch (typeName)
             {
-                case "ZWebGLFrameWork.SimulationCore.SimTransformComponent": return 0;
-                case "ZWebGLFrameWork.SimulationCore.SimHealthComponent": return 1;
-                case "ZWebGLFrameWork.SimulationCore.SimTeamComponent": return 2;
-                case "ZWebGLFrameWork.SimulationCore.SimMovementComponent": return 3;
-                case "ZWebGLFrameWork.SimulationCore.SimAttackComponent": return 4;
-                case "ZWebGLFrameWork.SimulationCore.SimTargetComponent": return 5;
+                case "ZWebGLFrameWork.SimulationCore.SimTransformComponent": return SimComponentTypeId.Transform;
+                case "ZWebGLFrameWork.SimulationCore.SimHealthComponent": return SimComponentTypeId.Health;
+                case "ZWebGLFrameWork.SimulationCore.SimTeamComponent": return SimComponentTypeId.Team;
+                case "ZWebGLFrameWork.SimulationCore.SimMovementComponent": return SimComponentTypeId.Movement;
+                case "ZWebGLFrameWork.SimulationCore.SimAttackComponent": return SimComponentTypeId.Attack;
+                case "ZWebGLFrameWork.SimulationCore.SimTargetComponent": return SimComponentTypeId.Target;
+                case "ZWebGLFrameWork.SimulationCore.SimIdentityComponent": return SimComponentTypeId.Identity;
                 default: return -1;
             }
         }

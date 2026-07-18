@@ -37,11 +37,12 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         /// <summary>在新 SimWorld 中创建实体并设置初始组件值</summary>
-        public SimEntity CreateIn(SimWorld world, int gridX, int gridY, int teamId)
+        public SimEntity CreateIn(SimWorld world, int gridX, int gridY, int teamId, int ownerPlayerId = 0)
         {
             var types = new System.Collections.Generic.List<System.Type>
             {
-                typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent)
+                typeof(SimTransformComponent), typeof(SimHealthComponent),
+                typeof(SimTeamComponent), typeof(SimIdentityComponent)
             };
             if (CanMove) types.Add(typeof(SimMovementComponent));
             if (CanAttack)
@@ -54,6 +55,11 @@ namespace ZWebGLFrameWork.SimulationCore
             world.SetComponent(entity, SimTransformComponent.Create(gridX, gridY, LogicInt.FromInt(1)));
             world.SetComponent(entity, SimHealthComponent.Create(DefaultHealth));
             world.SetComponent(entity, SimTeamComponent.Create(teamId));
+            world.SetComponent(entity, new SimIdentityComponent
+            {
+                ArchetypeId = ArchetypeId,
+                OwnerPlayerId = ownerPlayerId,
+            });
             if (CanMove)
                 world.SetComponent(entity, SimMovementComponent.Create(DefaultSpeed, 1f));
             if (CanAttack)

@@ -18,5 +18,6 @@ namespace ZWebGLFrameWork.SimulationCore
         int Tick { get; }
         /// <summary>玩家 ID（0=Player1, 1=Player2）</summary>
         int PlayerId { get; }
+        int Sequence { get; }
     }
 }

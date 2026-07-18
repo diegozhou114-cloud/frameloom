@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -9,26 +7,27 @@ namespace ZWebGLFrameWork.SimulationCore
     [Serializable]
     public class SerializableCommand
     {
-        [JsonInclude] public string Type { get; set; }
-        [JsonInclude] public int Tick { get; set; }
-        [JsonInclude] public int PlayerId { get; set; }
-        [JsonInclude] public int UnitTypeId { get; set; }
-        [JsonInclude] public int EntityId { get; set; }
-        [JsonInclude] public int CasterId { get; set; }
-        [JsonInclude] public int SkillId { get; set; }
-        [JsonInclude] public int GridX { get; set; }
-        [JsonInclude] public int TargetX { get; set; }
-        [JsonInclude] public int GridY { get; set; }
-        [JsonInclude] public int TargetY { get; set; }
+        public string Type { get; set; }
+        public int Tick { get; set; }
+        public int PlayerId { get; set; }
+        public int Sequence { get; set; }
+        public int UnitTypeId { get; set; }
+        public int EntityId { get; set; }
+        public int CasterId { get; set; }
+        public int SkillId { get; set; }
+        public int GridX { get; set; }
+        public int TargetX { get; set; }
+        public int GridY { get; set; }
+        public int TargetY { get; set; }
     }
 
     /// <summary>单 Tick 的录制数据</summary>
     [Serializable]
     public class TickRecord
     {
-        [JsonInclude] public int Tick { get; set; }
-        [JsonInclude] public List<SerializableCommand> Commands { get; set; } = new List<SerializableCommand>();
-        [JsonInclude] public ulong Checksum { get; set; }
+        public int Tick { get; set; }
+        public List<SerializableCommand> Commands { get; set; } = new List<SerializableCommand>();
+        public ulong Checksum { get; set; }
     }
 
     /// <summary>
@@ -38,10 +37,10 @@ namespace ZWebGLFrameWork.SimulationCore
     [Serializable]
     public class ReplayFile
     {
-        [JsonInclude] public int Version { get; set; } = 1;
-        [JsonInclude] public int Seed { get; set; }
-        [JsonInclude] public SimEntitySpawnInfo[] InitialLayout { get; set; }
-        [JsonInclude] public List<TickRecord> Records { get; set; } = new List<TickRecord>();
+        public int Version { get; set; } = 1;
+        public int Seed { get; set; }
+        public SimEntitySpawnInfo[] InitialLayout { get; set; }
+        public List<TickRecord> Records { get; set; } = new List<TickRecord>();
 
         public int TotalTicks => Records.Count;
 
@@ -51,18 +50,6 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var r in Records)
                 if (r.Tick == tick) return r.Checksum;
             return 0;
-        }
-
-        /// <summary>序列化为 JSON 字符串</summary>
-        public string ToJson()
-        {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-        }
-
-        /// <summary>从 JSON 字符串反序列化</summary>
-        public static ReplayFile FromJson(string json)
-        {
-            return JsonSerializer.Deserialize<ReplayFile>(json);
         }
     }
 }

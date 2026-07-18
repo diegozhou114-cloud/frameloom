@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using ZWebGLFrameWork.Combat;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
 {
@@ -166,6 +165,35 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Recorder_RecordsCommandsExecutedByTheOrchestrator()
+        {
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
+            var buffer = new CommandBuffer();
+            var initializer = new TestInitializer(42);
+            var recorder = new CommandRecorder(42, initializer.GetInitialEntities(), buffer);
+            var systems = SimCombatBootstrap.Build(world);
+            var deathSys = systems.Find<SimDeathSystem>();
+            var orchestrator = new SimOrchestrator(world, systems, deathSys, buffer, recorder,
+                initializer, SimArchetypeRegistry.CreateDefault());
+
+            orchestrator.StartBattle();
+            orchestrator.SetPhase(SimCombatPhase.Battling);
+            buffer.AddCommand(new MoveCmd
+            {
+                Tick = 0,
+                PlayerId = 0,
+                EntityId = 1,
+                TargetX = 7,
+                TargetY = 8,
+            });
+            orchestrator.Tick();
+
+            ReplayFile replay = recorder.Export();
+            Assert.That(replay.Records[0].Commands.Count, Is.EqualTo(1));
+            Assert.That(replay.Records[0].Commands[0].Type, Is.EqualTo("Move"));
+        }
+
+        [Test]
         public void ReplayFile_VersionField_Exists()
         {
             var replay = new ReplayFile();
@@ -195,8 +223,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 },
             };
 
-            string json = replay.ToJson();
-            var restored = ReplayFile.FromJson(json);
+            string json = UnityReplayJsonCodec.Serialize(replay);
+            var restored = UnityReplayJsonCodec.Deserialize(json);
 
             Assert.That(restored.Version, Is.EqualTo(1));
             Assert.That(restored.Seed, Is.EqualTo(42));
@@ -236,13 +264,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                     if (orch.CurrentPhase == SimCombatPhase.Ended) break;
                 }
 
-                json = recorder.ExportJson();
+                json = UnityReplayJsonCodec.Serialize(recorder.Export());
                 totalTicks = orch.CurrentTick;
                 Assert.That(json, Is.Not.Null.And.Not.Empty, "JSON export should not be empty");
             }
 
             // ── Phase 2: Validate JSON directly ──
-            var replay = ReplayFile.FromJson(json);
+            var replay = UnityReplayJsonCodec.Deserialize(json);
             Assert.That(replay.Version, Is.EqualTo(1));
             Assert.That(replay.Seed, Is.EqualTo(seed));
             Assert.That(replay.Records.Count, Is.GreaterThan(0));

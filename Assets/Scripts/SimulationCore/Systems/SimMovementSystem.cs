@@ -9,7 +9,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public override void Update()
         {
             World.ForEachEntities<SimTransformComponent, SimMovementComponent>(
-                (entity, ref transform, ref movement) =>
+                (SimEntity entity, ref SimTransformComponent transform, ref SimMovementComponent movement) =>
             {
                 if (!movement.HasPath) return;
 

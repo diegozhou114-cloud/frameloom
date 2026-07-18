@@ -3,70 +3,101 @@ using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
-    /// <summary>
-    /// 组件类型注册表 — Type → int Id，按类型全名字符串排序确保确定性。
-    /// 跨平台相同组件集合产生相同的 Id 分配。
-    /// </summary>
+    /// <summary>显式组件 schema 注册表 — Type 与 ID 均由共享 schema 固定。</summary>
     public class ComponentTypeRegistry
     {
         private readonly Dictionary<Type, int> _typeToId = new Dictionary<Type, int>();
         private readonly Type[] _idToType;
 
-        public int Count => _idToType.Length;
+        public int Count { get; }
 
-        /// <param name="componentTypes">所有组件类型（顺序即ID分配顺序，调用者负责保持与SimChunkHelper一致）</param>
-        public ComponentTypeRegistry(IEnumerable<Type> componentTypes)
+        public ComponentTypeRegistry(IEnumerable<ComponentRegistration> registrations)
         {
-            var unique = new List<Type>();
-            foreach (var t in componentTypes)
-                if (!unique.Contains(t))
-                    unique.Add(t);
+            if (registrations == null) throw new ArgumentNullException(nameof(registrations));
+            var rows = new List<ComponentRegistration>();
+            int maxId = 0;
+            foreach (var registration in registrations)
+            {
+                if (registration.Type == null)
+                    throw new ArgumentException("Component type cannot be null.", nameof(registrations));
+                if (registration.Id < 1)
+                    throw new ArgumentException("Component IDs must be positive.", nameof(registrations));
+                if (!TryGetSchemaId(registration.Type, out int schemaId))
+                    throw new ArgumentException($"Unknown component type: {registration.Type.FullName}", nameof(registrations));
+                if (registration.Id != schemaId)
+                    throw new ArgumentException(
+                        $"Component ID {registration.Id} does not match schema ID {schemaId} for {registration.Type.FullName}.",
+                        nameof(registrations));
+                if (_typeToId.ContainsKey(registration.Type))
+                    throw new ArgumentException($"Duplicate component type: {registration.Type.FullName}", nameof(registrations));
+                if (rows.Exists(row => row.Id == registration.Id))
+                    throw new ArgumentException($"Duplicate component ID: {registration.Id}", nameof(registrations));
+                _typeToId.Add(registration.Type, registration.Id);
+                rows.Add(registration);
+                if (registration.Id > maxId) maxId = registration.Id;
+            }
 
-            _idToType = unique.ToArray();
-            for (int i = 0; i < _idToType.Length; i++)
-                _typeToId[_idToType[i]] = i;
+            _idToType = new Type[maxId + 1];
+            foreach (var row in rows)
+                _idToType[row.Id] = row.Type;
+            Count = rows.Count;
         }
 
-        /// <summary>Type → int Id（O(1)）。未注册类型抛出 KeyNotFoundException。</summary>
-        /// <exception cref="KeyNotFoundException">类型未注册</exception>
+        public ComponentTypeRegistry(IEnumerable<Type> componentTypes)
+            : this(ToRegistrations(componentTypes))
+        {
+        }
+
+        private static IEnumerable<ComponentRegistration> ToRegistrations(IEnumerable<Type> componentTypes)
+        {
+            if (componentTypes == null) throw new ArgumentNullException(nameof(componentTypes));
+            foreach (var type in componentTypes)
+            {
+                bool found = false;
+                foreach (var registration in SimComponentSchema.Registrations)
+                {
+                    if (registration.Type == type)
+                    {
+                        found = true;
+                        yield return registration;
+                        break;
+                    }
+                }
+                if (!found)
+                    throw new ArgumentException($"Unknown component type: {type?.FullName ?? "null"}", nameof(componentTypes));
+            }
+        }
+
+        private static bool TryGetSchemaId(Type type, out int id)
+        {
+            foreach (var registration in SimComponentSchema.Registrations)
+            {
+                if (registration.Type == type)
+                {
+                    id = registration.Id;
+                    return true;
+                }
+            }
+            id = 0;
+            return false;
+        }
+
         public int GetId(Type type)
         {
             if (!_typeToId.TryGetValue(type, out int id))
-                throw new KeyNotFoundException(
-                    $"[ComponentTypeRegistry] 类型 '{type?.FullName ?? "null"}' 未注册。" +
-                    " 请确认已在组件类型列表中声明此类型。");
+                throw new KeyNotFoundException($"[ComponentTypeRegistry] Type '{type?.FullName ?? "null"}' is not registered.");
             return id;
         }
 
-        /// <summary>无异常的查询：Type → int Id（O(1)），未注册返回 false。</summary>
-        public bool TryGetId(Type type, out int id)
-        {
-            return _typeToId.TryGetValue(type, out id);
-        }
+        public bool TryGetId(Type type, out int id) => _typeToId.TryGetValue(type, out id);
 
-        /// <summary>int Id → Type（O(1)）</summary>
         public Type GetType(int id)
         {
-            if (id >= 0 && id < _idToType.Length)
-                return _idToType[id];
-            return null;
+            return id > 0 && id < _idToType.Length ? _idToType[id] : null;
         }
 
-        /// <summary>检查类型是否已注册</summary>
         public bool Has(Type type) => _typeToId.ContainsKey(type);
 
-        /// <summary>创建默认注册表（战斗用的 6 种组件，顺序与 SimChunkHelper 硬编码一致）</summary>
-        public static ComponentTypeRegistry CreateCombatRegistry()
-        {
-            return new ComponentTypeRegistry(new Type[]
-            {
-                typeof(SimTransformComponent),
-                typeof(SimHealthComponent),
-                typeof(SimTeamComponent),
-                typeof(SimMovementComponent),
-                typeof(SimAttackComponent),
-                typeof(SimTargetComponent),
-            });
-        }
+        public static ComponentTypeRegistry CreateCombatRegistry() => SimComponentSchema.CreateRegistry();
     }
 }

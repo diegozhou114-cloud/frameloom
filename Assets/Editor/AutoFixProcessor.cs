@@ -129,12 +129,9 @@ namespace ZWebGLFrameWork.Editor
             }
             File.WriteAllText(filePath, content);
         }
-        {
-            // 找到最后一个 using 语句的位置
-            var match = Regex.Match(content, @"^using .+;\s*$", RegexOptions.Multiline);
-            if (!match.Success) return 0;
 
-            // 找到所有 using 语句的最后一个
+        private static int FindUsingInsertPosition(string content)
+        {
             var matches = Regex.Matches(content, @"^using .+;\s*$", RegexOptions.Multiline);
             if (matches.Count == 0) return 0;
 

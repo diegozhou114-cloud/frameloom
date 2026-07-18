@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.UI
@@ -22,6 +23,7 @@ namespace ZWebGLFrameWork.UI
         private readonly Dictionary<UILayer, Canvas> _layerCanvases = new Dictionary<UILayer, Canvas>();
         private readonly Dictionary<UILayer, int> _layerPanelCounts = new Dictionary<UILayer, int>();
         private readonly Dictionary<Type, UIBase> _panelCache = new Dictionary<Type, UIBase>();
+        private GameObject _ownedEventSystem;
 
         protected override void Awake()
         {
@@ -32,11 +34,41 @@ namespace ZWebGLFrameWork.UI
         private void Initialize()
         {
             _stack = new UIStack();
+            EnsureEventSystem();
             CreateUIRoot();
             CreateLayerCanvases();
 
             if (GetComponent<BuildingInfoController>() == null)
                 gameObject.AddComponent<BuildingInfoController>();
+        }
+
+        private void EnsureEventSystem()
+        {
+            EventSystem[] systems = FindObjectsOfType<EventSystem>(true);
+            EventSystem primary = EventSystem.current;
+            if (primary == null && systems.Length > 0)
+                primary = systems[0];
+
+            if (primary == null)
+            {
+                var eventObject = new GameObject("EventSystem");
+                _ownedEventSystem = eventObject;
+                primary = eventObject.AddComponent<EventSystem>();
+                eventObject.AddComponent<StandaloneInputModule>();
+            }
+            else if (primary.GetComponent<BaseInputModule>() == null)
+            {
+                primary.gameObject.AddComponent<StandaloneInputModule>();
+            }
+
+            primary.transform.SetParent(null);
+            DontDestroyOnLoad(primary.gameObject);
+
+            foreach (EventSystem candidate in systems)
+            {
+                if (candidate != null && candidate != primary)
+                    Destroy(candidate.gameObject);
+            }
         }
 
         // ==================== 初始化 ====================
@@ -69,10 +101,8 @@ namespace ZWebGLFrameWork.UI
                 go.layer = LayerMask.NameToLayer("UI");
 
                 var canvas = go.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = _uiCamera;
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 canvas.sortingOrder = UIDefine.GetLayerSortingOrder(layer);
-                canvas.planeDistance = 10;
 
                 // 可选：GraphicRaycaster
                 go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
@@ -95,7 +125,10 @@ namespace ZWebGLFrameWork.UI
             // 如果已打开且在同一层，恢复并传递新数据
             if (_panelCache.TryGetValue(type, out var existing) && existing.IsOpen)
             {
-                existing.DoResume(data);
+                if (existing.IsPaused)
+                    existing.DoResume(data);
+                else
+                    existing.DoRebind(data);
                 return existing as T;
             }
 
@@ -107,6 +140,13 @@ namespace ZWebGLFrameWork.UI
             panel.transform.SetParent(_layerCanvases[layer].transform, false);
             panel.transform.localPosition = Vector3.zero;
             panel.transform.localScale = Vector3.one;
+            if (panel.transform is RectTransform panelRect)
+            {
+                panelRect.anchorMin = Vector2.zero;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.offsetMin = Vector2.zero;
+                panelRect.offsetMax = Vector2.zero;
+            }
 
             // 分配 sortingOrder
             panel.SortingOrder = UIDefine.GetLayerSortingOrder(layer) + _layerPanelCounts[layer];
@@ -145,17 +185,6 @@ namespace ZWebGLFrameWork.UI
         public void CloseLayer(UILayer layer)
         {
             _stack.ClearFrom(layer);
-            // 清理缓存
-            var toRemove = new List<Type>();
-            foreach (var kv in _panelCache)
-            {
-                if (kv.Value.Layer >= layer)
-                    toRemove.Add(kv.Key);
-            }
-            foreach (var key in toRemove)
-            {
-                _panelCache.Remove(key);
-            }
         }
 
         /// <summary>显示 Toast 提示（Tip 层，自动消失）</summary>
@@ -250,6 +279,16 @@ namespace ZWebGLFrameWork.UI
         {
             _layerCanvases.TryGetValue(layer, out var canvas);
             return canvas;
+        }
+
+        protected override void OnDestroy()
+        {
+            if (_ownedEventSystem != null)
+            {
+                Destroy(_ownedEventSystem);
+                _ownedEventSystem = null;
+            }
+            base.OnDestroy();
         }
     }
 }

@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using ZWebGLFrameWork.Core;
 
 namespace ZWebGLFrameWork.FSM
@@ -12,8 +14,14 @@ namespace ZWebGLFrameWork.FSM
 
         /// <summary>当前正在执行的加载协程（OnExit 时停止以避免孤儿协程）</summary>
         private Coroutine _activeCoroutine;
+        private readonly ISceneLoadService _sceneLoader;
 
-        public LoadingState() : base(GameState.Loading) { }
+        public LoadingState() : this(null) { }
+
+        public LoadingState(ISceneLoadService sceneLoader) : base(GameState.Loading)
+        {
+            _sceneLoader = sceneLoader;
+        }
 
         public override void OnEnter(object data = null)
         {
@@ -38,19 +46,38 @@ namespace ZWebGLFrameWork.FSM
         {
             if (!string.IsNullOrEmpty(payload.TargetScene))
             {
-                var loadTask = SceneLoader.Instance.LoadSceneAsync(payload.TargetScene);
+                ISceneLoadService sceneLoader = _sceneLoader ?? SceneLoader.Instance;
+                UniTask<SceneLoadResult> loadTask = sceneLoader.LoadSceneAsync(
+                    payload.TargetScene,
+                    LoadSceneMode.Single,
+                    LifetimeToken);
                 while (loadTask.Status == UniTaskStatus.Pending)
                 {
-                    Progress = SceneLoader.Instance.Progress;
+                    if (sceneLoader is SceneLoader unitySceneLoader)
+                        Progress = unitySceneLoader.Progress;
                     yield return null;
                 }
 
-                // 场景加载失败处理
-                if (loadTask.Status == UniTaskStatus.Faulted)
+                SceneLoadResult result;
+                try
                 {
-                    Debug.LogError($"[LoadingState] ❌ 场景加载失败: {payload.TargetScene}");
+                    result = loadTask.GetAwaiter().GetResult();
+                }
+                catch (System.OperationCanceledException)
+                {
+                    result = new SceneLoadResult(SceneLoadStatus.Cancelled);
+                }
+                catch (System.Exception exception)
+                {
+                    result = new SceneLoadResult(SceneLoadStatus.Failed, exception.Message);
+                }
+
+                if (!result.Succeeded)
+                {
+                    Debug.LogWarning(
+                        $"[LoadingState] ❌ 场景加载失败: {payload.TargetScene} ({result.Status})");
                     Progress = 0f;
-                    EventBus.Publish("LoadingFailed");
+                    EventBus.Publish("LoadingFailed", result.Status);
                     ChangeState(GameState.MainVillage); // 回退到主城
                     _activeCoroutine = null;
                     yield break;
@@ -77,6 +104,7 @@ namespace ZWebGLFrameWork.FSM
 
         public override void OnExit()
         {
+            base.OnExit();
             // 停止未完成的加载协程，防止在退出后继续执行并覆盖 FSM 状态
             if (_activeCoroutine != null)
             {
@@ -85,7 +113,6 @@ namespace ZWebGLFrameWork.FSM
                 Debug.Log("[GameFSM] 加载协程已取消");
             }
             Progress = 1f;
-            base.OnExit();
             Debug.Log("[GameFSM] 退出加载状态");
         }
     }

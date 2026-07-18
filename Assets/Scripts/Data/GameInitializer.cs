@@ -23,25 +23,37 @@ namespace ZWebGLFrameWork.Data
         /// <summary>
         /// 确保当前槽位存在存档。若不存在则创建默认新手数据并保存。
         /// </summary>
-        public static void EnsureSaveExists()
+        public static bool EnsureSaveExists()
         {
             int slot = SaveManager.CurrentSlot;
 
             if (SaveManager.Exists(slot))
             {
                 Debug.Log($"[GameInitializer] 存档已存在 slot={slot}，跳过初始化");
-                return;
+                return true;
             }
 
             Debug.Log($"[GameInitializer] 首次启动 slot={slot}，创建默认存档...");
-            CreateDefaultSave(slot);
+            return CreateDefaultSave(slot);
         }
 
         /// <summary>创建默认新手存档（Town Hall Lv1 + 基础建筑）</summary>
-        public static void CreateDefaultSave(int slot)
+        public static bool CreateDefaultSave(int slot)
         {
-            var saveData = new PlayerSaveData
+            var saveData = CreateDefaultSaveData();
+            if (!SaveManager.Save(saveData, slot))
+                return false;
+
+            Debug.Log($"[GameInitializer] ✅ 默认存档已创建 slot={slot}: " +
+                      $"{saveData.PlayerName} Lv.{saveData.PlayerLevel}");
+            return true;
+        }
+
+        public static PlayerSaveData CreateDefaultSaveData()
+        {
+            return new PlayerSaveData
             {
+                Version = PlayerSaveData.CurrentVersion,
                 PlayerName = "Villager",
                 PlayerLevel = 1,
                 TownHallLevel = 1,
@@ -51,20 +63,37 @@ namespace ZWebGLFrameWork.Data
                 Gems = 50,
                 Trophies = 0,
                 Exp = 0,
+                VillageName = "My Village",
+                MaxBuildings = 50,
                 Buildings = new List<BuildingSaveData>
                 {
-                    new BuildingSaveData { TypeId = 1, GridX = 20, GridY = 22, Level = 1 }, // Town Hall (中心)
-                    new BuildingSaveData { TypeId = 2, GridX = 16, GridY = 26, Level = 1 }, // Gold Mine (左上)
-                    new BuildingSaveData { TypeId = 3, GridX = 24, GridY = 26, Level = 1 }, // Elixir Collector (右上)
-                    new BuildingSaveData { TypeId = 5, GridX = 16, GridY = 18, Level = 1 }, // Cannon (左下)
+                    new BuildingSaveData
+                    {
+                        Id = "default-town-hall", TypeId = 1,
+                        GridX = 20, GridY = 22, Level = 1,
+                        State = BuildingState.Normal, UpgradeEndTime = 0,
+                    },
+                    new BuildingSaveData
+                    {
+                        Id = "default-gold-mine", TypeId = 2,
+                        GridX = 16, GridY = 26, Level = 1,
+                        State = BuildingState.Normal, UpgradeEndTime = 0,
+                    },
+                    new BuildingSaveData
+                    {
+                        Id = "default-elixir-collector", TypeId = 3,
+                        GridX = 24, GridY = 26, Level = 1,
+                        State = BuildingState.Normal, UpgradeEndTime = 0,
+                    },
+                    new BuildingSaveData
+                    {
+                        Id = "default-cannon", TypeId = 5,
+                        GridX = 16, GridY = 18, Level = 1,
+                        State = BuildingState.Normal, UpgradeEndTime = 0,
+                    },
                 },
-                SaveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                SaveTime = System.DateTime.UtcNow.ToString("O"),
             };
-
-            SaveManager.Save(saveData, slot);
-
-            Debug.Log($"[GameInitializer] ✅ 默认存档已创建 slot={slot}: " +
-                      $"{saveData.PlayerName} Lv.{saveData.PlayerLevel}");
         }
 
     }

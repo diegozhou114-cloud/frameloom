@@ -14,8 +14,15 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
+            BindStoreUrl(data);
+            BuildOnce(BuildUI);
+        }
+
+        protected override void OnRebind(object data) => BindStoreUrl(data);
+
+        private void BindStoreUrl(object data)
+        {
             _storeUrl = data as string ?? "market://details?id=xxx";
-            BuildUI();
         }
 
         private void BuildUI()
@@ -79,7 +86,7 @@ namespace ZWebGLFrameWork.UI
             go.transform.SetParent(parent, false);
             var txt = go.GetComponent<Text>();
             txt.text = content;
-            txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.fontSize = fontSize;
             txt.color = color;
             txt.alignment = TextAnchor.MiddleCenter;

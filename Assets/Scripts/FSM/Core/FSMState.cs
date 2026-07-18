@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -21,6 +22,10 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>进入状态时传入的数据</summary>
         public object EnterData { get; private set; }
 
+        private CancellationTokenSource _lifetimeSource;
+        protected CancellationToken LifetimeToken =>
+            _lifetimeSource?.Token ?? CancellationToken.None;
+
         protected FSMState(T stateId)
         {
             StateId = stateId;
@@ -31,6 +36,8 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>进入状态 — 首次初始化、注册事件</summary>
         public virtual void OnEnter(object data = null)
         {
+            _lifetimeSource?.Dispose();
+            _lifetimeSource = new CancellationTokenSource();
             IsActive = true;
             EnterData = data;
         }
@@ -38,11 +45,27 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>每帧更新 — 仅当前激活状态会被调用</summary>
         public virtual void OnUpdate() { }
 
+        /// <summary>暂停当前状态但保留其上下文和生命周期。</summary>
+        public virtual void OnSuspend(object data)
+        {
+            IsActive = false;
+        }
+
+        /// <summary>恢复已暂停状态，不重新执行 OnEnter。</summary>
+        public virtual void OnResume(object data)
+        {
+            IsActive = true;
+        }
+
         /// <summary>退出状态 — 清理资源、反注册事件</summary>
         public virtual void OnExit()
         {
             IsActive = false;
             EnterData = null;
+            if (_lifetimeSource == null) return;
+            _lifetimeSource.Cancel();
+            _lifetimeSource.Dispose();
+            _lifetimeSource = null;
         }
 
         // ==================== 便捷方法 ====================

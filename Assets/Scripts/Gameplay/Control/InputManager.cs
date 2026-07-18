@@ -54,12 +54,26 @@ namespace ZWebGLFrameWork.Gameplay
 
         [SerializeField] private CameraController _cameraController;
         private Camera _mainCamera;
+        private SceneServiceRegistry _sceneServices;
 
         private void Start()
         {
-            _mainCamera = Camera.main;
-            if (_cameraController == null)
-                _cameraController = FindObjectOfType<CameraController>();
+            _sceneServices = SceneServiceRegistry.Instance;
+            _sceneServices.Changed += BindSceneServices;
+            BindSceneServices(_sceneServices.Current);
+        }
+
+        protected override void OnDestroy()
+        {
+            if (_sceneServices != null)
+                _sceneServices.Changed -= BindSceneServices;
+            base.OnDestroy();
+        }
+
+        private void BindSceneServices(SceneServices services)
+        {
+            _mainCamera = services.MainCamera;
+            _cameraController = services.CameraController;
         }
 
         private void Update()

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "issueRegister": "docs/superpowers/specs/2026-07-16-project-repair-issue-register.md",
+  "evidenceLedger": "docs/superpowers/specs/2026-07-16-project-repair-evidence.json",
+  "plans": {
+    "compilation-asset-baseline": {
+      "path": "docs/superpowers/plans/2026-07-17-compilation-asset-baseline.md",
+      "issues": [
+        "ASSET-001",
+        "ASSET-002",
+        "BUILD-001",
+        "BUILD-002",
+        "BUILD-003",
+        "BUILD-004",
+        "SCENE-001"
+      ]
+    },
+    "runtime-repair": {
+      "path": "docs/superpowers/plans/2026-07-17-runtime-repair.md",
+      "issues": [
+        "BOOT-001",
+        "BOOT-002",
+        "BOOT-003",
+        "BOOT-004",
+        "BOOT-005",
+        "CORE-001",
+        "CORE-002",
+        "DATA-001",
+        "DATA-002",
+        "DATA-003",
+        "DATA-004",
+        "DATA-005",
+        "DATA-006",
+        "DATA-007",
+        "FSM-001",
+        "FSM-002",
+        "GAME-001",
+        "GAME-002",
+        "GAME-003",
+        "GAME-004",
+        "GAME-005",
+        "SCENE-002",
+        "UI-001",
+        "UI-002",
+        "UI-003",
+        "UI-004"
+      ]
+    },
+    "simulationcore-migration": {
+      "path": "docs/superpowers/plans/2026-07-17-simulationcore-migration.md",
+      "issues": [
+        "COMBAT-001",
+        "COMBAT-002",
+        "COMBAT-003",
+        "COMBAT-004",
+        "COMBAT-005",
+        "COMBAT-006",
+        "COMBAT-007",
+        "COMBAT-008",
+        "SIM-001",
+        "SIM-002",
+        "SIM-003",
+        "SIM-004",
+        "SIM-005",
+        "SIM-006",
+        "SIM-007",
+        "SIM-008",
+        "SIM-009",
+        "SIM-010",
+        "SIM-011",
+        "SIM-012",
+        "SIM-013",
+        "SIM-014",
+        "SIM-015",
+        "SIM-016",
+        "SIM-017",
+        "SIM-018",
+        "SIM-019",
+        "SIM-020",
+        "SIM-021",
+        "SIM-022",
+        "TEST-001",
+        "TEST-002",
+        "TEST-003",
+        "TEST-004",
+        "TEST-005",
+        "TEST-006",
+        "TEST-007",
+        "TEST-008"
+      ]
+    },
+    "network-server-repair": {
+      "path": "docs/superpowers/plans/2026-07-17-network-server-repair.md",
+      "issues": [
+        "NET-001",
+        "NET-002",
+        "NET-003",
+        "NET-004",
+        "NET-005",
+        "NET-006",
+        "NET-007",
+        "NET-008",
+        "NET-009",
+        "NET-010",
+        "NET-011",
+        "NET-012",
+        "NET-013",
+        "NET-014",
+        "REPLAY-001",
+        "REPLAY-002",
+        "REPLAY-003",
+        "REPLAY-004",
+        "REPLAY-005",
+        "REPLAY-006",
+        "REPLAY-007",
+        "SERVER-001",
+        "SERVER-002",
+        "SERVER-003"
+      ]
+    },
+    "ci-release-gates": {
+      "path": "docs/superpowers/plans/2026-07-17-ci-release-gates.md",
+      "issues": [
+        "CI-001",
+        "CI-002",
+        "CI-003",
+        "CI-004",
+        "CI-005",
+        "TEST-009"
+      ]
+    }
+  }
+}

@@ -7,10 +7,13 @@ namespace ZWebGLFrameWork.Data
     [Serializable]
     public class BuildingSaveData
     {
+        public string Id;
         public int TypeId;
         public int GridX;
         public int GridY;
         public int Level;
+        public BuildingState State;
+        public long UpgradeEndTime;
     }
 
     /// <summary>
@@ -20,7 +23,8 @@ namespace ZWebGLFrameWork.Data
     [Serializable]
     public class PlayerSaveData
     {
-        public int Version = 1;
+        public const int CurrentVersion = 2;
+        public int Version = CurrentVersion;
         public string PlayerName = "Villager";
         public int PlayerLevel = 1;
         public int TownHallLevel = 1;
@@ -30,6 +34,8 @@ namespace ZWebGLFrameWork.Data
         public int Gems = 50;
         public int Trophies = 0;
         public int Exp = 0;
+        public string VillageName = "My Village";
+        public int MaxBuildings = 50;
         public List<BuildingSaveData> Buildings = new List<BuildingSaveData>();
         // NOTE: DateTime stored as formatted string — lossy without timezone offset.
         // Acceptable for local saves where all timestamps share the device's local zone;

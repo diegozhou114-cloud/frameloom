@@ -41,7 +41,7 @@ namespace ZWebGLFrameWork.UI
             if (_availableUnits.Count > 0)
                 _selectedUnit = _availableUnits[0];
 
-            BuildUI();
+            BuildOnce(BuildUI);
             EventBus.Subscribe<GestureData>(InputManager.EventGesture, OnGesture);
         }
 

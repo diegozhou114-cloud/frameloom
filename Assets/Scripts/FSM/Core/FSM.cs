@@ -4,6 +4,22 @@ using UnityEngine;
 
 namespace ZWebGLFrameWork.FSM
 {
+    public readonly struct FSMTransition<T> where T : Enum
+    {
+        public bool HasOldState { get; }
+        public T OldState { get; }
+        public T NewState { get; }
+        public object Data { get; }
+
+        public FSMTransition(bool hasOldState, T oldState, T newState, object data)
+        {
+            HasOldState = hasOldState;
+            OldState = oldState;
+            NewState = newState;
+            Data = data;
+        }
+    }
+
     /// <summary>
     /// 泛型有限状态机 — 管理状态的注册、切换和每帧更新。
     /// 状态切换时自动调用旧状态 Exit + 新状态 Enter。
@@ -12,14 +28,31 @@ namespace ZWebGLFrameWork.FSM
     public class FSM<T> where T : Enum
     {
         private readonly Dictionary<T, FSMState<T>> _states = new Dictionary<T, FSMState<T>>();
+        private readonly Queue<TransitionRequest> _pendingTransitions = new Queue<TransitionRequest>();
+        private readonly Stack<FSMState<T>> _suspendedStates = new Stack<FSMState<T>>();
         private FSMState<T> _currentState;
         private FSMState<T> _previousState;
+        private bool _isTransitioning;
+
+        private readonly struct TransitionRequest
+        {
+            public T StateId { get; }
+            public object Data { get; }
+
+            public TransitionRequest(T stateId, object data)
+            {
+                StateId = stateId;
+                Data = data;
+            }
+        }
 
         /// <summary>转换验证回调 — 返回 false 阻止切换。由 GameFSM 注入。</summary>
         public Func<T, T, bool> TransitionGuard { get; set; }
 
         /// <summary>当前激活状态</summary>
         public FSMState<T> CurrentState => _currentState;
+
+        public bool HasCurrentState => _currentState != null;
 
         /// <summary>上一个状态</summary>
         public FSMState<T> PreviousState => _previousState;
@@ -29,7 +62,7 @@ namespace ZWebGLFrameWork.FSM
             _currentState != null ? _currentState.StateId : default;
 
         /// <summary>状态变更事件（旧状态ID, 新状态ID, 传递数据）</summary>
-        public event Action<T, T, object> OnStateChanged;
+        public event Action<FSMTransition<T>> OnStateChanged;
 
         // ==================== 状态管理 ====================
 
@@ -92,6 +125,40 @@ namespace ZWebGLFrameWork.FSM
         /// <returns>true=切换成功, false=状态未注册或已是当前状态</returns>
         public bool ChangeState(T stateId, object data = null)
         {
+            if (_isTransitioning)
+            {
+                _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+                return true;
+            }
+
+            bool firstResult = false;
+            bool first = true;
+            _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+            _isTransitioning = true;
+            try
+            {
+                while (_pendingTransitions.Count > 0)
+                {
+                    TransitionRequest request = _pendingTransitions.Dequeue();
+                    bool result = ApplyTransition(request.StateId, request.Data);
+                    if (first)
+                    {
+                        firstResult = result;
+                        first = false;
+                    }
+                }
+            }
+            finally
+            {
+                _isTransitioning = false;
+                _pendingTransitions.Clear();
+            }
+
+            return firstResult;
+        }
+
+        private bool ApplyTransition(T stateId, object data)
+        {
             if (!_states.TryGetValue(stateId, out var newState))
             {
                 Debug.LogError($"FSM: 状态 {stateId} 未注册。请先调用 AddState。");
@@ -102,9 +169,8 @@ namespace ZWebGLFrameWork.FSM
             if (_currentState == newState) return false;
 
             // 转换规则验证（静默拒绝 — TransitionGuard 失败不抛异常，调用方应预验证）
-            if (!CanTransitionTo(
-                _currentState != null ? _currentState.StateId : default,
-                stateId))
+            bool hasOldState = _currentState != null;
+            if (hasOldState && !CanTransitionTo(_currentState.StateId, stateId))
             {
                 return false;
             }
@@ -125,8 +191,53 @@ namespace ZWebGLFrameWork.FSM
             newState.OnEnter(data);
 
             // 事件通知
-            OnStateChanged?.Invoke(oldStateId, stateId, data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                hasOldState,
+                oldStateId,
+                stateId,
+                data));
 
+            return true;
+        }
+
+        public bool PushState(T stateId, object data = null)
+        {
+            if (_currentState == null ||
+                !_states.TryGetValue(stateId, out FSMState<T> overlay))
+                return false;
+            if (!CanTransitionTo(_currentState.StateId, stateId))
+                return false;
+
+            FSMState<T> suspended = _currentState;
+            suspended.OnSuspend(data);
+            _suspendedStates.Push(suspended);
+            _previousState = suspended;
+            _currentState = overlay;
+            overlay.OnEnter(data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                true,
+                suspended.StateId,
+                overlay.StateId,
+                data));
+            return true;
+        }
+
+        public bool PopState(object data = null)
+        {
+            if (_currentState == null || _suspendedStates.Count == 0)
+                return false;
+
+            FSMState<T> overlay = _currentState;
+            FSMState<T> resumed = _suspendedStates.Pop();
+            overlay.OnExit();
+            _previousState = overlay;
+            _currentState = resumed;
+            resumed.OnResume(data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                true,
+                overlay.StateId,
+                resumed.StateId,
+                data));
             return true;
         }
 
@@ -158,13 +269,13 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>退出当前状态并清空所有注册</summary>
         public void Clear()
         {
-            if (_currentState != null)
-            {
-                _currentState.OnExit();
-                _currentState = null;
-            }
-
+            _currentState?.OnExit();
+            _currentState = null;
+            while (_suspendedStates.Count > 0)
+                _suspendedStates.Pop().OnExit();
             _previousState = null;
+            _pendingTransitions.Clear();
+            _isTransitioning = false;
 
             foreach (var kv in _states)
             {

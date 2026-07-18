@@ -2,7 +2,8 @@
     "name": "ZWebGLFrameWork.SimulationCore.Tests",
     "rootNamespace": "ZWebGLFrameWork.SimulationCore.Tests",
     "references": [
-        "ZWebGLFrameWork.SimulationCore"
+        "ZWebGLFrameWork.SimulationCore",
+        "ZWebGLFrameWork.Combat"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,7 +14,7 @@ namespace ZWebGLFrameWork.Core
     ///   SceneLoader.Instance.Init();
     ///   await SceneLoader.Instance.LoadSceneAsync("Battle");
     /// </summary>
-    public class SceneLoader : SingletonDontDestroy<SceneLoader>
+    public class SceneLoader : SingletonDontDestroy<SceneLoader>, ISceneLoadService
     {
         /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
@@ -52,50 +54,66 @@ namespace ZWebGLFrameWork.Core
 
         /// <summary>异步加载场景（叠加模式）</summary>
         /// <param name="sceneName">场景名（需在 Build Settings 中注册）</param>
-        public async Cysharp.Threading.Tasks.UniTask LoadSceneAsync(string sceneName,
-            LoadSceneMode mode = LoadSceneMode.Single)
+        private sealed class UnitySceneLoadOperation : ISceneLoadOperation
+        {
+            private readonly AsyncOperation _operation;
+
+            public UnitySceneLoadOperation(AsyncOperation operation) =>
+                _operation = operation ?? throw new ArgumentNullException(nameof(operation));
+
+            public float Progress => _operation.progress;
+            public bool IsDone => _operation.isDone;
+            public bool AllowSceneActivation
+            {
+                get => _operation.allowSceneActivation;
+                set => _operation.allowSceneActivation = value;
+            }
+        }
+
+        public async UniTask<SceneLoadResult> LoadSceneAsync(
+            string sceneName,
+            LoadSceneMode mode = LoadSceneMode.Single,
+            CancellationToken token = default)
         {
             LoadingSceneName = sceneName;
             Progress = 0f;
-            Debug.Log($"[SceneLoader] 开始加载场景: {sceneName} (mode={mode})");
-
             EventBus.Publish("SceneLoadStarted", sceneName);
-            // TODO: 使用 Addressables 或 AssetBundle 加载场景
-
-            var op = SceneManager.LoadSceneAsync(sceneName, mode);
-            if (op == null)
+            try
             {
-                Debug.LogError($"[SceneLoader] 场景不存在或未在 Build Settings 中注册: {sceneName}");
-                LoadingSceneName = null;
-                return;
-            }
-
-            op.allowSceneActivation = false;
-
-            float elapsed = 0f;
-            const float loadTimeout = 30f;
-
-            while (op.progress < 0.9f)
-            {
-                Progress = op.progress;
-                elapsed += Time.unscaledDeltaTime;
-
-                if (elapsed > loadTimeout)
+                AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName, mode);
+                if (operation == null)
                 {
-                    Debug.LogError($"[SceneLoader] ⏰ 场景加载超时: {sceneName} ({elapsed:F0}s)");
-                    LoadingSceneName = null;
-                    return;
+                    return new SceneLoadResult(
+                        SceneLoadStatus.NotFound,
+                        $"Scene is missing from Build Settings: {sceneName}");
                 }
 
-                await Cysharp.Threading.Tasks.UniTask.Yield();
+                operation.allowSceneActivation = false;
+                SceneLoadResult result = await SceneLoadRunner.RunAsync(
+                    new UnitySceneLoadOperation(operation),
+                    30f,
+                    token,
+                    reportProgress: value => Progress = value);
+                if (!result.Succeeded)
+                    Debug.LogError($"[SceneLoader] Load failed: {sceneName} ({result.Status})");
+                return result;
             }
-
-            Progress = 1f;
-            op.allowSceneActivation = true;
-
-            await Cysharp.Threading.Tasks.UniTask.Yield();
-            LoadingSceneName = null;
-            Debug.Log($"[SceneLoader] 场景加载完成: {sceneName}");
+            catch (ArgumentException exception)
+            {
+                return new SceneLoadResult(SceneLoadStatus.NotFound, exception.Message);
+            }
+            catch (OperationCanceledException)
+            {
+                return new SceneLoadResult(SceneLoadStatus.Cancelled);
+            }
+            catch (Exception exception)
+            {
+                return new SceneLoadResult(SceneLoadStatus.Failed, exception.Message);
+            }
+            finally
+            {
+                LoadingSceneName = null;
+            }
         }
 
         /// <summary>卸载场景</summary>

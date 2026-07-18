@@ -4,13 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>ZWebGLFrameWork.Server</RootNamespace>
     <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>annotations</Nullable>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Link SimulationCore source (no copy — single source of truth) -->
-    <Compile Include="..\..\Assets\Scripts\SimulationCore\**\*.cs" />
-    <!-- Exclude Unity-specific files that may have crept in -->
-    <Compile Remove="..\..\Assets\Scripts\SimulationCore\**\*.meta" />
+    <ProjectReference Include="../SimulationCore/ZWebGLFrameWork.SimulationCore.csproj" />
   </ItemGroup>
 </Project>

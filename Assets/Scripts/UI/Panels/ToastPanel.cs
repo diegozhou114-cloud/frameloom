@@ -23,6 +23,14 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
+            BuildOnce(BuildUI);
+            BindToast(data);
+        }
+
+        protected override void OnRebind(object data) => BindToast(data);
+
+        private void BindToast(object data)
+        {
             string message = data as string ?? "";
             float duration = 2f;
 
@@ -33,7 +41,9 @@ namespace ZWebGLFrameWork.UI
                 duration = tuple.Item2;
             }
 
-            BuildUI(message);
+            _messageText.text = message;
+            if (_autoCloseCoroutine != null)
+                StopCoroutine(_autoCloseCoroutine);
             _autoCloseCoroutine = StartCoroutine(AutoClose(duration));
         }
 
@@ -46,7 +56,7 @@ namespace ZWebGLFrameWork.UI
             }
         }
 
-        private void BuildUI(string message)
+        private void BuildUI()
         {
             // 底部居中半透明条
             var bar = new GameObject("ToastBar", typeof(RectTransform), typeof(Image));
@@ -61,7 +71,7 @@ namespace ZWebGLFrameWork.UI
             _messageText = new GameObject("Message", typeof(RectTransform), typeof(Text))
                 .GetComponent<Text>();
             _messageText.transform.SetParent(bar.transform, false);
-            _messageText.text = message;
+            _messageText.text = string.Empty;
             _messageText.fontSize = 18;
             _messageText.color = Color.white;
             _messageText.alignment = TextAnchor.MiddleCenter;

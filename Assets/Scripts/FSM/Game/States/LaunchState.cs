@@ -1,3 +1,4 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
@@ -13,7 +14,16 @@ namespace ZWebGLFrameWork.FSM
     /// </summary>
     public class LaunchState : FSMState<GameState>
     {
-        public LaunchState() : base(GameState.Launch) { }
+        private readonly IBootPipeline _pipelineOverride;
+        private readonly OfflineSaveFlow _offlineSaveFlow =
+            new OfflineSaveFlow(new DefaultOfflineSaveGateway());
+
+        public LaunchState() : this(null) { }
+
+        public LaunchState(IBootPipeline pipelineOverride) : base(GameState.Launch)
+        {
+            _pipelineOverride = pipelineOverride;
+        }
 
         private bool _pipelineRunning;
 
@@ -24,14 +34,22 @@ namespace ZWebGLFrameWork.FSM
             EventBus.Publish("LaunchStarted");
             EventBus.Subscribe("Boot_Retry", OnBootRetry);
             EventBus.Subscribe("Boot_SkipToOffline", OnBootSkip);
-            RunInitPipeline().Forget();
+            RunInitPipeline(LifetimeToken).Forget();
         }
 
-        private async UniTaskVoid RunInitPipeline()
+        private async UniTaskVoid RunInitPipeline(CancellationToken token)
         {
             _pipelineRunning = true;
             try
             {
+                if (_pipelineOverride != null)
+                {
+                    GameState? target = await _pipelineOverride.RunAsync(token);
+                    token.ThrowIfCancellationRequested();
+                    if (target.HasValue) ChangeState(target.Value);
+                    return;
+                }
+
                 var cfg = GameLauncher.Config;
                 if (cfg == null)
                 {
@@ -41,15 +59,22 @@ namespace ZWebGLFrameWork.FSM
                     return;
                 }
 
+                token.ThrowIfCancellationRequested();
                 float progress = InitCoreModules(cfg);
-                if (!await HandleHotUpdate(cfg, progress)) return;
-                await PreloadAndTransition(cfg);
+                if (!await HandleHotUpdate(cfg, progress, token)) return;
+                await PreloadAndTransition(cfg, token);
+            }
+            catch (System.OperationCanceledException)
+            {
             }
             catch (System.Exception ex)
             {
-                PublishError("LaunchPipeline", $"启动管线崩溃: {ex.Message}", false);
-                UIManager.Instance.Close<LoadingPanel>();
-                Debug.LogException(ex);
+                if (!token.IsCancellationRequested)
+                {
+                    PublishError("LaunchPipeline", $"启动管线崩溃: {ex.Message}", false);
+                    UIManager.Instance.Close<LoadingPanel>();
+                    Debug.LogException(ex);
+                }
             }
             finally { _pipelineRunning = false; }
         }
@@ -112,8 +137,10 @@ namespace ZWebGLFrameWork.FSM
         }
 
         // ─── 管线步骤 ⑤：热更新检查 ───
-        private async UniTask<bool> HandleHotUpdate(AppConfig cfg, float progress)
+        private async UniTask<bool> HandleHotUpdate(
+            AppConfig cfg, float progress, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             BootProfiler.BeginPhase("Phase2_HotUpdate");
             if (cfg.EnableHotUpdate)
             {
@@ -121,21 +148,35 @@ namespace ZWebGLFrameWork.FSM
                 if (!HotUpdateManager.Instance.Init())
                     PublishError("HotUpdateManager", "热更管理器初始化失败，将跳过更新");
 
-                var result = await HotUpdateManager.Instance.CheckVersionAsync();
+                var hotUpdate = HotUpdateManager.Instance;
+                var result = await hotUpdate.CheckVersionAsync(token);
                 PublishProgress("热更新检查...", progress + 0.1f,
                     result == VersionCheckResult.NeedUpdate ? "发现新版本" : "");
 
-                switch (result)
+                bool downloadSucceeded = true;
+                if (result == VersionCheckResult.NeedUpdate)
+                    downloadSucceeded = await hotUpdate.DownloadUpdatesAsync(token);
+
+                switch (HotUpdateDecision.Evaluate(
+                    result, downloadSucceeded, hotUpdate.NeedRestart))
                 {
-                    case VersionCheckResult.ForceUpdate:
+                    case HotUpdateAction.ForceUpdate:
                         UIManager.Instance.Close<LoadingPanel>();
                         UIManager.Instance.Open<ForceUpdatePanel>(
-                            HotUpdateManager.Instance.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                            hotUpdate.HotUpdateBaseUrl ?? "market://details?id=xxx");
                         // 发布错误事件通知用户
                         PublishError("HotUpdate", "检测到强制更新，请前往商店下载最新版本", false);
                         return false; // 终止初始化，等待用户手动更新
-                    case VersionCheckResult.NeedUpdate:
-                        await HotUpdateManager.Instance.DownloadUpdatesAsync();
+                    case HotUpdateAction.Retry:
+                        PublishError("HotUpdate", "热更新未完成，请重试", true);
+                        return false;
+                    case HotUpdateAction.RestartRequired:
+                        UIManager.Instance.Close<LoadingPanel>();
+                        UIManager.Instance.Open<ForceUpdatePanel>(
+                            hotUpdate.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                        PublishError("HotUpdate", "更新已完成，请重启游戏", false);
+                        return false;
+                    case HotUpdateAction.Continue:
                         break;
                 }
             }
@@ -145,24 +186,27 @@ namespace ZWebGLFrameWork.FSM
         }
 
         // ─── 管线步骤 ⑥~⑦：数据预加载与场景跳转 ───
-        private async UniTask PreloadAndTransition(AppConfig cfg)
+        private async UniTask PreloadAndTransition(AppConfig cfg, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             // ─── ⑥ 数据预加载 (Phase 3) ───
             BootProfiler.EndPhase("Phase2_HotUpdate");
             BootProfiler.BeginPhase("Phase3_DataPreload");
             PublishProgress("正在准备游戏数据...", 0.55f);
-            var configOk = await ConfigTableManager.Instance.PreloadAllAsync();
+            var configOk = await ConfigTableManager.Instance.PreloadAllAsync()
+                .AttachExternalCancellation(token);
             if (!configOk)
                 PublishError("ConfigTableManager", "部分配置表加载失败，可能影响游戏功能");
 
             // 对象池预热（异步）
             PublishProgress("预热对象池...", 0.70f);
-            await PoolPrewarmer.PrewarmFromConfigAsync(ConfigTableManager.Instance);
+            await PoolPrewarmer.PrewarmFromConfigAsync(ConfigTableManager.Instance)
+                .AttachExternalCancellation(token);
 
             // ─── ⑦ 完成 ───
             BootProfiler.EndPhase("Phase3_DataPreload");
             PublishProgress("即将进入游戏...", 1f);
-            await UniTask.Delay(200);
+            await UniTask.Delay(200, cancellationToken: token);
 
             UIManager.Instance.Close<LoadingPanel>();
             BootProfiler.EndPhase("Phase4_Transition");
@@ -173,12 +217,13 @@ namespace ZWebGLFrameWork.FSM
                 && Application.internetReachability == NetworkReachability.NotReachable)
             {
                 Debug.Log("[LaunchState] 🔌 离线模式 + 无网络 → 跳过登录，直接进主城");
-                GameInitializer.EnsureSaveExists();
-                if (SaveManager.Exists(SaveManager.CurrentSlot))
+                if (_offlineSaveFlow.TryPrepareSlot(SaveManager.CurrentSlot))
                 {
-                    SaveManager.LoadToDataManager(SaveManager.CurrentSlot);
+                    ChangeState(GameState.MainVillage);
+                    return;
                 }
-                ChangeState(GameState.MainVillage);
+
+                PublishError("OfflineSave", "本地存档创建或加载失败，请重试", true);
                 return;
             }
 
@@ -220,7 +265,7 @@ namespace ZWebGLFrameWork.FSM
             }
             Debug.Log("[LaunchState] 重试启动流程");
             UIManager.Instance.Close<ErrorPanel>();
-            RunInitPipeline().Forget();
+            RunInitPipeline(LifetimeToken).Forget();
         }
 
         private void OnBootSkip()
@@ -232,10 +277,10 @@ namespace ZWebGLFrameWork.FSM
 
         public override void OnExit()
         {
+            base.OnExit();
             UIManager.Instance.Close<LoadingPanel>();
             EventBus.Unsubscribe("Boot_Retry", OnBootRetry);
             EventBus.Unsubscribe("Boot_SkipToOffline", OnBootSkip);
-            base.OnExit();
             Debug.Log("[GameFSM] 退出启动状态");
         }
     }

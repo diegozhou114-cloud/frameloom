@@ -14,6 +14,9 @@ namespace ZWebGLFrameWork.FSM
     /// </summary>
     public class LoginState : FSMState<GameState>
     {
+        private readonly OfflineSaveFlow _offlineSaveFlow =
+            new OfflineSaveFlow(new DefaultOfflineSaveGateway());
+
         public LoginState() : base(GameState.Login) { }
 
         private System.Threading.CancellationTokenSource _loginCts;
@@ -103,15 +106,14 @@ namespace ZWebGLFrameWork.FSM
 
         private void EnterOfflineMode()
         {
-            GameInitializer.EnsureSaveExists();
-
-            if (SaveManager.Exists(SaveManager.CurrentSlot))
+            int slot = SaveManager.CurrentSlot;
+            if (_offlineSaveFlow.TryPrepareSlot(slot))
             {
-                SaveManager.LoadToDataManager(SaveManager.CurrentSlot);
                 ChangeState(GameState.MainVillage);
             }
             else
             {
+                EventBus.Publish(LoginEvents.LoginError, "本地存档创建或加载失败，请选择其他存档位");
                 EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
                 UIManager.Instance.Open<CharacterSelectPanel>();
             }
@@ -121,8 +123,14 @@ namespace ZWebGLFrameWork.FSM
         {
             EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
             Debug.Log($"[LoginState] 角色已选择 slot={slot}");
-            SaveManager.LoadToDataManager(slot);
-            ChangeState(GameState.MainVillage);
+            if (_offlineSaveFlow.TryPrepareSlot(slot))
+            {
+                ChangeState(GameState.MainVillage);
+                return;
+            }
+
+            EventBus.Publish(LoginEvents.LoginError, "本地存档加载失败，请重试");
+            EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
         }
 
         private void OnNetworkStateChanged(NetworkStateChangedEvent evt)

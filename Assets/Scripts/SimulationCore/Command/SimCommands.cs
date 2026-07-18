@@ -6,6 +6,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimCommandType Type => SimCommandType.Deploy;
         public int Tick { get; set; }
         public int PlayerId { get; set; }
+        public int Sequence { get; set; }
         /// <summary>单位原型 ID</summary>
         public int UnitTypeId;
         /// <summary>部署网格 X</summary>
@@ -20,6 +21,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimCommandType Type => SimCommandType.Move;
         public int Tick { get; set; }
         public int PlayerId { get; set; }
+        public int Sequence { get; set; }
         /// <summary>目标实体 ID</summary>
         public int EntityId;
         /// <summary>目标网格 X</summary>
@@ -34,6 +36,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimCommandType Type => SimCommandType.Skill;
         public int Tick { get; set; }
         public int PlayerId { get; set; }
+        public int Sequence { get; set; }
         /// <summary>施法者实体 ID</summary>
         public int CasterId;
         /// <summary>技能 ID</summary>

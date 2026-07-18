@@ -21,7 +21,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 int gy = 15;
                 var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
                 world.SetComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
-                world.SetComponent(e, SimHealthComponent.Create(200));
+                world.SetComponent(e, SimHealthComponent.Create(200 + rng.Next(50)));
                 world.SetComponent(e, SimTeamComponent.Create(SimTeam.Defender));
             }
 
@@ -174,8 +174,14 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             // 创建 100 个实体
             for (int i = 0; i < 50; i++)
             {
-                var e = world.CreateEntity(
-                    typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
+                SimEntity e = i % 2 == 0
+                    ? world.CreateEntity(
+                        typeof(SimTransformComponent), typeof(SimHealthComponent),
+                        typeof(SimTeamComponent), typeof(SimAttackComponent),
+                        typeof(SimTargetComponent))
+                    : world.CreateEntity(
+                        typeof(SimTransformComponent), typeof(SimHealthComponent),
+                        typeof(SimTeamComponent));
                 world.SetComponent(e, SimTransformComponent.Create(i % 20, i / 20, LogicInt.FromInt(1)));
                 world.SetComponent(e, SimHealthComponent.Create(100));
                 world.SetComponent(e, SimTeamComponent.Create(i < 25 ? SimTeam.Attacker : SimTeam.Defender));

@@ -39,12 +39,13 @@ namespace ZWebGLFrameWork.Gameplay
         private GridManager _grid;
         private GridRenderer _gridRenderer;
         private Camera _mainCamera;
+        private SceneServiceRegistry _sceneServices;
 
         private void Start()
         {
-            _grid = GridManager.Instance;
-            _gridRenderer = FindObjectOfType<GridRenderer>();
-            _mainCamera = Camera.main;
+            _sceneServices = SceneServiceRegistry.Instance;
+            _sceneServices.Changed += BindSceneServices;
+            BindSceneServices(_sceneServices.Current);
 
             // 监听手势
             EventBus.Subscribe<GestureData>(InputManager.EventGesture, OnGesture);
@@ -60,7 +61,19 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void OnDestroy()
         {
+            if (_sceneServices != null)
+                _sceneServices.Changed -= BindSceneServices;
             EventBus.Unsubscribe<GestureData>(InputManager.EventGesture, OnGesture);
+        }
+
+        private void BindSceneServices(SceneServices services)
+        {
+            if (services.Placer != null && services.Placer != this) return;
+            _grid = services.Grid;
+            _gridRenderer = services.GridRenderer;
+            _mainCamera = services.MainCamera;
+            if (_mainCamera == null || _grid == null)
+                CancelPlacement();
         }
 
         // ==================== 开始/结束放置 ====================
@@ -129,7 +142,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void UpdatePlacementPreview()
         {
-            if (_previewInstance == null) return;
+            if (_previewInstance == null || _mainCamera == null || _grid == null) return;
 
             Vector3 pointerPos = GetPointerPosition();
             var ray = _mainCamera.ScreenPointToRay(pointerPos);
@@ -178,6 +191,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void TryPlace()
         {
+            if (_mainCamera == null || _grid == null) return;
             var ray = _mainCamera.ScreenPointToRay(GetPointerPosition());
             var plane = new Plane(Vector3.up, Vector3.zero);
 

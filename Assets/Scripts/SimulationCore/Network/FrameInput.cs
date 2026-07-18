@@ -26,24 +26,9 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>创建部署输入</summary>
         public static FrameInput Deploy(uint sequence, int unitTypeId, int gridX, int gridY)
         {
-            // Clamp to 8-bit range (0-255) — values outside this range would be silently truncated
-            if (unitTypeId < 0 || unitTypeId > 255)
-            {
-                // 注意：UnityEngine.Debug.LogWarning 破坏了 SimulationCore 的零 Unity 依赖契约；
-                // 应改为 ISimLogger.LogWarning 以保持程序集纯净
-                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: unitTypeId {unitTypeId} clamped to 8-bit range");
-                unitTypeId = Math.Clamp(unitTypeId, 0, 255);
-            }
-            if (gridX < 0 || gridX > 255)
-            {
-                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: gridX {gridX} clamped to 8-bit range");
-                gridX = Math.Clamp(gridX, 0, 255);
-            }
-            if (gridY < 0 || gridY > 255)
-            {
-                UnityEngine.Debug.LogWarning($"FrameInput.Deploy: gridY {gridY} clamped to 8-bit range");
-                gridY = Math.Clamp(gridY, 0, 255);
-            }
+            unitTypeId = Math.Clamp(unitTypeId, 0, 255);
+            gridX = Math.Clamp(gridX, 0, 255);
+            gridY = Math.Clamp(gridY, 0, 255);
             return new FrameInput
             {
                 Sequence = sequence,
@@ -62,11 +47,11 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (type)
             {
                 case 1: // Deploy
-                    return new DeployCmd { Tick = (int)Sequence, PlayerId = playerId, UnitTypeId = p1, GridX = p2, GridY = p3 };
+                    return new DeployCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, UnitTypeId = p1, GridX = p2, GridY = p3 };
                 case 2: // Move
-                    return new MoveCmd { Tick = (int)Sequence, PlayerId = playerId, EntityId = p1, TargetX = p2, TargetY = p3 };
+                    return new MoveCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, EntityId = p1, TargetX = p2, TargetY = p3 };
                 case 3: // Skill
-                    return new SkillCmd { Tick = (int)Sequence, PlayerId = playerId, CasterId = 0, SkillId = p1, TargetX = p2, TargetY = p3 };
+                    return new SkillCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, CasterId = 0, SkillId = p1, TargetX = p2, TargetY = p3 };
                 default:
                     return null;
             }

@@ -21,21 +21,23 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>录制一个 Tick 的数据</summary>
         public void Record(int tick, ulong checksum)
         {
-            var cmds = _buffer.Peek(tick);
+            Record(tick, checksum, _buffer.Peek(tick));
+        }
+
+        /// <summary>记录本 Tick 实际从缓冲区 Drain 并执行的命令。</summary>
+        public void Record(int tick, ulong checksum, List<ISimCommand> executedCommands)
+        {
             var record = new TickRecord
             {
                 Tick = tick,
                 Checksum = checksum,
-                Commands = SerializeCommands(cmds),
+                Commands = SerializeCommands(executedCommands),
             };
             _replay.Records.Add(record);
         }
 
         /// <summary>导出 ReplayFile（战斗结束后调用）</summary>
         public ReplayFile Export() => _replay;
-
-        /// <summary>导出为 JSON 字符串（直接发给服务器）</summary>
-        public string ExportJson() => _replay.ToJson();
 
         /// <summary>序列化命令列表为 SerializableCommand 列表</summary>
         private static List<SerializableCommand> SerializeCommands(List<ISimCommand> cmds)
@@ -48,6 +50,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     Type = cmd.Type.ToString(),
                     Tick = cmd.Tick,
                     PlayerId = cmd.PlayerId,
+                    Sequence = cmd.Sequence,
                 };
                 switch (cmd)
                 {
@@ -81,17 +84,17 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 SimCommandType.Deploy => new DeployCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     UnitTypeId = sc.UnitTypeId, GridX = sc.GridX, GridY = sc.GridY,
                 },
                 SimCommandType.Move => new MoveCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     EntityId = sc.EntityId, TargetX = sc.TargetX, TargetY = sc.TargetY,
                 },
                 SimCommandType.Skill => new SkillCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     CasterId = sc.CasterId, SkillId = sc.SkillId,
                     TargetX = sc.TargetX, TargetY = sc.TargetY,
                 },

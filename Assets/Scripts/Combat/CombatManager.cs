@@ -4,7 +4,6 @@ using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.ECS;
-using ZWebGLFrameWork.FSM;
 using ZWebGLFrameWork.Gameplay;
 using ZWebGLFrameWork.SimulationCore;
 
@@ -78,7 +77,7 @@ namespace ZWebGLFrameWork.Combat
 
         private void Update()
         {
-            if (GameLauncher.Config != null && GameLauncher.Config.UseSimulationCore)
+            if (_simOrchestrator != null)
             {
                 SimUpdate();
                 return;

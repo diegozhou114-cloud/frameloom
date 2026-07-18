@@ -16,8 +16,7 @@ namespace ZWebGLFrameWork.FSM
     {
         private ResourceProducer _resourceProducer;
         private float _autoSaveTimer;
-        private int _lastGold;
-        private int _lastElixir;
+        private AutosaveCoordinator _autosave;
 
         public MainVillageState() : base(GameState.MainVillage) { }
 
@@ -47,34 +46,35 @@ namespace ZWebGLFrameWork.FSM
 
             // 自动存档状态初始化
             _autoSaveTimer = 0f;
-            _lastGold = DataManager.Instance.Player.Gold.Value;
-            _lastElixir = DataManager.Instance.Player.Elixir.Value;
+            _autosave = new AutosaveCoordinator(
+                () => SaveDataMapper.Capture(
+                    DataManager.Instance.Player,
+                    DataManager.Instance.Village),
+                () => SaveManager.SaveGame());
+            _autosave.InitializeBaseline();
         }
 
         public override void OnUpdate()
         {
             _resourceProducer?.Tick(Time.deltaTime);
 
-            // 自动存档：每 30 秒检查资源变化
+            // 自动存档：每 30 秒检查完整持久化状态
             _autoSaveTimer += Time.deltaTime;
             if (_autoSaveTimer >= 30f)
             {
                 _autoSaveTimer = 0f;
-                var p = DataManager.Instance.Player;
-                if (p.Gold.Value != _lastGold || p.Elixir.Value != _lastElixir)
-                {
-                    SaveManager.SaveGame();
-                    _lastGold = p.Gold.Value;
-                    _lastElixir = p.Elixir.Value;
+                if (_autosave?.TrySaveIfChanged() == true)
                     Debug.Log("[MainVillageState] 自动存档");
-                }
             }
         }
 
         public override void OnExit()
         {
+            _autosave?.FlushPending();
+            _autosave = null;
             EventBus.Unsubscribe("MainVillage_Attack", OnAttackClicked);
             _resourceProducer?.Stop();
+            _resourceProducer = null;
             UIManager.Instance.Close<MainVillageHUD>();
             base.OnExit();
             Debug.Log("[GameFSM] 退出主城状态");

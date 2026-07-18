@@ -86,7 +86,7 @@ namespace ZWebGLFrameWork.FSM
                     || CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
                 {
                     _pauseStartTime = Time.realtimeSinceStartup;
-                    ChangeState(GameState.Pause, GamePauseEvent.Background);
+                    _fsm.PushState(GameState.Pause, GamePauseEvent.Background);
                 }
             }
             else
@@ -95,13 +95,7 @@ namespace ZWebGLFrameWork.FSM
                 if (CurrentState == GameState.Pause)
                 {
                     float duration = Time.realtimeSinceStartup - _pauseStartTime;
-                    var target = PreviousState;
-                    if (target != GameState.MainVillage && target != GameState.Battle)
-                    {
-                        Debug.LogWarning($"[GameFSM] 暂停前状态异常 ({target})，回退到 MainVillage");
-                        target = GameState.MainVillage;
-                    }
-                    ChangeState(target, new GameResumeEvent { PausedDuration = duration });
+                    _fsm.PopState(new GameResumeEvent { PausedDuration = duration });
                 }
             }
         }
@@ -154,7 +148,7 @@ namespace ZWebGLFrameWork.FSM
         /// <returns>true=切换成功</returns>
         public bool ChangeState(GameState targetState, object data = null)
         {
-            if (!CanTransition(CurrentState, targetState))
+            if (_fsm.HasCurrentState && !CanTransition(CurrentState, targetState))
             {
                 Debug.LogWarning(
                     $"[GameFSM] 非法状态转换: {CurrentState} → {targetState}。已阻止。");
@@ -200,19 +194,20 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== 内部 ====================
 
-        private void OnInternalStateChanged(GameState oldState, GameState newState, object data)
+        private void OnInternalStateChanged(FSMTransition<GameState> transition)
         {
             // 广播到 EventBus，UI 层可订阅
             var payload = new GameStateChangedEvent
             {
-                OldState = oldState,
-                NewState = newState,
-                Data = data,
+                HasOldState = transition.HasOldState,
+                OldState = transition.OldState,
+                NewState = transition.NewState,
+                Data = transition.Data,
             };
 
             EventBus.Publish(EventStateChanged, payload);
 
-            Debug.Log($"[GameFSM] {oldState} → {newState}");
+            Debug.Log($"[GameFSM] {(transition.HasOldState ? transition.OldState.ToString() : "<none>")} → {transition.NewState}");
         }
 
         protected override void OnDestroy()
