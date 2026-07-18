@@ -28,3 +28,11 @@ Thumbs.db
 
 # Unity meta files (keep these!)
 # !*.meta
+
+# CI dependency and test output
+ci/node_modules/
+ci/test-results/
+ci/playwright-report/
+__pycache__/
+[Bb]in/
+TestResults/

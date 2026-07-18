@@ -669,8 +669,8 @@ Create `ci/package.json`:
   "type": "module",
   "engines": { "node": ">=20 <25" },
   "devDependencies": {
-    "@playwright/test": "1.54.1",
-    "yaml": "2.8.0"
+    "@playwright/test": "1.61.1",
+    "yaml": "2.9.0"
   }
 }
 ```

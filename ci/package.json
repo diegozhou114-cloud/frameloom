@@ -1,0 +1,10 @@
+{
+  "name": "zweb-ci-contracts",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20 <25" },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "yaml": "2.9.0"
+  }
+}

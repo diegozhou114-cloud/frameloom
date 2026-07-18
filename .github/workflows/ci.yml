@@ -1,147 +1,89 @@
-name: ZWebGL CI/CD
+name: ZWebGL G0-G5
 
 on:
   push:
     branches: [master, develop]
-    paths:
-      - "Assets/Scripts/**"
-      - "Assets/Editor/**"
+    paths: &gate-paths
+      - "Assets/**"
       - "Packages/**"
       - "ProjectSettings/**"
+      - "Server/**"
+      - ".github/workflows/**"
+      - "scripts/**"
+      - "ci/**"
+      - "docs/superpowers/specs/2026-07-16-project-repair-evidence.json"
+      - "docs/superpowers/evidence/**"
   pull_request:
     branches: [master]
-    paths:
-      - "Assets/Scripts/**"
-      - "Assets/Editor/**"
-      - "Assets/Tests/**"
+    paths: *gate-paths
+
+permissions:
+  contents: read
+  checks: write
+
+concurrency:
+  group: zweb-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UNITY_VERSION: 2022.3.62f3c1
+  DOTNET_VERSION: 8.0.x
 
 jobs:
-  # ==================== 阶段1: 编译验证 ====================
-  compile:
-    name: 🔨 Compile & Validate
+  audit:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        unityVersion: [2022.3.40f1]
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           lfs: true
-
-      - uses: actions/cache@v4
+      - uses: actions/setup-node@v4
         with:
-          path: Library
-          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-${{ matrix.unityVersion }}-
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ci/package-lock.json
+      - run: npm ci --prefix ci --ignore-scripts
+      - run: node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs
+      - run: PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py'
+      - run: node scripts/audit/evidence-ledger.mjs validate --ledger docs/superpowers/specs/2026-07-16-project-repair-evidence.json
+      - run: scripts/repair/audit-meta.sh "$PWD"
+      - name: Clean tree
+        run: test -z "$(git status --porcelain --untracked-files=all)"
 
-      - name: Unity Compile Check
-        uses: game-ci/unity-test-runner@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          testMode: EditMode
-          customParameters: -nographics -batchmode -quit
-          checkName: EditMode Test Results
-
-      - name: Report Compile Result
-        if: always()
-        run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ 编译通过 - 0 errors"
-          else
-            echo "❌ 编译失败 - 请检查上方日志"
-            exit 1
-          fi
-
-  # ==================== 阶段2: 单元测试 ====================
-  test:
-    name: 🧪 Run Tests
-    needs: compile
+  unity-tests:
+    needs: audit
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        unityVersion: [2022.3.40f1]
         testMode: [EditMode, PlayMode]
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           lfs: true
-
       - uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-${{ matrix.unityVersion }}-
-
-      - name: Unity Test (${{ matrix.testMode }})
+          key: Library-${{ env.UNITY_VERSION }}-${{ matrix.testMode }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-${{ env.UNITY_VERSION }}-${{ matrix.testMode }}-
+      - name: Unity ${{ matrix.testMode }}
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          unityVersion: ${{ env.UNITY_VERSION }}
           testMode: ${{ matrix.testMode }}
-          artifactsPath: TestResults-${{ matrix.testMode }}
-          customParameters: -nographics -batchmode -quit
-
-      - name: Upload Test Results
-        if: always()
+          artifactsPath: ${{ runner.temp }}/unity-${{ matrix.testMode }}
+          checkName: Unity ${{ matrix.testMode }} ${{ env.UNITY_VERSION }}
+          customParameters: -nographics -batchmode
+      - name: Validate nonzero required tests
+        run: python3 scripts/ci/validate-unity-results.py --mode "${{ matrix.testMode }}" --manifest ci/required-tests.json --results "${{ runner.temp }}/unity-${{ matrix.testMode }}"
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: TestResults-${{ matrix.testMode }}
-          path: TestResults-${{ matrix.testMode }}
-
-  # ==================== 阶段3: 构建打包 ====================
-  build:
-    name: 📦 Build (${{ matrix.targetPlatform }})
-    needs: test
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        unityVersion: [2022.3.40f1]
-        targetPlatform: [WebGL, StandaloneWindows64]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-${{ matrix.unityVersion }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-${{ matrix.unityVersion }}-
-
-      - name: Unity Build (${{ matrix.targetPlatform }})
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
-          allowDirtyBuild: false
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
-
-  # ==================== 阶段4: WebGL 部署 ====================
-  deploy:
-    name: 🚀 Deploy WebGL
-    needs: build
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: Build-WebGL
-          path: deploy
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./deploy
-          publish_branch: gh-pages
-          commit_message: "🚀 Deploy WebGL build"
+          name: unity-${{ matrix.testMode }}
+          path: ${{ runner.temp }}/unity-${{ matrix.testMode }}
+      - name: Clean tree
+        run: test -z "$(git status --porcelain --untracked-files=all)"
