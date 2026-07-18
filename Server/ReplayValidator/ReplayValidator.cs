@@ -28,7 +28,8 @@ namespace ZWebGLFrameWork.Server
 
         public ReplayResult Validate(ReplayFile replay)
         {
-            if (replay == null) throw new ArgumentNullException(nameof(replay));
+            if (!IsStructurallyValid(replay))
+                return Invalid(-1, 0, 0);
             DeterministicContentManifest manifest =
                 DeterministicContentManifest.Parse(_canonicalManifestBytes);
             InitialEntitySpec[] entities = ConvertInitialEntities(replay.InitialLayout);
@@ -53,7 +54,15 @@ namespace ZWebGLFrameWork.Server
             {
                 foreach (SerializableCommand serialized in tickRecord.Commands)
                 {
-                    ISimCommand command = CommandRecorder.DeserializeCommand(serialized);
+                    ISimCommand command;
+                    try
+                    {
+                        command = CommandRecorder.DeserializeCommand(serialized);
+                    }
+                    catch (ArgumentException)
+                    {
+                        return Invalid(tickRecord.Tick, tickRecord.Checksum, session.State.Checksum);
+                    }
                     if (command != null) session.Submit(command);
                 }
 
@@ -67,6 +76,56 @@ namespace ZWebGLFrameWork.Server
             }
 
             return new ReplayResult { IsValid = true, FailedTick = -1 };
+        }
+
+        private static bool IsStructurallyValid(ReplayFile replay)
+        {
+            const int maxTicks = 12000;
+            const int maxCommandsPerTick = 64;
+            const int maxTotalCommands = 100000;
+            const int maxEntities = 4096;
+            if (replay == null || replay.Version != 1 ||
+                replay.InitialLayout == null || replay.InitialLayout.Length == 0 ||
+                replay.InitialLayout.Length > maxEntities ||
+                replay.Records == null || replay.Records.Count == 0 ||
+                replay.Records.Count > maxTicks)
+                return false;
+
+            int totalCommands = 0;
+            for (int expectedTick = 0; expectedTick < replay.Records.Count; expectedTick++)
+            {
+                TickRecord record = replay.Records[expectedTick];
+                if (record == null || record.Tick != expectedTick || record.Commands == null ||
+                    record.Commands.Count > maxCommandsPerTick)
+                    return false;
+                totalCommands += record.Commands.Count;
+                if (totalCommands > maxTotalCommands) return false;
+                foreach (SerializableCommand command in record.Commands)
+                {
+                    if (!IsValidCommand(command, expectedTick)) return false;
+                }
+            }
+            return true;
+        }
+
+        private static bool IsValidCommand(SerializableCommand command, int tick)
+        {
+            if (command == null || command.Tick != tick ||
+                !Enum.TryParse(command.Type, false, out SimCommandType type) ||
+                type == SimCommandType.None)
+                return false;
+            switch (type)
+            {
+                case SimCommandType.Deploy:
+                    return command.UnitTypeId > 0 && command.GridX >= 0 && command.GridY >= 0;
+                case SimCommandType.Move:
+                    return command.EntityId >= 0 && command.TargetX >= 0 && command.TargetY >= 0;
+                case SimCommandType.Skill:
+                    return command.CasterId >= 0 && command.SkillId > 0 &&
+                        command.TargetX >= 0 && command.TargetY >= 0;
+                default:
+                    return false;
+            }
         }
 
         private static InitialEntitySpec[] ConvertInitialEntities(SimEntitySpawnInfo[] layout)
