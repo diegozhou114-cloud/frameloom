@@ -2,6 +2,7 @@ namespace ZWebGLFrameWork.FSM
 {
     public struct GameStateChangedEvent
     {
+        public bool HasOldState;
         public GameState OldState;
         public GameState NewState;
         public object Data;

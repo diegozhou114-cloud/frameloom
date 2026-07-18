@@ -4,6 +4,22 @@ using UnityEngine;
 
 namespace ZWebGLFrameWork.FSM
 {
+    public readonly struct FSMTransition<T> where T : Enum
+    {
+        public bool HasOldState { get; }
+        public T OldState { get; }
+        public T NewState { get; }
+        public object Data { get; }
+
+        public FSMTransition(bool hasOldState, T oldState, T newState, object data)
+        {
+            HasOldState = hasOldState;
+            OldState = oldState;
+            NewState = newState;
+            Data = data;
+        }
+    }
+
     /// <summary>
     /// 泛型有限状态机 — 管理状态的注册、切换和每帧更新。
     /// 状态切换时自动调用旧状态 Exit + 新状态 Enter。
@@ -21,6 +37,8 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>当前激活状态</summary>
         public FSMState<T> CurrentState => _currentState;
 
+        public bool HasCurrentState => _currentState != null;
+
         /// <summary>上一个状态</summary>
         public FSMState<T> PreviousState => _previousState;
 
@@ -29,7 +47,7 @@ namespace ZWebGLFrameWork.FSM
             _currentState != null ? _currentState.StateId : default;
 
         /// <summary>状态变更事件（旧状态ID, 新状态ID, 传递数据）</summary>
-        public event Action<T, T, object> OnStateChanged;
+        public event Action<FSMTransition<T>> OnStateChanged;
 
         // ==================== 状态管理 ====================
 
@@ -102,9 +120,8 @@ namespace ZWebGLFrameWork.FSM
             if (_currentState == newState) return false;
 
             // 转换规则验证（静默拒绝 — TransitionGuard 失败不抛异常，调用方应预验证）
-            if (!CanTransitionTo(
-                _currentState != null ? _currentState.StateId : default,
-                stateId))
+            bool hasOldState = _currentState != null;
+            if (hasOldState && !CanTransitionTo(_currentState.StateId, stateId))
             {
                 return false;
             }
@@ -125,7 +142,11 @@ namespace ZWebGLFrameWork.FSM
             newState.OnEnter(data);
 
             // 事件通知
-            OnStateChanged?.Invoke(oldStateId, stateId, data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                hasOldState,
+                oldStateId,
+                stateId,
+                data));
 
             return true;
         }
