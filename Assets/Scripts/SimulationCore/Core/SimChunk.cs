@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -123,7 +124,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 {
                     int typeId = ComponentTypeIds[c];
                     Array copy = SimChunkHelper.CreateColumn(typeId, Count);
-                    Array.Copy(ComponentColumns[c], copy, Count);
+                    CopyColumn(typeId, ComponentColumns[c], copy, Count);
                     snap.Columns[c] = copy;
                 }
             }
@@ -147,8 +148,23 @@ namespace ZWebGLFrameWork.SimulationCore
                         int typeId = ComponentTypeIds[c];
                         ComponentColumns[c] = SimChunkHelper.CreateColumn(typeId, Capacity);
                     }
-                    Array.Copy(snap.Columns[c], ComponentColumns[c], snap.Count);
+                    CopyColumn(ComponentTypeIds[c], snap.Columns[c], ComponentColumns[c], snap.Count);
                 }
+            }
+        }
+
+        private static void CopyColumn(int typeId, Array source, Array destination, int count)
+        {
+            Array.Copy(source, destination, count);
+            if (typeId != SimComponentTypeId.Movement) return;
+
+            var sourceMovement = (SimMovementComponent[])source;
+            var destinationMovement = (SimMovementComponent[])destination;
+            for (int index = 0; index < count; index++)
+            {
+                SimMovementComponent movement = sourceMovement[index];
+                movement.Path = movement.Path == null ? null : new List<int>(movement.Path);
+                destinationMovement[index] = movement;
             }
         }
     }

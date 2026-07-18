@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
@@ -54,6 +55,30 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             SubmitDeploy(orderB, 2, 3);
 
             Assert.That(orderA.State.Checksum, Is.Not.EqualTo(orderB.State.Checksum));
+        }
+
+        [Test]
+        public void Snapshot_PathMutationIsIsolatedFromCapturedState()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity entity = world.CreateEntity(typeof(SimMovementComponent));
+            world.SetComponent(entity, new SimMovementComponent
+            {
+                Speed = LogicInt.FromInt(1),
+                CellSize = LogicInt.FromInt(1),
+                Path = new List<int> { 11, 22 },
+            });
+            TickSnapshot snapshot = world.ExportFullSnapshot();
+
+            Assert.That(world.TryGetComponent(entity, out SimMovementComponent live), Is.True);
+            live.Path[0] = 99;
+            world.SetComponent(entity, live);
+            world.RestoreFromFull(snapshot);
+
+            SimEntity restoredEntity = SimEntity.Invalid;
+            world.ForEachComponent<SimMovementComponent>((candidate, movement) => restoredEntity = candidate);
+            Assert.That(world.TryGetComponent(restoredEntity, out SimMovementComponent restored), Is.True);
+            Assert.That(restored.Path, Is.EqualTo(new[] { 11, 22 }));
         }
 
         private static void SubmitDeploy(SimBattleSession session, int sequence, int gridX)
