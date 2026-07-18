@@ -185,17 +185,6 @@ namespace ZWebGLFrameWork.UI
         public void CloseLayer(UILayer layer)
         {
             _stack.ClearFrom(layer);
-            // 清理缓存
-            var toRemove = new List<Type>();
-            foreach (var kv in _panelCache)
-            {
-                if (kv.Value.Layer >= layer)
-                    toRemove.Add(kv.Key);
-            }
-            foreach (var key in toRemove)
-            {
-                _panelCache.Remove(key);
-            }
         }
 
         /// <summary>显示 Toast 提示（Tip 层，自动消失）</summary>
