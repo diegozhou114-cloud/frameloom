@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 
 namespace ZWebGLFrameWork.FSM
 {
@@ -21,6 +22,10 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>进入状态时传入的数据</summary>
         public object EnterData { get; private set; }
 
+        private CancellationTokenSource _lifetimeSource;
+        protected CancellationToken LifetimeToken =>
+            _lifetimeSource?.Token ?? CancellationToken.None;
+
         protected FSMState(T stateId)
         {
             StateId = stateId;
@@ -31,6 +36,8 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>进入状态 — 首次初始化、注册事件</summary>
         public virtual void OnEnter(object data = null)
         {
+            _lifetimeSource?.Dispose();
+            _lifetimeSource = new CancellationTokenSource();
             IsActive = true;
             EnterData = data;
         }
@@ -43,6 +50,10 @@ namespace ZWebGLFrameWork.FSM
         {
             IsActive = false;
             EnterData = null;
+            if (_lifetimeSource == null) return;
+            _lifetimeSource.Cancel();
+            _lifetimeSource.Dispose();
+            _lifetimeSource = null;
         }
 
         // ==================== 便捷方法 ====================
