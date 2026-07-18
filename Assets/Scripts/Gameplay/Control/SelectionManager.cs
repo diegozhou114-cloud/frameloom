@@ -54,24 +54,38 @@ namespace ZWebGLFrameWork.Gameplay
 
         private Camera _mainCamera;
         private GridManager _grid;
+        private SceneServiceRegistry _sceneServices;
 
         private void Start()
         {
-            _mainCamera = Camera.main;
-            _grid = GridManager.Instance;
+            _sceneServices = SceneServiceRegistry.Instance;
+            _sceneServices.Changed += BindSceneServices;
+            BindSceneServices(_sceneServices.Current);
 
             // 监听 Tap 手势
             EventBus.Subscribe<GestureData>(InputManager.EventGesture, OnGesture);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            if (_sceneServices != null)
+                _sceneServices.Changed -= BindSceneServices;
             EventBus.Unsubscribe<GestureData>(InputManager.EventGesture, OnGesture);
+            base.OnDestroy();
+        }
+
+        private void BindSceneServices(SceneServices services)
+        {
+            _mainCamera = services.MainCamera;
+            _grid = services.Grid;
+            if (_mainCamera == null || _grid == null)
+                ClearSelection();
         }
 
         private void OnGesture(GestureData gesture)
         {
-            if (gesture.Type != GestureType.Tap) return;
+            if (gesture.Type != GestureType.Tap || _mainCamera == null || _grid == null)
+                return;
 
             var ray = _mainCamera.ScreenPointToRay(gesture.ScreenPosition);
 

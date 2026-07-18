@@ -20,6 +20,7 @@ namespace ZWebGLFrameWork.UI
         private Button _upgradeButton;
 
         private BuildingInteraction _interaction;
+        private SceneServiceRegistry _sceneServices;
 
         public BuildingInfoPanel()
         {
@@ -30,7 +31,20 @@ namespace ZWebGLFrameWork.UI
         protected override void Awake()
         {
             base.Awake();
-            _interaction = Object.FindObjectOfType<BuildingInteraction>();
+            _sceneServices = SceneServiceRegistry.Instance;
+            _sceneServices.Changed += BindSceneServices;
+            BindSceneServices(_sceneServices.Current);
+        }
+
+        private void OnDestroy()
+        {
+            if (_sceneServices != null)
+                _sceneServices.Changed -= BindSceneServices;
+        }
+
+        private void BindSceneServices(SceneServices services)
+        {
+            _interaction = services.Interaction;
         }
 
         protected override void OnOpen(object data)
