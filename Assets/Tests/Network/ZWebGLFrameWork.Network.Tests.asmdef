@@ -2,7 +2,8 @@
   "name": "ZWebGLFrameWork.Network.Tests",
   "rootNamespace": "ZWebGLFrameWork.Network.Tests",
   "references": [
-    "ZWebGLFrameWork.Network.Contracts"
+    "ZWebGLFrameWork.Network.Contracts",
+    "ZWebGLFrameWork.Network.Runtime"
   ],
   "includePlatforms": [
     "Editor"

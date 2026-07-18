@@ -1,0 +1,16 @@
+{
+  "name": "ZWebGLFrameWork.Network.Runtime",
+  "rootNamespace": "ZWebGLFrameWork.Network.Runtime",
+  "references": [
+    "ZWebGLFrameWork.Network.Contracts"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}
