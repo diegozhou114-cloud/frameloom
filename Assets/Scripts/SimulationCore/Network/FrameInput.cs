@@ -47,11 +47,11 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (type)
             {
                 case 1: // Deploy
-                    return new DeployCmd { Tick = (int)Sequence, PlayerId = playerId, UnitTypeId = p1, GridX = p2, GridY = p3 };
+                    return new DeployCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, UnitTypeId = p1, GridX = p2, GridY = p3 };
                 case 2: // Move
-                    return new MoveCmd { Tick = (int)Sequence, PlayerId = playerId, EntityId = p1, TargetX = p2, TargetY = p3 };
+                    return new MoveCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, EntityId = p1, TargetX = p2, TargetY = p3 };
                 case 3: // Skill
-                    return new SkillCmd { Tick = (int)Sequence, PlayerId = playerId, CasterId = 0, SkillId = p1, TargetX = p2, TargetY = p3 };
+                    return new SkillCmd { Tick = (int)Sequence, PlayerId = playerId, Sequence = (int)Sequence, CasterId = 0, SkillId = p1, TargetX = p2, TargetY = p3 };
                 default:
                     return null;
             }

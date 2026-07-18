@@ -32,7 +32,11 @@ namespace ZWebGLFrameWork.SimulationCore
                 }
             }
             // 保持确定性：按 PlayerId 排序（同一 Tick 内多玩家命令的执行顺序）
-            result.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+            result.Sort((a, b) =>
+            {
+                int player = a.PlayerId.CompareTo(b.PlayerId);
+                return player != 0 ? player : a.Sequence.CompareTo(b.Sequence);
+            });
             return result;
         }
 
@@ -43,7 +47,11 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var cmd in _pending)
                 if (cmd.Tick == tick)
                     result.Add(cmd);
-            result.Sort((a, b) => a.PlayerId.CompareTo(b.PlayerId));
+            result.Sort((a, b) =>
+            {
+                int player = a.PlayerId.CompareTo(b.PlayerId);
+                return player != 0 ? player : a.Sequence.CompareTo(b.Sequence);
+            });
             return result;
         }
 

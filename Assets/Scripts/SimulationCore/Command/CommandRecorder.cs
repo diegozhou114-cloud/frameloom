@@ -50,6 +50,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     Type = cmd.Type.ToString(),
                     Tick = cmd.Tick,
                     PlayerId = cmd.PlayerId,
+                    Sequence = cmd.Sequence,
                 };
                 switch (cmd)
                 {
@@ -83,17 +84,17 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 SimCommandType.Deploy => new DeployCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     UnitTypeId = sc.UnitTypeId, GridX = sc.GridX, GridY = sc.GridY,
                 },
                 SimCommandType.Move => new MoveCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     EntityId = sc.EntityId, TargetX = sc.TargetX, TargetY = sc.TargetY,
                 },
                 SimCommandType.Skill => new SkillCmd
                 {
-                    Tick = sc.Tick, PlayerId = sc.PlayerId,
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
                     CasterId = sc.CasterId, SkillId = sc.SkillId,
                     TargetX = sc.TargetX, TargetY = sc.TargetY,
                 },

@@ -10,6 +10,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public string Type { get; set; }
         public int Tick { get; set; }
         public int PlayerId { get; set; }
+        public int Sequence { get; set; }
         public int UnitTypeId { get; set; }
         public int EntityId { get; set; }
         public int CasterId { get; set; }

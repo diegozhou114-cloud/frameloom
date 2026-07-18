@@ -10,6 +10,10 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly SimWorld _world;
         private readonly DeterministicContentManifest _manifest;
         private readonly ISimLogger _logger;
+        private readonly CommandBuffer _commandBuffer;
+        private readonly SimSystemGroup _systems;
+        private readonly SimDeathSystem _deathSystem;
+        private readonly Dictionary<int, int> _lastSequenceByPlayer = new Dictionary<int, int>();
         private SimBattleState _state;
         private PresentationFrame _currentFrame;
         private BattleInit _init;
@@ -20,6 +24,9 @@ namespace ZWebGLFrameWork.SimulationCore
             _world = world ?? throw new ArgumentNullException(nameof(world));
             _manifest = manifest ?? throw new ArgumentNullException(nameof(manifest));
             _logger = logger;
+            _commandBuffer = new CommandBuffer();
+            _systems = SimCombatBootstrap.Build(world);
+            _deathSystem = _systems.Find<SimDeathSystem>();
             _currentFrame = EmptyFrame();
             _state = new SimBattleState(SessionLifecycle.Created, SimCombatPhase.Idle,
                 -1, 0, 0, 0, _currentFrame, null);
@@ -40,6 +47,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 CreateInitialEntity(spec);
 
             _init = init;
+            _lastSequenceByPlayer.Clear();
             _currentFrame = BuildFrame(true, -1, 0, 0);
             _state = new SimBattleState(SessionLifecycle.Running, SimCombatPhase.Deploying,
                 -1, 0, 0, _world.ComputeChecksum(), _currentFrame, null);
@@ -51,9 +59,23 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             if (_disposed || _state.Lifecycle != SessionLifecycle.Running)
                 return new CommandSubmitResult(CommandDisposition.WrongPhase);
-            return new CommandSubmitResult(command == null
-                ? CommandDisposition.InvalidPayload
-                : CommandDisposition.Accepted);
+            if (command == null) return new CommandSubmitResult(CommandDisposition.InvalidPayload);
+            if (!IsPlayer(command.PlayerId))
+                return new CommandSubmitResult(CommandDisposition.UnknownPlayer);
+            if (command.Tick < _state.NextTick)
+                return new CommandSubmitResult(CommandDisposition.LateTick);
+            if (command.Tick > _state.NextTick + 64)
+                return new CommandSubmitResult(CommandDisposition.FutureWindowExceeded);
+            if (_lastSequenceByPlayer.TryGetValue(command.PlayerId, out int previousSequence))
+            {
+                if (command.Sequence == previousSequence)
+                    return new CommandSubmitResult(CommandDisposition.Duplicate);
+                if (command.Sequence < previousSequence)
+                    return new CommandSubmitResult(CommandDisposition.NonMonotonicSequence);
+            }
+            _lastSequenceByPlayer[command.PlayerId] = command.Sequence;
+            _commandBuffer.AddCommand(command);
+            return new CommandSubmitResult(CommandDisposition.Accepted);
         }
 
         public TickResult Tick()
@@ -66,13 +88,26 @@ namespace ZWebGLFrameWork.SimulationCore
             int completedTick = _state.NextTick;
             int nextTick = completedTick + 1;
             long revision = _state.TimelineRevision;
+            List<ISimCommand> executed = _commandBuffer.Drain(completedTick);
+            var outcomes = new List<CommandExecutionResult>(executed.Count);
+            foreach (ISimCommand command in executed)
+                outcomes.Add(ExecuteCommand(command));
+            _systems.UpdateAll();
+            SimCombatPhase phase = _state.Phase;
+            SessionLifecycle lifecycle = _state.Lifecycle;
+            if (_deathSystem.Winner.HasValue)
+            {
+                phase = SimCombatPhase.Ended;
+                lifecycle = SessionLifecycle.Ended;
+            }
             ulong checksum = _world.ComputeChecksum();
             _currentFrame = BuildFrame(false, completedTick, nextTick, revision);
-            _state = new SimBattleState(SessionLifecycle.Running, _state.Phase,
+            _state = new SimBattleState(lifecycle, phase,
                 completedTick, nextTick, revision, checksum,
                 BuildFrame(true, completedTick, nextTick, revision), null);
-            return new TickResult(TickCode.Advanced, completedTick, nextTick, revision,
-                Array.Empty<ISimCommand>(), Array.Empty<CommandExecutionResult>(),
+            return new TickResult(lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
+                completedTick, nextTick, revision,
+                executed.ToArray(), outcomes.ToArray(),
                 Array.Empty<SimBattleEvent>(), _currentFrame, checksum, null);
         }
 
@@ -138,7 +173,7 @@ namespace ZWebGLFrameWork.SimulationCore
             return StartCode.Accepted;
         }
 
-        private void CreateInitialEntity(InitialEntitySpec spec)
+        private SimEntity CreateInitialEntity(InitialEntitySpec spec)
         {
             SimArchetypeDefinition definition = _manifest.GetArchetype(spec.ArchetypeId);
             var componentTypes = new List<Type>
@@ -181,6 +216,92 @@ namespace ZWebGLFrameWork.SimulationCore
                 });
                 _world.SetComponent(entity, SimTargetComponent.Create());
             }
+            return entity;
+        }
+
+        private CommandExecutionResult ExecuteCommand(ISimCommand command)
+        {
+            switch (command)
+            {
+                case DeployCmd deploy:
+                    if (deploy.GridX < 0 || deploy.GridY < 0)
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
+                    int team = deploy.PlayerId == 1 ? SimTeam.Defender : SimTeam.Attacker;
+                    SimArchetypeDefinition definition = _manifest.GetArchetype(deploy.UnitTypeId);
+                    if (definition == null)
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
+                    SimEntity deployed = CreateInitialEntity(new InitialEntitySpec(
+                        deploy.UnitTypeId, deploy.GridX, deploy.GridY, team, deploy.PlayerId));
+                    return new CommandExecutionResult(command, CommandDisposition.Accepted,
+                        deployed.Id, deployed.Generation);
+                case MoveCmd move:
+                    if (!TryFindEntity(move.EntityId, out SimEntity mover) ||
+                        !_world.TryGetComponent(mover, out SimMovementComponent movement))
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
+                    if (!_world.TryGetComponent(mover, out SimIdentityComponent moveIdentity) ||
+                        moveIdentity.OwnerPlayerId != move.PlayerId)
+                        return new CommandExecutionResult(command, CommandDisposition.UnauthorizedEntity,
+                            mover.Id, mover.Generation);
+                    if (move.TargetX < 0 || move.TargetY < 0)
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload,
+                            mover.Id, mover.Generation);
+                    movement.Path = BuildPath(mover, move.TargetX, move.TargetY);
+                    movement.PathIndex = 0;
+                    movement.TargetGridX = move.TargetX;
+                    movement.TargetGridY = move.TargetY;
+                    _world.SetComponent(mover, movement);
+                    return new CommandExecutionResult(command, CommandDisposition.Accepted,
+                        mover.Id, mover.Generation);
+                case SkillCmd skill:
+                    if (!TryFindEntity(skill.CasterId, out SimEntity caster) ||
+                        !_world.TryGetComponent(caster, out SimIdentityComponent skillIdentity))
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
+                    if (skillIdentity.OwnerPlayerId != skill.PlayerId)
+                        return new CommandExecutionResult(command, CommandDisposition.UnauthorizedEntity,
+                            caster.Id, caster.Generation);
+                    if (skill.SkillId < 0 || skill.TargetX < -1 || skill.TargetY < -1)
+                        return new CommandExecutionResult(command, CommandDisposition.InvalidPayload,
+                            caster.Id, caster.Generation);
+                    return new CommandExecutionResult(command, CommandDisposition.Accepted,
+                        caster.Id, caster.Generation);
+                default:
+                    return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
+            }
+        }
+
+        private bool TryFindEntity(int id, out SimEntity found)
+        {
+            SimEntity candidate = SimEntity.Invalid;
+            _world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
+            {
+                if (entity.Id == id) candidate = entity;
+            });
+            found = candidate;
+            return found.IsValid;
+        }
+
+        private bool IsPlayer(int playerId)
+        {
+            if (_init == null) return false;
+            foreach (SimPlayerIdentity player in _init.Players)
+                if (player.PlayerId == playerId) return true;
+            return false;
+        }
+
+        private List<int> BuildPath(SimEntity entity, int targetX, int targetY)
+        {
+            var path = new List<int>();
+            if (!_world.TryGetComponent(entity, out SimTransformComponent transform)) return path;
+            int x = transform.GridX;
+            int y = transform.GridY;
+            int steps = Math.Max(Math.Abs(targetX - x), Math.Abs(targetY - y));
+            for (int step = 0; step < steps; step++)
+            {
+                if (x != targetX) x += targetX > x ? 1 : -1;
+                if (y != targetY) y += targetY > y ? 1 : -1;
+                path.Add((x << 16) | (y & 0xFFFF));
+            }
+            return path;
         }
 
         private TickResult CreateTickResult(TickCode code)

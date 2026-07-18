@@ -75,8 +75,7 @@ namespace ZWebGLFrameWork.SimulationCore
     public readonly struct CommandSubmitResult
     {
         public CommandDisposition Disposition { get; }
-        public bool Accepted => Disposition == CommandDisposition.Accepted ||
-            Disposition == CommandDisposition.Duplicate;
+        public bool Accepted => Disposition == CommandDisposition.Accepted;
 
         public CommandSubmitResult(CommandDisposition disposition)
         {

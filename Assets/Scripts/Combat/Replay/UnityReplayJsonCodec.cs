@@ -130,6 +130,7 @@ namespace ZWebGLFrameWork.Combat
             public string Type;
             public int Tick;
             public int PlayerId;
+            public int Sequence;
             public int UnitTypeId;
             public int EntityId;
             public int CasterId;
@@ -144,6 +145,7 @@ namespace ZWebGLFrameWork.Combat
                 Type = command.Type,
                 Tick = command.Tick,
                 PlayerId = command.PlayerId,
+                Sequence = command.Sequence,
                 UnitTypeId = command.UnitTypeId,
                 EntityId = command.EntityId,
                 CasterId = command.CasterId,
@@ -159,6 +161,7 @@ namespace ZWebGLFrameWork.Combat
                 Type = Type,
                 Tick = Tick,
                 PlayerId = PlayerId,
+                Sequence = Sequence,
                 UnitTypeId = UnitTypeId,
                 EntityId = EntityId,
                 CasterId = CasterId,
