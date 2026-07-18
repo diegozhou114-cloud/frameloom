@@ -11,7 +11,6 @@ namespace ZWebGLFrameWork.Data
     /// </summary>
     public static class SaveManager
     {
-        private const int SchemaVersion = 1;
         private const string SaveIndexKey = "Save_Index";     // 当前选中的存档槽位
         private const string SaveFilePrefix = "save_";        // 文件名前缀
         private const string SaveExtension = ".json";
@@ -88,32 +87,7 @@ namespace ZWebGLFrameWork.Data
             var player = dm.Player;
             var village = dm.Village;
 
-            var saveData = new PlayerSaveData
-            {
-                Version = SchemaVersion,
-                PlayerName = player.Name.Value,
-                PlayerLevel = player.Level.Value,
-                TownHallLevel = player.TownHallLevel.Value,
-                Gold = player.Gold.Value,
-                Elixir = player.Elixir.Value,
-                DarkElixir = player.DarkElixir.Value,
-                Gems = player.Gems.Value,
-                Trophies = player.Trophies.Value,
-                Exp = player.Exp.Value,
-                Buildings = new System.Collections.Generic.List<BuildingSaveData>(),
-                SaveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            };
-
-            foreach (var b in village.Buildings)
-            {
-                saveData.Buildings.Add(new BuildingSaveData
-                {
-                    TypeId = b.TypeId,
-                    GridX = b.GridX.Value,
-                    GridY = b.GridY.Value,
-                    Level = b.Level.Value,
-                });
-            }
+            PlayerSaveData saveData = SaveDataMapper.Capture(player, village);
 
             return Save(saveData, targetSlot);
         }
@@ -151,8 +125,8 @@ namespace ZWebGLFrameWork.Data
             var data = Load<PlayerSaveData>(targetSlot);
             if (data == null) return false;
 
-            if (data.Version != SchemaVersion)
-                Debug.LogWarning($"[SaveManager] 存档版本不匹配: 存档={data.Version}, 当前={SchemaVersion}");
+            if (data.Version != PlayerSaveData.CurrentVersion)
+                Debug.LogWarning($"[SaveManager] 存档版本不匹配: 存档={data.Version}, 当前={PlayerSaveData.CurrentVersion}");
 
             var dm = DataManager.Instance;
             if (dm?.Player == null || dm?.Village == null)
@@ -186,6 +160,9 @@ namespace ZWebGLFrameWork.Data
 
         private static void RestoreBuildings(VillageData village, PlayerSaveData data, int targetSlot)
         {
+            village.Name.Value = data.VillageName ?? village.Name.Value;
+            if (data.MaxBuildings > 0)
+                village.MaxBuildings.Value = data.MaxBuildings;
             village.Buildings.Clear();
             if (data.Buildings != null)
             {
@@ -204,7 +181,7 @@ namespace ZWebGLFrameWork.Data
                     {
                         Debug.LogWarning($"[SaveManager] Configs not ready, skipping building validation for slot {targetSlot}");
                     }
-                    village.AddBuilding(BuildingData.Create(b.TypeId, b.GridX, b.GridY));
+                    village.AddBuilding(SaveDataMapper.RestoreBuilding(b));
                 }
             }
         }
