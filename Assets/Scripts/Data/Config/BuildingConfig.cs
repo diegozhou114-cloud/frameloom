@@ -2,6 +2,14 @@ using System;
 
 namespace ZWebGLFrameWork.Data
 {
+    public enum ResourceType
+    {
+        None = 0,
+        Gold = 1,
+        Elixir = 2,
+        DarkElixir = 3,
+    }
+
     /// <summary>建筑配置表行 — 定义每种建筑的基础属性</summary>
     [Serializable]
     public class BuildingConfig
@@ -30,6 +38,9 @@ namespace ZWebGLFrameWork.Data
 
         /// <summary>建筑类型：Resource/Defense/Army/Other</summary>
         public string Category;
+
+        /// <summary>资源建筑的明确产出类型。</summary>
+        public ResourceType ResourceType;
 
         /// <summary>获取指定等级的建筑消耗（超出范围返回 -1）</summary>
         public int GetBuildCost(int level)

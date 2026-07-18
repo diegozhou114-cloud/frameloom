@@ -14,6 +14,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
                 Id = 2,
                 Name = "Gold Mine",
                 Category = "Resource",
+                ResourceType = ResourceType.Gold,
             };
             var village = new VillageData(_ => goldConfig);
             var player = new PlayerData();
