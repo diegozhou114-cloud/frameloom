@@ -24,7 +24,7 @@ namespace ZWebGLFrameWork.UI
         protected override void OnOpen(object data)
         {
             _battleStartTime = Time.time;
-            BuildUI();
+            BuildOnce(BuildUI);
         }
 
         private void BuildUI()

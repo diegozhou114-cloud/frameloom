@@ -11,6 +11,10 @@ namespace ZWebGLFrameWork.UI
     /// </summary>
     public class ResultPanel : UIBase
     {
+        private Text _titleText;
+        private Text _starsText;
+        private Text _lootText;
+
         public ResultPanel()
         {
             _layer = UILayer.Popup;
@@ -19,13 +23,13 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            var result = data as CombatEndEvent?;
-            if (result == null) return;
-
-            BuildUI(result.Value);
+            BuildOnce(BuildUI);
+            BindResult(data);
         }
 
-        private void BuildUI(CombatEndEvent result)
+        protected override void OnRebind(object data) => BindResult(data);
+
+        private void BuildUI()
         {
             // 半透明背景
             var bg = gameObject.AddComponent<Image>();
@@ -42,20 +46,17 @@ namespace ZWebGLFrameWork.UI
             crt.offsetMax = Vector2.zero;
 
             // 标题
-            bool win = result.Winner == Team.Attacker;
-            CreateText("Title", win ? "🏆 胜利!" : "💀 失败",
+            _titleText = CreateText("Title", string.Empty,
                 40, new Vector2(0.5f, 0.85f), card.transform,
-                TextAnchor.MiddleCenter, win ? Color.yellow : Color.gray, 300, 60);
+                TextAnchor.MiddleCenter, Color.white, 300, 60);
 
             // 星级
-            string starsStr = new string('⭐', result.Stars) + new string('☆', 3 - result.Stars);
-            CreateText("Stars", starsStr, 36, new Vector2(0.5f, 0.65f), card.transform,
-                TextAnchor.MiddleCenter, Color.yellow, 300, 50);
+            _starsText = CreateText("Stars", string.Empty, 36, new Vector2(0.5f, 0.65f),
+                card.transform, TextAnchor.MiddleCenter, Color.yellow, 300, 50);
 
             // 战利品
-            string loot = $"💰 金币: {result.LootGold}   💧 圣水: {result.LootElixir}";
-            CreateText("Loot", loot, 22, new Vector2(0.5f, 0.45f), card.transform,
-                TextAnchor.MiddleCenter, Color.white, 350, 40);
+            _lootText = CreateText("Loot", string.Empty, 22, new Vector2(0.5f, 0.45f),
+                card.transform, TextAnchor.MiddleCenter, Color.white, 350, 40);
 
             // 返回按钮
             CreateButton("BtnReturn", "↩ 返回主城", new Vector2(0.25f, 0.15f),
@@ -64,6 +65,18 @@ namespace ZWebGLFrameWork.UI
             {
                 EventBus.Publish("Battle_ReturnToVillage");
             });
+        }
+
+        private void BindResult(object data)
+        {
+            if (!(data is CombatEndEvent result)) return;
+
+            bool win = result.Winner == Team.Attacker;
+            int stars = Mathf.Clamp(result.Stars, 0, 3);
+            _titleText.text = win ? "🏆 胜利!" : "💀 失败";
+            _titleText.color = win ? Color.yellow : Color.gray;
+            _starsText.text = new string('⭐', stars) + new string('☆', 3 - stars);
+            _lootText.text = $"💰 金币: {result.LootGold}   💧 圣水: {result.LootElixir}";
         }
 
     }

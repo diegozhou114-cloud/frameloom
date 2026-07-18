@@ -24,7 +24,8 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            BuildUI();
+            BuildOnce(BuildUI);
+            TryLoadLogo();
             EventBus.Subscribe<BootProgressEvent>(BootProgressEvent.EventKey, OnBootProgress);
         }
 
@@ -55,7 +56,6 @@ namespace ZWebGLFrameWork.UI
             _logoImage.rectTransform.anchorMax = new Vector2(0.5f, 0.65f);
             _logoImage.rectTransform.sizeDelta = new Vector2(200, 200);
             _logoImage.color = Color.white;
-            TryLoadLogo();
 
             // 阶段描述
             var phaseGo = CreateText("PhaseText", 28, new Vector2(0.5f, 0.45f));
@@ -119,6 +119,12 @@ namespace ZWebGLFrameWork.UI
 
         private void TryLoadLogo()
         {
+            if (_logoImage == null) return;
+            if (_logoSprite != null)
+            {
+                Object.Destroy(_logoSprite);
+                _logoSprite = null;
+            }
             var tex = Resources.Load<Texture2D>(LogoResourcePath);
             if (tex != null)
             {

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using ZWebGLFrameWork.Core;
@@ -37,6 +38,7 @@ namespace ZWebGLFrameWork.UI
         public CanvasGroup CanvasGroup { get; private set; }
 
         private UIAnimation _animation;
+        private bool _hierarchyBuilt;
 
         /// <summary>打开时传入的数据</summary>
         public object OpenData { get; private set; }
@@ -111,11 +113,27 @@ namespace ZWebGLFrameWork.UI
             IsPaused = false;
             CanvasGroup.interactable = true;
             if (data != null)
-            {
-                OpenData = data;
-                OnOpen(data); // 传递新数据
-            }
+                DoRebind(data);
             OnResume();
+        }
+
+        /// <summary>构建面板的静态层级，最多执行一次。</summary>
+        protected void BuildOnce(Action buildHierarchy)
+        {
+            if (_hierarchyBuilt) return;
+            if (buildHierarchy == null)
+                throw new ArgumentNullException(nameof(buildHierarchy));
+
+            buildHierarchy();
+            _hierarchyBuilt = true;
+        }
+
+        /// <summary>为已打开的面板绑定最新数据，不重建静态层级。</summary>
+        internal void DoRebind(object data)
+        {
+            if (!IsOpen) return;
+            OpenData = data;
+            OnRebind(data);
         }
 
         /// <summary>面板关闭时调用</summary>
@@ -147,6 +165,9 @@ namespace ZWebGLFrameWork.UI
 
         /// <summary>面板打开 — 初始化 UI、注册事件</summary>
         protected virtual void OnOpen(object data) { }
+
+        /// <summary>面板保持打开时收到新数据。</summary>
+        protected virtual void OnRebind(object data) { }
 
         /// <summary>面板被暂停 — 停止刷新、取消事件监听</summary>
         protected virtual void OnPause() { }

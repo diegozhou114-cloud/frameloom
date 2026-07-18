@@ -19,7 +19,7 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            BuildUI();
+            BuildOnce(BuildUI);
             EventBus.Subscribe<BootErrorEvent>(BootErrorEvent.EventKey, OnBootError);
         }
 

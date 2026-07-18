@@ -125,7 +125,10 @@ namespace ZWebGLFrameWork.UI
             // 如果已打开且在同一层，恢复并传递新数据
             if (_panelCache.TryGetValue(type, out var existing) && existing.IsOpen)
             {
-                existing.DoResume(data);
+                if (existing.IsPaused)
+                    existing.DoResume(data);
+                else
+                    existing.DoRebind(data);
                 return existing as T;
             }
 
