@@ -23,6 +23,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private int[] _entityLocalIndex;
 
         private int _nextId;
+        private int _worldEpoch = 1;
         private int[] _generations;
         private int _generationCap;
 
@@ -34,6 +35,16 @@ namespace ZWebGLFrameWork.SimulationCore
 
         // 排序键缓存（避免每 Tick 分配 List<string>）
         private readonly List<string> _sortedKeys = new List<string>();
+        private readonly List<EntityLocation> _sortedLocations = new List<EntityLocation>();
+
+        private struct EntityLocation
+        {
+            public SimEntity Entity;
+            public SimChunk Chunk;
+            public int LocalIndex;
+            public int ColumnIndex;
+            public int SecondaryColumnIndex;
+        }
 
         public SimWorld(ComponentTypeRegistry registry, int initialCapacity = 256, ISimLogger logger = null)
         {
@@ -67,7 +78,7 @@ namespace ZWebGLFrameWork.SimulationCore
             }
             _generations[id]++;
 
-            var entity = new SimEntity(id, _generations[id]);
+            var entity = new SimEntity(id, _generations[id], _worldEpoch);
             EntityCount++;
 
             // 确定 Archetype：按类型全名排序确保键确定性
@@ -108,9 +119,8 @@ namespace ZWebGLFrameWork.SimulationCore
         /// </summary>
         public void DestroyEntity(SimEntity entity)
         {
-            if (!entity.IsValid) return;
+            if (!IsAlive(entity)) return;
             int id = entity.Id;
-            if (id >= _generationCap || _generations[id] != entity.Generation) return;
 
             string key = _entityArchetypeKey[id];
             if (key == null) return;
@@ -147,9 +157,16 @@ namespace ZWebGLFrameWork.SimulationCore
             }
 
             _entityArchetypeKey[id] = null;
-            _generations[id] = 0; // 标记无效
             EntityCount--;
             OnEntityDestroyed?.Invoke(entity);
+        }
+
+        public bool IsAlive(SimEntity entity)
+        {
+            int id = entity.Id;
+            return entity.IsValid && entity.WorldEpoch == _worldEpoch &&
+                id < _generationCap && _generations[id] == entity.Generation &&
+                _entityArchetypeKey[id] != null;
         }
 
         // ==================== 组件操作 ====================
@@ -167,7 +184,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public ref T GetComponentRef<T>(SimEntity entity) where T : struct, ISimComponent
         {
             int id = entity.Id;
-            if (id >= _generationCap || _entityArchetypeKey[id] == null)
+            if (!IsAlive(entity))
                 throw new InvalidOperationException($"Entity {id} is not valid or has been destroyed.");
             var archetype = _archetypes[_entityArchetypeKey[id]];
             int colIdx = archetype.ColumnIndex[_registry.GetId(typeof(T))];
@@ -179,7 +196,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public bool TryGetComponent<T>(SimEntity entity, out T component) where T : struct, ISimComponent
         {
             int id = entity.Id;
-            if (id >= _generationCap || _entityArchetypeKey[id] == null)
+            if (!IsAlive(entity))
             {
                 component = default;
                 return false;
@@ -201,7 +218,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public bool HasComponent<T>(SimEntity entity) where T : struct, ISimComponent
         {
             int id = entity.Id;
-            if (id >= _generationCap || _entityArchetypeKey[id] == null) return false;
+            if (!IsAlive(entity)) return false;
             var archetype = _archetypes[_entityArchetypeKey[id]];
             return archetype.ColumnIndex.ContainsKey(_registry.GetId(typeof(T)));
         }
@@ -210,6 +227,8 @@ namespace ZWebGLFrameWork.SimulationCore
         public void SetComponent<T>(SimEntity entity, T component) where T : struct, ISimComponent
         {
             int id = entity.Id;
+            if (!IsAlive(entity))
+                throw new InvalidOperationException($"Entity {id} is not valid or has been destroyed.");
             var archetype = _archetypes[_entityArchetypeKey[id]];
             int colIdx = archetype.ColumnIndex[_registry.GetId(typeof(T))];
             var chunk = archetype.Chunks[_entityChunkIndex[id]];
@@ -221,91 +240,73 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>遍历所有拥有 T 的 Chunk 中的所有实体（含组件值拷贝）</summary>
         public void ForEachComponent<T>(Action<SimEntity, T> action) where T : struct, ISimComponent
         {
-            int typeId = _registry.GetId(typeof(T));
-            foreach (var kv in _archetypes)
-            {
-                var archetype = kv.Value;
-                if (!archetype.ColumnIndex.TryGetValue(typeId, out int colIdx)) continue;
-                if (archetype.Chunks.Count == 0) continue;
-                // 第一 Chunk 检测列是否已分配（惰性分配，无此组件的实体不会进入此 Archetype）
-                if (archetype.Chunks[0].ComponentColumns[colIdx] == null) continue;
-
-                foreach (var chunk in archetype.Chunks)
-                {
-                    T[] chunkCol = (T[])chunk.ComponentColumns[colIdx];
-                    if (chunkCol == null) continue;
-                    for (int i = 0; i < chunk.Count; i++)
-                    {
-                        action(new SimEntity(chunk.EntityIds[i], chunk.Generations[i]), chunkCol[i]);
-                    }
-                }
-            }
+            CollectLocations(_registry.GetId(typeof(T)));
+            foreach (var location in _sortedLocations)
+                action(location.Entity, location.Chunk.GetComponent<T>(location.LocalIndex, location.ColumnIndex));
         }
 
         /// <summary>遍历所有拥有 T 的实体（仅实体，不含组件）</summary>
         public void ForEachEntities<T>(Action<SimEntity> action) where T : struct, ISimComponent
         {
-            int typeId = _registry.GetId(typeof(T));
-            foreach (var kv in _archetypes)
-            {
-                var archetype = kv.Value;
-                if (!archetype.ColumnIndex.ContainsKey(typeId)) continue;
-                foreach (var chunk in archetype.Chunks)
-                {
-                    for (int i = 0; i < chunk.Count; i++)
-                        action(new SimEntity(chunk.EntityIds[i], chunk.Generations[i]));
-                }
-            }
+            CollectLocations(_registry.GetId(typeof(T)));
+            foreach (var location in _sortedLocations)
+                action(location.Entity);
         }
 
         /// <summary>双组件联合遍历 — 同 Chunk 内双列顺序扫描，零随机跳转</summary>
         public void ForEachEntities<T1, T2>(Action<SimEntity, T1, T2> action)
             where T1 : struct, ISimComponent where T2 : struct, ISimComponent
         {
-            int typeId1 = _registry.GetId(typeof(T1));
-            int typeId2 = _registry.GetId(typeof(T2));
-            foreach (var kv in _archetypes)
-            {
-                var archetype = kv.Value;
-                if (!archetype.ColumnIndex.TryGetValue(typeId1, out int col1)) continue;
-                if (!archetype.ColumnIndex.TryGetValue(typeId2, out int col2)) continue;
-
-                foreach (var chunk in archetype.Chunks)
-                {
-                    T1[] col1Arr = (T1[])chunk.ComponentColumns[col1];
-                    T2[] col2Arr = (T2[])chunk.ComponentColumns[col2];
-                    if (col1Arr == null || col2Arr == null) continue;
-                    for (int i = 0; i < chunk.Count; i++)
-                    {
-                        action(new SimEntity(chunk.EntityIds[i], chunk.Generations[i]), col1Arr[i], col2Arr[i]);
-                    }
-                }
-            }
+            CollectLocations(_registry.GetId(typeof(T1)), _registry.GetId(typeof(T2)));
+            foreach (var location in _sortedLocations)
+                action(location.Entity,
+                    location.Chunk.GetComponent<T1>(location.LocalIndex, location.ColumnIndex),
+                    location.Chunk.GetComponent<T2>(location.LocalIndex, location.SecondaryColumnIndex));
         }
 
         /// <summary>双组件联合遍历（ref 版本，支持修改）</summary>
         public void ForEachEntities<T1, T2>(RefAction<SimEntity, T1, T2> action)
             where T1 : struct, ISimComponent where T2 : struct, ISimComponent
         {
-            int typeId1 = _registry.GetId(typeof(T1));
-            int typeId2 = _registry.GetId(typeof(T2));
-            foreach (var kv in _archetypes)
+            CollectLocations(_registry.GetId(typeof(T1)), _registry.GetId(typeof(T2)));
+            foreach (var location in _sortedLocations)
             {
-                var archetype = kv.Value;
-                if (!archetype.ColumnIndex.TryGetValue(typeId1, out int col1)) continue;
-                if (!archetype.ColumnIndex.TryGetValue(typeId2, out int col2)) continue;
+                T1[] first = (T1[])location.Chunk.ComponentColumns[location.ColumnIndex];
+                T2[] second = (T2[])location.Chunk.ComponentColumns[location.SecondaryColumnIndex];
+                action(location.Entity, ref first[location.LocalIndex], ref second[location.LocalIndex]);
+            }
+        }
 
+        private void CollectLocations(int typeId1, int typeId2 = -1)
+        {
+            _sortedLocations.Clear();
+            foreach (var archetype in _archetypes.Values)
+            {
+                if (!archetype.ColumnIndex.TryGetValue(typeId1, out int col1)) continue;
+                int col2 = -1;
+                if (typeId2 >= 0 && !archetype.ColumnIndex.TryGetValue(typeId2, out col2)) continue;
                 foreach (var chunk in archetype.Chunks)
                 {
-                    T1[] col1Arr = (T1[])chunk.ComponentColumns[col1];
-                    T2[] col2Arr = (T2[])chunk.ComponentColumns[col2];
-                    if (col1Arr == null || col2Arr == null) continue;
-                    for (int i = 0; i < chunk.Count; i++)
+                    if (chunk.ComponentColumns[col1] == null ||
+                        (col2 >= 0 && chunk.ComponentColumns[col2] == null)) continue;
+                    for (int index = 0; index < chunk.Count; index++)
                     {
-                        action(new SimEntity(chunk.EntityIds[i], chunk.Generations[i]), ref col1Arr[i], ref col2Arr[i]);
+                        _sortedLocations.Add(new EntityLocation
+                        {
+                            Entity = new SimEntity(chunk.EntityIds[index], chunk.Generations[index], _worldEpoch),
+                            Chunk = chunk,
+                            LocalIndex = index,
+                            ColumnIndex = col1,
+                            SecondaryColumnIndex = col2,
+                        });
                     }
                 }
             }
+            _sortedLocations.Sort((left, right) =>
+            {
+                int byId = left.Entity.Id.CompareTo(right.Entity.Id);
+                return byId != 0 ? byId : left.Entity.Generation.CompareTo(right.Entity.Generation);
+            });
         }
 
         /// <summary>双组件 ref 遍历委托</summary>
@@ -372,7 +373,14 @@ namespace ZWebGLFrameWork.SimulationCore
 
         private static ulong HashChunk(SimArchetype archetype, SimChunk chunk, ulong hash)
         {
-            for (int i = 0; i < chunk.Count; i++)
+            var indices = new List<int>(chunk.Count);
+            for (int index = 0; index < chunk.Count; index++) indices.Add(index);
+            indices.Sort((left, right) =>
+            {
+                int byId = chunk.EntityIds[left].CompareTo(chunk.EntityIds[right]);
+                return byId != 0 ? byId : chunk.Generations[left].CompareTo(chunk.Generations[right]);
+            });
+            foreach (int i in indices)
             {
                 // 哈希 Entity ID + Generation
                 const ulong prime = 1099511628211UL;
@@ -438,7 +446,7 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var kv in _archetypes)
                 foreach (var chunk in kv.Value.Chunks)
                     for (int i = 0; i < chunk.Count; i++)
-                        list.Add(new SimEntity(chunk.EntityIds[i], chunk.Generations[i]));
+                        list.Add(new SimEntity(chunk.EntityIds[i], chunk.Generations[i], _worldEpoch));
             return list.ToArray();
         }
 
@@ -447,6 +455,9 @@ namespace ZWebGLFrameWork.SimulationCore
         /// </summary>
         public void RestoreFromFull(TickSnapshot snapshot)
         {
+            ValidateSnapshot(snapshot);
+            _worldEpoch = unchecked(_worldEpoch + 1);
+            if (_worldEpoch == 0) _worldEpoch = 1;
             _archetypes.Clear();
             _nextId = snapshot.NextId;
             _generations = (int[])snapshot.Generations.Clone();
@@ -486,6 +497,41 @@ namespace ZWebGLFrameWork.SimulationCore
                     EntityCount += chunk.Count;
                 }
             }
+
+            // Snapshot component values may contain handles from the previous epoch.
+            ForEachComponent<SimTargetComponent>((entity, target) =>
+            {
+                if (target.TargetEntity.IsValid)
+                    target.TargetEntity = new SimEntity(
+                        target.TargetEntity.Id, target.TargetEntity.Generation, _worldEpoch);
+                SetComponent(entity, target);
+            });
+        }
+
+        private void ValidateSnapshot(TickSnapshot snapshot)
+        {
+            if (snapshot == null || snapshot.Generations == null ||
+                snapshot.NextId < 0 || snapshot.NextId > snapshot.Generations.Length ||
+                snapshot.ChunkSnapshots == null)
+                throw new ArgumentException("Invalid world snapshot.", nameof(snapshot));
+            foreach (var chunk in snapshot.ChunkSnapshots)
+            {
+                if (chunk == null || chunk.ComponentTypeIds == null ||
+                    chunk.EntityIds == null || chunk.Generations == null ||
+                    chunk.Columns == null || chunk.Count < 0 ||
+                    chunk.Count > SimChunk.Capacity ||
+                    chunk.EntityIds.Length < chunk.Count ||
+                    chunk.Generations.Length < chunk.Count ||
+                    chunk.Columns.Length != chunk.ComponentTypeIds.Length)
+                    throw new ArgumentException("Invalid world snapshot chunk.", nameof(snapshot));
+                for (int index = 0; index < chunk.Count; index++)
+                {
+                    int id = chunk.EntityIds[index];
+                    if (id < 0 || id >= snapshot.Generations.Length ||
+                        snapshot.Generations[id] != chunk.Generations[index])
+                        throw new ArgumentException("Snapshot entity metadata is inconsistent.", nameof(snapshot));
+                }
+            }
         }
 
         // ==================== 清理 ====================
@@ -493,6 +539,8 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>清空所有 Archetype、Chunk 和事件队列</summary>
         public void ClearPools()
         {
+            _worldEpoch = unchecked(_worldEpoch + 1);
+            if (_worldEpoch == 0) _worldEpoch = 1;
             _archetypes.Clear();
             EntityCount = 0;
             _eventQueues.Clear();

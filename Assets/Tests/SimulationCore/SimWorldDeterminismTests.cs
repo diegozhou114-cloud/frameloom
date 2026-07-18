@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using ZWebGLFrameWork.SimulationCore;
 
@@ -134,6 +135,60 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             Assert.That(csAfter, Is.EqualTo(csBefore),
                 "快照导出+恢复后 checksum 应与原始一致");
+        }
+
+        [Test]
+        public void RollbackThenReuseId_StaleEntityHandleIsRejected()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            TickSnapshot beforeFutureEntity = world.ExportFullSnapshot();
+            SimEntity stale = world.CreateEntity(typeof(SimHealthComponent));
+
+            world.RestoreFromFull(beforeFutureEntity);
+            SimEntity replacement = world.CreateEntity(typeof(SimHealthComponent));
+
+            Assert.That(replacement.Id, Is.EqualTo(stale.Id));
+            Assert.That(world.TryGetComponent<SimHealthComponent>(stale, out _), Is.False);
+            Assert.That(world.TryGetComponent<SimHealthComponent>(replacement, out _), Is.True);
+        }
+
+        [Test]
+        public void EquivalentWorlds_DifferentChunkHistories_SameOrderAndChecksum()
+        {
+            SimWorld left = BuildWorldWithEntities(130);
+            SimWorld right = BuildWorldWithEntities(130);
+            left.DestroyEntity(FindEntity(left, 3));
+            left.DestroyEntity(FindEntity(left, 5));
+            right.DestroyEntity(FindEntity(right, 5));
+            right.DestroyEntity(FindEntity(right, 3));
+
+            var ids = new List<int>();
+            left.ForEachComponent<SimHealthComponent>((entity, health) => ids.Add(entity.Id));
+
+            Assert.That(ids, Is.Ordered.Ascending);
+            Assert.That(left.ComputeChecksum(), Is.EqualTo(right.ComputeChecksum()));
+        }
+
+        private static SimWorld BuildWorldWithEntities(int count)
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 256);
+            for (int id = 0; id < count; id++)
+            {
+                SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+                world.SetComponent(entity, SimHealthComponent.Create(100 + id));
+            }
+            return world;
+        }
+
+        private static SimEntity FindEntity(SimWorld world, int id)
+        {
+            SimEntity found = SimEntity.Invalid;
+            world.ForEachComponent<SimHealthComponent>((entity, health) =>
+            {
+                if (entity.Id == id) found = entity;
+            });
+            Assert.That(found.IsValid, Is.True, $"Entity {id} was not found");
+            return found;
         }
     }
 }
