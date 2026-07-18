@@ -15,6 +15,7 @@ while IFS= read -r path; do
   relative="${path#"$assets_root"/}"
   basename="${path##*/}"
   [[ "$basename" == .* ]] && continue
+  [[ "$path" == *.meta ]] && continue
   if [[ ! -f "$path.meta" ]]; then
     printf '[RepositoryMetaAudit_HasNoMissingOrOrphanedMeta] missing-meta Assets/%s\n' "$relative"
     failures=$((failures + 1))
