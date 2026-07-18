@@ -29,6 +29,7 @@ namespace ZWebGLFrameWork.FSM
     {
         private readonly Dictionary<T, FSMState<T>> _states = new Dictionary<T, FSMState<T>>();
         private readonly Queue<TransitionRequest> _pendingTransitions = new Queue<TransitionRequest>();
+        private readonly Stack<FSMState<T>> _suspendedStates = new Stack<FSMState<T>>();
         private FSMState<T> _currentState;
         private FSMState<T> _previousState;
         private bool _isTransitioning;
@@ -199,6 +200,47 @@ namespace ZWebGLFrameWork.FSM
             return true;
         }
 
+        public bool PushState(T stateId, object data = null)
+        {
+            if (_currentState == null ||
+                !_states.TryGetValue(stateId, out FSMState<T> overlay))
+                return false;
+            if (!CanTransitionTo(_currentState.StateId, stateId))
+                return false;
+
+            FSMState<T> suspended = _currentState;
+            suspended.OnSuspend(data);
+            _suspendedStates.Push(suspended);
+            _previousState = suspended;
+            _currentState = overlay;
+            overlay.OnEnter(data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                true,
+                suspended.StateId,
+                overlay.StateId,
+                data));
+            return true;
+        }
+
+        public bool PopState(object data = null)
+        {
+            if (_currentState == null || _suspendedStates.Count == 0)
+                return false;
+
+            FSMState<T> overlay = _currentState;
+            FSMState<T> resumed = _suspendedStates.Pop();
+            overlay.OnExit();
+            _previousState = overlay;
+            _currentState = resumed;
+            resumed.OnResume(data);
+            OnStateChanged?.Invoke(new FSMTransition<T>(
+                true,
+                overlay.StateId,
+                resumed.StateId,
+                data));
+            return true;
+        }
+
         // ==================== 更新 ====================
 
         /// <summary>每帧更新当前状态</summary>
@@ -227,13 +269,13 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>退出当前状态并清空所有注册</summary>
         public void Clear()
         {
-            if (_currentState != null)
-            {
-                _currentState.OnExit();
-                _currentState = null;
-            }
-
+            _currentState?.OnExit();
+            _currentState = null;
+            while (_suspendedStates.Count > 0)
+                _suspendedStates.Pop().OnExit();
             _previousState = null;
+            _pendingTransitions.Clear();
+            _isTransitioning = false;
 
             foreach (var kv in _states)
             {

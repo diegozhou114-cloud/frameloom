@@ -45,6 +45,18 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>每帧更新 — 仅当前激活状态会被调用</summary>
         public virtual void OnUpdate() { }
 
+        /// <summary>暂停当前状态但保留其上下文和生命周期。</summary>
+        public virtual void OnSuspend(object data)
+        {
+            IsActive = false;
+        }
+
+        /// <summary>恢复已暂停状态，不重新执行 OnEnter。</summary>
+        public virtual void OnResume(object data)
+        {
+            IsActive = true;
+        }
+
         /// <summary>退出状态 — 清理资源、反注册事件</summary>
         public virtual void OnExit()
         {

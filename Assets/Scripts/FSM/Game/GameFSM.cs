@@ -86,7 +86,7 @@ namespace ZWebGLFrameWork.FSM
                     || CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
                 {
                     _pauseStartTime = Time.realtimeSinceStartup;
-                    ChangeState(GameState.Pause, GamePauseEvent.Background);
+                    _fsm.PushState(GameState.Pause, GamePauseEvent.Background);
                 }
             }
             else
@@ -95,13 +95,7 @@ namespace ZWebGLFrameWork.FSM
                 if (CurrentState == GameState.Pause)
                 {
                     float duration = Time.realtimeSinceStartup - _pauseStartTime;
-                    var target = PreviousState;
-                    if (target != GameState.MainVillage && target != GameState.Battle)
-                    {
-                        Debug.LogWarning($"[GameFSM] 暂停前状态异常 ({target})，回退到 MainVillage");
-                        target = GameState.MainVillage;
-                    }
-                    ChangeState(target, new GameResumeEvent { PausedDuration = duration });
+                    _fsm.PopState(new GameResumeEvent { PausedDuration = duration });
                 }
             }
         }
