@@ -28,8 +28,22 @@ namespace ZWebGLFrameWork.FSM
     public class FSM<T> where T : Enum
     {
         private readonly Dictionary<T, FSMState<T>> _states = new Dictionary<T, FSMState<T>>();
+        private readonly Queue<TransitionRequest> _pendingTransitions = new Queue<TransitionRequest>();
         private FSMState<T> _currentState;
         private FSMState<T> _previousState;
+        private bool _isTransitioning;
+
+        private readonly struct TransitionRequest
+        {
+            public T StateId { get; }
+            public object Data { get; }
+
+            public TransitionRequest(T stateId, object data)
+            {
+                StateId = stateId;
+                Data = data;
+            }
+        }
 
         /// <summary>转换验证回调 — 返回 false 阻止切换。由 GameFSM 注入。</summary>
         public Func<T, T, bool> TransitionGuard { get; set; }
@@ -109,6 +123,40 @@ namespace ZWebGLFrameWork.FSM
         /// <param name="data">传递给新状态 OnEnter 的数据</param>
         /// <returns>true=切换成功, false=状态未注册或已是当前状态</returns>
         public bool ChangeState(T stateId, object data = null)
+        {
+            if (_isTransitioning)
+            {
+                _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+                return true;
+            }
+
+            bool firstResult = false;
+            bool first = true;
+            _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+            _isTransitioning = true;
+            try
+            {
+                while (_pendingTransitions.Count > 0)
+                {
+                    TransitionRequest request = _pendingTransitions.Dequeue();
+                    bool result = ApplyTransition(request.StateId, request.Data);
+                    if (first)
+                    {
+                        firstResult = result;
+                        first = false;
+                    }
+                }
+            }
+            finally
+            {
+                _isTransitioning = false;
+                _pendingTransitions.Clear();
+            }
+
+            return firstResult;
+        }
+
+        private bool ApplyTransition(T stateId, object data)
         {
             if (!_states.TryGetValue(stateId, out var newState))
             {
