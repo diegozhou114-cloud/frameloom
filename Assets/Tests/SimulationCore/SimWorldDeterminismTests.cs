@@ -169,6 +169,29 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(left.ComputeChecksum(), Is.EqualTo(right.ComputeChecksum()));
         }
 
+        [Test]
+        public void DifferentMovementPath_ChangesChecksum()
+        {
+            SimWorld first = CreateWorld();
+            SimWorld second = CreateWorld();
+            SimEntity firstEntity = first.CreateEntity(typeof(SimMovementComponent));
+            SimEntity secondEntity = second.CreateEntity(typeof(SimMovementComponent));
+            first.SetComponent(firstEntity, new SimMovementComponent
+            {
+                Speed = LogicInt.FromInt(1),
+                CellSize = LogicInt.FromInt(1),
+                Path = new List<int> { (1 << 16) | 1 },
+            });
+            second.SetComponent(secondEntity, new SimMovementComponent
+            {
+                Speed = LogicInt.FromInt(1),
+                CellSize = LogicInt.FromInt(1),
+                Path = new List<int> { (2 << 16) | 2 },
+            });
+
+            Assert.That(first.ComputeChecksum(), Is.Not.EqualTo(second.ComputeChecksum()));
+        }
+
         private static SimWorld BuildWorldWithEntities(int count)
         {
             var world = new SimWorld(SimComponentSchema.CreateRegistry(), 256);

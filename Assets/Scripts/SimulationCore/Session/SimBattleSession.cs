@@ -26,6 +26,7 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         public SimBattleState State => _state;
+        public ulong LastChecksum => _state.Checksum;
 
         public StartResult Start(BattleInit init)
         {
