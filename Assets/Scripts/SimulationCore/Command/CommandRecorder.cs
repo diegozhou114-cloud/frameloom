@@ -34,9 +34,6 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>导出 ReplayFile（战斗结束后调用）</summary>
         public ReplayFile Export() => _replay;
 
-        /// <summary>导出为 JSON 字符串（直接发给服务器）</summary>
-        public string ExportJson() => _replay.ToJson();
-
         /// <summary>序列化命令列表为 SerializableCommand 列表</summary>
         private static List<SerializableCommand> SerializeCommands(List<ISimCommand> cmds)
         {

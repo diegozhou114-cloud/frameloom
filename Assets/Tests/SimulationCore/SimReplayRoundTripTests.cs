@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using ZWebGLFrameWork.Combat;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
 {
@@ -195,8 +194,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 },
             };
 
-            string json = replay.ToJson();
-            var restored = ReplayFile.FromJson(json);
+            string json = UnityReplayJsonCodec.Serialize(replay);
+            var restored = UnityReplayJsonCodec.Deserialize(json);
 
             Assert.That(restored.Version, Is.EqualTo(1));
             Assert.That(restored.Seed, Is.EqualTo(42));
@@ -236,13 +235,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                     if (orch.CurrentPhase == SimCombatPhase.Ended) break;
                 }
 
-                json = recorder.ExportJson();
+                json = UnityReplayJsonCodec.Serialize(recorder.Export());
                 totalTicks = orch.CurrentTick;
                 Assert.That(json, Is.Not.Null.And.Not.Empty, "JSON export should not be empty");
             }
 
             // ── Phase 2: Validate JSON directly ──
-            var replay = ReplayFile.FromJson(json);
+            var replay = UnityReplayJsonCodec.Deserialize(json);
             Assert.That(replay.Version, Is.EqualTo(1));
             Assert.That(replay.Seed, Is.EqualTo(seed));
             Assert.That(replay.Records.Count, Is.GreaterThan(0));

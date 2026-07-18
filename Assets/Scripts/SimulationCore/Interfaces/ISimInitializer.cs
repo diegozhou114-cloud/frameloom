@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
@@ -13,15 +12,14 @@ namespace ZWebGLFrameWork.SimulationCore
     public readonly struct SimEntitySpawnInfo
     {
         /// <summary>实体原型 ID（决定挂哪些逻辑组件和初始值）</summary>
-        [JsonInclude] public readonly int ArchetypeId;
+        public readonly int ArchetypeId;
         /// <summary>初始网格 X 坐标</summary>
-        [JsonInclude] public readonly int GridX;
+        public readonly int GridX;
         /// <summary>初始网格 Y 坐标</summary>
-        [JsonInclude] public readonly int GridY;
+        public readonly int GridY;
         /// <summary>所属队伍（SimTeam.Attacker=1, SimTeam.Defender=2）</summary>
-        [JsonInclude] public readonly int TeamId;
+        public readonly int TeamId;
 
-        [JsonConstructor]
         public SimEntitySpawnInfo(int archetypeId, int gridX, int gridY, int teamId)
         {
             ArchetypeId = archetypeId;

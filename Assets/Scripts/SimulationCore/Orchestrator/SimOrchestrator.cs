@@ -1,3 +1,5 @@
+using System;
+
 namespace ZWebGLFrameWork.SimulationCore
 {
     /// <summary>战斗阶段</summary>
@@ -47,6 +49,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly CommandRecorder _recorder;
         private readonly ISimInitializer _initializer;
         private readonly SimArchetypeRegistry _registry;
+        private readonly ISimLogger _logger;
 
         // 固定 64 槽环形快照 — 回滚超过 64 Tick 会命中过期快照，生产环境需按需扩容。
         private readonly TickSnapshot[] _snapshotHistory = new TickSnapshot[64];
@@ -76,7 +79,8 @@ namespace ZWebGLFrameWork.SimulationCore
             SimArchetypeRegistry registry,
             float deployTimeLimitSeconds = 30f,
             float battleTimeoutSeconds = 180f,
-            int ticksPerSecond = 20)
+            int ticksPerSecond = 20,
+            ISimLogger logger = null)
         {
             _world = world;
             _systems = systems;
@@ -85,6 +89,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _recorder = recorder;
             _initializer = initializer;
             _registry = registry;
+            _logger = logger;
             _deployTimeLimit = (int)(deployTimeLimitSeconds * ticksPerSecond);
             _battleTimeout = (int)(battleTimeoutSeconds * ticksPerSecond);
         }
@@ -262,29 +267,29 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             WarnIfStub();
             // TODO: 从配置表获取单位原型，在 _world 中创建 SimEntity
-            UnityEngine.Debug.Log($"[SimOrchestrator] DeployCmd: unitType={cmd.UnitTypeId} at ({cmd.GridX},{cmd.GridY}) player={cmd.PlayerId}");
+            _logger?.Log($"[SimOrchestrator] DeployCmd: unitType={cmd.UnitTypeId} at ({cmd.GridX},{cmd.GridY}) player={cmd.PlayerId}");
         }
 
         private void HandleMove(MoveCmd cmd)
         {
             WarnIfStub();
             // TODO: 在 _world 中查找实体并设置其移动目标
-            UnityEngine.Debug.Log($"[SimOrchestrator] MoveCmd: entity={cmd.EntityId} to ({cmd.TargetX},{cmd.TargetY})");
+            _logger?.Log($"[SimOrchestrator] MoveCmd: entity={cmd.EntityId} to ({cmd.TargetX},{cmd.TargetY})");
         }
 
         private void HandleSkill(SkillCmd cmd)
         {
             WarnIfStub();
             // TODO: 在 _world 中查找施法者实体并释放技能
-            UnityEngine.Debug.Log($"[SimOrchestrator] SkillCmd: caster={cmd.CasterId} skill={cmd.SkillId}");
+            _logger?.Log($"[SimOrchestrator] SkillCmd: caster={cmd.CasterId} skill={cmd.SkillId}");
         }
 
         private static bool _stubWarned;
-        private static void WarnIfStub()
+        private void WarnIfStub()
         {
             if (_stubWarned) return;
             _stubWarned = true;
-            UnityEngine.Debug.LogWarning("[SimOrchestrator] ⚠️ 命令处理为占位实现 — 单位不会被实际创建/移动/释放技能");
+            _logger?.Warn("[SimOrchestrator] Command handling is still a placeholder.");
         }
     }
 }

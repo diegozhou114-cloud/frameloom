@@ -4,7 +4,8 @@
     "references": [
         "ZWebGLFrameWork.Combat",
         "ZWebGLFrameWork.ECS",
-        "ZWebGLFrameWork.Core"
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data"
     ],
     "includePlatforms": [
         "Editor"

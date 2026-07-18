@@ -26,7 +26,7 @@ namespace ZWebGLFrameWork.Server
 
         public ReplayResult Validate(ReplayFile replay)
         {
-            var world = new SimWorld(256, _logger);
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256, _logger);
             var buffer = new CommandBuffer();
             var systems = SimCombatBootstrap.Build(world);
             var deathSys = systems.Find<SimDeathSystem>();
@@ -34,7 +34,8 @@ namespace ZWebGLFrameWork.Server
 
             // 用 ReplayFile 中的数据构造 ISimInitializer
             var initializer = new ReplayInitializer(replay);
-            var orchestrator = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry);
+            var orchestrator = new SimOrchestrator(
+                world, systems, deathSys, buffer, null, initializer, registry, logger: _logger);
 
             orchestrator.StartBattle();
             // 跳过部署阶段，直接进战斗

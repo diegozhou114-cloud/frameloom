@@ -24,7 +24,7 @@ namespace ZWebGLFrameWork.Server
             try
             {
                 string json = File.ReadAllText(filePath);
-                var replay = ReplayFile.FromJson(json);
+                var replay = ServerReplayJsonCodec.Deserialize(json);
 
                 var validator = new ReplayValidator(new ConsoleLogger());
                 var result = validator.Validate(replay);
