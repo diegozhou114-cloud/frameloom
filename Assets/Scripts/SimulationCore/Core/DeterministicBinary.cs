@@ -27,6 +27,12 @@ namespace ZWebGLFrameWork.SimulationCore
             WriteUInt32((uint)(bits >> 32));
         }
 
+        public void WriteUInt64(ulong value)
+        {
+            WriteUInt32((uint)value);
+            WriteUInt32((uint)(value >> 32));
+        }
+
         public void WriteBytes(byte[] value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
@@ -78,6 +84,13 @@ namespace ZWebGLFrameWork.SimulationCore
             ulong low = ReadUInt32();
             ulong high = ReadUInt32();
             return unchecked((long)(low | (high << 32)));
+        }
+
+        public ulong ReadUInt64()
+        {
+            ulong low = ReadUInt32();
+            ulong high = ReadUInt32();
+            return low | (high << 32);
         }
 
         public byte[] ReadBytes(int length)

@@ -18,6 +18,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly Dictionary<int, int> _lastSequenceByPlayer = new Dictionary<int, int>();
         private const int BasicSkillId = 1;
         private const int BasicSkillDamage = 30;
+        private const int MaxSnapshotBytes = 8 * 1024 * 1024;
         private SimBattleState _state;
         private PresentationFrame _currentFrame;
         private BattleInit _init;
@@ -131,7 +132,11 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public SimSnapshot CaptureSnapshot()
         {
-            byte[] payload = Array.Empty<byte>();
+            if (_init == null) throw new InvalidOperationException("Session has not started.");
+            SessionSnapshotData data = CreateSnapshotData();
+            byte[] payload = SessionSnapshotCodec.Encode(data);
+            if (payload.Length > MaxSnapshotBytes)
+                throw new InvalidOperationException("Snapshot exceeds the maximum payload size.");
             byte[] payloadHash;
             using (SHA256 sha256 = SHA256.Create())
                 payloadHash = sha256.ComputeHash(payload);
@@ -152,7 +157,69 @@ namespace ZWebGLFrameWork.SimulationCore
         public SnapshotRestoreResult RestoreSnapshot(SimSnapshot snapshot)
         {
             if (_disposed) return new SnapshotRestoreResult(SnapshotRestoreCode.Disposed, _currentFrame);
-            return new SnapshotRestoreResult(SnapshotRestoreCode.SnapshotUnavailable, _currentFrame);
+            if (_init == null || snapshot == null)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.SnapshotUnavailable, _currentFrame);
+            if (!string.Equals(snapshot.MatchId, _init.MatchId, StringComparison.Ordinal))
+                return new SnapshotRestoreResult(SnapshotRestoreCode.ForeignMatch, _currentFrame);
+            if (!string.Equals(snapshot.SessionId, _init.SessionId, StringComparison.Ordinal))
+                return new SnapshotRestoreResult(SnapshotRestoreCode.ForeignSession, _currentFrame);
+            if (snapshot.SchemaVersion != _init.SchemaVersion)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.UnsupportedSchema, _currentFrame);
+            if (!snapshot.ContentHash.SequenceEqual(_manifest.ContentHash))
+                return new SnapshotRestoreResult(SnapshotRestoreCode.ContentMismatch, _currentFrame);
+            if (snapshot.TimelineRevision < _state.TimelineRevision)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.StaleRevision, _currentFrame);
+            if (snapshot.NextTick != snapshot.CompletedTick + 1)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.InvalidTick, _currentFrame);
+            byte[] payload = snapshot.Payload;
+            if (snapshot.UncompressedLength < 0 || snapshot.UncompressedLength > MaxSnapshotBytes ||
+                payload.Length > MaxSnapshotBytes)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.Oversized, _currentFrame);
+            if (snapshot.UncompressedLength != payload.Length)
+                return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
+            byte[] expectedHash;
+            using (SHA256 sha256 = SHA256.Create()) expectedHash = sha256.ComputeHash(payload);
+            if (snapshot.PayloadSha256.Length != expectedHash.Length ||
+                !snapshot.PayloadSha256.SequenceEqual(expectedHash))
+                return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
+
+            SessionSnapshotData data;
+            SimWorld detachedWorld;
+            try
+            {
+                data = SessionSnapshotCodec.Decode(payload);
+                if (data.CompletedTick != snapshot.CompletedTick || data.NextTick != snapshot.NextTick ||
+                    data.Lifecycle == SessionLifecycle.Created || data.Lifecycle == SessionLifecycle.Disposed)
+                    return new SnapshotRestoreResult(SnapshotRestoreCode.InvalidTick, _currentFrame);
+                int capacity = Math.Max(8, data.WorldSnapshot.Generations?.Length ?? 0);
+                detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
+                detachedWorld.RestoreFromFull(data.WorldSnapshot);
+                if (detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
+                    ComputeChecksum(data, detachedWorld) != snapshot.StateChecksum)
+                    return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
+            }
+            catch (Exception exception) when (exception is FormatException ||
+                exception is ArgumentException || exception is InvalidOperationException)
+            {
+                return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
+            }
+
+            _world.RestoreFromFull(data.WorldSnapshot);
+            _commandBuffer.RestorePendingCommands(data.PendingCommands);
+            _lastSequenceByPlayer.Clear();
+            foreach (var pair in data.LastSequenceByPlayer)
+                _lastSequenceByPlayer.Add(pair.Key, pair.Value);
+            _attackSystem.RestoreTick(data.AttackSystemTick);
+            _deathSystem.RestoreState(data.AttackerAlive, data.DefenderAlive,
+                data.AttackerDead, data.DefenderDead, data.Winner);
+            long revision = _state.TimelineRevision + 1;
+            _currentFrame = BuildFrame(true, data.CompletedTick, data.NextTick, revision);
+            _state = new SimBattleState(data.Lifecycle, data.Phase,
+                data.CompletedTick, data.NextTick, revision, 0, _currentFrame, null);
+            ulong restoredChecksum = RefreshChecksum();
+            if (restoredChecksum != snapshot.StateChecksum)
+                throw new InvalidOperationException("Validated snapshot checksum changed during atomic apply.");
+            return new SnapshotRestoreResult(SnapshotRestoreCode.Restored, _currentFrame);
         }
 
         public void Dispose()
@@ -447,6 +514,41 @@ namespace ZWebGLFrameWork.SimulationCore
                 hash = resultState.Value;
             }
             return _world.HashInto(hash);
+        }
+
+        private SessionSnapshotData CreateSnapshotData()
+        {
+            return new SessionSnapshotData
+            {
+                Lifecycle = _state.Lifecycle,
+                Phase = _state.Phase,
+                CompletedTick = _state.CompletedTick,
+                NextTick = _state.NextTick,
+                AttackSystemTick = _attackSystem.CurrentTick,
+                AttackerAlive = _deathSystem.AttackerAlive,
+                DefenderAlive = _deathSystem.DefenderAlive,
+                AttackerDead = _deathSystem.AttackerDead,
+                DefenderDead = _deathSystem.DefenderDead,
+                Winner = _deathSystem.Winner,
+                LastSequenceByPlayer = new Dictionary<int, int>(_lastSequenceByPlayer),
+                PendingCommands = _commandBuffer.ExportPendingCommands(),
+                WorldSnapshot = _world.ExportFullSnapshot(),
+            };
+        }
+
+        private ulong ComputeChecksum(SessionSnapshotData data, SimWorld world)
+        {
+            var commands = new CommandBuffer();
+            commands.RestorePendingCommands(data.PendingCommands);
+            ulong commandHash = commands.HashInto(DeterministicHash64.OffsetBasis);
+            var sessionState = new SessionChecksumState(
+                _init.ProtocolVersion, _init.SchemaVersion, _manifest.ContentHash, _init.Seed,
+                data.Lifecycle, data.Phase, data.CompletedTick, data.NextTick, commandHash);
+            ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
+            hash = SimAttackSystem.HashStateInto(hash, data.AttackSystemTick);
+            hash = SimDeathSystem.HashStateInto(hash, data.AttackerAlive, data.DefenderAlive,
+                data.AttackerDead, data.DefenderDead, data.Winner);
+            return world.HashInto(hash);
         }
 
         private TickResult CreateTickResult(TickCode code)

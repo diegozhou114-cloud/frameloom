@@ -81,6 +81,41 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(restored.Path, Is.EqualTo(new[] { 11, 22 }));
         }
 
+        [Test]
+        public void Snapshot_CaptureAndRestoreRecoversChecksumAndNextTick()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot snapshot = session.CaptureSnapshot();
+            ulong expectedChecksum = snapshot.StateChecksum;
+
+            Assert.That(snapshot.Payload, Is.Not.Empty);
+            session.Tick();
+            SnapshotRestoreResult restored = session.RestoreSnapshot(snapshot);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(session.State.Checksum, Is.EqualTo(expectedChecksum));
+            Assert.That(session.State.NextTick, Is.EqualTo(snapshot.NextTick));
+            Assert.That(restored.FullFrame.IsFull, Is.True);
+        }
+
+        [Test]
+        public void Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot source = session.CaptureSnapshot();
+            ulong before = session.State.Checksum;
+
+            SimSnapshot foreign = CopySnapshot(source, matchId: source.MatchId + "-foreign");
+            Assert.That(session.RestoreSnapshot(foreign).Code, Is.EqualTo(SnapshotRestoreCode.ForeignMatch));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+
+            byte[] corruptPayload = source.Payload;
+            corruptPayload[0] ^= 0x01;
+            SimSnapshot corrupt = CopySnapshot(source, payload: corruptPayload);
+            Assert.That(session.RestoreSnapshot(corrupt).Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+        }
+
         private static void SubmitDeploy(SimBattleSession session, int sequence, int gridX)
         {
             Assert.That(session.Submit(new DeployCmd
@@ -92,6 +127,23 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 GridX = gridX,
                 GridY = 3,
             }).Accepted, Is.True);
+        }
+
+        private static SimSnapshot CopySnapshot(SimSnapshot source, string matchId = null,
+            byte[] payload = null)
+        {
+            return new SimSnapshot(
+                matchId ?? source.MatchId,
+                source.SessionId,
+                source.SchemaVersion,
+                source.ContentHash,
+                source.CompletedTick,
+                source.NextTick,
+                source.TimelineRevision,
+                payload?.Length ?? source.UncompressedLength,
+                source.StateChecksum,
+                payload ?? source.Payload,
+                source.PayloadSha256);
         }
     }
 }
