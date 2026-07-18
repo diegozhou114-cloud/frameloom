@@ -473,7 +473,11 @@ namespace ZWebGLFrameWork.SimulationCore
                 Entities = GetAllEntities(),
                 Checksum = ComputeChecksum(),
                 ChunkSnapshots = new List<ChunkSnapshot>(),
+                PendingDamageEvents = new List<SimDamageEvent>(),
             };
+
+            if (_eventQueues.TryGetValue(typeof(SimDamageEvent), out object pendingDamage))
+                snapshot.PendingDamageEvents.AddRange((List<SimDamageEvent>)pendingDamage);
 
             // 按 Archetype Key 排序确保确定性
             _sortedKeys.Clear();
@@ -557,6 +561,26 @@ namespace ZWebGLFrameWork.SimulationCore
                         target.TargetEntity.Id, target.TargetEntity.Generation, _worldEpoch);
                 SetComponent(entity, target);
             });
+
+            if (snapshot.PendingDamageEvents != null)
+            {
+                foreach (SimDamageEvent damage in snapshot.PendingDamageEvents)
+                {
+                    EnqueueEvent(new SimDamageEvent
+                    {
+                        Amount = damage.Amount,
+                        Attacker = RemapEntity(damage.Attacker),
+                        Target = RemapEntity(damage.Target),
+                    });
+                }
+            }
+        }
+
+        private SimEntity RemapEntity(SimEntity entity)
+        {
+            return entity.IsValid
+                ? new SimEntity(entity.Id, entity.Generation, _worldEpoch)
+                : SimEntity.Invalid;
         }
 
         private void ValidateSnapshot(TickSnapshot snapshot)

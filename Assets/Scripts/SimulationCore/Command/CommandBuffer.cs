@@ -82,6 +82,24 @@ namespace ZWebGLFrameWork.SimulationCore
             return state.Value;
         }
 
+        public ISimCommand[] ExportPendingCommands()
+        {
+            var ordered = new List<ISimCommand>(_pending);
+            ordered.Sort(CompareAll);
+            return ordered.ToArray();
+        }
+
+        public void RestorePendingCommands(IEnumerable<ISimCommand> commands)
+        {
+            _pending.Clear();
+            if (commands == null) return;
+            foreach (ISimCommand command in commands)
+            {
+                if (command == null) throw new System.ArgumentException("Pending command cannot be null.");
+                _pending.Add(command);
+            }
+        }
+
         private static int CompareWithinTick(ISimCommand left, ISimCommand right)
         {
             int player = left.PlayerId.CompareTo(right.PlayerId);

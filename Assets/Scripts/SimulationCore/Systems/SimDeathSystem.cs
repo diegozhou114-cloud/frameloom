@@ -52,15 +52,33 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public void ForceWinner(int teamId) { Winner = teamId; }
 
-        public ulong HashInto(ulong hash)
+        public void RestoreState(int attackerAlive, int defenderAlive,
+            int attackerDead, int defenderDead, int? winner)
+        {
+            if (attackerAlive < 0 || defenderAlive < 0 || attackerDead < 0 || defenderDead < 0)
+                throw new System.ArgumentOutOfRangeException(nameof(attackerAlive));
+            AttackerAlive = attackerAlive;
+            DefenderAlive = defenderAlive;
+            AttackerDead = attackerDead;
+            DefenderDead = defenderDead;
+            int defenderTotal = defenderAlive + defenderDead;
+            AttackerDestroyedPercent = defenderTotal == 0 ? 0f : (float)defenderDead / defenderTotal;
+            Winner = winner;
+        }
+
+        public ulong HashInto(ulong hash) => HashStateInto(hash,
+            AttackerAlive, DefenderAlive, AttackerDead, DefenderDead, Winner);
+
+        public static ulong HashStateInto(ulong hash, int attackerAlive, int defenderAlive,
+            int attackerDead, int defenderDead, int? winner)
         {
             var state = new DeterministicHash64(hash);
-            state.AddInt32(AttackerAlive);
-            state.AddInt32(DefenderAlive);
-            state.AddInt32(AttackerDead);
-            state.AddInt32(DefenderDead);
-            state.AddBool(Winner.HasValue);
-            if (Winner.HasValue) state.AddInt32(Winner.Value);
+            state.AddInt32(attackerAlive);
+            state.AddInt32(defenderAlive);
+            state.AddInt32(attackerDead);
+            state.AddInt32(defenderDead);
+            state.AddBool(winner.HasValue);
+            if (winner.HasValue) state.AddInt32(winner.Value);
             return state.Value;
         }
     }
