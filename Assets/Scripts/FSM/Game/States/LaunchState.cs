@@ -146,21 +146,35 @@ namespace ZWebGLFrameWork.FSM
                 if (!HotUpdateManager.Instance.Init())
                     PublishError("HotUpdateManager", "热更管理器初始化失败，将跳过更新");
 
-                var result = await HotUpdateManager.Instance.CheckVersionAsync(token);
+                var hotUpdate = HotUpdateManager.Instance;
+                var result = await hotUpdate.CheckVersionAsync(token);
                 PublishProgress("热更新检查...", progress + 0.1f,
                     result == VersionCheckResult.NeedUpdate ? "发现新版本" : "");
 
-                switch (result)
+                bool downloadSucceeded = true;
+                if (result == VersionCheckResult.NeedUpdate)
+                    downloadSucceeded = await hotUpdate.DownloadUpdatesAsync(token);
+
+                switch (HotUpdateDecision.Evaluate(
+                    result, downloadSucceeded, hotUpdate.NeedRestart))
                 {
-                    case VersionCheckResult.ForceUpdate:
+                    case HotUpdateAction.ForceUpdate:
                         UIManager.Instance.Close<LoadingPanel>();
                         UIManager.Instance.Open<ForceUpdatePanel>(
-                            HotUpdateManager.Instance.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                            hotUpdate.HotUpdateBaseUrl ?? "market://details?id=xxx");
                         // 发布错误事件通知用户
                         PublishError("HotUpdate", "检测到强制更新，请前往商店下载最新版本", false);
                         return false; // 终止初始化，等待用户手动更新
-                    case VersionCheckResult.NeedUpdate:
-                        await HotUpdateManager.Instance.DownloadUpdatesAsync(token);
+                    case HotUpdateAction.Retry:
+                        PublishError("HotUpdate", "热更新未完成，请重试", true);
+                        return false;
+                    case HotUpdateAction.RestartRequired:
+                        UIManager.Instance.Close<LoadingPanel>();
+                        UIManager.Instance.Open<ForceUpdatePanel>(
+                            hotUpdate.HotUpdateBaseUrl ?? "market://details?id=xxx");
+                        PublishError("HotUpdate", "更新已完成，请重启游戏", false);
+                        return false;
+                    case HotUpdateAction.Continue:
                         break;
                 }
             }
