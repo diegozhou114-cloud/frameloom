@@ -58,6 +58,9 @@ namespace ZWebGLFrameWork.UI
             if (Canvas == null)
                 Canvas = gameObject.AddComponent<Canvas>();
 
+            if (GetComponent<GraphicRaycaster>() == null)
+                gameObject.AddComponent<GraphicRaycaster>();
+
             CanvasGroup = GetComponent<CanvasGroup>();
             if (CanvasGroup == null)
                 CanvasGroup = gameObject.AddComponent<CanvasGroup>();
