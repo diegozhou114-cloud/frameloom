@@ -47,6 +47,34 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(validator.Validate(replay).IsValid, Is.False);
         }
 
+        [Test]
+        public void ReplayValidator_DuplicatePlayerSequence_IsRejected()
+        {
+            var validator = new ReplayValidator(
+                new SimBattleSessionFactory(), SessionTestDriver.ManifestBytes());
+            ReplayFile replay = ValidReplay();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = "Deploy", Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 3, GridY = 3,
+            });
+            replay.Records.Add(new TickRecord
+            {
+                Tick = 1,
+                Checksum = 0,
+                Commands = new List<SerializableCommand>
+                {
+                    new SerializableCommand
+                    {
+                        Type = "Deploy", Tick = 1, PlayerId = 0, Sequence = 1,
+                        UnitTypeId = 10, GridX = 4, GridY = 4,
+                    },
+                },
+            });
+
+            Assert.That(validator.Validate(replay).IsValid, Is.False);
+        }
+
         private static ReplayFile ValidReplay() => new ReplayFile
         {
             Version = 1,

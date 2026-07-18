@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.Server
@@ -63,7 +64,8 @@ namespace ZWebGLFrameWork.Server
                     {
                         return Invalid(tickRecord.Tick, tickRecord.Checksum, session.State.Checksum);
                     }
-                    if (command != null) session.Submit(command);
+                    if (command == null || !session.Submit(command).Accepted)
+                        return Invalid(tickRecord.Tick, tickRecord.Checksum, session.State.Checksum);
                 }
 
                 TickResult tick = session.Tick();
@@ -92,6 +94,7 @@ namespace ZWebGLFrameWork.Server
                 return false;
 
             int totalCommands = 0;
+            var lastSequenceByPlayer = new Dictionary<int, int>();
             for (int expectedTick = 0; expectedTick < replay.Records.Count; expectedTick++)
             {
                 TickRecord record = replay.Records[expectedTick];
@@ -103,6 +106,10 @@ namespace ZWebGLFrameWork.Server
                 foreach (SerializableCommand command in record.Commands)
                 {
                     if (!IsValidCommand(command, expectedTick)) return false;
+                    if (lastSequenceByPlayer.TryGetValue(command.PlayerId, out int previous) &&
+                        command.Sequence <= previous)
+                        return false;
+                    lastSequenceByPlayer[command.PlayerId] = command.Sequence;
                 }
             }
             return true;
@@ -111,6 +118,7 @@ namespace ZWebGLFrameWork.Server
         private static bool IsValidCommand(SerializableCommand command, int tick)
         {
             if (command == null || command.Tick != tick ||
+                (command.PlayerId != 0 && command.PlayerId != 1) || command.Sequence < 0 ||
                 !Enum.TryParse(command.Type, false, out SimCommandType type) ||
                 type == SimCommandType.None)
                 return false;
