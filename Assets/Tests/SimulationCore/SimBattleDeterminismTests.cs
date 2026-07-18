@@ -21,7 +21,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 int gy = 15;
                 var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent), typeof(SimTeamComponent));
                 world.SetComponent(e, SimTransformComponent.Create(gx, gy, LogicInt.FromInt(1)));
-                world.SetComponent(e, SimHealthComponent.Create(200));
+                world.SetComponent(e, SimHealthComponent.Create(200 + rng.Next(50)));
                 world.SetComponent(e, SimTeamComponent.Create(SimTeam.Defender));
             }
 
