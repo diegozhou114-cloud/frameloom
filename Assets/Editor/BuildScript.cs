@@ -1,5 +1,8 @@
+using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -47,19 +50,12 @@ namespace ZWebGLFrameWork.Editor
             Debug.Log($"[BuildScript] 开始构建: {target}");
             AssetDatabase.Refresh();
 
-            // 2. 收集场景
-            var scenes = new string[0];
-            var sceneGuids = AssetDatabase.FindAssets("t:Scene");
-            if (sceneGuids.Length == 0)
+            // 2. 按 Build Settings 中的启用顺序收集场景
+            var scenes = GetEnabledScenePaths();
+            if (scenes.Length == 0)
             {
-                Debug.LogWarning("[BuildScript] 未找到场景文件，创建默认构建场景...");
-                scenes = new[] { CreateDefaultScene() };
-            }
-            else
-            {
-                scenes = new string[sceneGuids.Length];
-                for (int i = 0; i < sceneGuids.Length; i++)
-                    scenes[i] = AssetDatabase.GUIDToAssetPath(sceneGuids[i]);
+                throw new BuildFailedException(
+                    "[BuildScript] Build Settings has no enabled scenes; Launcher must be enabled scene zero.");
             }
 
             // 3. 构建
@@ -95,36 +91,12 @@ namespace ZWebGLFrameWork.Editor
             }
         }
 
-        private static string CreateDefaultScene()
+        public static string[] GetEnabledScenePaths()
         {
-            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(
-                UnityEditor.SceneManagement.NewSceneSetup.EmptyScene,
-                UnityEditor.SceneManagement.NewSceneMode.Single);
-
-            // 创建必要的 GameObject
-            var mainCamera = new GameObject("Main Camera");
-            mainCamera.AddComponent<Camera>();
-            mainCamera.tag = "MainCamera";
-
-            var uiRoot = new GameObject("UIRoot");
-            uiRoot.AddComponent<Canvas>();
-
-            var eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-
-            string path = "Assets/Scenes";
-            Directory.CreateDirectory(path);
-            string scenePath = $"{path}/Default.unity";
-
-            if (File.Exists(scenePath))
-            {
-                Debug.LogWarning($"[BuildScript] Default.unity 已存在，跳过覆盖");
-                return scenePath;
-            }
-
-            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, scenePath);
-            return scenePath;
+            return EditorBuildSettings.scenes
+                .Where(scene => scene.enabled)
+                .Select(scene => scene.path)
+                .ToArray();
         }
     }
 }
