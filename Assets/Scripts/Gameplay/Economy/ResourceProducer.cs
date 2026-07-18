@@ -33,6 +33,12 @@ namespace ZWebGLFrameWork.Gameplay
         /// <summary>资源上限，防止溢出（可配置）</summary>
         private const int _maxResourceCap = int.MaxValue - 1;
 
+        private static int SaturatingAdd(int current, int amount)
+        {
+            long sum = (long)current + amount;
+            return (int)Math.Min(sum, _maxResourceCap);
+        }
+
         public ResourceProducer(VillageData village)
             : this(village, DataManager.Instance.Player,
                 typeId => ConfigTableManager.Instance.GetBuilding(typeId))
@@ -79,19 +85,19 @@ namespace ZWebGLFrameWork.Gameplay
 
             if (goldAdd > 0)
             {
-                _player.Gold.Value = Math.Min(_player.Gold.Value + goldAdd, _maxResourceCap);
+                _player.Gold.Value = SaturatingAdd(_player.Gold.Value, goldAdd);
                 _goldAccum -= goldAdd;
             }
 
             if (elixirAdd > 0)
             {
-                _player.Elixir.Value = Math.Min(_player.Elixir.Value + elixirAdd, _maxResourceCap);
+                _player.Elixir.Value = SaturatingAdd(_player.Elixir.Value, elixirAdd);
                 _elixirAccum -= elixirAdd;
             }
 
             if (darkElixirAdd > 0)
             {
-                _player.DarkElixir.Value = Math.Min(_player.DarkElixir.Value + darkElixirAdd, _maxResourceCap);
+                _player.DarkElixir.Value = SaturatingAdd(_player.DarkElixir.Value, darkElixirAdd);
                 _darkElixirAccum -= darkElixirAdd;
             }
         }
