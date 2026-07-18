@@ -14,6 +14,7 @@
     <Compile Include="../../Assets/Scripts/Network/Core/NetworkDefine.cs" Link="Network/NetworkDefine.cs" />
     <Compile Include="../../Assets/Tests/Network/RealtimeCodecTests.cs" Link="Tests/Network/RealtimeCodecTests.cs" />
     <Compile Include="../../Assets/Tests/Network/BoundedMessagePumpTests.cs" Link="Tests/Network/BoundedMessagePumpTests.cs" />
+    <Compile Include="../../Assets/Tests/Network/AuthenticatedPacketCodecTests.cs" Link="Tests/Network/AuthenticatedPacketCodecTests.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" PrivateAssets="all" />
