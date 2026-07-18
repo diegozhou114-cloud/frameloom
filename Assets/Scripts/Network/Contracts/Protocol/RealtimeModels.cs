@@ -97,6 +97,21 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
         public byte[] PayloadSha256 { get; set; } = Array.Empty<byte>();
     }
 
+    public sealed class ResyncRequest
+    {
+        public string MatchId { get; set; }
+        public string SessionId { get; set; }
+        public int FromTick { get; set; }
+        public long TimelineRevision { get; set; }
+        public ulong LocalChecksum { get; set; }
+    }
+
+    public sealed class CloseMessage
+    {
+        public RealtimeCloseCode Code { get; set; }
+        public string Message { get; set; }
+    }
+
     public sealed class AuthorityFrame
     {
         public string MatchId { get; set; }
@@ -136,6 +151,8 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
         public AuthAccepted AuthAccepted { get; set; }
         public CommandEnvelope Command { get; set; }
         public AuthorityFrame Authority { get; set; }
+        public ResyncRequest ResyncRequest { get; set; }
         public ResyncSnapshotEnvelope ResyncSnapshot { get; set; }
+        public CloseMessage Close { get; set; }
     }
 }

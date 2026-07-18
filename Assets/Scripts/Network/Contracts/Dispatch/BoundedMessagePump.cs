@@ -24,7 +24,15 @@ namespace ZWebGLFrameWork.Network.Contracts.Dispatch
         private readonly int _capacity;
         private readonly int _maxMessagesPerPump;
 
-        public int DroppedCount { get; private set; }
+        private int _droppedCount;
+
+        public int DroppedCount
+        {
+            get
+            {
+                lock (_gate) return _droppedCount;
+            }
+        }
 
         public int PendingCount
         {
@@ -74,7 +82,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Dispatch
             {
                 if (_queue.Count >= _capacity)
                 {
-                    DroppedCount++;
+                    _droppedCount++;
                     return false;
                 }
                 _queue.Enqueue(message);

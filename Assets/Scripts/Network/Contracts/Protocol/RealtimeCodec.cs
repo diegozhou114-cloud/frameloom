@@ -7,6 +7,86 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
     public static class RealtimeCodec
     {
         private const int MaxTextBytes = 1024;
+        private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
+
+        public static byte[] Encode(AuthHello hello, uint requestId = 0)
+        {
+            if (hello == null) throw new ArgumentNullException(nameof(hello));
+            if (hello.Version != RealtimeProtocol.Version || hello.SessionId == Guid.Empty ||
+                hello.OpaqueTicket == null || hello.OpaqueTicket.Length == 0)
+                throw new ArgumentException("Authentication hello is invalid.", nameof(hello));
+            var writer = new WireWriter();
+            writer.WriteUInt16(hello.Version);
+            writer.WriteGuid(hello.SessionId);
+            writer.WriteBytes(hello.OpaqueTicket);
+            return Wrap(RealtimeMessageKind.AuthHello, writer.ToArray(), requestId);
+        }
+
+        public static byte[] Encode(ResumeHello hello, uint requestId = 0)
+        {
+            if (hello == null) throw new ArgumentNullException(nameof(hello));
+            if (hello.Version != RealtimeProtocol.Version || hello.SessionId == Guid.Empty ||
+                hello.ResumeToken == null || hello.ResumeToken.Length == 0 ||
+                hello.LastAuthorityTick < -1 || hello.TimelineRevision < 0)
+                throw new ArgumentException("Resume hello is invalid.", nameof(hello));
+            var writer = new WireWriter();
+            writer.WriteUInt16(hello.Version);
+            writer.WriteGuid(hello.SessionId);
+            writer.WriteBytes(hello.ResumeToken);
+            writer.WriteUInt32(hello.LastAcceptedSequence);
+            writer.WriteInt32(hello.LastAuthorityTick);
+            writer.WriteInt64(hello.TimelineRevision);
+            return Wrap(RealtimeMessageKind.ResumeHello, writer.ToArray(), requestId);
+        }
+
+        public static byte[] Encode(AuthAccepted accepted, uint requestId = 0)
+        {
+            if (accepted == null) throw new ArgumentNullException(nameof(accepted));
+            if (accepted.SessionId == Guid.Empty || accepted.LastAuthorityTick < -1 ||
+                accepted.TimelineRevision < 0)
+                throw new ArgumentException("Authentication acceptance is invalid.", nameof(accepted));
+            var writer = new WireWriter();
+            writer.WriteGuid(accepted.SessionId);
+            writer.WriteInt32(accepted.LastAuthorityTick);
+            writer.WriteInt64(accepted.TimelineRevision);
+            return Wrap(RealtimeMessageKind.AuthAccepted, writer.ToArray(), requestId);
+        }
+
+        public static byte[] Encode(ResyncRequest request, uint requestId = 0)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.MatchId) ||
+                string.IsNullOrWhiteSpace(request.SessionId) || request.FromTick < 0 ||
+                request.TimelineRevision < 0)
+                throw new ArgumentException("Resync request is invalid.", nameof(request));
+            var writer = new WireWriter();
+            writer.WriteString(request.MatchId);
+            writer.WriteString(request.SessionId);
+            writer.WriteInt32(request.FromTick);
+            writer.WriteInt64(request.TimelineRevision);
+            writer.WriteUInt64(request.LocalChecksum);
+            return Wrap(RealtimeMessageKind.ResyncRequest, writer.ToArray(), requestId);
+        }
+
+        public static byte[] Encode(ResyncSnapshotEnvelope snapshot, uint requestId = 0)
+        {
+            if (!IsValidSnapshot(snapshot))
+                throw new ArgumentException("Resync snapshot is invalid.", nameof(snapshot));
+            var writer = new WireWriter();
+            WriteSnapshot(writer, snapshot);
+            return Wrap(RealtimeMessageKind.ResyncSnapshot, writer.ToArray(), requestId);
+        }
+
+        public static byte[] Encode(CloseMessage close, uint requestId = 0)
+        {
+            if (close == null || !Enum.IsDefined(typeof(RealtimeCloseCode), close.Code) ||
+                string.IsNullOrWhiteSpace(close.Message))
+                throw new ArgumentException("Close message is invalid.", nameof(close));
+            var writer = new WireWriter();
+            writer.WriteUInt16((ushort)close.Code);
+            writer.WriteString(close.Message);
+            return Wrap(RealtimeMessageKind.Close, writer.ToArray(), requestId);
+        }
 
         public static byte[] Encode(AuthorityFrame frame, uint requestId = 0)
         {
@@ -47,6 +127,15 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 DecodeResult result;
                 switch (header.Kind)
                 {
+                    case RealtimeMessageKind.AuthHello:
+                        result = DecodeAuthHello(ref reader, header.Kind);
+                        break;
+                    case RealtimeMessageKind.ResumeHello:
+                        result = DecodeResumeHello(ref reader, header.Kind);
+                        break;
+                    case RealtimeMessageKind.AuthAccepted:
+                        result = DecodeAuthAccepted(ref reader, header.Kind);
+                        break;
                     case RealtimeMessageKind.Command:
                         if (!TryReadCommand(ref reader, includeMatchId: true, out CommandEnvelope command))
                             return Failure(ProtocolError.InvalidPayload, header.Kind);
@@ -62,6 +151,9 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                     case RealtimeMessageKind.Authority:
                         result = DecodeAuthority(ref reader, header.Kind);
                         break;
+                    case RealtimeMessageKind.ResyncRequest:
+                        result = DecodeResyncRequest(ref reader, header.Kind);
+                        break;
                     case RealtimeMessageKind.ResyncSnapshot:
                         if (!TryReadSnapshot(ref reader, out ResyncSnapshotEnvelope snapshot))
                             return Failure(ProtocolError.InvalidPayload, header.Kind);
@@ -72,10 +164,14 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                             ResyncSnapshot = snapshot
                         };
                         break;
+                    case RealtimeMessageKind.Close:
+                        result = DecodeClose(ref reader, header.Kind);
+                        break;
                     default:
                         return Failure(ProtocolError.InvalidPayload, header.Kind);
                 }
 
+                if (result.Error != ProtocolError.None) return result;
                 return reader.Remaining == 0
                     ? result
                     : Failure(ProtocolError.InvalidLength, header.Kind);
@@ -84,6 +180,122 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             {
                 return Failure(ProtocolError.InvalidPayload);
             }
+        }
+
+        private static DecodeResult DecodeAuthHello(
+            ref WireReader reader, RealtimeMessageKind kind)
+        {
+            if (!reader.TryReadUInt16(out ushort version) ||
+                !reader.TryReadGuid(out Guid sessionId) ||
+                !reader.TryReadBytes(out byte[] ticket) ||
+                version != RealtimeProtocol.Version || sessionId == Guid.Empty || ticket.Length == 0)
+                return Failure(ProtocolError.InvalidPayload, kind);
+            return new DecodeResult
+            {
+                Error = ProtocolError.None,
+                Kind = kind,
+                AuthHello = new AuthHello
+                {
+                    Version = version,
+                    SessionId = sessionId,
+                    OpaqueTicket = ticket
+                }
+            };
+        }
+
+        private static DecodeResult DecodeResumeHello(
+            ref WireReader reader, RealtimeMessageKind kind)
+        {
+            if (!reader.TryReadUInt16(out ushort version) ||
+                !reader.TryReadGuid(out Guid sessionId) ||
+                !reader.TryReadBytes(out byte[] token) ||
+                !reader.TryReadUInt32(out uint lastSequence) ||
+                !reader.TryReadInt32(out int lastTick) ||
+                !reader.TryReadInt64(out long revision) ||
+                version != RealtimeProtocol.Version || sessionId == Guid.Empty ||
+                token.Length == 0 || lastTick < -1 || revision < 0)
+                return Failure(ProtocolError.InvalidPayload, kind);
+            return new DecodeResult
+            {
+                Error = ProtocolError.None,
+                Kind = kind,
+                ResumeHello = new ResumeHello
+                {
+                    Version = version,
+                    SessionId = sessionId,
+                    ResumeToken = token,
+                    LastAcceptedSequence = lastSequence,
+                    LastAuthorityTick = lastTick,
+                    TimelineRevision = revision
+                }
+            };
+        }
+
+        private static DecodeResult DecodeAuthAccepted(
+            ref WireReader reader, RealtimeMessageKind kind)
+        {
+            if (!reader.TryReadGuid(out Guid sessionId) ||
+                !reader.TryReadInt32(out int lastTick) ||
+                !reader.TryReadInt64(out long revision) ||
+                sessionId == Guid.Empty || lastTick < -1 || revision < 0)
+                return Failure(ProtocolError.InvalidPayload, kind);
+            return new DecodeResult
+            {
+                Error = ProtocolError.None,
+                Kind = kind,
+                AuthAccepted = new AuthAccepted
+                {
+                    SessionId = sessionId,
+                    LastAuthorityTick = lastTick,
+                    TimelineRevision = revision
+                }
+            };
+        }
+
+        private static DecodeResult DecodeResyncRequest(
+            ref WireReader reader, RealtimeMessageKind kind)
+        {
+            if (!reader.TryReadString(out string matchId) ||
+                !reader.TryReadString(out string sessionId) ||
+                !reader.TryReadInt32(out int fromTick) ||
+                !reader.TryReadInt64(out long revision) ||
+                !reader.TryReadUInt64(out ulong checksum) ||
+                string.IsNullOrWhiteSpace(matchId) || string.IsNullOrWhiteSpace(sessionId) ||
+                fromTick < 0 || revision < 0)
+                return Failure(ProtocolError.InvalidPayload, kind);
+            return new DecodeResult
+            {
+                Error = ProtocolError.None,
+                Kind = kind,
+                ResyncRequest = new ResyncRequest
+                {
+                    MatchId = matchId,
+                    SessionId = sessionId,
+                    FromTick = fromTick,
+                    TimelineRevision = revision,
+                    LocalChecksum = checksum
+                }
+            };
+        }
+
+        private static DecodeResult DecodeClose(
+            ref WireReader reader, RealtimeMessageKind kind)
+        {
+            if (!reader.TryReadUInt16(out ushort codeValue) ||
+                !reader.TryReadString(out string message) ||
+                !Enum.IsDefined(typeof(RealtimeCloseCode), codeValue) ||
+                string.IsNullOrWhiteSpace(message))
+                return Failure(ProtocolError.InvalidPayload, kind);
+            return new DecodeResult
+            {
+                Error = ProtocolError.None,
+                Kind = kind,
+                Close = new CloseMessage
+                {
+                    Code = (RealtimeCloseCode)codeValue,
+                    Message = message
+                }
+            };
         }
 
         private static DecodeResult DecodeAuthority(
@@ -144,6 +356,8 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             if (string.IsNullOrWhiteSpace(frame.MatchId))
                 throw new ArgumentException("MatchId is required.", nameof(frame));
             if (frame.Tick < 0) throw new ArgumentOutOfRangeException(nameof(frame));
+            if (frame.ResyncSnapshot != null && !IsValidSnapshot(frame.ResyncSnapshot))
+                throw new ArgumentException("Authority snapshot is invalid.", nameof(frame));
             CommandEnvelope[] commands = frame.OrderedInputs ?? Array.Empty<CommandEnvelope>();
             if (commands.Length > RealtimeProtocol.MaxCommandsPerAuthorityFrame)
                 throw new ArgumentException("Authority frame command count exceeds the limit.", nameof(frame));
@@ -242,6 +456,17 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             writer.WriteBytes(snapshot.PayloadSha256);
         }
 
+        private static bool IsValidSnapshot(ResyncSnapshotEnvelope snapshot)
+        {
+            return snapshot != null && !string.IsNullOrWhiteSpace(snapshot.MatchId) &&
+                !string.IsNullOrWhiteSpace(snapshot.SessionId) && snapshot.SchemaVersion > 0 &&
+                snapshot.ContentHash != null && snapshot.ContentHash.Length == 32 &&
+                snapshot.CompletedTick >= -1 && snapshot.NextTick == snapshot.CompletedTick + 1 &&
+                snapshot.TimelineRevision >= 0 && snapshot.UncompressedLength >= 0 &&
+                snapshot.Payload != null && snapshot.Payload.Length <= snapshot.UncompressedLength &&
+                snapshot.PayloadSha256 != null && snapshot.PayloadSha256.Length == 32;
+        }
+
         private static bool TryReadSnapshot(
             ref WireReader reader, out ResyncSnapshotEnvelope snapshot)
         {
@@ -258,12 +483,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 !reader.TryReadBytes(out byte[] payload) ||
                 !reader.TryReadBytes(out byte[] payloadSha256))
                 return false;
-            if (string.IsNullOrWhiteSpace(matchId) || string.IsNullOrWhiteSpace(sessionId) ||
-                schemaVersion <= 0 || completedTick < -1 || nextTick != completedTick + 1 ||
-                revision < 0 || uncompressedLength < 0 || payload.Length > uncompressedLength ||
-                contentHash.Length != 32 || payloadSha256.Length != 32)
-                return false;
-            snapshot = new ResyncSnapshotEnvelope
+            var candidate = new ResyncSnapshotEnvelope
             {
                 MatchId = matchId,
                 SessionId = sessionId,
@@ -277,6 +497,8 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 Payload = payload,
                 PayloadSha256 = payloadSha256
             };
+            if (!IsValidSnapshot(candidate)) return false;
+            snapshot = candidate;
             return true;
         }
 
@@ -390,6 +612,11 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 _bytes.Add((byte)(value >> 8));
             }
 
+            public void WriteGuid(Guid value)
+            {
+                _bytes.AddRange(value.ToByteArray());
+            }
+
             public void WriteInt32(int value) => WriteUInt32(unchecked((uint)value));
 
             public void WriteUInt32(uint value)
@@ -412,7 +639,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             {
                 if (string.IsNullOrWhiteSpace(value))
                     throw new ArgumentException("Text value is required.", nameof(value));
-                byte[] bytes = Encoding.UTF8.GetBytes(value);
+                byte[] bytes = Utf8.GetBytes(value);
                 if (bytes.Length > MaxTextBytes)
                     throw new ArgumentException("Text value is too long.", nameof(value));
                 WriteUInt16((ushort)bytes.Length);
@@ -461,6 +688,17 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 return true;
             }
 
+            public bool TryReadGuid(out Guid value)
+            {
+                value = Guid.Empty;
+                if (Remaining < 16) return false;
+                var bytes = new byte[16];
+                Buffer.BlockCopy(_data, _offset, bytes, 0, bytes.Length);
+                _offset += bytes.Length;
+                value = new Guid(bytes);
+                return true;
+            }
+
             public bool TryReadInt32(out int value)
             {
                 bool success = TryReadUInt32(out uint unsigned);
@@ -499,7 +737,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 if (!TryReadUInt16(out ushort length) || length == 0 ||
                     length > MaxTextBytes || Remaining < length)
                     return false;
-                value = Encoding.UTF8.GetString(_data, _offset, length);
+                value = Utf8.GetString(_data, _offset, length);
                 _offset += length;
                 return true;
             }
