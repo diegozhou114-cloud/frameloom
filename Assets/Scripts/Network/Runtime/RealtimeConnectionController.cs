@@ -49,15 +49,18 @@ namespace ZWebGLFrameWork.Network.Runtime
             {
                 generation = ++_generation;
                 previousConnect = _pendingConnect;
-                ownedConnect = new PendingConnect(cancellationToken);
+                ownedConnect = new PendingConnect();
                 _pendingConnect = ownedConnect;
             }
             previousConnect?.RequestCancellation();
 
             IRealtimeChannel candidate = null;
             IRealtimeChannel previous = null;
+            CancellationTokenRegistration callerCancellation = default;
             try
             {
+                callerCancellation = cancellationToken.Register(
+                    state => ((PendingConnect)state).RequestCancellation(), ownedConnect);
                 candidate = _factory.Create(endpoint.Transport)
                     ?? throw new InvalidOperationException("Realtime channel factory returned null.");
                 await candidate.ConnectAsync(endpoint, credentials, ownedConnect.Token);
@@ -87,13 +90,26 @@ namespace ZWebGLFrameWork.Network.Runtime
             }
             finally
             {
-                candidate?.Dispose();
-                lock (_gate)
+                try
                 {
-                    if (ReferenceEquals(_pendingConnect, ownedConnect))
-                        _pendingConnect = null;
+                    candidate?.Dispose();
                 }
-                ownedConnect.Complete();
+                finally
+                {
+                    lock (_gate)
+                    {
+                        if (ReferenceEquals(_pendingConnect, ownedConnect))
+                            _pendingConnect = null;
+                    }
+                    try
+                    {
+                        callerCancellation.Dispose();
+                    }
+                    finally
+                    {
+                        ownedConnect.Complete();
+                    }
+                }
             }
 
             if (previous != null)
@@ -134,9 +150,9 @@ namespace ZWebGLFrameWork.Network.Runtime
             public CancellationToken Token => _token;
             public bool IsCancellationRequested => _token.IsCancellationRequested;
 
-            public PendingConnect(CancellationToken cancellationToken)
+            public PendingConnect()
             {
-                _source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _source = new CancellationTokenSource();
                 _token = _source.Token;
             }
 

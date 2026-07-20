@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -156,6 +157,40 @@ namespace ZWebGLFrameWork.Network.Tests
 
             Assert.DoesNotThrowAsync(async () => await firstConnect);
             Assert.That(first.DisposeCallCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task CallerCancellation_UsesOwnedCancellationPath()
+        {
+            var channel = new ControlledChannel(observeCancellation: true);
+            using (var factory = new BlockingFactory(channel, new ControlledChannel()))
+            using (var cancellation = new CancellationTokenSource())
+            {
+                var controller = new RealtimeConnectionController(factory);
+                Task connect = Task.Run(() => controller.ConnectAsync(
+                    TestEndpoint(), TestCredentials(), cancellation.Token));
+                factory.WaitUntilFirstCreateEntered();
+                cancellation.Cancel();
+
+                bool cancellationOwned = PendingConnectCancellationWasRequested(controller);
+                factory.ReleaseFirstCreate();
+                await connect;
+
+                Assert.That(cancellationOwned, Is.True);
+                Assert.That(channel.DisposeCallCount, Is.EqualTo(1));
+                Assert.That(controller.Current, Is.Null);
+            }
+        }
+
+        private static bool PendingConnectCancellationWasRequested(
+            RealtimeConnectionController controller)
+        {
+            FieldInfo pendingField = typeof(RealtimeConnectionController).GetField(
+                "_pendingConnect", BindingFlags.Instance | BindingFlags.NonPublic);
+            object pending = pendingField.GetValue(controller);
+            FieldInfo requestedField = pending.GetType().GetField(
+                "_cancelRequested", BindingFlags.Instance | BindingFlags.NonPublic);
+            return (bool)requestedField.GetValue(pending);
         }
 
         private static RealtimeEndpoint TestEndpoint() => new RealtimeEndpoint(
