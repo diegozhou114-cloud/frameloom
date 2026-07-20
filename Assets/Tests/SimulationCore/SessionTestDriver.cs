@@ -9,6 +9,16 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 new SimArchetypeDefinition(1, "TownHall", 500, 0, 0, 0, 0),
                 new SimArchetypeDefinition(2, "Cannon", 200, 0, 25, 30000, 20),
                 new SimArchetypeDefinition(10, "Barbarian", 100, 20000, 20, 10000, 20)
+            }, new[]
+            {
+                new SimModeProfile(SimCombatMode.VillageAttack, true, 40, 600, 3600,
+                    System.Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.BuilderBase, true, 30, 600, 3600,
+                    System.Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.ClanWar, true, 40, 600, 3600,
+                    System.Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.Campaign, false, 0, 0, 2400,
+                    new[] { 0, 100, 200, 300, 400 })
             }).ToCanonicalBytes();
         }
 
