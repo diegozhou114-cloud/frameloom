@@ -121,6 +121,223 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task ReplayValidator_CompletedReplay_ReturnsCanonicalTerminalResult()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                fixture.Replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.Valid));
+            Assert.That(result.FailedTick, Is.EqualTo(fixture.Replay.FinalTick));
+            Assert.That(result.ExpectedChecksum, Is.EqualTo(fixture.Replay.FinalChecksum));
+            Assert.That(result.ActualChecksum, Is.EqualTo(fixture.Replay.FinalChecksum));
+            Assert.That(result.FinalResult, Is.SameAs(fixture.Replay.FinalResult));
+        }
+
+        [Test]
+        public async Task ReplayValidator_TamperedTickChecksum_IsRejectedAtThatTick()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CopyReplay();
+            replay.Records[0].Checksum ^= 1;
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.ChecksumMismatch));
+            Assert.That(result.FailedTick, Is.Zero);
+            Assert.That(result.ExpectedChecksum, Is.EqualTo(replay.Records[0].Checksum));
+            Assert.That(result.ActualChecksum, Is.EqualTo(fixture.Replay.Records[0].Checksum));
+        }
+
+        [Test]
+        public async Task ReplayValidator_TamperedFinalChecksum_IsRejectedAfterPlayback()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CopyReplay();
+            replay.FinalChecksum ^= 1;
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.FinalChecksumMismatch));
+        }
+
+        [Test]
+        public async Task ReplayValidator_RecordAfterActualTerminal_IsTrailing()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CopyReplay();
+            replay.FinalTick = 1;
+            replay.Records.Add(new ReplayTickRecord
+            {
+                Tick = 1,
+                Commands = new System.Collections.Generic.List<SerializableCommand>(),
+                Checksum = replay.FinalChecksum
+            });
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.TrailingRecord));
+            Assert.That(result.FailedTick, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task ReplayValidator_SessionRejectedCommand_IsRejectedAtThatTick()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CopyReplay();
+            replay.Records[0].Commands[0] = new SerializableCommand
+            {
+                Type = SimCommandType.Deploy.ToString(),
+                Tick = 0,
+                PlayerId = 0,
+                Sequence = 1,
+                UnitTypeId = 999,
+                GridX = 3,
+                GridY = 3
+            };
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.CommandRejected));
+            Assert.That(result.FailedTick, Is.Zero);
+        }
+
+        [Test]
+        public async Task ReplayValidator_CommandRejectedDuringTick_IsRejectedAtThatTick()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CreateExecutionRejectedReplay();
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.CommandRejected));
+            Assert.That(result.FailedTick, Is.Zero);
+        }
+
+        [Test]
+        public async Task ReplayValidator_NonTerminalPlayback_IsTruncated()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CreateTruncatedReplay();
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.Truncated));
+        }
+
+        [Test]
+        public async Task ReplayValidator_TamperedReplayOrAuthorityResult_IsRejected()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayFile replay = fixture.CopyReplay();
+            replay.FinalResult = AuthorityFixture.ChangeWinner(replay.FinalResult);
+
+            Assert.That((await fixture.CreateValidator().ValidateAsync(
+                    replay, fixture.Match, fixture.Submitter,
+                    fixture.SerializedBytes, CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.ResultMismatch));
+
+            AuthoritativeMatchRecord match = fixture.Match with
+            {
+                ExpectedResult = AuthorityFixture.ChangeWinner(fixture.Match.ExpectedResult)
+            };
+            Assert.That((await fixture.CreateValidator().ValidateAsync(
+                    fixture.Replay, match, fixture.Submitter,
+                    fixture.SerializedBytes, CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.ResultMismatch));
+        }
+
+        [TestCase("MatchId")]
+        [TestCase("ResultId")]
+        [TestCase("WinnerTeamId")]
+        [TestCase("Stars")]
+        [TestCase("LootGold")]
+        [TestCase("LootElixir")]
+        [TestCase("FinalTick")]
+        [TestCase("FinalChecksum")]
+        public async Task ReplayValidator_EveryResultField_IsAuthorityBound(string field)
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            SimBattleResult changed = AuthorityFixture.ChangeResultField(
+                fixture.Replay.FinalResult, field);
+
+            ReplayFile replay = fixture.CopyReplay();
+            replay.FinalResult = changed;
+            Assert.That((await fixture.CreateValidator().ValidateAsync(
+                    replay, fixture.Match, fixture.Submitter,
+                    fixture.SerializedBytes, CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.ResultMismatch));
+
+            Assert.That((await fixture.CreateValidator().ValidateAsync(
+                    fixture.Replay,
+                    fixture.Match with { ExpectedResult = changed },
+                    fixture.Submitter, fixture.SerializedBytes,
+                    CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.ResultMismatch));
+        }
+
+        [Test]
+        public void ReplayValidator_UnexpectedPlaybackFailure_IsNotAuthorityMismatch()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayValidator validator = new ReplayValidator(
+                new StubFactory(fixture.Match.InitialSnapshot, throwOnTick: true),
+                ReplayValidationLimits.Approved,
+                new UnlimitedReplayValidationBudget());
+
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await validator.ValidateAsync(
+                    fixture.Replay, fixture.Match, fixture.Submitter,
+                    fixture.SerializedBytes, CancellationToken.None));
+        }
+
+        [Test]
+        public async Task ReplayValidator_ExhaustedPlaybackBudget_IsRejectedAtTick()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayValidator validator = new ReplayValidator(
+                new SimBattleSessionFactory(), ReplayValidationLimits.Approved,
+                new RejectingBudget());
+
+            ReplayValidationResult result = await validator.ValidateAsync(
+                fixture.Replay, fixture.Match, fixture.Submitter,
+                fixture.SerializedBytes, CancellationToken.None);
+
+            Assert.That(result.Code,
+                Is.EqualTo(ReplayValidationCode.ValidationBudgetExceeded));
+            Assert.That(result.FailedTick, Is.Zero);
+        }
+
+        [Test]
+        public void ReplayValidator_CancellationDuringPlayback_IsPropagated()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            var cancellation = new CancellationTokenSource();
+            ReplayValidator validator = new ReplayValidator(
+                new SimBattleSessionFactory(), ReplayValidationLimits.Approved,
+                new CancellingBudget(cancellation));
+
+            Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                await validator.ValidateAsync(
+                    fixture.Replay, fixture.Match, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token));
+        }
+
+        [Test]
         public void AuthoritativeMatchRecord_DefensivelyCopiesMutableArrays()
         {
             AuthorityFixture fixture = AuthorityFixture.Create();
@@ -497,16 +714,25 @@ namespace ZWebGLFrameWork.Server.Tests
                     },
                     new[]
                     {
-                        new InitialEntitySpec(10, 2, 2, SimTeam.Attacker, 0),
+                        new InitialEntitySpec(10, 7, 2, SimTeam.Attacker, 0),
                         new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 1)
                     },
                     6);
                 SimSnapshot snapshot;
+                TickResult terminal;
                 using (ISimBattleSession session =
                     new SimBattleSessionFactory().Create(manifestBytes))
                 {
                     Assert.That(session.Start(init).Accepted, Is.True);
                     snapshot = session.CaptureSnapshot();
+                    Assert.That(session.Submit(new EndDeploymentCmd
+                    {
+                        Tick = 0,
+                        PlayerId = 0,
+                        Sequence = 1
+                    }).Accepted, Is.True);
+                    terminal = session.Tick();
+                    Assert.That(terminal.Code, Is.EqualTo(TickCode.Ended));
                 }
                 string initialHash = HashText.ToLowerHex(snapshot.PayloadSha256);
                 var replay = new ReplayFile
@@ -524,9 +750,21 @@ namespace ZWebGLFrameWork.Server.Tests
                         new ReplayTickRecord
                         {
                             Tick = 0,
-                            Commands = new System.Collections.Generic.List<SerializableCommand>()
+                            Checksum = terminal.Checksum,
+                            Commands = new System.Collections.Generic.List<SerializableCommand>
+                            {
+                                new SerializableCommand
+                                {
+                                    Type = SimCommandType.EndDeployment.ToString(),
+                                    Tick = 0,
+                                    PlayerId = 0,
+                                    Sequence = 1
+                                }
+                            }
                         }
-                    }
+                    },
+                    FinalChecksum = terminal.Checksum,
+                    FinalResult = terminal.Result
                 };
                 return new AuthorityFixture
                 {
@@ -540,7 +778,7 @@ namespace ZWebGLFrameWork.Server.Tests
                         manifestBytes,
                         init,
                         snapshot,
-                        null,
+                        terminal.Result,
                         new[] { SubmitterValue })
                 };
             }
@@ -581,8 +819,107 @@ namespace ZWebGLFrameWork.Server.Tests
                 FinalTick = Replay.FinalTick,
                 FinalChecksum = Replay.FinalChecksum,
                 FinalResult = Replay.FinalResult,
-                Records = new System.Collections.Generic.List<ReplayTickRecord>(Replay.Records)
+                Records = Replay.Records.Select(record => new ReplayTickRecord
+                {
+                    Tick = record.Tick,
+                    Checksum = record.Checksum,
+                    Commands = record.Commands.Select(command => new SerializableCommand
+                    {
+                        Type = command.Type,
+                        Tick = command.Tick,
+                        PlayerId = command.PlayerId,
+                        Sequence = command.Sequence,
+                        UnitTypeId = command.UnitTypeId,
+                        EntityId = command.EntityId,
+                        CasterId = command.CasterId,
+                        SkillId = command.SkillId,
+                        GridX = command.GridX,
+                        TargetX = command.TargetX,
+                        GridY = command.GridY,
+                        TargetY = command.TargetY
+                    }).ToList()
+                }).ToList()
             };
+
+            public ReplayFile CreateTruncatedReplay()
+            {
+                ulong checksum;
+                using (ISimBattleSession session =
+                    new SimBattleSessionFactory().Create(Match.CanonicalManifestBytes))
+                {
+                    Assert.That(session.Start(Match.BattleInit).Accepted, Is.True);
+                    checksum = session.Tick().Checksum;
+                }
+                ReplayFile replay = CopyReplay();
+                replay.Records[0].Commands.Clear();
+                replay.Records[0].Checksum = checksum;
+                replay.FinalChecksum = checksum;
+                return replay;
+            }
+
+            public ReplayFile CreateExecutionRejectedReplay()
+            {
+                var commands = new[]
+                {
+                    new DeployCmd
+                    {
+                        Tick = 0, PlayerId = 0, Sequence = 1,
+                        UnitTypeId = 10, GridX = 3, GridY = 3
+                    },
+                    new DeployCmd
+                    {
+                        Tick = 0, PlayerId = 0, Sequence = 2,
+                        UnitTypeId = 10, GridX = 3, GridY = 3
+                    }
+                };
+                TickResult tick;
+                using (ISimBattleSession session =
+                    new SimBattleSessionFactory().Create(Match.CanonicalManifestBytes))
+                {
+                    Assert.That(session.Start(Match.BattleInit).Accepted, Is.True);
+                    foreach (DeployCmd command in commands)
+                        Assert.That(session.Submit(command).Accepted, Is.True);
+                    tick = session.Tick();
+                    Assert.That(tick.CommandOutcomes[0].Disposition,
+                        Is.EqualTo(CommandDisposition.Accepted));
+                    Assert.That(tick.CommandOutcomes[1].Disposition,
+                        Is.EqualTo(CommandDisposition.InvalidPayload));
+                }
+
+                ReplayFile replay = CopyReplay();
+                replay.Records[0].Commands = commands.Select(command =>
+                    new SerializableCommand
+                    {
+                        Type = SimCommandType.Deploy.ToString(),
+                        Tick = command.Tick,
+                        PlayerId = command.PlayerId,
+                        Sequence = command.Sequence,
+                        UnitTypeId = command.UnitTypeId,
+                        GridX = command.GridX,
+                        GridY = command.GridY
+                    }).ToList();
+                replay.Records[0].Checksum = tick.Checksum;
+                replay.FinalChecksum = tick.Checksum;
+                return replay;
+            }
+
+            public static SimBattleResult ChangeWinner(SimBattleResult result) =>
+                new SimBattleResult(result.MatchId, result.ResultId,
+                    result.WinnerTeamId == SimTeam.Attacker
+                        ? SimTeam.Defender : SimTeam.Attacker,
+                    result.Stars, result.LootGold, result.LootElixir,
+                    result.FinalTick, result.FinalChecksum);
+
+            public static SimBattleResult ChangeResultField(
+                SimBattleResult result, string field) => new SimBattleResult(
+                    field == "MatchId" ? result.MatchId + "-changed" : result.MatchId,
+                    field == "ResultId" ? result.ResultId + "-changed" : result.ResultId,
+                    field == "WinnerTeamId" ? result.WinnerTeamId + 1 : result.WinnerTeamId,
+                    field == "Stars" ? result.Stars + 1 : result.Stars,
+                    field == "LootGold" ? result.LootGold + 1 : result.LootGold,
+                    field == "LootElixir" ? result.LootElixir + 1 : result.LootElixir,
+                    field == "FinalTick" ? result.FinalTick + 1 : result.FinalTick,
+                    field == "FinalChecksum" ? result.FinalChecksum + 1 : result.FinalChecksum);
 
             public static byte[] AlternateManifestBytes() =>
                 new DeterministicContentManifest(1, new[]
@@ -595,7 +932,7 @@ namespace ZWebGLFrameWork.Server.Tests
                 {
                     new SimArchetypeDefinition(1, "TownHall", 500, 0, 0, 0, 0),
                     new SimArchetypeDefinition(2, "Cannon", 200, 0, 25, 30000, 20),
-                    new SimArchetypeDefinition(10, "Barbarian", 100, 20000, 20, 10000, 20)
+                    new SimArchetypeDefinition(10, "Barbarian", 100, 20000, 500, 10000, 20)
                 }, new[]
                 {
                     new SimModeProfile(SimCombatMode.VillageAttack, true, 40, 600, 3600,
@@ -607,6 +944,27 @@ namespace ZWebGLFrameWork.Server.Tests
                     new SimModeProfile(SimCombatMode.Campaign, false, 0, 0, 2400,
                         new[] { 0, 100, 200, 300, 400 })
                 }).ToCanonicalBytes();
+        }
+
+        private sealed class RejectingBudget : IReplayValidationBudget
+        {
+            public bool TryConsumeTick(int commandCount) => false;
+        }
+
+        private sealed class CancellingBudget : IReplayValidationBudget
+        {
+            private readonly CancellationTokenSource _cancellation;
+
+            public CancellingBudget(CancellationTokenSource cancellation)
+            {
+                _cancellation = cancellation;
+            }
+
+            public bool TryConsumeTick(int commandCount)
+            {
+                _cancellation.Cancel();
+                return true;
+            }
         }
 
         private sealed class ThrowingFactory : ISimBattleSessionFactory
@@ -627,19 +985,23 @@ namespace ZWebGLFrameWork.Server.Tests
             private readonly bool _throwOnStart;
             private readonly bool _rejectStart;
             private readonly bool _throwOnCapture;
+            private readonly bool _throwOnTick;
 
             public StubFactory(SimSnapshot snapshot, bool throwOnStart = false,
-                bool rejectStart = false, bool throwOnCapture = false)
+                bool rejectStart = false, bool throwOnCapture = false,
+                bool throwOnTick = false)
             {
                 _snapshot = snapshot;
                 _throwOnStart = throwOnStart;
                 _rejectStart = rejectStart;
                 _throwOnCapture = throwOnCapture;
+                _throwOnTick = throwOnTick;
             }
 
             public ISimBattleSession Create(byte[] canonicalManifestBytes,
                 ISimLogger logger = null) => new StubSession(
-                    _snapshot, _throwOnStart, _rejectStart, _throwOnCapture);
+                    _snapshot, _throwOnStart, _rejectStart, _throwOnCapture,
+                    _throwOnTick);
         }
 
         private sealed class StubSession : ISimBattleSession
@@ -648,14 +1010,16 @@ namespace ZWebGLFrameWork.Server.Tests
             private readonly bool _throwOnStart;
             private readonly bool _rejectStart;
             private readonly bool _throwOnCapture;
+            private readonly bool _throwOnTick;
 
             public StubSession(SimSnapshot snapshot, bool throwOnStart,
-                bool rejectStart, bool throwOnCapture)
+                bool rejectStart, bool throwOnCapture, bool throwOnTick)
             {
                 _snapshot = snapshot;
                 _throwOnStart = throwOnStart;
                 _rejectStart = rejectStart;
                 _throwOnCapture = throwOnCapture;
+                _throwOnTick = throwOnTick;
             }
 
             public SimBattleState State => null;
@@ -671,7 +1035,11 @@ namespace ZWebGLFrameWork.Server.Tests
             public CommandSubmitResult Submit(ISimCommand command) =>
                 new CommandSubmitResult(CommandDisposition.Accepted);
 
-            public TickResult Tick() => default;
+            public TickResult Tick()
+            {
+                if (_throwOnTick) throw new InvalidOperationException();
+                return default;
+            }
 
             public SimSnapshot CaptureSnapshot()
             {

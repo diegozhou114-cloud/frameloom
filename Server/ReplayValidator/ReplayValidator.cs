@@ -98,6 +98,7 @@ namespace ZWebGLFrameWork.Server
                 return Rejected(ReplayValidationCode.SnapshotTooLarge);
 
             cancellationToken.ThrowIfCancellationRequested();
+            bool playbackStarted = false;
             try
             {
                 using (ISimBattleSession session = _sessionFactory.Create(
@@ -116,18 +117,80 @@ namespace ZWebGLFrameWork.Server
                     if (match.InitialStateHash != authoritativeInitialStateHash ||
                         replay.InitialStateHash != authoritativeInitialStateHash)
                         return Rejected(ReplayValidationCode.InitialStateMismatch);
+
+                    playbackStarted = true;
+                    SimBattleResult actualFinalResult = null;
+                    for (int index = 0; index < replay.Records.Count; index++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        ReplayTickRecord record = replay.Records[index];
+                        if (!_budget.TryConsumeTick(record.Commands.Count))
+                            return Rejected(
+                                ReplayValidationCode.ValidationBudgetExceeded, index);
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        foreach (SerializableCommand serialized in record.Commands)
+                        {
+                            ISimCommand command;
+                            try
+                            {
+                                command = CommandRecorder.DeserializeCommand(serialized);
+                            }
+                            catch (Exception exception) when (
+                                exception is ArgumentException ||
+                                exception is InvalidOperationException)
+                            {
+                                return Rejected(ReplayValidationCode.CommandRejected, index);
+                            }
+
+                            if (command == null || !session.Submit(command).Accepted)
+                                return Rejected(ReplayValidationCode.CommandRejected, index);
+                        }
+
+                        TickResult tick = session.Tick();
+                        if (tick?.CommandOutcomes == null ||
+                            tick.CommandOutcomes.Any(outcome =>
+                                outcome.Disposition != CommandDisposition.Accepted))
+                            return Rejected(ReplayValidationCode.CommandRejected, index);
+                        if (tick == null || tick.CompletedTick != record.Tick ||
+                            tick.Checksum != record.Checksum)
+                            return Rejected(ReplayValidationCode.ChecksumMismatch,
+                                index, record.Checksum, tick?.Checksum ?? 0);
+
+                        if (tick.Code == TickCode.Ended)
+                        {
+                            actualFinalResult = tick.Result;
+                            if (index != replay.Records.Count - 1 ||
+                                record.Tick != replay.FinalTick)
+                                return Rejected(
+                                    ReplayValidationCode.TrailingRecord, index + 1);
+                        }
+                    }
+
+                    if (actualFinalResult == null || session.State == null ||
+                        session.State.Lifecycle != SessionLifecycle.Ended)
+                        return Rejected(ReplayValidationCode.Truncated);
+                    if (replay.FinalChecksum !=
+                        replay.Records[replay.FinalTick].Checksum)
+                        return Rejected(ReplayValidationCode.FinalChecksumMismatch);
+                    if (!SimBattleResultValue.Equals(
+                            actualFinalResult, replay.FinalResult) ||
+                        !SimBattleResultValue.Equals(
+                            actualFinalResult, match.ExpectedResult))
+                        return Rejected(ReplayValidationCode.ResultMismatch);
+
+                    return Task.FromResult(ReplayValidationResult.Valid(
+                        replay.FinalTick, replay.FinalChecksum, replay.FinalResult));
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 throw;
             }
-            catch (Exception)
+            catch (Exception) when (!playbackStarted)
             {
                 return Rejected(ReplayValidationCode.InitialStateMismatch);
             }
-
-            return Task.FromResult(ReplayValidationResult.StructurallyValid());
         }
 
         private static bool TryValidateAuthorityGraph(
@@ -212,8 +275,10 @@ namespace ZWebGLFrameWork.Server
         }
 
         private static Task<ReplayValidationResult> Rejected(
-            ReplayValidationCode code) => Task.FromResult(
-                new ReplayValidationResult(code));
+            ReplayValidationCode code, int failedTick = -1,
+            ulong expectedChecksum = 0, ulong actualChecksum = 0) =>
+            Task.FromResult(new ReplayValidationResult(
+                code, failedTick, expectedChecksum, actualChecksum));
 
         public ReplayResult Validate(ReplayFile replay)
         {
