@@ -12,6 +12,8 @@
     <ProjectReference Include="../ReplayValidator/ReplayValidator.csproj" />
     <Compile Include="../../Assets/Tests/SimulationCore/SessionTestDriver.cs" Link="SharedTests/SessionTestDriver.cs" />
     <Compile Include="../../Assets/Tests/SimulationCore/SessionDeterminismTests.cs" Link="SharedTests/SessionDeterminismTests.cs" />
+    <Compile Include="../../Assets/Tests/SimulationCore/ModeBehaviorTests.cs" Link="SharedTests/ModeBehaviorTests.cs" />
+    <Compile Include="../../Assets/Tests/SimulationCore/SessionTerminalTests.cs" Link="SharedTests/SessionTerminalTests.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" PrivateAssets="all" />

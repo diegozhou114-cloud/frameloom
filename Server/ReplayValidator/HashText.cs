@@ -1,6 +1,6 @@
 namespace ZWebGLFrameWork.Server
 {
-    internal static class HashText
+    public static class HashText
     {
         public static bool IsSha256(string value)
         {

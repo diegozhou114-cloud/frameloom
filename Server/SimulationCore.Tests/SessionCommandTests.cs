@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using ZWebGLFrameWork.SimulationCore.Tests;
 
@@ -11,12 +12,17 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             using SimBattleSession session = SessionTestDriver.StartedBattle();
             EntityPresentationState caster = session.State.Presentation.Entities[0];
             EntityPresentationState target = session.State.Presentation.Entities[1];
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
 
             CommandSubmitResult submitted = session.Submit(new SkillCmd
             {
-                Tick = 0,
+                Tick = 1,
                 PlayerId = caster.OwnerPlayerId,
-                Sequence = 1,
+                Sequence = 2,
                 CasterId = caster.EntityId,
                 SkillId = 1,
                 TargetX = target.GridX,
@@ -36,12 +42,17 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             using SimBattleSession session = SessionTestDriver.StartedBattle();
             EntityPresentationState caster = session.State.Presentation.Entities[0];
             EntityPresentationState target = session.State.Presentation.Entities[1];
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
 
             Assert.That(session.Submit(new SkillCmd
             {
-                Tick = 0,
+                Tick = 1,
                 PlayerId = caster.OwnerPlayerId,
-                Sequence = 1,
+                Sequence = 2,
                 CasterId = caster.EntityId,
                 SkillId = 99,
                 TargetX = target.GridX,
@@ -50,9 +61,9 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
 
             Assert.That(session.Submit(new SkillCmd
             {
-                Tick = 0,
+                Tick = 1,
                 PlayerId = caster.OwnerPlayerId,
-                Sequence = 1,
+                Sequence = 2,
                 CasterId = caster.EntityId,
                 SkillId = 1,
                 TargetX = target.GridX,
@@ -79,10 +90,17 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.Start(init).Accepted, Is.True);
             EntityPresentationState caster = session.State.Presentation.Entities[1];
             EntityPresentationState target = session.State.Presentation.Entities[0];
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 10, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            target = session.State.Presentation.Entities.Single(entity =>
+                entity.OwnerPlayerId == target.OwnerPlayerId);
 
             Assert.That(session.Submit(new SkillCmd
             {
-                Tick = 0,
+                Tick = 1,
                 PlayerId = 20,
                 Sequence = 1,
                 CasterId = caster.EntityId,

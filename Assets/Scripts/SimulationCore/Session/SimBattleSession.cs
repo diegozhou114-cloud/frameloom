@@ -22,6 +22,10 @@ namespace ZWebGLFrameWork.SimulationCore
         private SimBattleState _state;
         private PresentationFrame _currentFrame;
         private BattleInit _init;
+        private SimModeProfile _modeProfile;
+        private int _deployedCount;
+        private SimTerminalOutcome _terminalOutcome;
+        private int _terminalFinalTick = -1;
         private bool _disposed;
 
         internal SimBattleSession(SimWorld world, DeterministicContentManifest manifest, ISimLogger logger)
@@ -54,9 +58,15 @@ namespace ZWebGLFrameWork.SimulationCore
                 CreateInitialEntity(spec);
 
             _init = init;
+            _modeProfile = _manifest.GetMode(init.Mode);
+            _deployedCount = 0;
+            _terminalOutcome = null;
+            _terminalFinalTick = -1;
             _lastSequenceByPlayer.Clear();
             _currentFrame = BuildFrame(true, -1, 0, 0);
-            _state = new SimBattleState(SessionLifecycle.Running, SimCombatPhase.Deploying,
+            SimCombatPhase initialPhase = _modeProfile.ManualDeployment
+                ? SimCombatPhase.Deploying : SimCombatPhase.Battling;
+            _state = new SimBattleState(SessionLifecycle.Running, initialPhase,
                 -1, 0, 0, 0, _currentFrame, null);
             RefreshChecksum();
             _logger?.Log($"[SimBattleSession] Started match {init.MatchId}.");
@@ -110,24 +120,49 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (outcome.Disposition == CommandDisposition.Accepted)
                     acceptedCommands.Add(command);
             }
-            _systems.UpdateAll();
-            SimBattleEvent[] tickEvents = BuildTickEvents();
             SimCombatPhase phase = _state.Phase;
             SessionLifecycle lifecycle = _state.Lifecycle;
-            if (_deathSystem.Winner.HasValue)
+            if (phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment &&
+                nextTick >= _modeProfile.DeployDurationTicks)
+                phase = SimCombatPhase.Battling;
+
+            SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
+            if (phase == SimCombatPhase.Battling)
             {
-                phase = SimCombatPhase.Ended;
-                lifecycle = SessionLifecycle.Ended;
+                _systems.UpdateAll();
+                tickEvents = BuildTickEvents();
+                int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > completedTick);
+                bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
+                SimTerminalOutcome terminalOutcome = new SimModeRules(_modeProfile).Evaluate(
+                    new SimModeEvaluationInput(completedTick, _deathSystem.AttackerAlive,
+                        _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
+                        futureWaves, timedOut, true));
+                if (terminalOutcome != null)
+                {
+                    phase = SimCombatPhase.Ended;
+                    lifecycle = SessionLifecycle.Ended;
+                    _terminalOutcome = terminalOutcome;
+                    _terminalFinalTick = completedTick;
+                }
             }
             _currentFrame = BuildFrame(false, completedTick, nextTick, revision);
             _state = new SimBattleState(lifecycle, phase,
                 completedTick, nextTick, revision, 0,
                 BuildFrame(true, completedTick, nextTick, revision), null);
             ulong checksum = RefreshChecksum();
+            SimBattleResult result = null;
+            if (_terminalOutcome != null)
+            {
+                result = SimBattleResult.FromOutcome(
+                    _init.MatchId, _terminalOutcome, _terminalFinalTick, checksum);
+                _state = new SimBattleState(lifecycle, phase,
+                    completedTick, nextTick, revision, checksum,
+                    _state.Presentation, result);
+            }
             return new TickResult(lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
                 completedTick, nextTick, revision,
                 acceptedCommands.ToArray(), outcomes.ToArray(),
-                tickEvents, _currentFrame, checksum, null);
+                tickEvents, _currentFrame, checksum, result);
         }
 
         public SimSnapshot CaptureSnapshot()
@@ -191,6 +226,13 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (data.CompletedTick != snapshot.CompletedTick || data.NextTick != snapshot.NextTick ||
                     data.Lifecycle == SessionLifecycle.Created || data.Lifecycle == SessionLifecycle.Disposed)
                     return new SnapshotRestoreResult(SnapshotRestoreCode.InvalidTick, _currentFrame);
+                bool terminalState = data.Lifecycle == SessionLifecycle.Ended &&
+                    data.Phase == SimCombatPhase.Ended && data.TerminalOutcome != null &&
+                    data.TerminalFinalTick == data.CompletedTick;
+                if (terminalState != (data.TerminalOutcome != null) ||
+                    (data.Lifecycle == SessionLifecycle.Ended) != terminalState ||
+                    data.DeployedCount > _modeProfile.MaxDeployCount)
+                    return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
                 int capacity = Math.Max(8, data.WorldSnapshot.Generations?.Length ?? 0);
                 detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
@@ -212,6 +254,9 @@ namespace ZWebGLFrameWork.SimulationCore
             _attackSystem.RestoreTick(data.AttackSystemTick);
             _deathSystem.RestoreState(data.AttackerAlive, data.DefenderAlive,
                 data.AttackerDead, data.DefenderDead, data.Winner);
+            _deployedCount = data.DeployedCount;
+            _terminalOutcome = data.TerminalOutcome;
+            _terminalFinalTick = data.TerminalFinalTick;
             long revision = _state.TimelineRevision + 1;
             _currentFrame = BuildFrame(true, data.CompletedTick, data.NextTick, revision);
             _state = new SimBattleState(data.Lifecycle, data.Phase,
@@ -219,6 +264,14 @@ namespace ZWebGLFrameWork.SimulationCore
             ulong restoredChecksum = RefreshChecksum();
             if (restoredChecksum != snapshot.StateChecksum)
                 throw new InvalidOperationException("Validated snapshot checksum changed during atomic apply.");
+            if (_terminalOutcome != null)
+            {
+                SimBattleResult result = SimBattleResult.FromOutcome(
+                    _init.MatchId, _terminalOutcome, _terminalFinalTick, restoredChecksum);
+                _state = new SimBattleState(data.Lifecycle, data.Phase,
+                    data.CompletedTick, data.NextTick, revision, restoredChecksum,
+                    _currentFrame, result);
+            }
             return new SnapshotRestoreResult(SnapshotRestoreCode.Restored, _currentFrame);
         }
 
@@ -241,6 +294,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 return StartCode.InvalidMatch;
             if (!init.ContentHash.SequenceEqual(_manifest.ContentHash)) return StartCode.InvalidContent;
             if (!Enum.IsDefined(typeof(SimCombatMode), init.Mode)) return StartCode.InvalidMode;
+            if (_manifest.GetMode(init.Mode) == null) return StartCode.InvalidMode;
 
             var players = new HashSet<int>();
             foreach (var player in init.Players)
@@ -310,6 +364,12 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (command)
             {
                 case DeployCmd deploy:
+                    if (_state.Phase != SimCombatPhase.Deploying ||
+                        _deployedCount >= _modeProfile.MaxDeployCount)
+                        return new CommandExecutionResult(command,
+                            _state.Phase == SimCombatPhase.Deploying
+                                ? CommandDisposition.InvalidPayload : CommandDisposition.WrongPhase,
+                            -1, -1);
                     int team = deploy.PlayerId == 1 ? SimTeam.Defender : SimTeam.Attacker;
                     SimArchetypeDefinition definition = _manifest.GetArchetype(deploy.UnitTypeId);
                     if (definition == null || deploy.GridX < 0 || deploy.GridY < 0 ||
@@ -317,8 +377,16 @@ namespace ZWebGLFrameWork.SimulationCore
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
                     SimEntity deployed = CreateInitialEntity(new InitialEntitySpec(
                         deploy.UnitTypeId, deploy.GridX, deploy.GridY, team, deploy.PlayerId));
+                    _deployedCount++;
                     return new CommandExecutionResult(command, CommandDisposition.Accepted,
                         deployed.Id, deployed.Generation);
+                case EndDeploymentCmd:
+                    if (_state.Phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
+                        return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
+                    _state = new SimBattleState(_state.Lifecycle, SimCombatPhase.Battling,
+                        _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
+                        _state.Checksum, _state.Presentation, _state.Result);
+                    return new CommandExecutionResult(command, CommandDisposition.Accepted, -1, -1);
                 case MoveCmd move:
                     if (!TryFindEntity(move.EntityId, out SimEntity mover) ||
                         !_world.TryGetComponent(mover, out SimMovementComponent movement))
@@ -391,10 +459,17 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (command)
             {
                 case DeployCmd deploy:
+                    if (_state.Phase != SimCombatPhase.Deploying)
+                        return CommandDisposition.WrongPhase;
+                    if (_deployedCount >= _modeProfile.MaxDeployCount)
+                        return CommandDisposition.InvalidPayload;
                     return deploy.UnitTypeId > 0 && deploy.GridX >= 0 && deploy.GridY >= 0 &&
                         _manifest.GetArchetype(deploy.UnitTypeId) != null &&
                         !IsCellOccupied(deploy.GridX, deploy.GridY)
                         ? CommandDisposition.Accepted : CommandDisposition.InvalidPayload;
+                case EndDeploymentCmd:
+                    return _state.Phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment
+                        ? CommandDisposition.Accepted : CommandDisposition.WrongPhase;
                 case MoveCmd move:
                     if (move.TargetX < 0 || move.TargetY < 0 ||
                         !TryFindEntity(move.EntityId, out SimEntity mover) ||
@@ -499,20 +574,13 @@ namespace ZWebGLFrameWork.SimulationCore
                 _state.Phase,
                 _state.CompletedTick,
                 _state.NextTick,
+                _deployedCount,
+                _terminalOutcome,
+                _terminalFinalTick,
                 commandHash);
             ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
             if (_attackSystem != null) hash = _attackSystem.HashInto(hash);
             if (_deathSystem != null) hash = _deathSystem.HashInto(hash);
-            if (_state.Result != null)
-            {
-                var resultState = new DeterministicHash64(hash);
-                resultState.AddInt32(_state.Result.WinnerTeamId);
-                resultState.AddInt32(_state.Result.Stars);
-                resultState.AddInt32(_state.Result.LootGold);
-                resultState.AddInt32(_state.Result.LootElixir);
-                resultState.AddInt32(_state.Result.FinalTick);
-                hash = resultState.Value;
-            }
             return _world.HashInto(hash);
         }
 
@@ -530,6 +598,9 @@ namespace ZWebGLFrameWork.SimulationCore
                 AttackerDead = _deathSystem.AttackerDead,
                 DefenderDead = _deathSystem.DefenderDead,
                 Winner = _deathSystem.Winner,
+                DeployedCount = _deployedCount,
+                TerminalOutcome = _terminalOutcome,
+                TerminalFinalTick = _terminalFinalTick,
                 LastSequenceByPlayer = new Dictionary<int, int>(_lastSequenceByPlayer),
                 PendingCommands = _commandBuffer.ExportPendingCommands(),
                 WorldSnapshot = _world.ExportFullSnapshot(),
@@ -543,7 +614,8 @@ namespace ZWebGLFrameWork.SimulationCore
             ulong commandHash = commands.HashInto(DeterministicHash64.OffsetBasis);
             var sessionState = new SessionChecksumState(
                 _init.ProtocolVersion, _init.SchemaVersion, _manifest.ContentHash, _init.Seed,
-                data.Lifecycle, data.Phase, data.CompletedTick, data.NextTick, commandHash);
+                data.Lifecycle, data.Phase, data.CompletedTick, data.NextTick,
+                data.DeployedCount, data.TerminalOutcome, data.TerminalFinalTick, commandHash);
             ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
             hash = SimAttackSystem.HashStateInto(hash, data.AttackSystemTick);
             hash = SimDeathSystem.HashStateInto(hash, data.AttackerAlive, data.DefenderAlive,

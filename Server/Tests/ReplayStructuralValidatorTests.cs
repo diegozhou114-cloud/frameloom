@@ -100,6 +100,27 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void ReplayValidator_EndDeploymentRequiresZeroPayload()
+        {
+            var validator = new ReplayStructuralValidator(
+                ApprovedLimits, KnownCommandSchema.Version1);
+            ReplayFile replay = ReplayFixture.Valid();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = nameof(SimCommandType.EndDeployment),
+                Tick = 0,
+                PlayerId = 0,
+                Sequence = 1,
+            });
+
+            Assert.That(validator.Validate(replay, 128).Code,
+                Is.EqualTo(ReplayValidationCode.Valid));
+            replay.Records[0].Commands[0].UnitTypeId = 1;
+            Assert.That(validator.Validate(replay, 128).Code,
+                Is.EqualTo(ReplayValidationCode.InvalidCommand));
+        }
+
+        [Test]
         public void ReplayValidator_NullRecordsAndCommands_ReturnStableReasons()
         {
             var validator = new ReplayStructuralValidator(

@@ -105,5 +105,20 @@ namespace ZWebGLFrameWork.SimulationCore
             FinalTick = finalTick;
             FinalChecksum = finalChecksum;
         }
+
+        public static SimBattleResult FromOutcome(string matchId, SimTerminalOutcome outcome,
+            int finalTick, ulong finalChecksum)
+        {
+            if (matchId == null) throw new System.ArgumentNullException(nameof(matchId));
+            if (matchId.Length == 0) throw new System.ArgumentException("Match ID cannot be empty.", nameof(matchId));
+            if (outcome == null) throw new System.ArgumentNullException(nameof(outcome));
+            if (finalTick < 0) throw new System.ArgumentOutOfRangeException(nameof(finalTick));
+
+            string resultId = matchId + ":"
+                + finalTick.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":"
+                + finalChecksum.ToString("X16", System.Globalization.CultureInfo.InvariantCulture);
+            return new SimBattleResult(matchId, resultId, outcome.WinnerTeamId, outcome.Stars,
+                outcome.LootGold, outcome.LootElixir, finalTick, finalChecksum);
+        }
     }
 }

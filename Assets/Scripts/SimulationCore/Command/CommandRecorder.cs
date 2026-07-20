@@ -102,6 +102,10 @@ namespace ZWebGLFrameWork.SimulationCore
                     CasterId = sc.CasterId, SkillId = sc.SkillId,
                     TargetX = sc.TargetX, TargetY = sc.TargetY,
                 },
+                SimCommandType.EndDeployment => new EndDeploymentCmd
+                {
+                    Tick = sc.Tick, PlayerId = sc.PlayerId, Sequence = sc.Sequence,
+                },
                 _ => null,
             };
         }
