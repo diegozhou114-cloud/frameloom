@@ -1,84 +1,15 @@
 using System;
-using System.IO;
-using ZWebGLFrameWork.SimulationCore;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ZWebGLFrameWork.Server
 {
     class Program
     {
-        static int Main(string[] args)
+        static Task<int> Main(string[] args)
         {
-            if (args.Length < 2)
-            {
-                Console.WriteLine("Usage: ReplayValidator <replay.json> <authoritative-manifest.bin>");
-                return 1;
-            }
-
-            string filePath = args[0];
-            string manifestPath = args[1];
-            if (!File.Exists(filePath) || !File.Exists(manifestPath))
-            {
-                Console.Error.WriteLine("Replay or manifest file not found.");
-                return 1;
-            }
-
-            try
-            {
-                ReplayInputText input;
-                using (FileStream replayStream = File.OpenRead(filePath))
-                {
-                    input = ReplayInput.ReadUtf8(
-                        replayStream, ReplayValidationLimits.Approved.MaxFileBytes);
-                }
-                var replay = ServerReplayJsonCodec.Deserialize(input.Text);
-                var structuralValidator = new ReplayStructuralValidator(
-                    ReplayValidationLimits.Approved, KnownCommandSchema.Version1);
-                ReplayValidationResult structuralResult = structuralValidator.Validate(
-                    replay, input.ByteCount);
-                if (!structuralResult.IsValid)
-                {
-                    Console.Error.WriteLine(
-                        $"Replay rejected: {structuralResult.Code} at tick {structuralResult.FailedTick}.");
-                    return ReplayCliExitCodes.For(structuralResult.Code);
-                }
-                byte[] manifestBytes = File.ReadAllBytes(manifestPath);
-
-                var validator = new ReplayValidator(
-                    new SimBattleSessionFactory(), manifestBytes, new ConsoleLogger());
-                var result = validator.Validate(replay);
-
-                Console.WriteLine($"Valid: {result.IsValid}");
-                if (result.IsValid)
-                {
-                    Console.WriteLine($"Total ticks: {replay.TotalTicks}");
-                }
-                else
-                {
-                    Console.WriteLine($"Failed at tick: {result.FailedTick}");
-                    Console.WriteLine($"Expected checksum: {result.ExpectedChecksum}");
-                    Console.WriteLine($"Actual checksum:   {result.ActualChecksum}");
-                }
-
-                return result.IsValid ? 0 : 2;
-            }
-            catch (ReplayInputLimitException ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-                return 5;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Error: {ex.Message}");
-                return 1;
-            }
+            return ReplayCli.RunAsync(args, Console.Out, Console.Error,
+                CancellationToken.None);
         }
-    }
-
-    /// <summary>Console logger implementing ISimLogger for server-side use</summary>
-    internal class ConsoleLogger : ISimLogger
-    {
-        public void Log(string message) => Console.WriteLine($"[LOG] {message}");
-        public void Warn(string message) => Console.WriteLine($"[WARN] {message}");
-        public void Error(string message) => Console.Error.WriteLine($"[ERROR] {message}");
     }
 }

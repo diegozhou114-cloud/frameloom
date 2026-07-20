@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Collections.Generic;
 using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.Server
@@ -19,6 +20,7 @@ namespace ZWebGLFrameWork.Server
         {
             if (string.IsNullOrWhiteSpace(json))
                 throw new ArgumentException("Replay JSON must not be empty.", nameof(json));
+            StrictJsonDocument.ValidateReplayShape(json);
             return JsonSerializer.Deserialize<ReplayFile>(json, Options)
                 ?? throw new JsonException("Replay JSON produced no value.");
         }
@@ -27,7 +29,8 @@ namespace ZWebGLFrameWork.Server
         {
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
+                PropertyNameCaseInsensitive = false,
+                UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
                 WriteIndented = true
             };
             options.Converters.Add(new SimEntitySpawnInfoConverter());
@@ -46,21 +49,29 @@ namespace ZWebGLFrameWork.Server
                 int gridX = 0;
                 int gridY = 0;
                 int teamId = 0;
+                var seen = new HashSet<string>(StringComparer.Ordinal);
                 while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
                 {
                     if (reader.TokenType != JsonTokenType.PropertyName)
                         throw new JsonException("Spawn info contains an invalid token.");
                     string propertyName = reader.GetString();
+                    if (!seen.Add(propertyName))
+                        throw new JsonException("Spawn info contains a duplicate property.");
                     if (!reader.Read()) throw new JsonException("Spawn info ended unexpectedly.");
-                    switch (propertyName?.ToLowerInvariant())
+                    switch (propertyName)
                     {
-                        case "archetypeid": archetypeId = reader.GetInt32(); break;
-                        case "gridx": gridX = reader.GetInt32(); break;
-                        case "gridy": gridY = reader.GetInt32(); break;
-                        case "teamid": teamId = reader.GetInt32(); break;
-                        default: reader.Skip(); break;
+                        case "ArchetypeId": archetypeId = reader.GetInt32(); break;
+                        case "GridX": gridX = reader.GetInt32(); break;
+                        case "GridY": gridY = reader.GetInt32(); break;
+                        case "TeamId": teamId = reader.GetInt32(); break;
+                        default: throw new JsonException(
+                            "Spawn info contains an unknown property.");
                     }
                 }
+                if (seen.Count != 4 ||
+                    !seen.Contains("ArchetypeId") || !seen.Contains("GridX") ||
+                    !seen.Contains("GridY") || !seen.Contains("TeamId"))
+                    throw new JsonException("Spawn info is missing a required property.");
                 return new SimEntitySpawnInfo(archetypeId, gridX, gridY, teamId);
             }
 

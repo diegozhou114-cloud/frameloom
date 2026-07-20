@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>ZWebGLFrameWork.FrameSyncServer</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../NetworkContracts/ZWebGLFrameWork.Network.Contracts.csproj" />
+    <ProjectReference Include="../SimulationCore/ZWebGLFrameWork.SimulationCore.csproj" />
+  </ItemGroup>
+</Project>
