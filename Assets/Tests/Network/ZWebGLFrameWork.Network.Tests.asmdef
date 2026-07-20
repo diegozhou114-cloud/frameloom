@@ -1,0 +1,24 @@
+{
+  "name": "ZWebGLFrameWork.Network.Tests",
+  "rootNamespace": "ZWebGLFrameWork.Network.Tests",
+  "references": [
+    "ZWebGLFrameWork.Network.Contracts",
+    "ZWebGLFrameWork.Network.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
