@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Network.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Server.Tests", "Tests\ZWebGLFrameWork.Server.Tests.csproj", "{08DA2B46-1908-42B7-AA78-2A817B36B9F6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{1E598C6A-0CB5-4EED-BF85-4A39672F6739}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplayFixtureGenerator", "Tools\ReplayFixtureGenerator\ReplayFixtureGenerator.csproj", "{59AEE357-A96C-4FE6-9D71-FE120978FE1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,12 @@ Global
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59AEE357-A96C-4FE6-9D71-FE120978FE1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59AEE357-A96C-4FE6-9D71-FE120978FE1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59AEE357-A96C-4FE6-9D71-FE120978FE1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59AEE357-A96C-4FE6-9D71-FE120978FE1B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{59AEE357-A96C-4FE6-9D71-FE120978FE1B} = {1E598C6A-0CB5-4EED-BF85-4A39672F6739}
 	EndGlobalSection
 EndGlobal
