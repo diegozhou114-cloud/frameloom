@@ -59,8 +59,12 @@
       "replayvalidator": {
         "type": "Project",
         "dependencies": {
+          "ZWebGLFrameWork.Network.Contracts": "[1.0.0, )",
           "ZWebGLFrameWork.SimulationCore": "[1.0.0, )"
         }
+      },
+      "zwebglframework.network.contracts": {
+        "type": "Project"
       },
       "zwebglframework.simulationcore": {
         "type": "Project"
