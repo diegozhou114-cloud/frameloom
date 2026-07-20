@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Threading;
+using System.Threading.Tasks;
 using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.Server
@@ -16,6 +20,9 @@ namespace ZWebGLFrameWork.Server
     {
         private readonly ISimBattleSessionFactory _sessionFactory;
         private readonly byte[] _canonicalManifestBytes;
+        private readonly ReplayValidationLimits _limits;
+        private readonly ReplayStructuralValidator _structural;
+        private readonly IReplayValidationBudget _budget;
         private readonly ISimLogger _logger;
 
         public ReplayValidator(ISimBattleSessionFactory sessionFactory,
@@ -24,8 +31,189 @@ namespace ZWebGLFrameWork.Server
             _sessionFactory = sessionFactory ?? throw new ArgumentNullException(nameof(sessionFactory));
             _canonicalManifestBytes = (byte[])(canonicalManifestBytes ??
                 throw new ArgumentNullException(nameof(canonicalManifestBytes))).Clone();
+            _limits = ReplayValidationLimits.Approved;
+            _structural = new ReplayStructuralValidator(
+                _limits, KnownCommandSchema.Version1);
+            _budget = new UnlimitedReplayValidationBudget();
             _logger = logger;
         }
+
+        public ReplayValidator(
+            ISimBattleSessionFactory sessionFactory,
+            ReplayValidationLimits limits,
+            IReplayValidationBudget budget,
+            ISimLogger logger = null)
+        {
+            _sessionFactory = sessionFactory ??
+                throw new ArgumentNullException(nameof(sessionFactory));
+            _limits = limits ?? throw new ArgumentNullException(nameof(limits));
+            _structural = new ReplayStructuralValidator(
+                _limits, KnownCommandSchema.Version1);
+            _budget = budget ?? throw new ArgumentNullException(nameof(budget));
+            _canonicalManifestBytes = Array.Empty<byte>();
+            _logger = logger;
+        }
+
+        public Task<ReplayValidationResult> ValidateAsync(
+            ReplayFile replay,
+            AuthoritativeMatchRecord match,
+            string submittingPlayerId,
+            int serializedBytes,
+            CancellationToken cancellationToken)
+        {
+            ReplayValidationResult structural =
+                _structural.Validate(replay, serializedBytes);
+            if (!structural.IsValid) return Task.FromResult(structural);
+            if (match == null || !string.Equals(
+                    replay.MatchId, match.MatchId, StringComparison.Ordinal))
+                return Rejected(ReplayValidationCode.MatchMismatch);
+            if (string.IsNullOrWhiteSpace(submittingPlayerId) ||
+                match.AllowedSubmitterPlayerIds == null ||
+                !match.AllowedSubmitterPlayerIds.Contains(
+                    submittingPlayerId, StringComparer.Ordinal))
+                return Rejected(ReplayValidationCode.UnauthorizedSubmitter);
+            if (replay.SubmissionNonce != match.SubmissionNonce)
+                return Rejected(ReplayValidationCode.MatchMismatch);
+            if (replay.SimulationSchemaHash != match.SimulationSchemaHash)
+                return Rejected(ReplayValidationCode.SchemaMismatch);
+            if (replay.ContentConfigHash != match.ContentConfigHash)
+                return Rejected(ReplayValidationCode.ConfigMismatch);
+            if (match.BattleInit == null ||
+                replay.TickRate != match.BattleInit.TickRate)
+                return Rejected(ReplayValidationCode.TickRateMismatch);
+            if (match.BattleInit.InitialEntities == null ||
+                match.InitialSnapshot == null)
+                return Rejected(ReplayValidationCode.InitialStateMismatch);
+            if (!TryValidateAuthorityGraph(match, out ReplayValidationCode graphCode))
+                return Rejected(graphCode);
+            if (match.BattleInit.InitialEntities.Length >
+                _limits.MaxInitialEntities)
+                return Rejected(ReplayValidationCode.TooManyInitialEntities);
+            if (!HasValidExpectedSnapshot(match.InitialSnapshot))
+                return Rejected(ReplayValidationCode.InitialStateMismatch);
+            if (match.InitialSnapshot.UncompressedLength >
+                    _limits.MaxDecompressedSnapshotBytes ||
+                match.InitialSnapshot.Payload.Length >
+                    _limits.MaxDecompressedSnapshotBytes)
+                return Rejected(ReplayValidationCode.SnapshotTooLarge);
+
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                using (ISimBattleSession session = _sessionFactory.Create(
+                    match.CanonicalManifestBytes, _logger))
+                {
+                    if (session == null)
+                        return Rejected(ReplayValidationCode.InitialStateMismatch);
+                    StartResult started = session.Start(match.BattleInit);
+                    if (!started.Accepted)
+                        return Rejected(ReplayValidationCode.InitialStateMismatch);
+                    SimSnapshot actualInitial = session.CaptureSnapshot();
+                    if (!SameInitialSnapshot(actualInitial, match.InitialSnapshot))
+                        return Rejected(ReplayValidationCode.InitialStateMismatch);
+                    string authoritativeInitialStateHash =
+                        HashText.ToLowerHex(actualInitial.PayloadSha256);
+                    if (match.InitialStateHash != authoritativeInitialStateHash ||
+                        replay.InitialStateHash != authoritativeInitialStateHash)
+                        return Rejected(ReplayValidationCode.InitialStateMismatch);
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return Rejected(ReplayValidationCode.InitialStateMismatch);
+            }
+
+            return Task.FromResult(ReplayValidationResult.StructurallyValid());
+        }
+
+        private static bool TryValidateAuthorityGraph(
+            AuthoritativeMatchRecord match, out ReplayValidationCode code)
+        {
+            try
+            {
+                SimSnapshot snapshot = match.InitialSnapshot;
+                BattleInit init = match.BattleInit;
+                if (!string.Equals(match.MatchId, init.MatchId,
+                        StringComparison.Ordinal) ||
+                    !string.Equals(match.MatchId, snapshot.MatchId,
+                        StringComparison.Ordinal))
+                {
+                    code = ReplayValidationCode.MatchMismatch;
+                    return false;
+                }
+
+                DeterministicContentManifest manifest =
+                    DeterministicContentManifest.Parse(match.CanonicalManifestBytes);
+                byte[] manifestHash = manifest.ContentHash;
+                if (!string.Equals(match.ContentConfigHash,
+                        HashText.ToLowerHex(manifestHash),
+                        StringComparison.Ordinal) ||
+                    !HashText.FixedTimeEquals(manifestHash, init.ContentHash) ||
+                    !HashText.FixedTimeEquals(manifestHash, snapshot.ContentHash))
+                {
+                    code = ReplayValidationCode.ConfigMismatch;
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                code = ReplayValidationCode.ConfigMismatch;
+                return false;
+            }
+
+            code = ReplayValidationCode.Valid;
+            return true;
+        }
+
+        private static bool HasValidExpectedSnapshot(SimSnapshot expected)
+        {
+            try
+            {
+                byte[] payload = expected.Payload;
+                byte[] payloadSha256 = expected.PayloadSha256;
+                if (payload == null || payloadSha256 == null) return false;
+                using (SHA256 sha256 = SHA256.Create())
+                    return HashText.FixedTimeEquals(
+                        sha256.ComputeHash(payload), payloadSha256);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static bool SameInitialSnapshot(
+            SimSnapshot actual, SimSnapshot expected)
+        {
+            if (actual == null || expected == null) return false;
+            try
+            {
+                return actual.CompletedTick == -1 &&
+                    actual.MatchId == expected.MatchId &&
+                    actual.SessionId == expected.SessionId &&
+                    actual.SchemaVersion == expected.SchemaVersion &&
+                    actual.CompletedTick == expected.CompletedTick &&
+                    actual.NextTick == expected.NextTick &&
+                    actual.TimelineRevision == expected.TimelineRevision &&
+                    actual.UncompressedLength == expected.UncompressedLength &&
+                    actual.StateChecksum == expected.StateChecksum &&
+                    HashText.FixedTimeEquals(actual.ContentHash, expected.ContentHash) &&
+                    HashText.FixedTimeEquals(actual.PayloadSha256, expected.PayloadSha256) &&
+                    HashText.FixedTimeEquals(actual.Payload, expected.Payload);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static Task<ReplayValidationResult> Rejected(
+            ReplayValidationCode code) => Task.FromResult(
+                new ReplayValidationResult(code));
 
         public ReplayResult Validate(ReplayFile replay)
         {
