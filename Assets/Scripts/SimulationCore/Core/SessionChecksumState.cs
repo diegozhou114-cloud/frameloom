@@ -13,11 +13,19 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly SimCombatPhase _phase;
         private readonly int _completedTick;
         private readonly int _nextTick;
+        private readonly int _deployedCount;
+        private readonly bool _hasTerminalOutcome;
+        private readonly int _terminalWinner;
+        private readonly int _terminalStars;
+        private readonly int _terminalLootGold;
+        private readonly int _terminalLootElixir;
+        private readonly int _terminalFinalTick;
         private readonly ulong _commandHash;
 
         public SessionChecksumState(int protocolVersion, int schemaVersion, byte[] contentHash,
             int seed, SessionLifecycle lifecycle, SimCombatPhase phase,
-            int completedTick, int nextTick, ulong commandHash)
+            int completedTick, int nextTick, int deployedCount,
+            SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash)
         {
             _protocolVersion = protocolVersion;
             _schemaVersion = schemaVersion;
@@ -27,6 +35,13 @@ namespace ZWebGLFrameWork.SimulationCore
             _phase = phase;
             _completedTick = completedTick;
             _nextTick = nextTick;
+            _deployedCount = deployedCount;
+            _hasTerminalOutcome = terminalOutcome != null;
+            _terminalWinner = terminalOutcome?.WinnerTeamId ?? 0;
+            _terminalStars = terminalOutcome?.Stars ?? 0;
+            _terminalLootGold = terminalOutcome?.LootGold ?? 0;
+            _terminalLootElixir = terminalOutcome?.LootElixir ?? 0;
+            _terminalFinalTick = terminalFinalTick;
             _commandHash = commandHash;
         }
 
@@ -41,6 +56,16 @@ namespace ZWebGLFrameWork.SimulationCore
             state.AddInt32((int)_phase);
             state.AddInt32(_completedTick);
             state.AddInt32(_nextTick);
+            state.AddInt32(_deployedCount);
+            state.AddBool(_hasTerminalOutcome);
+            if (_hasTerminalOutcome)
+            {
+                state.AddInt32(_terminalWinner);
+                state.AddInt32(_terminalStars);
+                state.AddInt32(_terminalLootGold);
+                state.AddInt32(_terminalLootElixir);
+                state.AddInt32(_terminalFinalTick);
+            }
             state.AddUInt64(_commandHash);
             return state.Value;
         }

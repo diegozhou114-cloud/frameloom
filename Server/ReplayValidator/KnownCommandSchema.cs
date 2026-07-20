@@ -51,6 +51,13 @@ namespace ZWebGLFrameWork.Server
                         command.GridX == 0 && command.GridY == 0
                             ? ReplayValidationCode.Valid
                             : ReplayValidationCode.InvalidCommand;
+                case SimCommandType.EndDeployment:
+                    return command.UnitTypeId == 0 && command.EntityId == 0 &&
+                        command.CasterId == 0 && command.SkillId == 0 &&
+                        command.GridX == 0 && command.GridY == 0 &&
+                        command.TargetX == 0 && command.TargetY == 0
+                            ? ReplayValidationCode.Valid
+                            : ReplayValidationCode.InvalidCommand;
                 default:
                     return ReplayValidationCode.UnknownCommand;
             }

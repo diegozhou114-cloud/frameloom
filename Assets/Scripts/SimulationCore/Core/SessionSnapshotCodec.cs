@@ -15,6 +15,9 @@ namespace ZWebGLFrameWork.SimulationCore
         public int AttackerDead;
         public int DefenderDead;
         public int? Winner;
+        public int DeployedCount;
+        public SimTerminalOutcome TerminalOutcome;
+        public int TerminalFinalTick;
         public Dictionary<int, int> LastSequenceByPlayer;
         public ISimCommand[] PendingCommands;
         public TickSnapshot WorldSnapshot;
@@ -23,7 +26,7 @@ namespace ZWebGLFrameWork.SimulationCore
     internal static class SessionSnapshotCodec
     {
         private static readonly byte[] Magic = { 0x5A, 0x53, 0x4E, 0x50 };
-        private const int Version = 1;
+        private const int Version = 2;
         private const int MaxGenerations = 1_000_000;
         private const int MaxChunks = 100_000;
         private const int MaxComponentsPerChunk = 16;
@@ -50,6 +53,16 @@ namespace ZWebGLFrameWork.SimulationCore
             writer.WriteInt32(data.DefenderDead);
             writer.WriteByte(data.Winner.HasValue ? (byte)1 : (byte)0);
             if (data.Winner.HasValue) writer.WriteInt32(data.Winner.Value);
+            writer.WriteInt32(data.DeployedCount);
+            writer.WriteByte(data.TerminalOutcome != null ? (byte)1 : (byte)0);
+            if (data.TerminalOutcome != null)
+            {
+                writer.WriteInt32(data.TerminalOutcome.WinnerTeamId);
+                writer.WriteInt32(data.TerminalOutcome.Stars);
+                writer.WriteInt32(data.TerminalOutcome.LootGold);
+                writer.WriteInt32(data.TerminalOutcome.LootElixir);
+                writer.WriteInt32(data.TerminalFinalTick);
+            }
 
             var players = new List<KeyValuePair<int, int>>(data.LastSequenceByPlayer ??
                 new Dictionary<int, int>());
@@ -96,6 +109,26 @@ namespace ZWebGLFrameWork.SimulationCore
             byte hasWinner = reader.ReadByte();
             if (hasWinner > 1) throw new FormatException("Invalid winner marker.");
             data.Winner = hasWinner == 1 ? reader.ReadInt32() : (int?)null;
+            data.DeployedCount = ReadNonNegative(reader, "deployed unit");
+            byte hasTerminalOutcome = reader.ReadByte();
+            if (hasTerminalOutcome > 1) throw new FormatException("Invalid terminal outcome marker.");
+            if (hasTerminalOutcome == 1)
+            {
+                try
+                {
+                    data.TerminalOutcome = new SimTerminalOutcome(
+                        reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+                    data.TerminalFinalTick = ReadNonNegative(reader, "terminal final tick");
+                }
+                catch (ArgumentException exception)
+                {
+                    throw new FormatException("Invalid terminal outcome.", exception);
+                }
+            }
+            else
+            {
+                data.TerminalFinalTick = -1;
+            }
 
             int playerCount = ReadCount(reader, MaxPlayers, "player sequence");
             data.LastSequenceByPlayer = new Dictionary<int, int>(playerCount);
@@ -351,6 +384,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     writer.WriteInt32(skill.CasterId); writer.WriteInt32(skill.SkillId);
                     writer.WriteInt32(skill.TargetX); writer.WriteInt32(skill.TargetY);
                     break;
+                case EndDeploymentCmd:
+                    break;
                 default:
                     throw new FormatException("Unsupported snapshot command type.");
             }
@@ -372,6 +407,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     return new SkillCmd { Tick = tick, PlayerId = playerId, Sequence = sequence,
                         CasterId = reader.ReadInt32(), SkillId = reader.ReadInt32(),
                         TargetX = reader.ReadInt32(), TargetY = reader.ReadInt32() };
+                case SimCommandType.EndDeployment:
+                    return new EndDeploymentCmd { Tick = tick, PlayerId = playerId, Sequence = sequence };
                 default:
                     throw new FormatException("Unknown snapshot command type.");
             }

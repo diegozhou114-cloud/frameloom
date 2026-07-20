@@ -7,6 +7,7 @@ namespace ZWebGLFrameWork.SimulationCore
         Deploy = 1,   // 部署单位
         Move = 2,     // 移动命令（点击目的地）
         Skill = 3,    // 释放技能
+        EndDeployment = 4,
     }
 
     /// <summary>仿真命令接口 — 所有命令实现此接口</summary>

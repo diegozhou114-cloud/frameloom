@@ -46,4 +46,12 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>目标网格 Y（-1 表示无目标）</summary>
         public int TargetY;
     }
+
+    public struct EndDeploymentCmd : ISimCommand
+    {
+        public SimCommandType Type => SimCommandType.EndDeployment;
+        public int Tick { get; set; }
+        public int PlayerId { get; set; }
+        public int Sequence { get; set; }
+    }
 }

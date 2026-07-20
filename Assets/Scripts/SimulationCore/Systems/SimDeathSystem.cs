@@ -11,6 +11,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public int AttackerDead { get; private set; }
         public int DefenderDead { get; private set; }
         public float AttackerDestroyedPercent { get; private set; }
+        public int DestructionBasisPoints { get; private set; }
         public int? Winner { get; private set; }
 
         private readonly List<SimEntity> _deadList = new List<SimEntity>();
@@ -18,7 +19,6 @@ namespace ZWebGLFrameWork.SimulationCore
         public override void Update()
         {
             AttackerAlive = 0; DefenderAlive = 0;
-            AttackerDead = 0; DefenderDead = 0;
             Winner = null;
             _deadList.Clear();
 
@@ -45,6 +45,8 @@ namespace ZWebGLFrameWork.SimulationCore
 
             int defenderTotal = DefenderDead + DefenderAlive;
             AttackerDestroyedPercent = defenderTotal > 0 ? (float)DefenderDead / defenderTotal : 0f;
+            DestructionBasisPoints = defenderTotal > 0
+                ? (int)((long)DefenderDead * 10000 / defenderTotal) : 0;
 
             if (AttackerAlive == 0 && DefenderAlive > 0) Winner = SimTeam.Defender;
             else if (DefenderAlive == 0 && AttackerAlive > 0) Winner = SimTeam.Attacker;
@@ -63,6 +65,8 @@ namespace ZWebGLFrameWork.SimulationCore
             DefenderDead = defenderDead;
             int defenderTotal = defenderAlive + defenderDead;
             AttackerDestroyedPercent = defenderTotal == 0 ? 0f : (float)defenderDead / defenderTotal;
+            DestructionBasisPoints = defenderTotal == 0
+                ? 0 : (int)((long)defenderDead * 10000 / defenderTotal);
             Winner = winner;
         }
 
