@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using NUnit.Framework;
 
 namespace ZWebGLFrameWork.SimulationCore.Tests
@@ -17,7 +18,24 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             SerializableCommand serialized = recorder.Export().Records.Single().Commands.Single();
             Assert.That(serialized.Type, Is.EqualTo(nameof(SimCommandType.EndDeployment)));
-            Assert.That(CommandRecorder.DeserializeCommand(serialized), Is.TypeOf<EndDeploymentCmd>());
+            Assert.Multiple(() =>
+            {
+                Assert.That(serialized.UnitTypeId, Is.Zero);
+                Assert.That(serialized.EntityId, Is.Zero);
+                Assert.That(serialized.CasterId, Is.Zero);
+                Assert.That(serialized.SkillId, Is.Zero);
+                Assert.That(serialized.GridX, Is.Zero);
+                Assert.That(serialized.GridY, Is.Zero);
+                Assert.That(serialized.TargetX, Is.Zero);
+                Assert.That(serialized.TargetY, Is.Zero);
+            });
+            var restoredCommand = (EndDeploymentCmd)CommandRecorder.DeserializeCommand(serialized);
+            Assert.Multiple(() =>
+            {
+                Assert.That(restoredCommand.Tick, Is.EqualTo(command.Tick));
+                Assert.That(restoredCommand.PlayerId, Is.EqualTo(command.PlayerId));
+                Assert.That(restoredCommand.Sequence, Is.EqualTo(command.Sequence));
+            });
 
             using SimBattleSession session = SessionTestDriver.StartedBattle();
             Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Accepted));
@@ -244,6 +262,73 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(transition.ExecutedCommands.Single(), Is.TypeOf<EndDeploymentCmd>());
             Assert.That(transition.Code, Is.EqualTo(TickCode.Ended));
             Assert.That(transition.Result.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
+        }
+
+        [Test]
+        public void AutomaticDuration_AttackingEntitiesWaitUntilBoundaryTick()
+        {
+            DeterministicContentManifest oneHit =
+                DeterministicContentManifest.Parse(SessionTestDriver.OneHitManifestBytes());
+            byte[] manifestBytes = new DeterministicContentManifest(1,
+                oneHit.Archetypes.ToArray(), new[]
+                {
+                    new SimModeProfile(SimCombatMode.VillageAttack, true, 40, 3, 3600,
+                        Array.Empty<int>()),
+                    new SimModeProfile(SimCombatMode.BuilderBase, true, 30, 600, 3600,
+                        Array.Empty<int>()),
+                    new SimModeProfile(SimCombatMode.ClanWar, true, 40, 600, 3600,
+                        Array.Empty<int>()),
+                    new SimModeProfile(SimCombatMode.Campaign, false, 0, 0, 2400,
+                        new[] { 0, 100, 200, 300, 400 }),
+                }).ToCanonicalBytes();
+            DeterministicContentManifest manifest =
+                DeterministicContentManifest.Parse(manifestBytes);
+            BattleInit baseline = SessionTestDriver.OneHitBattleInit(manifestBytes);
+            var init = new BattleInit(baseline.ProtocolVersion, baseline.SchemaVersion,
+                baseline.MatchId, baseline.SessionId, baseline.Seed, baseline.TickRate,
+                baseline.Mode, manifest.ContentHash, baseline.Players,
+                baseline.InitialEntities, baseline.InputDeadlineTicks);
+            using var session = (SimBattleSession)new SimBattleSessionFactory().Create(manifestBytes);
+            Assert.That(session.Start(init).Accepted, Is.True);
+            EntityPresentationState[] initial = session.State.Presentation.Entities.ToArray();
+
+            for (int tick = 0; tick < 2; tick++)
+            {
+                TickResult deploying = session.Tick();
+                Assert.That(deploying.Code, Is.EqualTo(TickCode.Advanced));
+                Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
+                Assert.That(deploying.Presentation.Entities.Select(EntityCombatState),
+                    Is.EqualTo(initial.Select(EntityCombatState)));
+            }
+
+            TickResult boundary = session.Tick();
+            Assert.That(boundary.Code, Is.EqualTo(TickCode.Ended));
+            Assert.That(boundary.Result.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
+        }
+
+        [Test]
+        public void Snapshot_ChangedDeathCountersAreRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.DefenderDead++;
+            byte[] forgedPayload = SessionSnapshotCodec.Encode(data);
+            byte[] forgedHash;
+            using (SHA256 sha256 = SHA256.Create())
+                forgedHash = sha256.ComputeHash(forgedPayload);
+            var forged = new SimSnapshot(baseline.MatchId, baseline.SessionId,
+                baseline.SchemaVersion, baseline.ContentHash, baseline.CompletedTick,
+                baseline.NextTick, baseline.TimelineRevision, forgedPayload.Length,
+                baseline.StateChecksum, forgedPayload, forgedHash);
+            ulong checksumBefore = session.State.Checksum;
+            SimCombatPhase phaseBefore = session.State.Phase;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+            Assert.That(session.State.Phase, Is.EqualTo(phaseBefore));
         }
 
         [Test]
