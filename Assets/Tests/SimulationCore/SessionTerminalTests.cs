@@ -18,24 +18,18 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             SerializableCommand serialized = recorder.Export().Records.Single().Commands.Single();
             Assert.That(serialized.Type, Is.EqualTo(nameof(SimCommandType.EndDeployment)));
-            Assert.Multiple(() =>
-            {
-                Assert.That(serialized.UnitTypeId, Is.Zero);
-                Assert.That(serialized.EntityId, Is.Zero);
-                Assert.That(serialized.CasterId, Is.Zero);
-                Assert.That(serialized.SkillId, Is.Zero);
-                Assert.That(serialized.GridX, Is.Zero);
-                Assert.That(serialized.GridY, Is.Zero);
-                Assert.That(serialized.TargetX, Is.Zero);
-                Assert.That(serialized.TargetY, Is.Zero);
-            });
+            Assert.That(serialized.UnitTypeId, Is.Zero);
+            Assert.That(serialized.EntityId, Is.Zero);
+            Assert.That(serialized.CasterId, Is.Zero);
+            Assert.That(serialized.SkillId, Is.Zero);
+            Assert.That(serialized.GridX, Is.Zero);
+            Assert.That(serialized.GridY, Is.Zero);
+            Assert.That(serialized.TargetX, Is.Zero);
+            Assert.That(serialized.TargetY, Is.Zero);
             var restoredCommand = (EndDeploymentCmd)CommandRecorder.DeserializeCommand(serialized);
-            Assert.Multiple(() =>
-            {
-                Assert.That(restoredCommand.Tick, Is.EqualTo(command.Tick));
-                Assert.That(restoredCommand.PlayerId, Is.EqualTo(command.PlayerId));
-                Assert.That(restoredCommand.Sequence, Is.EqualTo(command.Sequence));
-            });
+            Assert.That(restoredCommand.Tick, Is.EqualTo(command.Tick));
+            Assert.That(restoredCommand.PlayerId, Is.EqualTo(command.PlayerId));
+            Assert.That(restoredCommand.Sequence, Is.EqualTo(command.Sequence));
 
             using SimBattleSession session = SessionTestDriver.StartedBattle();
             Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Accepted));

@@ -50,6 +50,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void SessionTick_RunsCoreSystemsAndReturnsAdvancedResult()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
 
             TickResult result = session.Tick();
 
@@ -116,12 +120,18 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void SkillCommand_ValidSkillMutatesTargetHealthDeterministically()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
-            EntityPresentationState caster = session.State.Presentation.Entities[0];
-            EntityPresentationState target = session.State.Presentation.Entities[1];
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            TickResult deployment = session.Tick();
+            Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Battling));
+            EntityPresentationState caster = deployment.Presentation.Entities[0];
+            EntityPresentationState target = deployment.Presentation.Entities[1];
 
             CommandSubmitResult submitted = session.Submit(new SkillCmd
             {
-                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+                Tick = 1, PlayerId = caster.OwnerPlayerId, Sequence = 2,
                 CasterId = caster.EntityId, SkillId = 1,
                 TargetX = target.GridX, TargetY = target.GridY,
             });

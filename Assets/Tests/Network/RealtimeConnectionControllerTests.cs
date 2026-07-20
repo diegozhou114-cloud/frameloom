@@ -155,7 +155,7 @@ namespace ZWebGLFrameWork.Network.Tests
             await secondConnect;
             first.FailConnect(new System.IO.IOException("late failure"));
 
-            Assert.DoesNotThrowAsync(async () => await firstConnect);
+            await firstConnect;
             Assert.That(first.DisposeCallCount, Is.EqualTo(1));
         }
 
