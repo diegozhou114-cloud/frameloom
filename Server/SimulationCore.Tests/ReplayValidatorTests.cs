@@ -18,7 +18,7 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 Version = 1,
                 Seed = 42,
                 InitialLayout = new[] { new SimEntitySpawnInfo(10, 2, 2, SimTeam.Attacker) },
-                Records = new List<TickRecord>(),
+                Records = new List<ReplayTickRecord>(),
             });
 
             Assert.That(result.IsValid, Is.False);
@@ -35,7 +35,7 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(validator.Validate(replay).IsValid, Is.False);
 
             replay = ValidReplay();
-            replay.Records.Add(new TickRecord { Tick = 0, Checksum = 0 });
+            replay.Records.Add(new ReplayTickRecord { Tick = 0, Checksum = 0 });
             Assert.That(validator.Validate(replay).IsValid, Is.False);
 
             replay = ValidReplay();
@@ -58,7 +58,7 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 Type = "Deploy", Tick = 0, PlayerId = 0, Sequence = 1,
                 UnitTypeId = 10, GridX = 3, GridY = 3,
             });
-            replay.Records.Add(new TickRecord
+            replay.Records.Add(new ReplayTickRecord
             {
                 Tick = 1,
                 Checksum = 0,
@@ -80,9 +80,9 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Version = 1,
             Seed = 42,
             InitialLayout = new[] { new SimEntitySpawnInfo(10, 2, 2, SimTeam.Attacker) },
-            Records = new List<TickRecord>
+            Records = new List<ReplayTickRecord>
             {
-                new TickRecord { Tick = 0, Checksum = 0, Commands = new List<SerializableCommand>() },
+                new ReplayTickRecord { Tick = 0, Checksum = 0, Commands = new List<SerializableCommand>() },
             },
         };
     }

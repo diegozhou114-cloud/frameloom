@@ -189,6 +189,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             orchestrator.Tick();
 
             ReplayFile replay = recorder.Export();
+            Assert.That(replay.FormatVersion, Is.EqualTo(ReplayFormat.CurrentVersion));
+            Assert.That(replay.TickRate, Is.EqualTo(ReplayFormat.TickRate));
             Assert.That(replay.Records[0].Commands.Count, Is.EqualTo(1));
             Assert.That(replay.Records[0].Commands[0].Type, Is.EqualTo("Move"));
         }
@@ -206,6 +208,21 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         {
             var replay = new ReplayFile
             {
+                FormatVersion = ReplayFormat.CurrentVersion,
+                SimulationSchemaHash =
+                    "1111111111111111111111111111111111111111111111111111111111111111",
+                ContentConfigHash =
+                    "2222222222222222222222222222222222222222222222222222222222222222",
+                TickRate = ReplayFormat.TickRate,
+                MatchId = "match-1",
+                InitialStateHash =
+                    "3333333333333333333333333333333333333333333333333333333333333333",
+                SubmissionNonce = "nonce-1",
+                FinalTick = 1,
+                FinalChecksum = 67890UL,
+                FinalResult = new SimBattleResult(
+                    "match-1", "result-1", SimTeam.Attacker,
+                    3, 100, 50, 1, 67890UL),
                 Version = 1,
                 Seed = 42,
                 InitialLayout = new[]
@@ -213,10 +230,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                     new SimEntitySpawnInfo(2, 10, 10, SimTeam.Defender),
                     new SimEntitySpawnInfo(10, 5, 5, SimTeam.Attacker),
                 },
-                Records = new List<TickRecord>
+                Records = new List<ReplayTickRecord>
                 {
-                    new TickRecord { Tick = 0, Checksum = 12345UL, Commands = new List<SerializableCommand>() },
-                    new TickRecord { Tick = 1, Checksum = 67890UL, Commands = new List<SerializableCommand>
+                    new ReplayTickRecord { Tick = 0, Checksum = 12345UL, Commands = new List<SerializableCommand>() },
+                    new ReplayTickRecord { Tick = 1, Checksum = 67890UL, Commands = new List<SerializableCommand>
                     {
                         new SerializableCommand { Type = "Deploy", Tick = 1, PlayerId = 0, UnitTypeId = 3, GridX = 7, GridY = 8 }
                     }},
@@ -226,6 +243,17 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             string json = UnityReplayJsonCodec.Serialize(replay);
             var restored = UnityReplayJsonCodec.Deserialize(json);
 
+            Assert.That(restored.FormatVersion, Is.EqualTo(ReplayFormat.CurrentVersion));
+            Assert.That(restored.SimulationSchemaHash, Is.EqualTo(replay.SimulationSchemaHash));
+            Assert.That(restored.ContentConfigHash, Is.EqualTo(replay.ContentConfigHash));
+            Assert.That(restored.TickRate, Is.EqualTo(ReplayFormat.TickRate));
+            Assert.That(restored.MatchId, Is.EqualTo("match-1"));
+            Assert.That(restored.InitialStateHash, Is.EqualTo(replay.InitialStateHash));
+            Assert.That(restored.SubmissionNonce, Is.EqualTo("nonce-1"));
+            Assert.That(restored.FinalTick, Is.EqualTo(1));
+            Assert.That(restored.FinalChecksum, Is.EqualTo(67890UL));
+            Assert.That(restored.FinalResult.ResultId, Is.EqualTo("result-1"));
+            Assert.That(restored.FinalResult.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
             Assert.That(restored.Version, Is.EqualTo(1));
             Assert.That(restored.Seed, Is.EqualTo(42));
             Assert.That(restored.InitialLayout.Length, Is.EqualTo(2));

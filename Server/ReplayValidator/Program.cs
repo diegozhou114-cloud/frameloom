@@ -24,8 +24,23 @@ namespace ZWebGLFrameWork.Server
 
             try
             {
-                string json = File.ReadAllText(filePath);
-                var replay = ServerReplayJsonCodec.Deserialize(json);
+                ReplayInputText input;
+                using (FileStream replayStream = File.OpenRead(filePath))
+                {
+                    input = ReplayInput.ReadUtf8(
+                        replayStream, ReplayValidationLimits.Approved.MaxFileBytes);
+                }
+                var replay = ServerReplayJsonCodec.Deserialize(input.Text);
+                var structuralValidator = new ReplayStructuralValidator(
+                    ReplayValidationLimits.Approved, KnownCommandSchema.Version1);
+                ReplayValidationResult structuralResult = structuralValidator.Validate(
+                    replay, input.ByteCount);
+                if (!structuralResult.IsValid)
+                {
+                    Console.Error.WriteLine(
+                        $"Replay rejected: {structuralResult.Code} at tick {structuralResult.FailedTick}.");
+                    return ReplayCliExitCodes.For(structuralResult.Code);
+                }
                 byte[] manifestBytes = File.ReadAllBytes(manifestPath);
 
                 var validator = new ReplayValidator(
@@ -45,6 +60,11 @@ namespace ZWebGLFrameWork.Server
                 }
 
                 return result.IsValid ? 0 : 2;
+            }
+            catch (ReplayInputLimitException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+                return 5;
             }
             catch (Exception ex)
             {

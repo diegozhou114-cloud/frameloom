@@ -26,6 +26,16 @@ namespace ZWebGLFrameWork.Combat
         [Serializable]
         private sealed class ReplayDto
         {
+            public ushort FormatVersion;
+            public string SimulationSchemaHash;
+            public string ContentConfigHash;
+            public int TickRate;
+            public string MatchId;
+            public string InitialStateHash;
+            public string SubmissionNonce;
+            public int FinalTick = -1;
+            public ResultDto FinalResult;
+            public ulong FinalChecksum;
             public int Version = 1;
             public int Seed;
             public SpawnDto[] InitialLayout = Array.Empty<SpawnDto>();
@@ -35,6 +45,16 @@ namespace ZWebGLFrameWork.Combat
             {
                 var dto = new ReplayDto
                 {
+                    FormatVersion = replay.FormatVersion,
+                    SimulationSchemaHash = replay.SimulationSchemaHash,
+                    ContentConfigHash = replay.ContentConfigHash,
+                    TickRate = replay.TickRate,
+                    MatchId = replay.MatchId,
+                    InitialStateHash = replay.InitialStateHash,
+                    SubmissionNonce = replay.SubmissionNonce,
+                    FinalTick = replay.FinalTick,
+                    FinalResult = ResultDto.From(replay.FinalResult),
+                    FinalChecksum = replay.FinalChecksum,
                     Version = replay.Version,
                     Seed = replay.Seed,
                     InitialLayout = new SpawnDto[replay.InitialLayout?.Length ?? 0],
@@ -51,10 +71,20 @@ namespace ZWebGLFrameWork.Combat
             {
                 var replay = new ReplayFile
                 {
+                    FormatVersion = FormatVersion,
+                    SimulationSchemaHash = SimulationSchemaHash,
+                    ContentConfigHash = ContentConfigHash,
+                    TickRate = TickRate,
+                    MatchId = MatchId,
+                    InitialStateHash = InitialStateHash,
+                    SubmissionNonce = SubmissionNonce,
+                    FinalTick = FinalTick,
+                    FinalResult = FinalResult?.ToResult(),
+                    FinalChecksum = FinalChecksum,
                     Version = Version,
                     Seed = Seed,
                     InitialLayout = new SimEntitySpawnInfo[InitialLayout?.Length ?? 0],
-                    Records = new List<TickRecord>(Records?.Length ?? 0)
+                    Records = new List<ReplayTickRecord>(Records?.Length ?? 0)
                 };
                 for (int index = 0; index < replay.InitialLayout.Length; index++)
                     replay.InitialLayout[index] = InitialLayout[index].ToSpawnInfo();
@@ -65,6 +95,43 @@ namespace ZWebGLFrameWork.Combat
                 }
                 return replay;
             }
+        }
+
+        [Serializable]
+        private sealed class ResultDto
+        {
+            public string MatchId;
+            public string ResultId;
+            public int WinnerTeamId;
+            public int Stars;
+            public int LootGold;
+            public int LootElixir;
+            public int FinalTick;
+            public ulong FinalChecksum;
+
+            public static ResultDto From(SimBattleResult result) => result == null
+                ? null
+                : new ResultDto
+                {
+                    MatchId = result.MatchId,
+                    ResultId = result.ResultId,
+                    WinnerTeamId = result.WinnerTeamId,
+                    Stars = result.Stars,
+                    LootGold = result.LootGold,
+                    LootElixir = result.LootElixir,
+                    FinalTick = result.FinalTick,
+                    FinalChecksum = result.FinalChecksum
+                };
+
+            public SimBattleResult ToResult() => new SimBattleResult(
+                MatchId,
+                ResultId,
+                WinnerTeamId,
+                Stars,
+                LootGold,
+                LootElixir,
+                FinalTick,
+                FinalChecksum);
         }
 
         [Serializable]
@@ -94,7 +161,7 @@ namespace ZWebGLFrameWork.Combat
             public CommandDto[] Commands = Array.Empty<CommandDto>();
             public ulong Checksum;
 
-            public static TickDto From(TickRecord record)
+            public static TickDto From(ReplayTickRecord record)
             {
                 var dto = new TickDto
                 {
@@ -107,9 +174,9 @@ namespace ZWebGLFrameWork.Combat
                 return dto;
             }
 
-            public TickRecord ToTickRecord()
+            public ReplayTickRecord ToTickRecord()
             {
-                var record = new TickRecord
+                var record = new ReplayTickRecord
                 {
                     Tick = Tick,
                     Checksum = Checksum,

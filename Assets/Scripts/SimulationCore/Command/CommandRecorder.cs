@@ -8,7 +8,11 @@ namespace ZWebGLFrameWork.SimulationCore
     /// </summary>
     public class CommandRecorder
     {
-        private readonly ReplayFile _replay = new ReplayFile();
+        private readonly ReplayFile _replay = new ReplayFile
+        {
+            FormatVersion = ReplayFormat.CurrentVersion,
+            TickRate = ReplayFormat.TickRate
+        };
         private readonly CommandBuffer _buffer;
 
         public CommandRecorder(int seed, IEnumerable<SimEntitySpawnInfo> initialLayout, CommandBuffer buffer)
@@ -27,7 +31,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>记录本 Tick 实际从缓冲区 Drain 并执行的命令。</summary>
         public void Record(int tick, ulong checksum, List<ISimCommand> executedCommands)
         {
-            var record = new TickRecord
+            var record = new ReplayTickRecord
             {
                 Tick = tick,
                 Checksum = checksum,
