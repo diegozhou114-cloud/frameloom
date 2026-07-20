@@ -120,26 +120,30 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (outcome.Disposition == CommandDisposition.Accepted)
                     acceptedCommands.Add(command);
             }
-            _systems.UpdateAll();
-            SimBattleEvent[] tickEvents = BuildTickEvents();
             SimCombatPhase phase = _state.Phase;
             SessionLifecycle lifecycle = _state.Lifecycle;
             if (phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment &&
                 nextTick >= _modeProfile.DeployDurationTicks)
                 phase = SimCombatPhase.Battling;
 
-            int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > completedTick);
-            bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
-            SimTerminalOutcome terminalOutcome = new SimModeRules(_modeProfile).Evaluate(
-                new SimModeEvaluationInput(completedTick, _deathSystem.AttackerAlive,
-                    _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
-                    futureWaves, timedOut, phase != SimCombatPhase.Deploying));
-            if (terminalOutcome != null)
+            SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
+            if (phase == SimCombatPhase.Battling)
             {
-                phase = SimCombatPhase.Ended;
-                lifecycle = SessionLifecycle.Ended;
-                _terminalOutcome = terminalOutcome;
-                _terminalFinalTick = completedTick;
+                _systems.UpdateAll();
+                tickEvents = BuildTickEvents();
+                int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > completedTick);
+                bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
+                SimTerminalOutcome terminalOutcome = new SimModeRules(_modeProfile).Evaluate(
+                    new SimModeEvaluationInput(completedTick, _deathSystem.AttackerAlive,
+                        _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
+                        futureWaves, timedOut, true));
+                if (terminalOutcome != null)
+                {
+                    phase = SimCombatPhase.Ended;
+                    lifecycle = SessionLifecycle.Ended;
+                    _terminalOutcome = terminalOutcome;
+                    _terminalFinalTick = completedTick;
+                }
             }
             _currentFrame = BuildFrame(false, completedTick, nextTick, revision);
             _state = new SimBattleState(lifecycle, phase,

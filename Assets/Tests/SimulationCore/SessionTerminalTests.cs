@@ -216,6 +216,37 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void ManualDeployment_CombatWaitsUntilEndDeploymentTransitionTick()
+        {
+            byte[] manifestBytes = SessionTestDriver.OneHitManifestBytes();
+            using var session = (SimBattleSession)new SimBattleSessionFactory().Create(manifestBytes);
+            Assert.That(session.Start(SessionTestDriver.OneHitBattleInit(manifestBytes)).Accepted,
+                Is.True);
+            EntityPresentationState[] initial = session.State.Presentation.Entities.ToArray();
+
+            for (int tick = 0; tick < 3; tick++)
+            {
+                TickResult deploying = session.Tick();
+                Assert.That(deploying.Code, Is.EqualTo(TickCode.Advanced));
+                Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Running));
+                Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
+                Assert.That(deploying.Result, Is.Null);
+                Assert.That(deploying.Presentation.Entities.Select(EntityCombatState),
+                    Is.EqualTo(initial.Select(EntityCombatState)));
+            }
+
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 3, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            TickResult transition = session.Tick();
+
+            Assert.That(transition.ExecutedCommands.Single(), Is.TypeOf<EndDeploymentCmd>());
+            Assert.That(transition.Code, Is.EqualTo(TickCode.Ended));
+            Assert.That(transition.Result.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
+        }
+
+        [Test]
         public void Checksum_ChangesWhenTerminalNumericOutcomeChanges()
         {
             byte[] contentHash = { 1, 2, 3 };
@@ -237,5 +268,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             world.SetComponent(entity, SimTeamComponent.Create(teamId));
             return entity;
         }
+
+        private static string EntityCombatState(EntityPresentationState entity) =>
+            entity.EntityId + ":" + entity.GridX + ":" + entity.GridY + ":" + entity.Health;
     }
 }
