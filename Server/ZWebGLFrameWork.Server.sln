@@ -1,0 +1,52 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Network.Contracts", "NetworkContracts\ZWebGLFrameWork.Network.Contracts.csproj", "{EE6AE43B-6EE6-4174-8921-C1F72176A4D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.SimulationCore", "SimulationCore\ZWebGLFrameWork.SimulationCore.csproj", "{A202C982-E831-4C76-83D0-BA4B6DF37D9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.SimulationCore.ServerTests", "SimulationCore.Tests\ZWebGLFrameWork.SimulationCore.ServerTests.csproj", "{8B3ECF03-0C25-444F-A595-D2EA93CC1042}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplayValidator", "ReplayValidator\ReplayValidator.csproj", "{F508F393-EB56-4ED9-919A-A930FDCA6ECA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Network.ServerTests", "Network.Tests\ZWebGLFrameWork.Network.ServerTests.csproj", "{4C3D5678-8770-4B24-97D3-9A1890214CEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Server.Tests", "Tests\ZWebGLFrameWork.Server.Tests.csproj", "{08DA2B46-1908-42B7-AA78-2A817B36B9F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE6AE43B-6EE6-4174-8921-C1F72176A4D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE6AE43B-6EE6-4174-8921-C1F72176A4D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE6AE43B-6EE6-4174-8921-C1F72176A4D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE6AE43B-6EE6-4174-8921-C1F72176A4D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A202C982-E831-4C76-83D0-BA4B6DF37D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A202C982-E831-4C76-83D0-BA4B6DF37D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A202C982-E831-4C76-83D0-BA4B6DF37D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A202C982-E831-4C76-83D0-BA4B6DF37D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B3ECF03-0C25-444F-A595-D2EA93CC1042}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B3ECF03-0C25-444F-A595-D2EA93CC1042}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B3ECF03-0C25-444F-A595-D2EA93CC1042}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B3ECF03-0C25-444F-A595-D2EA93CC1042}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F508F393-EB56-4ED9-919A-A930FDCA6ECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F508F393-EB56-4ED9-919A-A930FDCA6ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F508F393-EB56-4ED9-919A-A930FDCA6ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F508F393-EB56-4ED9-919A-A930FDCA6ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

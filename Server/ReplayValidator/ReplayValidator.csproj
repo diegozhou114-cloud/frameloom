@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../NetworkContracts/ZWebGLFrameWork.Network.Contracts.csproj" />
     <ProjectReference Include="../SimulationCore/ZWebGLFrameWork.SimulationCore.csproj" />
   </ItemGroup>
 </Project>

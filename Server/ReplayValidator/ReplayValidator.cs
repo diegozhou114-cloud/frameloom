@@ -51,7 +51,7 @@ namespace ZWebGLFrameWork.Server
             if (!started.Accepted)
                 return Invalid(-1, 0, session.State.Checksum);
 
-            foreach (TickRecord tickRecord in replay.Records)
+            foreach (ReplayTickRecord tickRecord in replay.Records)
             {
                 foreach (SerializableCommand serialized in tickRecord.Commands)
                 {
@@ -97,7 +97,7 @@ namespace ZWebGLFrameWork.Server
             var lastSequenceByPlayer = new Dictionary<int, int>();
             for (int expectedTick = 0; expectedTick < replay.Records.Count; expectedTick++)
             {
-                TickRecord record = replay.Records[expectedTick];
+                ReplayTickRecord record = replay.Records[expectedTick];
                 if (record == null || record.Tick != expectedTick || record.Commands == null ||
                     record.Commands.Count > maxCommandsPerTick)
                     return false;

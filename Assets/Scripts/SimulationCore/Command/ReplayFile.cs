@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
+    public static class ReplayFormat
+    {
+        public const ushort CurrentVersion = 1;
+        public const int TickRate = 20;
+    }
+
     /// <summary>可序列化的命令包装</summary>
     [Serializable]
     public class SerializableCommand
@@ -23,7 +29,7 @@ namespace ZWebGLFrameWork.SimulationCore
 
     /// <summary>单 Tick 的录制数据</summary>
     [Serializable]
-    public class TickRecord
+    public class ReplayTickRecord
     {
         public int Tick { get; set; }
         public List<SerializableCommand> Commands { get; set; } = new List<SerializableCommand>();
@@ -37,17 +43,30 @@ namespace ZWebGLFrameWork.SimulationCore
     [Serializable]
     public class ReplayFile
     {
+        public ushort FormatVersion { get; set; }
+        public string SimulationSchemaHash { get; set; }
+        public string ContentConfigHash { get; set; }
+        public int TickRate { get; set; }
+        public string MatchId { get; set; }
+        public string InitialStateHash { get; set; }
+        public string SubmissionNonce { get; set; }
+        public int FinalTick { get; set; } = -1;
+        public SimBattleResult FinalResult { get; set; }
+        public ulong FinalChecksum { get; set; }
+
+        // Retained until authoritative match migration removes client-owned initial state.
         public int Version { get; set; } = 1;
         public int Seed { get; set; }
         public SimEntitySpawnInfo[] InitialLayout { get; set; }
-        public List<TickRecord> Records { get; set; } = new List<TickRecord>();
+        public List<ReplayTickRecord> Records { get; set; } =
+            new List<ReplayTickRecord>();
 
         public int TotalTicks => Records.Count;
 
         public ulong GetChecksum(int tick)
         {
-            // TODO: Use Dictionary<int, TickRecord> for O(1) lookup in large replays
-            foreach (var r in Records)
+            // TODO: Use Dictionary<int, ReplayTickRecord> for O(1) lookup in large replays
+            foreach (ReplayTickRecord r in Records)
                 if (r.Tick == tick) return r.Checksum;
             return 0;
         }
