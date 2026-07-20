@@ -327,6 +327,147 @@ namespace ZWebGLFrameWork.Server.Tests
                     fixture.SerializedBytes, cancellation.Token));
         }
 
+        [Test]
+        public async Task ReplayValidator_DeterministicRejectionsPrecedeCancellationInOrder()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayValidator validator = fixture.CreateValidator();
+            var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            ReplayFile structurallyInvalid = fixture.CopyReplay();
+            structurallyInvalid.Records.Clear();
+            Assert.That((await validator.ValidateAsync(
+                    structurallyInvalid, null, "foreign-player", 0,
+                    cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.FileTooLarge));
+
+            ReplayFile wrongMatch = fixture.CopyReplay();
+            wrongMatch.MatchId = "foreign-match";
+            wrongMatch.SubmissionNonce = "foreign-nonce";
+            wrongMatch.SimulationSchemaHash = Hash('2');
+            wrongMatch.ContentConfigHash = Hash('3');
+            AuthoritativeMatchRecord wrongTickRate = fixture.Match with
+            {
+                BattleInit = fixture.CopyBattleInit(tickRate: 30),
+                InitialSnapshot = null
+            };
+            Assert.That((await validator.ValidateAsync(
+                    wrongMatch, wrongTickRate, "foreign-player",
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.MatchMismatch));
+
+            ReplayFile wrongNonce = fixture.CopyReplay();
+            wrongNonce.SubmissionNonce = "foreign-nonce";
+            wrongNonce.SimulationSchemaHash = Hash('2');
+            wrongNonce.ContentConfigHash = Hash('3');
+            Assert.That((await validator.ValidateAsync(
+                    wrongNonce, wrongTickRate, "foreign-player",
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.UnauthorizedSubmitter));
+            Assert.That((await validator.ValidateAsync(
+                    wrongNonce, wrongTickRate, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.MatchMismatch));
+
+            ReplayFile wrongSchema = fixture.CopyReplay();
+            wrongSchema.SimulationSchemaHash = Hash('2');
+            wrongSchema.ContentConfigHash = Hash('3');
+            Assert.That((await validator.ValidateAsync(
+                    wrongSchema, wrongTickRate, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.SchemaMismatch));
+
+            ReplayFile wrongConfig = fixture.CopyReplay();
+            wrongConfig.ContentConfigHash = Hash('3');
+            Assert.That((await validator.ValidateAsync(
+                    wrongConfig, wrongTickRate, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.ConfigMismatch));
+            Assert.That((await validator.ValidateAsync(
+                    fixture.Replay, wrongTickRate, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.TickRateMismatch));
+
+            AuthoritativeMatchRecord missingSnapshot = fixture.Match with
+            {
+                InitialSnapshot = null
+            };
+            Assert.That((await validator.ValidateAsync(
+                    fixture.Replay, missingSnapshot, fixture.Submitter,
+                    fixture.SerializedBytes, cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.InitialStateMismatch));
+
+            SimSnapshot expected = fixture.Match.InitialSnapshot;
+            var oversizedSnapshot = new SimSnapshot(
+                expected.MatchId, expected.SessionId, expected.SchemaVersion,
+                expected.ContentHash, expected.CompletedTick, expected.NextTick,
+                expected.TimelineRevision,
+                ReplayValidationLimits.Approved.MaxDecompressedSnapshotBytes + 1,
+                expected.StateChecksum, expected.Payload, expected.PayloadSha256);
+            Assert.That((await validator.ValidateAsync(
+                    fixture.Replay,
+                    fixture.Match with { InitialSnapshot = oversizedSnapshot },
+                    fixture.Submitter, fixture.SerializedBytes,
+                    cancellation.Token)).Code,
+                Is.EqualTo(ReplayValidationCode.SnapshotTooLarge));
+        }
+
+        [Test]
+        public async Task ReplayValidator_BindsAuthorityConfigHashToParsedManifest()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            ReplayValidator validator = fixture.CreateValidator();
+
+            Assert.That((await validator.ValidateAsync(
+                    fixture.Replay,
+                    fixture.Match with
+                    {
+                        CanonicalManifestBytes = AuthorityFixture.AlternateManifestBytes()
+                    },
+                    fixture.Submitter, fixture.SerializedBytes,
+                    CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.ConfigMismatch));
+        }
+
+        [Test]
+        public async Task ReplayValidator_NullBattleInitHasStableTickRateRejection()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+
+            Assert.That((await fixture.CreateValidator().ValidateAsync(
+                    fixture.Replay,
+                    fixture.Match with { BattleInit = null },
+                    fixture.Submitter, fixture.SerializedBytes,
+                    CancellationToken.None)).Code,
+                Is.EqualTo(ReplayValidationCode.TickRateMismatch));
+        }
+
+        [Test]
+        public void AuthoritativeMatchRecord_WithInitializerDefensivelyCopiesArrays()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            byte[] manifest = fixture.Match.CanonicalManifestBytes;
+            string[] submitters = fixture.Match.AllowedSubmitterPlayerIds;
+            byte expectedManifestByte = manifest[0];
+            string expectedSubmitter = submitters[0];
+            AuthoritativeMatchRecord derived = fixture.Match with
+            {
+                CanonicalManifestBytes = manifest,
+                AllowedSubmitterPlayerIds = submitters
+            };
+
+            manifest[0] ^= 1;
+            submitters[0] = "mutated-source";
+            derived.CanonicalManifestBytes[0] ^= 1;
+            derived.AllowedSubmitterPlayerIds[0] = "mutated-getter";
+
+            Assert.That(derived.CanonicalManifestBytes[0],
+                Is.EqualTo(expectedManifestByte));
+            Assert.That(derived.AllowedSubmitterPlayerIds[0],
+                Is.EqualTo(expectedSubmitter));
+        }
+
         private static string Hash(char value) => new string(value, 64);
 
         private static byte[] HashBytes(byte value) =>
@@ -442,6 +583,12 @@ namespace ZWebGLFrameWork.Server.Tests
                 FinalResult = Replay.FinalResult,
                 Records = new System.Collections.Generic.List<ReplayTickRecord>(Replay.Records)
             };
+
+            public static byte[] AlternateManifestBytes() =>
+                new DeterministicContentManifest(1, new[]
+                {
+                    new SimArchetypeDefinition(1, "AlternateTownHall", 500, 0, 0, 0, 0)
+                }).ToCanonicalBytes();
 
             private static byte[] ManifestBytes() =>
                 new DeterministicContentManifest(1, new[]
