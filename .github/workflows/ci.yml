@@ -160,6 +160,58 @@ jobs:
           allowDirtyBuild: false
       - name: Validate build summary and hashes
         run: node scripts/ci/validate-build-summary.mjs --summary "$ZWEB_EVIDENCE_ROOT/builds/Reports/${{ matrix.summary }}.json" --target "${{ matrix.summary }}" --artifact-root "$ZWEB_EVIDENCE_ROOT"
+      - if: matrix.targetPlatform == 'WebGL'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ci/package-lock.json
+      - if: matrix.targetPlatform == 'WebGL'
+        name: Install locked smoke dependencies
+        run: npm ci --prefix ci --ignore-scripts
+      - if: matrix.targetPlatform == 'WebGL'
+        name: Install Chromium and local trust tools
+        run: |
+          cd ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y libnss3-tools
+      - if: matrix.targetPlatform == 'WebGL'
+        name: Create and trust local HTTPS CA
+        run: |
+          certs="${{ runner.temp }}/zweb-certs"
+          mkdir -p "$certs"
+          openssl genrsa -out "$certs/ca.key" 2048
+          openssl req -x509 -new -nodes -key "$certs/ca.key" -sha256 -days 1 -subj '/CN=ZWeb CI Local CA' -out "$certs/ca.crt"
+          openssl genrsa -out "$certs/server.key" 2048
+          openssl req -new -key "$certs/server.key" -subj '/CN=localhost' -out "$certs/server.csr"
+          printf 'subjectAltName=DNS:localhost,IP:127.0.0.1\nextendedKeyUsage=serverAuth\n' > "$certs/server.ext"
+          openssl x509 -req -in "$certs/server.csr" -CA "$certs/ca.crt" -CAkey "$certs/ca.key" -CAcreateserial -out "$certs/server.crt" -days 1 -sha256 -extfile "$certs/server.ext"
+          sudo cp "$certs/ca.crt" /usr/local/share/ca-certificates/zweb-ci-local.crt
+          sudo update-ca-certificates
+          mkdir -p "$HOME/.pki/nssdb"
+          certutil -d "sql:$HOME/.pki/nssdb" -N --empty-password 2>/dev/null || true
+          certutil -d "sql:$HOME/.pki/nssdb" -A -t 'C,,' -n 'ZWeb CI Local CA' -i "$certs/ca.crt"
+      - if: matrix.targetPlatform == 'WebGL'
+        name: Trusted HTTPS WebGL smoke
+        env:
+          ZWEB_PLAYWRIGHT_JSON: ${{ runner.temp }}/webgl-playwright.json
+        run: |
+          certs="${{ runner.temp }}/zweb-certs"
+          node scripts/ci/serve-https.mjs --root "$ZWEB_EVIDENCE_ROOT/builds/WebGL" --cert "$certs/server.crt" --key "$certs/server.key" --port 8443 > "${{ runner.temp }}/https-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do curl --fail --silent https://localhost:8443/ >/dev/null && break; sleep 1; done
+          curl --fail --silent https://localhost:8443/ >/dev/null
+          cd ci
+          npx --no-install playwright test --config smoke/playwright.config.mjs smoke/webgl.spec.mjs
+      - if: matrix.targetPlatform == 'WebGL'
+        name: Upload WebGL smoke report
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-smoke-report
+          path: ${{ runner.temp }}/webgl-playwright.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.targetPlatform }}
@@ -167,4 +219,47 @@ jobs:
             ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/${{ matrix.artifactDir }}
             ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/Reports/${{ matrix.summary }}.json
       - name: Clean tree
+        run: test -z "$(git status --porcelain --untracked-files=all)"
+
+  windows-smoke:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-StandaloneWindows64
+          path: ${{ runner.temp }}/windows-build
+      - name: Start, await readiness, and request graceful exit
+        shell: pwsh
+        run: |
+          $executables = @(Get-ChildItem "${{ runner.temp }}/windows-build" -Recurse -Filter ZWebGLFrameWork.exe)
+          if ($executables.Count -ne 1) { throw "Expected exactly one ZWebGLFrameWork.exe, found $($executables.Count)" }
+          $exe = $executables[0]
+          $log = "${{ runner.temp }}/windows-player.log"
+          $exitFile = "${{ runner.temp }}/zweb-smoke-exit"
+          $process = Start-Process -FilePath $exe.FullName -PassThru -ArgumentList @("-logFile", $log, "-zwebSmokeExitFile", $exitFile, "-screen-width", "1280", "-screen-height", "720", "-screen-fullscreen", "0")
+          $deadline = (Get-Date).AddSeconds(60)
+          while ((Get-Date) -lt $deadline) {
+            if ((Test-Path $log) -and (Select-String -Path $log -SimpleMatch '"event":"app-ready"' -Quiet)) { break }
+            if ($process.HasExited) { throw "Player exited before readiness with $($process.ExitCode)" }
+            Start-Sleep -Milliseconds 250
+          }
+          if (-not (Select-String -Path $log -SimpleMatch '"event":"app-ready"' -Quiet)) { throw "app-ready timeout" }
+          New-Item -ItemType File -Path $exitFile -Force | Out-Null
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw "graceful exit timeout" }
+          if ($process.ExitCode -ne 0) { throw "Player exit code $($process.ExitCode)" }
+          node scripts/ci/validate-player-log.mjs --log $log --allowlist ci/smoke/windows-log-allowlist.txt
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-log
+          path: ${{ runner.temp }}/windows-player.log
+      - name: Clean tree
+        shell: bash
         run: test -z "$(git status --porcelain --untracked-files=all)"
