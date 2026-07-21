@@ -7,6 +7,7 @@ const require = createRequire(new URL('../../ci/package.json', import.meta.url))
 const YAML = require('yaml');
 
 const source = await readFile('.github/workflows/ci.yml', 'utf8');
+const playwrightConfig = await readFile('ci/smoke/playwright.config.mjs', 'utf8');
 const workflow = YAML.parse(source);
 const requiredPaths = [
   'Assets/**', 'Packages/**', 'ProjectSettings/**', 'Server/**',
@@ -75,4 +76,25 @@ test('CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts', () => {
   const commands = build.steps.map(step => step.run || '').join('\n');
   assert.match(commands, /validate-build-summary\.mjs/);
   assert.match(commands, /--artifact-root/);
+});
+
+test('build smoke gates require trusted HTTPS and structured Windows exit', () => {
+  const build = workflow.jobs.build;
+  const buildCommands = build.steps.map(step => step.run || '').join('\n');
+  assert.match(buildCommands, /update-ca-certificates/);
+  assert.match(source + buildCommands, /webgl\.spec\.mjs/);
+  assert.match(source, /name:\s*webgl-smoke-report/);
+  assert.match(source, /runner\.temp.*webgl-playwright\.json/);
+  assert.ok(workflow.jobs['windows-smoke'], 'windows-smoke job missing');
+  const windowsCommands = workflow.jobs['windows-smoke'].steps.map(step => step.run || '').join('\n');
+  assert.ok(build.steps.some(step => step.uses === 'actions/setup-node@v4'));
+  assert.match(buildCommands, /npm ci --prefix ci --ignore-scripts/);
+  assert.match(buildCommands, /npx --no-install playwright install/);
+  assert.match(buildCommands, /npx --no-install playwright test/);
+  assert.match(windowsCommands, /zwebSmokeExitFile/);
+  assert.match(windowsCommands, /app-ready/);
+  assert.match(windowsCommands, /-Filter ZWebGLFrameWork\.exe/);
+  assert.doesNotMatch(windowsCommands, /Select-Object -First 1/);
+  assert.match(windowsCommands, /validate-player-log\.mjs/);
+  assert.doesNotMatch(playwrightConfig, /ignoreHTTPSErrors:\s*true/);
 });
