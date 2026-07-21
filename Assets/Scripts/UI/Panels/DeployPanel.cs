@@ -5,12 +5,13 @@ using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.Gameplay;
+using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.UI
 {
     /// <summary>
     /// 部署面板 — 底部兵种选择栏 + 点击网格放兵。
-    /// 在 CombatPhase.Deploying 期间显示。
+    /// 在 SimCombatPhase.Deploying 期间显示。
     /// </summary>
     public class DeployPanel : UIBase
     {
@@ -22,7 +23,6 @@ namespace ZWebGLFrameWork.UI
         private Text _timerText;
         private Text _countText;
         private int _deployedCount;
-        private float _deployStartTime;
 
         public DeployPanel()
         {
@@ -33,7 +33,6 @@ namespace ZWebGLFrameWork.UI
         protected override void OnOpen(object data)
         {
             _deployedCount = 0;
-            _deployStartTime = Time.time;
             var allUnits = ConfigTableManager.Instance?.GetAllUnits();
             _availableUnits = allUnits != null
                 ? new List<UnitConfig>(allUnits)
@@ -103,12 +102,11 @@ namespace ZWebGLFrameWork.UI
             var cm = CombatManager.Instance;
             if (cm == null) return;
 
-            if (cm.CurrentPhase == CombatPhase.Deploying)
+            if (cm.CurrentPhase == SimCombatPhase.Deploying)
             {
-                if (cm.CurrentMode == null) return;
-                float elapsed = Time.time - _deployStartTime;
-                float remain = Mathf.Max(0, cm.CurrentMode.DeployTimeLimit - elapsed);
-                _timerText.text = $"{remain:F0}s";
+                int remainingSeconds = Mathf.Max(0,
+                    cm.DeployDurationTicks - cm.CompletedTick) / 20;
+                _timerText.text = $"{remainingSeconds}s";
             }
         }
 
@@ -119,7 +117,7 @@ namespace ZWebGLFrameWork.UI
             if (gesture.Type != GestureType.Tap) return;
 
             var cm = CombatManager.Instance;
-            if (cm == null || cm.CurrentPhase != CombatPhase.Deploying) return;
+            if (cm == null || cm.CurrentPhase != SimCombatPhase.Deploying) return;
 
             var mainCam = Camera.main;
             if (mainCam == null) return;
@@ -152,18 +150,24 @@ namespace ZWebGLFrameWork.UI
             if (_selectedUnit == null) return;
 
             var cm = CombatManager.Instance;
-            if (cm == null || cm.CurrentPhase != CombatPhase.Deploying) return;
+            if (cm == null || cm.CurrentPhase != SimCombatPhase.Deploying) return;
 
-            int max = cm.CurrentMode.MaxDeployCount;
+            int max = cm.MaxDeployCount;
             if (max > 0 && _deployedCount >= max) return;
 
             var grid = GridManager.Instance;
             if (grid == null || !grid.IsInBounds(gridPos)) return;
             if (grid.IsOccupied(gridPos)) return;
 
-            cm.SpawnDeployUnit(gridPos, _selectedUnit);
-            _deployedCount++;
-            _countText.text = $"已部署: {_deployedCount}";
+            if (!FrameworkBattleContent.TryGetUnitArchetypeId(
+                    _selectedUnit.Id, out int archetypeId))
+                return;
+            CommandSubmitResult submitted = cm.SubmitDeployUnit(gridPos, archetypeId);
+            if (submitted.Accepted)
+            {
+                _deployedCount++;
+                _countText.text = $"已部署: {_deployedCount}";
+            }
         }
     }
 }

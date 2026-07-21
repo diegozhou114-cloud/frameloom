@@ -8,6 +8,7 @@
         "ZWebGLFrameWork.Network",
         "ZWebGLFrameWork.Gameplay",
         "ZWebGLFrameWork.Combat",
+        "ZWebGLFrameWork.SimulationCore",
         "UniTask"
     ],
     "includePlatforms": [],

@@ -1,67 +1,53 @@
-using Cysharp.Threading.Tasks;
+using System;
+using System.Threading;
 using UnityEngine;
 using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
+using ZWebGLFrameWork.SimulationCore;
 using ZWebGLFrameWork.UI;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(
+    "ZWebGLFrameWork.Combat.PlayModeTests")]
 
 namespace ZWebGLFrameWork.FSM
 {
-    /// <summary>
-    /// 战斗状态 — 完整战斗闭环。
-    /// OnEnter: 解析 BattleParams → 创建 CombatMode → 启动战斗 → 打开部署面板。
-    /// OnUpdate: 轮询战斗阶段变更（CombatManager 自驱动 Tick）。
-    /// OnExit: 清理面板 + 反注册事件。
-    /// </summary>
     public class BattleState : FSMState<GameState>
     {
+        private readonly CombatManager _combatManager;
+        private CancellationTokenSource _battleLifetime;
         private bool _battleStarted;
-        /// <summary>
-        /// _battleStarted 标志防止在同一状态生命周期内重复打开 DeployPanel。
-        /// 若后续支持"重新部署"功能（retry），需在重新进入部署阶段前重置此标志。
-        /// </summary>
 
-        public BattleState() : base(GameState.Battle) { }
+        public BattleState() : this(CombatManager.Instance) { }
+
+        internal BattleState(CombatManager combatManager) : base(GameState.Battle) =>
+            _combatManager = combatManager ?? throw new ArgumentNullException(nameof(combatManager));
 
         public override void OnEnter(object data = null)
         {
             base.OnEnter(data);
             Debug.Log("[GameFSM] 进入战斗状态");
 
-            var bp = data as BattleParams;
-            if (bp == null)
+            if (!(data is BattleParams parameters))
             {
                 Debug.LogError("[BattleState] 未传入 BattleParams，返回主城");
                 ChangeState(GameState.MainVillage);
                 return;
             }
 
-            // ① 解析战斗模式
-            var mode = CreateMode(bp.ModeId);
-            if (mode == null)
-            {
-                Debug.LogError($"[BattleState] 未知模式: {bp.ModeId}");
-                ChangeState(GameState.MainVillage);
-                return;
-            }
-
-            // ② 监听战斗阶段 + 结束事件 + 返回主城
-            EventBus.Subscribe<CombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
-            EventBus.Subscribe<CombatEndEvent>(CombatManager.EventCombatEnded, OnCombatEnded);
+            EventBus.Subscribe<SimCombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
+            EventBus.Subscribe<SimBattleResult>(CombatManager.EventCombatEnded, OnCombatEnded);
             EventBus.Subscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
-            // ②.⑤ 进入战斗前存档
+            _battleLifetime = new CancellationTokenSource();
             SaveManager.SaveGame();
-
-            // ③ 启动战斗（异步，由 CombatManager.Update 驱动 Tick）
             _battleStarted = false;
-            SafeStartBattle(mode);
+            SafeStartBattle(parameters, _battleLifetime);
         }
 
         public override void OnUpdate()
         {
-            // CombatManager.Update() 自驱动，此处仅做首次启动后的 UI 响应
-            if (!_battleStarted && CombatManager.Instance.CurrentPhase == CombatPhase.Deploying)
+            if (!_battleStarted && _combatManager.CurrentPhase == SimCombatPhase.Deploying)
             {
                 _battleStarted = true;
                 UIManager.Instance.Open<DeployPanel>();
@@ -70,8 +56,14 @@ namespace ZWebGLFrameWork.FSM
 
         public override void OnExit()
         {
-            EventBus.Unsubscribe<CombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
-            EventBus.Unsubscribe<CombatEndEvent>(CombatManager.EventCombatEnded, OnCombatEnded);
+            CancellationTokenSource lifetime = _battleLifetime;
+            _battleLifetime = null;
+            lifetime?.Cancel();
+            lifetime?.Dispose();
+            _combatManager.StopBattle();
+
+            EventBus.Unsubscribe<SimCombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
+            EventBus.Unsubscribe<SimBattleResult>(CombatManager.EventCombatEnded, OnCombatEnded);
             EventBus.Unsubscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
             UIManager.Instance.Close<DeployPanel>();
@@ -82,27 +74,24 @@ namespace ZWebGLFrameWork.FSM
             Debug.Log("[GameFSM] 退出战斗状态");
         }
 
-        // ==================== 事件回调 ====================
-
-        private void OnPhaseChanged(CombatPhase phase)
+        private void OnPhaseChanged(SimCombatPhase phase)
         {
             Debug.Log($"[BattleState] 阶段变更: {phase}");
-
             switch (phase)
             {
-                case CombatPhase.Battling:
+                case SimCombatPhase.Battling:
                     UIManager.Instance.Close<DeployPanel>();
                     UIManager.Instance.Open<BattleHUD>();
                     break;
-                case CombatPhase.Ended:
+                case SimCombatPhase.Ended:
                     UIManager.Instance.Close<BattleHUD>();
                     break;
             }
         }
 
-        private void OnCombatEnded(CombatEndEvent result)
+        private void OnCombatEnded(SimBattleResult result)
         {
-            Debug.Log($"[BattleState] 战斗结束: winner={result.Winner}, stars={result.Stars}");
+            Debug.Log($"[BattleState] 战斗结束: winner={result.WinnerTeamId}, stars={result.Stars}");
             UIManager.Instance.Open<ResultPanel>(result);
         }
 
@@ -112,34 +101,22 @@ namespace ZWebGLFrameWork.FSM
             ChangeState(GameState.MainVillage);
         }
 
-        // ==================== 内部 ====================
-
-        private async void SafeStartBattle(CombatMode mode)
+        private async void SafeStartBattle(BattleParams parameters,
+            CancellationTokenSource lifetime)
         {
             try
             {
-                await CombatManager.Instance.StartBattleAsync(mode);
+                await _combatManager.StartBattleAsync(parameters, lifetime.Token);
             }
-            catch (System.Exception ex)
+            catch (OperationCanceledException)
             {
-                Debug.LogError($"[BattleState] 启动战斗失败: {ex}");
             }
-        }
-
-        private CombatMode CreateMode(string modeId)
-        {
-            switch (modeId)
+            catch (Exception exception)
             {
-                case "village_attack":
-                    return new VillageAttackMode();
-                case "builder_base":
-                    return new BuilderBaseMode();
-                case "clan_war":
-                    return new ClanWarMode();
-                case "campaign":
-                    return new CampaignMode();
-                default:
-                    return null;
+                Debug.LogException(exception);
+                if (ReferenceEquals(_battleLifetime, lifetime) &&
+                    !lifetime.IsCancellationRequested && IsActive)
+                    ChangeState(GameState.MainVillage);
             }
         }
     }

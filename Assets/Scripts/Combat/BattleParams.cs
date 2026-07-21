@@ -25,14 +25,5 @@ namespace ZWebGLFrameWork.Combat
         public string AttackerAccountId;
         public string DefenderAccountId;
 
-        public static BattleParams VillageAttack(VillageData attacker, VillageData defender)
-        {
-            return new BattleParams
-            {
-                ModeId = "village_attack",
-                AttackerVillage = attacker,
-                DefenderVillage = defender,
-            };
-        }
     }
 }
