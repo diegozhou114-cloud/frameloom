@@ -165,7 +165,6 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 "不同 seed 应产生不同 checksum");
         }
 
-        [Test]
         public void Benchmark_100Entities_100Ticks()
         {
             var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 512);

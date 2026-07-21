@@ -541,39 +541,18 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
-        public void FrameSyncClient_RollbackOnChecksumMismatch()
+        public void FrameSyncMismatch_ReplaysToMatchingWorldChecksum()
         {
-            const int seed = 42;
-            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
-            var buffer = new CommandBuffer();
-            var initializer = new TestInitializer(seed);
-            var registry = SimArchetypeRegistry.CreateDefault();
-            var systems = SimCombatBootstrap.Build(world);
-            var deathSys = systems.Find<SimDeathSystem>();
-            var orch = new SimOrchestrator(world, systems, deathSys, buffer, null, initializer, registry,
-                ticksPerSecond: 20);
+            using AuthorityReconciliationFixture fixture =
+                AuthorityReconciliationFixture.RunPredictedToTick(20);
+            ulong authorityChecksum = fixture.RunAuthorityBranchFromTick(9, 20);
 
-            var sender = new InputSender();
-            var receiver = new InputReceiver();
-            var client = new FrameSyncClient(orch, buffer, sender, receiver, 0);
+            fixture.RestoreAuthorityAtTick(9);
+            ulong reconciledChecksum = fixture.ReplayAuthorityCommandsToTick(20);
 
-            client.Start();
-
-            // Run 10 ticks locally
-            for (int t = 0; t < 10; t++)
-            {
-                SimpleAI(world, t);
-                orch.Tick();
-            }
-            ulong csAt10 = orch.LastChecksum;
-
-            // Simulate server sending WRONG checksum → should trigger rollback
-            client.OnAuthorityData(10, 0xDEADBEEFUL);
-
-            Assert.That(client.RollbackCount, Is.EqualTo(1),
-                "Wrong checksum should trigger exactly 1 rollback");
-            Assert.That(client.AuthorityTick, Is.EqualTo(9),
-                "After rollback, authority should be at tick 9 (safe point)");
+            Assert.That(reconciledChecksum, Is.EqualTo(authorityChecksum));
+            Assert.That(fixture.Session.State.CompletedTick, Is.EqualTo(20));
+            Assert.That(fixture.Session.State.TimelineRevision, Is.EqualTo(1));
         }
     }
 }

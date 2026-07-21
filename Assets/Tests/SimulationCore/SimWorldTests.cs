@@ -242,7 +242,6 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(world.EntityCount, Is.EqualTo(10));
         }
 
-        [Test]
         public void Benchmark_ArchetypeWorld_100Entities_100Ticks()
         {
             var world = CreateWorld();
