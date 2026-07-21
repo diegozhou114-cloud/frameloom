@@ -85,6 +85,16 @@ namespace ZWebGLFrameWork.Editor.Tests
             Assert.That(BuildValidator.ValidateBootPipeline(), Is.True);
         }
 
+        [Test]
+        public void FrameworkBattleDefaults_KeepProductionReplacementMarkers()
+        {
+            string combat = Path.Combine(Application.dataPath, "Scripts/Combat");
+            Assert.That(File.ReadAllText(Path.Combine(combat, "FrameworkBattleAuthority.cs")),
+                Does.Contain("TODO(PRODUCTION-AUTHORITY)"));
+            Assert.That(File.ReadAllText(Path.Combine(combat, "FrameworkBattleContent.cs")),
+                Does.Contain("TODO(PRODUCTION-CONTENT)"));
+        }
+
         [System.Serializable]
         private sealed class BuildReportDto
         {
