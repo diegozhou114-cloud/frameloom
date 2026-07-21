@@ -57,27 +57,57 @@ namespace ZWebGLFrameWork.Combat
             StopBattle();
             cancellationToken.ThrowIfCancellationRequested();
             BattleInit init = _battleInitFactory.Create(parameters);
-            ISimBattleSession candidate = _sessionFactory.Create(_canonicalManifestBytes, _logger);
-            StartResult started = candidate.Start(init);
-            if (!started.Accepted)
+            ISimBattleSession candidate = null;
+            StartResult started;
+            SimModeProfile modeProfile;
+            try
             {
-                candidate.Dispose();
-                throw new InvalidOperationException("Session start rejected: " + started.Code);
+                candidate = _sessionFactory.Create(_canonicalManifestBytes, _logger);
+                started = candidate.Start(init);
+                if (!started.Accepted)
+                    throw new InvalidOperationException(
+                        "Session start rejected: " + started.Code);
+                modeProfile = FrameworkBattleContent.GetModeProfile(parameters.ModeId);
+            }
+            catch
+            {
+                candidate?.Dispose();
+                throw;
             }
 
+            var completion = new UniTaskCompletionSource<SimBattleResult>();
             _session = candidate;
+            _completion = completion;
             _attackerPlayerId = parameters.AttackerPlayerId;
-            _modeProfile = FrameworkBattleContent.GetModeProfile(parameters.ModeId);
+            _modeProfile = modeProfile;
             _nextSequence = 1;
             _accumulator = 0f;
             LastResult = null;
             CompletedTick = -1;
-            SetPhase(_session.State.Phase);
-            _presentation.Apply(started.InitialFrame);
-            var completion = new UniTaskCompletionSource<SimBattleResult>();
-            _completion = completion;
             using (cancellationToken.Register(() => CancelBattle(completion, cancellationToken)))
+            {
+                if (!OwnsBattle(candidate, completion))
+                    return await completion.Task;
+                try
+                {
+                    SetPhase(candidate.State.Phase);
+                    if (!OwnsBattle(candidate, completion))
+                        return await completion.Task;
+                    _presentation.Apply(started.InitialFrame);
+                    if (!OwnsBattle(candidate, completion))
+                        return await completion.Task;
+                }
+                catch (Exception exception)
+                {
+                    if (!OwnsBattle(candidate, completion))
+                        return await completion.Task;
+                    completion.TrySetException(exception);
+                    Cleanup(completion, false);
+                    return await completion.Task;
+                }
+
                 return await completion.Task;
+            }
         }
 
         public CommandSubmitResult SubmitDeployUnit(Vector2Int gridPos, int archetypeId)
@@ -219,6 +249,10 @@ namespace ZWebGLFrameWork.Combat
             completion.TrySetCanceled(cancellationToken);
             Cleanup(completion, false);
         }
+
+        private bool OwnsBattle(ISimBattleSession session,
+            UniTaskCompletionSource<SimBattleResult> completion) =>
+            ReferenceEquals(_session, session) && ReferenceEquals(_completion, completion);
 
         private void Cleanup(UniTaskCompletionSource<SimBattleResult> expectedCompletion,
             bool preserveTerminalPhase)
