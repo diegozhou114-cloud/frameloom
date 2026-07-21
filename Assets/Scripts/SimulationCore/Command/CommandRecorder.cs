@@ -22,6 +22,29 @@ namespace ZWebGLFrameWork.SimulationCore
             _buffer = buffer;
         }
 
+        public CommandRecorder(BattleInit init)
+        {
+            if (init == null) throw new System.ArgumentNullException(nameof(init));
+            _replay.BattleInit = ReplayBattleInit.From(init);
+            _replay.MatchId = init.MatchId;
+            _replay.TickRate = init.TickRate;
+            _replay.Seed = init.Seed;
+            _replay.InitialLayout = init.InitialEntities.Select(entity =>
+                new SimEntitySpawnInfo(entity.ArchetypeId, entity.GridX,
+                    entity.GridY, entity.TeamId)).ToArray();
+        }
+
+        public CommandRecorder(BattleInit init,
+            ReplayAuthorityMetadata authority) : this(init)
+        {
+            if (authority == null)
+                throw new System.ArgumentNullException(nameof(authority));
+            _replay.SimulationSchemaHash = authority.SimulationSchemaHash;
+            _replay.ContentConfigHash = authority.ContentConfigHash;
+            _replay.InitialStateHash = authority.InitialStateHash;
+            _replay.SubmissionNonce = authority.SubmissionNonce;
+        }
+
         /// <summary>录制一个 Tick 的数据</summary>
         public void Record(int tick, ulong checksum)
         {
@@ -38,6 +61,19 @@ namespace ZWebGLFrameWork.SimulationCore
                 Commands = SerializeCommands(executedCommands),
             };
             _replay.Records.Add(record);
+        }
+
+        public void Record(TickResult result)
+        {
+            if (result == null)
+                throw new System.ArgumentNullException(nameof(result));
+            var commands = new List<ISimCommand>(result.ExecutedCommands.Count);
+            foreach (ISimCommand command in result.ExecutedCommands)
+                commands.Add(command);
+            Record(result.CompletedTick, result.Checksum, commands);
+            _replay.FinalTick = result.CompletedTick;
+            _replay.FinalChecksum = result.Checksum;
+            if (result.Result != null) _replay.FinalResult = result.Result;
         }
 
         /// <summary>导出 ReplayFile（战斗结束后调用）</summary>

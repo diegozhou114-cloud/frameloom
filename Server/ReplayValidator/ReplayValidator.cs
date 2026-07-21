@@ -284,6 +284,21 @@ namespace ZWebGLFrameWork.Server
         {
             if (!IsStructurallyValid(replay))
                 return Invalid(-1, 0, 0);
+            if (replay.BattleInit != null)
+            {
+                using ISimBattleSession playbackSession =
+                    _sessionFactory.Create(_canonicalManifestBytes, _logger);
+                if (playbackSession == null) return Invalid(-1, 0, 0);
+                ReplayPlaybackResult playback = ReplayPlayback.Run(
+                    playbackSession, replay);
+                return new ReplayResult
+                {
+                    IsValid = playback.Valid,
+                    FailedTick = playback.FailedTick,
+                    ExpectedChecksum = playback.ExpectedChecksum,
+                    ActualChecksum = playback.ActualChecksum,
+                };
+            }
             DeterministicContentManifest manifest =
                 DeterministicContentManifest.Parse(_canonicalManifestBytes);
             InitialEntitySpec[] entities = ConvertInitialEntities(replay.InitialLayout);
@@ -340,10 +355,12 @@ namespace ZWebGLFrameWork.Server
             const int maxTotalCommands = 100000;
             const int maxEntities = 4096;
             if (replay == null || replay.Version != 1 ||
-                replay.InitialLayout == null || replay.InitialLayout.Length == 0 ||
-                replay.InitialLayout.Length > maxEntities ||
                 replay.Records == null || replay.Records.Count == 0 ||
                 replay.Records.Count > maxTicks)
+                return false;
+            if (replay.BattleInit == null &&
+                (replay.InitialLayout == null || replay.InitialLayout.Length == 0 ||
+                replay.InitialLayout.Length > maxEntities))
                 return false;
 
             int totalCommands = 0;

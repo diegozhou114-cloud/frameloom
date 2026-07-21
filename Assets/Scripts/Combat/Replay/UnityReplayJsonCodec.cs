@@ -26,6 +26,7 @@ namespace ZWebGLFrameWork.Combat
         [Serializable]
         private sealed class ReplayDto
         {
+            public BattleInitDto BattleInit;
             public ushort FormatVersion;
             public string SimulationSchemaHash;
             public string ContentConfigHash;
@@ -45,6 +46,7 @@ namespace ZWebGLFrameWork.Combat
             {
                 var dto = new ReplayDto
                 {
+                    BattleInit = BattleInitDto.From(replay.BattleInit),
                     FormatVersion = replay.FormatVersion,
                     SimulationSchemaHash = replay.SimulationSchemaHash,
                     ContentConfigHash = replay.ContentConfigHash,
@@ -71,6 +73,7 @@ namespace ZWebGLFrameWork.Combat
             {
                 var replay = new ReplayFile
                 {
+                    BattleInit = BattleInit?.ToReplayBattleInit(),
                     FormatVersion = FormatVersion,
                     SimulationSchemaHash = SimulationSchemaHash,
                     ContentConfigHash = ContentConfigHash,
@@ -95,6 +98,103 @@ namespace ZWebGLFrameWork.Combat
                 }
                 return replay;
             }
+        }
+
+        [Serializable]
+        private sealed class BattleInitDto
+        {
+            public int ProtocolVersion;
+            public int SchemaVersion;
+            public string MatchId;
+            public string SessionId;
+            public int Seed;
+            public int TickRate;
+            public SimCombatMode Mode;
+            public byte[] ContentHash = Array.Empty<byte>();
+            public PlayerDto[] Players = Array.Empty<PlayerDto>();
+            public InitialEntityDto[] InitialEntities =
+                Array.Empty<InitialEntityDto>();
+            public int InputDeadlineTicks;
+
+            public static BattleInitDto From(ReplayBattleInit init)
+            {
+                if (init == null) return null;
+                var dto = new BattleInitDto
+                {
+                    ProtocolVersion = init.ProtocolVersion,
+                    SchemaVersion = init.SchemaVersion,
+                    MatchId = init.MatchId,
+                    SessionId = init.SessionId,
+                    Seed = init.Seed,
+                    TickRate = init.TickRate,
+                    Mode = init.Mode,
+                    ContentHash = init.ContentHash,
+                    Players = new PlayerDto[init.Players.Length],
+                    InitialEntities =
+                        new InitialEntityDto[init.InitialEntities.Length],
+                    InputDeadlineTicks = init.InputDeadlineTicks
+                };
+                SimPlayerIdentity[] players = init.Players;
+                for (int index = 0; index < players.Length; index++)
+                    dto.Players[index] = PlayerDto.From(players[index]);
+                InitialEntitySpec[] entities = init.InitialEntities;
+                for (int index = 0; index < entities.Length; index++)
+                    dto.InitialEntities[index] = InitialEntityDto.From(entities[index]);
+                return dto;
+            }
+
+            public ReplayBattleInit ToReplayBattleInit()
+            {
+                var players = new SimPlayerIdentity[Players?.Length ?? 0];
+                for (int index = 0; index < players.Length; index++)
+                    players[index] = Players[index].ToPlayer();
+                var entities = new InitialEntitySpec[InitialEntities?.Length ?? 0];
+                for (int index = 0; index < entities.Length; index++)
+                    entities[index] = InitialEntities[index].ToEntity();
+                return new ReplayBattleInit(ProtocolVersion, SchemaVersion,
+                    MatchId, SessionId, Seed, TickRate, Mode,
+                    ContentHash ?? Array.Empty<byte>(), players, entities,
+                    InputDeadlineTicks);
+            }
+        }
+
+        [Serializable]
+        private sealed class PlayerDto
+        {
+            public int PlayerId;
+            public string AccountId;
+
+            public static PlayerDto From(SimPlayerIdentity player) => new PlayerDto
+            {
+                PlayerId = player.PlayerId,
+                AccountId = player.AccountId
+            };
+
+            public SimPlayerIdentity ToPlayer() =>
+                new SimPlayerIdentity(PlayerId, AccountId);
+        }
+
+        [Serializable]
+        private sealed class InitialEntityDto
+        {
+            public int ArchetypeId;
+            public int GridX;
+            public int GridY;
+            public int TeamId;
+            public int OwnerPlayerId;
+
+            public static InitialEntityDto From(InitialEntitySpec entity) =>
+                new InitialEntityDto
+                {
+                    ArchetypeId = entity.ArchetypeId,
+                    GridX = entity.GridX,
+                    GridY = entity.GridY,
+                    TeamId = entity.TeamId,
+                    OwnerPlayerId = entity.OwnerPlayerId
+                };
+
+            public InitialEntitySpec ToEntity() => new InitialEntitySpec(
+                ArchetypeId, GridX, GridY, TeamId, OwnerPlayerId);
         }
 
         [Serializable]
