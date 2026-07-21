@@ -126,3 +126,45 @@ jobs:
       - name: Clean tree
         shell: bash
         run: test -z "$(git status --porcelain --untracked-files=all)"
+
+  build:
+    needs: [unity-tests, server]
+    runs-on: ubuntu-latest
+    env:
+      ZWEB_EVIDENCE_ROOT: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - targetPlatform: WebGL
+            buildMethod: ZWebGLFrameWork.Editor.BuildScript.BuildWebGL
+            artifactDir: WebGL
+            summary: WebGL
+          - targetPlatform: StandaloneWindows64
+            buildMethod: ZWebGLFrameWork.Editor.BuildScript.BuildWindows
+            artifactDir: Windows
+            summary: StandaloneWindows64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildMethod: ${{ matrix.buildMethod }}
+          buildPath: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/${{ matrix.artifactDir }}
+          allowDirtyBuild: false
+      - name: Validate build summary and hashes
+        run: node scripts/ci/validate-build-summary.mjs --summary "$ZWEB_EVIDENCE_ROOT/builds/Reports/${{ matrix.summary }}.json" --target "${{ matrix.summary }}" --artifact-root "$ZWEB_EVIDENCE_ROOT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.targetPlatform }}
+          path: |
+            ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/${{ matrix.artifactDir }}
+            ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/Reports/${{ matrix.summary }}.json
+      - name: Clean tree
+        run: test -z "$(git status --porcelain --untracked-files=all)"
