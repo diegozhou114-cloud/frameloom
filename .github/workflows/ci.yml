@@ -87,3 +87,42 @@ jobs:
           path: ${{ runner.temp }}/unity-${{ matrix.testMode }}
       - name: Clean tree
         run: test -z "$(git status --porcelain --untracked-files=all)"
+
+  server:
+    needs: audit
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+          cache: true
+          cache-dependency-path: Server/**/packages.lock.json
+      - name: Locked restore
+        shell: bash
+        run: dotnet restore Server/ZWebGLFrameWork.Server.sln --locked-mode --artifacts-path "$DOTNET_ARTIFACTS"
+      - name: Release build, warnings as errors
+        shell: bash
+        run: dotnet build Server/ZWebGLFrameWork.Server.sln -c Release --no-restore --warnaserror --artifacts-path "$DOTNET_ARTIFACTS"
+      - name: Release tests
+        shell: bash
+        run: dotnet test Server/ZWebGLFrameWork.Server.sln -c Release --no-build --no-restore --artifacts-path "$DOTNET_ARTIFACTS" --logger "trx;LogFilePrefix=server" --results-directory "${{ runner.temp }}/server-tests"
+      - name: Require nonzero passing tests
+        shell: bash
+        run: python3 scripts/ci/validate-trx.py --results "${{ runner.temp }}/server-tests" --minimum 1
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-tests-${{ matrix.os }}
+          path: ${{ runner.temp }}/server-tests
+      - name: Clean tree
+        shell: bash
+        run: test -z "$(git status --porcelain --untracked-files=all)"
