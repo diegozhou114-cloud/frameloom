@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
 using ZWebGLFrameWork.Editor;
 
 namespace ZWebGLFrameWork.Editor.Tests
@@ -46,6 +48,34 @@ namespace ZWebGLFrameWork.Editor.Tests
         }
 
         [Test]
+        public void BuildScript_EmitsMachineReadableBuildReport()
+        {
+            string emitted = null;
+            Application.LogCallback handler = (condition, _, __) => emitted = condition;
+            Application.logMessageReceived += handler;
+            try
+            {
+                BuildScript.EmitBuildReport(BuildTarget.WebGL, "Builds/WebGL",
+                    BuildResult.Succeeded, 1234UL, 0,
+                    System.TimeSpan.FromMilliseconds(1250));
+            }
+            finally
+            {
+                Application.logMessageReceived -= handler;
+            }
+
+            Assert.That(emitted, Does.StartWith(BuildScript.BuildReportPrefix));
+            string json = emitted.Substring(BuildScript.BuildReportPrefix.Length);
+            var report = JsonUtility.FromJson<BuildReportDto>(json);
+            Assert.That(report.target, Is.EqualTo(BuildTarget.WebGL.ToString()));
+            Assert.That(report.outputPath, Is.EqualTo("Builds/WebGL"));
+            Assert.That(report.result, Is.EqualTo(BuildResult.Succeeded.ToString()));
+            Assert.That(report.totalSizeBytes, Is.EqualTo(1234UL));
+            Assert.That(report.totalErrors, Is.Zero);
+            Assert.That(report.totalTimeSeconds, Is.EqualTo(1.25d));
+        }
+
+        [Test]
         public void RequiredRuntimeAssets_AllProductionKeysResolve()
         {
             var result = RequiredAssetManifestValidator.Validate(
@@ -53,6 +83,17 @@ namespace ZWebGLFrameWork.Editor.Tests
 
             Assert.That(result.IsValid, Is.True, string.Join("\n", result.Errors));
             Assert.That(BuildValidator.ValidateBootPipeline(), Is.True);
+        }
+
+        [System.Serializable]
+        private sealed class BuildReportDto
+        {
+            public string target;
+            public string outputPath;
+            public string result;
+            public ulong totalSizeBytes;
+            public int totalErrors;
+            public double totalTimeSeconds;
         }
 
         [Test]

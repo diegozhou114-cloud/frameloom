@@ -62,7 +62,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(result.NextTick, Is.EqualTo(1));
             Assert.That(result.Checksum, Is.Not.EqualTo(0UL));
             Assert.That(session.LastChecksum, Is.EqualTo(result.Checksum));
-            Assert.That(result.Presentation.Entities[0].GridX, Is.GreaterThan(2));
+            Assert.That(session.State.Presentation.Entities[0].GridX, Is.GreaterThan(2));
         }
 
         [Test]
@@ -109,10 +109,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(result.Checksum, Is.Not.EqualTo(0UL));
 
             using SimBattleSession baseline = SessionTestDriver.StartedBattle();
-            TickResult baselineResult = baseline.Tick();
-            Assert.That(result.Presentation.Entities[0].GridX,
-                Is.EqualTo(baselineResult.Presentation.Entities[0].GridX));
-            Assert.That(result.Checksum, Is.EqualTo(baselineResult.Checksum));
+            baseline.Tick();
+            Assert.That(session.State.Presentation.Entities[0].GridX,
+                Is.EqualTo(baseline.State.Presentation.Entities[0].GridX));
+            Assert.That(result.Checksum, Is.EqualTo(baseline.State.Checksum));
             Assert.That(before, Is.Not.EqualTo(result.Checksum));
         }
 
@@ -124,10 +124,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             {
                 Tick = 0, PlayerId = 0, Sequence = 1,
             }).Accepted, Is.True);
-            TickResult deployment = session.Tick();
+            session.Tick();
             Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Battling));
-            EntityPresentationState caster = deployment.Presentation.Entities[0];
-            EntityPresentationState target = deployment.Presentation.Entities[1];
+            EntityPresentationState caster = session.State.Presentation.Entities[0];
+            EntityPresentationState target = session.State.Presentation.Entities[1];
 
             CommandSubmitResult submitted = session.Submit(new SkillCmd
             {
@@ -139,7 +139,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.Accepted));
             TickResult result = session.Tick();
             Assert.That(result.CommandOutcomes[0].Disposition, Is.EqualTo(CommandDisposition.Accepted));
-            Assert.That(result.Presentation.Entities[1].Health, Is.EqualTo(target.Health - 30));
+            Assert.That(session.State.Presentation.Entities[1].Health,
+                Is.EqualTo(target.Health - 30));
             Assert.That(result.Events.Count, Is.EqualTo(1));
             Assert.That(result.Events[0].Type, Is.EqualTo(SimBattleEventType.DamageApplied));
             Assert.That(result.Events[0].Amount, Is.EqualTo(30));
@@ -162,7 +163,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(rejected.Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
             TickResult result = session.Tick();
             Assert.That(result.CommandOutcomes, Is.Empty);
-            Assert.That(result.Presentation.Entities[1].Health, Is.EqualTo(target.Health));
+            Assert.That(session.State.Presentation.Entities[1].Health,
+                Is.EqualTo(target.Health));
         }
 
         [Test]

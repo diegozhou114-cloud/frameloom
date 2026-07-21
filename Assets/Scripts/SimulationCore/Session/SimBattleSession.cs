@@ -63,7 +63,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _terminalOutcome = null;
             _terminalFinalTick = -1;
             _lastSequenceByPlayer.Clear();
-            _currentFrame = BuildFrame(true, -1, 0, 0);
+            _currentFrame = BuildFullFrame(-1, 0, 0);
             SimCombatPhase initialPhase = _modeProfile.ManualDeployment
                 ? SimCombatPhase.Deploying : SimCombatPhase.Battling;
             _state = new SimBattleState(SessionLifecycle.Running, initialPhase,
@@ -145,10 +145,11 @@ namespace ZWebGLFrameWork.SimulationCore
                     _terminalFinalTick = completedTick;
                 }
             }
-            _currentFrame = BuildFrame(false, completedTick, nextTick, revision);
+            PresentationFrame fullFrame = BuildFullFrame(completedTick, nextTick, revision);
+            _currentFrame = BuildDeltaFrame(_state.Presentation, fullFrame);
             _state = new SimBattleState(lifecycle, phase,
                 completedTick, nextTick, revision, 0,
-                BuildFrame(true, completedTick, nextTick, revision), null);
+                fullFrame, null);
             ulong checksum = RefreshChecksum();
             SimBattleResult result = null;
             if (_terminalOutcome != null)
@@ -258,7 +259,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _terminalOutcome = data.TerminalOutcome;
             _terminalFinalTick = data.TerminalFinalTick;
             long revision = _state.TimelineRevision + 1;
-            _currentFrame = BuildFrame(true, data.CompletedTick, data.NextTick, revision);
+            _currentFrame = BuildFullFrame(data.CompletedTick, data.NextTick, revision);
             _state = new SimBattleState(data.Lifecycle, data.Phase,
                 data.CompletedTick, data.NextTick, revision, 0, _currentFrame, null);
             ulong restoredChecksum = RefreshChecksum();
@@ -631,7 +632,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 _currentFrame, _state.Checksum, _state.Result);
         }
 
-        private PresentationFrame BuildFrame(bool isFull, int completedTick, int nextTick, long revision)
+        private PresentationFrame BuildFullFrame(int completedTick, int nextTick, long revision)
         {
             var states = new List<EntityPresentationState>();
             _world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
@@ -645,10 +646,70 @@ namespace ZWebGLFrameWork.SimulationCore
                     transform.PosY.RawValue, 0, health.CurrentHP));
             });
             states.Sort((left, right) => left.EntityId.CompareTo(right.EntityId));
-            return new PresentationFrame(isFull, completedTick, nextTick, revision,
+            return new PresentationFrame(true, completedTick, nextTick, revision,
                 states.ToArray(), Array.Empty<EntityPresentationState>(),
                 Array.Empty<EntityPresentationState>(),
                 Array.Empty<EntityPresentationKey>());
+        }
+
+        private static PresentationFrame BuildDeltaFrame(
+            PresentationFrame previous, PresentationFrame current)
+        {
+            var previousByKey = new Dictionary<EntityPresentationKey,
+                EntityPresentationState>();
+            foreach (EntityPresentationState state in previous.Entities)
+                previousByKey.Add(Key(state), state);
+
+            var created = new List<EntityPresentationState>();
+            var updated = new List<EntityPresentationState>();
+            var remaining = new HashSet<EntityPresentationKey>(previousByKey.Keys);
+            foreach (EntityPresentationState state in current.Entities)
+            {
+                EntityPresentationKey key = Key(state);
+                if (!previousByKey.TryGetValue(key, out EntityPresentationState old))
+                    created.Add(state);
+                else if (!SamePresentationState(old, state))
+                    updated.Add(state);
+                remaining.Remove(key);
+            }
+
+            var destroyed = new List<EntityPresentationKey>(remaining);
+            created.Sort(CompareStates);
+            updated.Sort(CompareStates);
+            destroyed.Sort(CompareKeys);
+            return new PresentationFrame(false, current.CompletedTick,
+                current.NextTick, current.TimelineRevision,
+                Array.Empty<EntityPresentationState>(), created.ToArray(),
+                updated.ToArray(), destroyed.ToArray());
+        }
+
+        private static EntityPresentationKey Key(EntityPresentationState state) =>
+            new EntityPresentationKey(state.EntityId, state.Generation);
+
+        private static bool SamePresentationState(
+            EntityPresentationState left, EntityPresentationState right) =>
+            left.ArchetypeId == right.ArchetypeId &&
+            left.OwnerPlayerId == right.OwnerPlayerId &&
+            left.TeamId == right.TeamId &&
+            left.GridX == right.GridX &&
+            left.GridY == right.GridY &&
+            left.PosXRaw == right.PosXRaw &&
+            left.PosYRaw == right.PosYRaw &&
+            left.OrientationMilliDegrees == right.OrientationMilliDegrees &&
+            left.Health == right.Health;
+
+        private static int CompareStates(
+            EntityPresentationState left, EntityPresentationState right)
+        {
+            int byId = left.EntityId.CompareTo(right.EntityId);
+            return byId != 0 ? byId : left.Generation.CompareTo(right.Generation);
+        }
+
+        private static int CompareKeys(
+            EntityPresentationKey left, EntityPresentationKey right)
+        {
+            int byId = left.EntityId.CompareTo(right.EntityId);
+            return byId != 0 ? byId : left.Generation.CompareTo(right.Generation);
         }
 
         private static PresentationFrame EmptyFrame() =>

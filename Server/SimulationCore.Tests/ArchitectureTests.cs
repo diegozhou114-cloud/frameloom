@@ -31,7 +31,8 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 "Server/ReplayValidator/ReplayValidator.csproj",
                 "--configuration", "Release",
                 "--artifacts-path", "/tmp/zweb-sim-migration/task-03/contract-build",
-                "--warnaserror");
+                "--warnaserror",
+                "--disable-build-servers");
 
             Assert.That(result.ExitCode, Is.EqualTo(0), result.Output);
         }
@@ -50,8 +51,23 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
 
         private static string RepositoryRoot()
         {
-            return Path.GetFullPath(System.Environment.GetEnvironmentVariable("ZWEB_REPO_ROOT")
-                ?? Directory.GetCurrentDirectory());
+            string configured = System.Environment.GetEnvironmentVariable(
+                "ZWEB_REPO_ROOT");
+            if (!string.IsNullOrWhiteSpace(configured))
+                return Path.GetFullPath(configured);
+
+            for (var directory = new DirectoryInfo(System.AppContext.BaseDirectory);
+                directory != null; directory = directory.Parent)
+            {
+                string candidate = directory.FullName;
+                if (File.Exists(Path.Combine(candidate, ".git")) &&
+                    Directory.Exists(Path.Combine(candidate, "Assets")) &&
+                    Directory.Exists(Path.Combine(candidate, "Server")))
+                    return candidate;
+            }
+
+            throw new DirectoryNotFoundException(
+                "Unable to locate the repository root. Set ZWEB_REPO_ROOT.");
         }
 
         private static ProcessResult RunDotNet(string root, params string[] arguments)

@@ -31,7 +31,8 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             TickResult result = session.Tick();
 
             Assert.That(submitted.Accepted, Is.True);
-            Assert.That(result.Presentation.Entities[1].Health, Is.EqualTo(target.Health - 30));
+            Assert.That(session.State.Presentation.Entities[1].Health,
+                Is.EqualTo(target.Health - 30));
             Assert.That(result.Events.Count, Is.EqualTo(1));
             Assert.That(result.Events[0].Type, Is.EqualTo(SimBattleEventType.DamageApplied));
         }
@@ -70,7 +71,9 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 TargetY = target.GridY,
             }).Accepted, Is.True);
 
-            Assert.That(session.Tick().Presentation.Entities[1].Health, Is.EqualTo(target.Health - 30));
+            session.Tick();
+            Assert.That(session.State.Presentation.Entities[1].Health,
+                Is.EqualTo(target.Health - 30));
         }
 
         [Test]

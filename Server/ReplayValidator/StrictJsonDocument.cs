@@ -19,6 +19,7 @@ namespace ZWebGLFrameWork.Server
             RequireObject(root,
                 new[]
                 {
+                    "BattleInit",
                     "FormatVersion", "SimulationSchemaHash", "ContentConfigHash",
                     "TickRate", "MatchId", "InitialStateHash", "SubmissionNonce",
                     "FinalTick", "FinalResult", "FinalChecksum", "Version", "Seed",
@@ -31,7 +32,27 @@ namespace ZWebGLFrameWork.Server
                     "FinalTick", "FinalResult", "FinalChecksum", "Version", "Seed",
                     "InitialLayout", "Records"
                 });
-            ValidateResult(root.GetProperty("FinalResult"));
+            if (root.TryGetProperty("BattleInit", out JsonElement battleInit) &&
+                battleInit.ValueKind != JsonValueKind.Null)
+            {
+                RequireObject(battleInit, new[]
+                {
+                    "ProtocolVersion", "SchemaVersion", "MatchId", "SessionId",
+                    "Seed", "TickRate", "Mode", "ContentHash", "Players",
+                    "InitialEntities", "InputDeadlineTicks"
+                });
+                ValidateArray(battleInit.GetProperty("Players"), player =>
+                    RequireObject(player, new[] { "PlayerId", "AccountId" }));
+                ValidateArray(battleInit.GetProperty("InitialEntities"), entity =>
+                    RequireObject(entity, new[]
+                    {
+                        "ArchetypeId", "GridX", "GridY", "TeamId",
+                        "OwnerPlayerId"
+                    }));
+            }
+            JsonElement finalResult = root.GetProperty("FinalResult");
+            if (finalResult.ValueKind != JsonValueKind.Null)
+                ValidateResult(finalResult);
             ValidateArray(root.GetProperty("InitialLayout"), element =>
                 RequireObject(element, new[]
                 {

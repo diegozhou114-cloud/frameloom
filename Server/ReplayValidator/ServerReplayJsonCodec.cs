@@ -34,7 +34,97 @@ namespace ZWebGLFrameWork.Server
                 WriteIndented = true
             };
             options.Converters.Add(new SimEntitySpawnInfoConverter());
+            options.Converters.Add(new ReplayBattleInitConverter());
             return options;
+        }
+
+        private sealed class ReplayBattleInitConverter : JsonConverter<ReplayBattleInit>
+        {
+            public override ReplayBattleInit Read(
+                ref Utf8JsonReader reader, Type typeToConvert,
+                JsonSerializerOptions options)
+            {
+                using JsonDocument document = JsonDocument.ParseValue(ref reader);
+                JsonElement root = document.RootElement;
+                SimPlayerIdentity[] players = ReadPlayers(root.GetProperty("Players"));
+                InitialEntitySpec[] entities =
+                    ReadEntities(root.GetProperty("InitialEntities"));
+                return new ReplayBattleInit(
+                    root.GetProperty("ProtocolVersion").GetInt32(),
+                    root.GetProperty("SchemaVersion").GetInt32(),
+                    root.GetProperty("MatchId").GetString(),
+                    root.GetProperty("SessionId").GetString(),
+                    root.GetProperty("Seed").GetInt32(),
+                    root.GetProperty("TickRate").GetInt32(),
+                    (SimCombatMode)root.GetProperty("Mode").GetInt32(),
+                    root.GetProperty("ContentHash").Deserialize<byte[]>(options),
+                    players, entities,
+                    root.GetProperty("InputDeadlineTicks").GetInt32());
+            }
+
+            public override void Write(Utf8JsonWriter writer,
+                ReplayBattleInit value, JsonSerializerOptions options)
+            {
+                writer.WriteStartObject();
+                writer.WriteNumber(nameof(value.ProtocolVersion), value.ProtocolVersion);
+                writer.WriteNumber(nameof(value.SchemaVersion), value.SchemaVersion);
+                writer.WriteString(nameof(value.MatchId), value.MatchId);
+                writer.WriteString(nameof(value.SessionId), value.SessionId);
+                writer.WriteNumber(nameof(value.Seed), value.Seed);
+                writer.WriteNumber(nameof(value.TickRate), value.TickRate);
+                writer.WriteNumber(nameof(value.Mode), (int)value.Mode);
+                writer.WritePropertyName(nameof(value.ContentHash));
+                JsonSerializer.Serialize(writer, value.ContentHash, options);
+                writer.WritePropertyName(nameof(value.Players));
+                writer.WriteStartArray();
+                foreach (SimPlayerIdentity player in value.Players)
+                {
+                    writer.WriteStartObject();
+                    writer.WriteNumber(nameof(player.PlayerId), player.PlayerId);
+                    writer.WriteString(nameof(player.AccountId), player.AccountId);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+                writer.WritePropertyName(nameof(value.InitialEntities));
+                writer.WriteStartArray();
+                foreach (InitialEntitySpec entity in value.InitialEntities)
+                {
+                    writer.WriteStartObject();
+                    writer.WriteNumber(nameof(entity.ArchetypeId), entity.ArchetypeId);
+                    writer.WriteNumber(nameof(entity.GridX), entity.GridX);
+                    writer.WriteNumber(nameof(entity.GridY), entity.GridY);
+                    writer.WriteNumber(nameof(entity.TeamId), entity.TeamId);
+                    writer.WriteNumber(nameof(entity.OwnerPlayerId), entity.OwnerPlayerId);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+                writer.WriteNumber(nameof(value.InputDeadlineTicks),
+                    value.InputDeadlineTicks);
+                writer.WriteEndObject();
+            }
+
+            private static SimPlayerIdentity[] ReadPlayers(JsonElement array)
+            {
+                var players = new List<SimPlayerIdentity>();
+                foreach (JsonElement player in array.EnumerateArray())
+                    players.Add(new SimPlayerIdentity(
+                        player.GetProperty("PlayerId").GetInt32(),
+                        player.GetProperty("AccountId").GetString()));
+                return players.ToArray();
+            }
+
+            private static InitialEntitySpec[] ReadEntities(JsonElement array)
+            {
+                var entities = new List<InitialEntitySpec>();
+                foreach (JsonElement entity in array.EnumerateArray())
+                    entities.Add(new InitialEntitySpec(
+                        entity.GetProperty("ArchetypeId").GetInt32(),
+                        entity.GetProperty("GridX").GetInt32(),
+                        entity.GetProperty("GridY").GetInt32(),
+                        entity.GetProperty("TeamId").GetInt32(),
+                        entity.GetProperty("OwnerPlayerId").GetInt32()));
+                return entities.ToArray();
+            }
         }
 
         private sealed class SimEntitySpawnInfoConverter : JsonConverter<SimEntitySpawnInfo>

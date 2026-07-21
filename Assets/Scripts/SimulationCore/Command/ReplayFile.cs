@@ -43,6 +43,7 @@ namespace ZWebGLFrameWork.SimulationCore
     [Serializable]
     public class ReplayFile
     {
+        public ReplayBattleInit BattleInit { get; set; }
         public ushort FormatVersion { get; set; }
         public string SimulationSchemaHash { get; set; }
         public string ContentConfigHash { get; set; }
@@ -70,5 +71,93 @@ namespace ZWebGLFrameWork.SimulationCore
                 if (r.Tick == tick) return r.Checksum;
             return 0;
         }
+    }
+
+    /// <summary>
+    /// 由权威匹配创建响应提供的回放上传身份字段。
+    /// 录制器不能从 BattleInit 推导这些值，必须原样保留到上传回放中。
+    /// </summary>
+    public sealed class ReplayAuthorityMetadata
+    {
+        public string SimulationSchemaHash { get; }
+        public string ContentConfigHash { get; }
+        public string InitialStateHash { get; }
+        public string SubmissionNonce { get; }
+
+        public ReplayAuthorityMetadata(string simulationSchemaHash,
+            string contentConfigHash, string initialStateHash,
+            string submissionNonce)
+        {
+            SimulationSchemaHash = RequireValue(simulationSchemaHash,
+                nameof(simulationSchemaHash));
+            ContentConfigHash = RequireValue(contentConfigHash,
+                nameof(contentConfigHash));
+            InitialStateHash = RequireValue(initialStateHash,
+                nameof(initialStateHash));
+            SubmissionNonce = RequireValue(submissionNonce,
+                nameof(submissionNonce));
+        }
+
+        private static string RequireValue(string value, string name)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Value is required.", name);
+            return value;
+        }
+    }
+
+    [Serializable]
+    public sealed class ReplayBattleInit
+    {
+        private readonly byte[] _contentHash;
+        private readonly SimPlayerIdentity[] _players;
+        private readonly InitialEntitySpec[] _initialEntities;
+
+        public int ProtocolVersion { get; }
+        public int SchemaVersion { get; }
+        public string MatchId { get; }
+        public string SessionId { get; }
+        public int Seed { get; }
+        public int TickRate { get; }
+        public SimCombatMode Mode { get; }
+        public byte[] ContentHash => (byte[])_contentHash.Clone();
+        public SimPlayerIdentity[] Players => (SimPlayerIdentity[])_players.Clone();
+        public InitialEntitySpec[] InitialEntities =>
+            (InitialEntitySpec[])_initialEntities.Clone();
+        public int InputDeadlineTicks { get; }
+
+        public ReplayBattleInit(int protocolVersion, int schemaVersion,
+            string matchId, string sessionId, int seed, int tickRate,
+            SimCombatMode mode, byte[] contentHash, SimPlayerIdentity[] players,
+            InitialEntitySpec[] initialEntities, int inputDeadlineTicks)
+        {
+            ProtocolVersion = protocolVersion;
+            SchemaVersion = schemaVersion;
+            MatchId = matchId ?? throw new ArgumentNullException(nameof(matchId));
+            SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
+            Seed = seed;
+            TickRate = tickRate;
+            Mode = mode;
+            _contentHash = (byte[])(contentHash ??
+                throw new ArgumentNullException(nameof(contentHash))).Clone();
+            _players = (SimPlayerIdentity[])(players ??
+                throw new ArgumentNullException(nameof(players))).Clone();
+            _initialEntities = (InitialEntitySpec[])(initialEntities ??
+                throw new ArgumentNullException(nameof(initialEntities))).Clone();
+            InputDeadlineTicks = inputDeadlineTicks;
+        }
+
+        public static ReplayBattleInit From(BattleInit init)
+        {
+            if (init == null) throw new ArgumentNullException(nameof(init));
+            return new ReplayBattleInit(init.ProtocolVersion, init.SchemaVersion,
+                init.MatchId, init.SessionId, init.Seed, init.TickRate, init.Mode,
+                init.ContentHash, init.Players, init.InitialEntities,
+                init.InputDeadlineTicks);
+        }
+
+        public BattleInit ToBattleInit() => new BattleInit(
+            ProtocolVersion, SchemaVersion, MatchId, SessionId, Seed, TickRate,
+            Mode, _contentHash, _players, _initialEntities, InputDeadlineTicks);
     }
 }
