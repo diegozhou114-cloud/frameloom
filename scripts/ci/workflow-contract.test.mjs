@@ -58,3 +58,21 @@ test('CI_ServerProjects_BuildAndTestReleaseWarnAsError', () => {
   assert.doesNotMatch(commands, /LogFileName=server\.trx/);
   assert.match(commands, /validate-trx\.py --results/);
 });
+
+test('CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts', () => {
+  const build = workflow.jobs.build;
+  assert.ok(build, 'build job missing');
+  const action = build.steps.find(step => step.uses === 'game-ci/unity-builder@v4');
+  assert.equal(action.with.unityVersion, '${{ env.UNITY_VERSION }}');
+  assert.equal(action.with.buildMethod, '${{ matrix.buildMethod }}');
+  const methods = build.strategy.matrix.include.map(entry => entry.buildMethod);
+  assert.deepEqual(methods, [
+    'ZWebGLFrameWork.Editor.BuildScript.BuildWebGL',
+    'ZWebGLFrameWork.Editor.BuildScript.BuildWindows',
+  ]);
+  assert.match(String(build.env.ZWEB_EVIDENCE_ROOT), /runner\.temp/);
+  assert.match(String(action.with.buildPath), /runner\.temp/);
+  const commands = build.steps.map(step => step.run || '').join('\n');
+  assert.match(commands, /validate-build-summary\.mjs/);
+  assert.match(commands, /--artifact-root/);
+});
