@@ -140,6 +140,30 @@ namespace ZWebGLFrameWork.Combat.Tests
         }
 
         [Test]
+        public void ApplyFull_DestroyReplacesBattle_StopsAndPreservesReplacementViews()
+        {
+            var factory = new ReentrantEntityViewFactory();
+            var bridge = new SessionPresentationBridge(factory);
+            bridge.Apply(Full(State(1, 1, 101, 10000),
+                State(2, 1, 102, 20000), State(3, 1, 103, 30000)));
+            factory.OnDestroy = view =>
+            {
+                factory.OnDestroy = null;
+                bridge.Cleanup();
+                bridge.Apply(Full(State(3, 1, 303, 30000),
+                    State(4, 1, 404, 40000)));
+            };
+
+            bridge.Apply(Full(State(1, 1, 101, 10000)));
+
+            Assert.That(bridge.ViewCount, Is.EqualTo(2));
+            Assert.That(factory.LiveCount, Is.EqualTo(2));
+            Assert.That(factory.HasLiveArchetype(303), Is.True);
+            Assert.That(factory.HasLiveArchetype(404), Is.True);
+            Assert.That(factory.DestroyCountForArchetype(303), Is.Zero);
+        }
+
+        [Test]
         public void Sample_SetPositionReplacesBattle_StopsAndPreservesReplacement()
         {
             var factory = new ReentrantEntityViewFactory();
