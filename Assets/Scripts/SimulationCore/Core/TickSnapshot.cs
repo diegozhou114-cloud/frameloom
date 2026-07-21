@@ -22,5 +22,13 @@ namespace ZWebGLFrameWork.SimulationCore
         public ulong Checksum;
         /// <summary>快照对应的 Tick 号（用于回滚验证）</summary>
         public int Tick;
+        /// <summary>攻击系统已完成的更新次数。</summary>
+        public int AttackSystemTick;
+        /// <summary>死亡系统的终局判定状态。</summary>
+        public int AttackerAlive;
+        public int DefenderAlive;
+        public int AttackerDead;
+        public int DefenderDead;
+        public int? Winner;
     }
 }

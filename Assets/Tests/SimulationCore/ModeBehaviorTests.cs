@@ -7,7 +7,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
     public sealed class ModeBehaviorTests
     {
         [Test]
-        public void SupportedModes_MatchApprovedBehaviorMatrix_AndDefendCopies()
+        public void SupportedModes_MatchApprovedBehaviorMatrix()
         {
             DeterministicContentManifest manifest = ModeTestFixture.Manifest();
             SimCombatMode[] expectedModes =
@@ -28,6 +28,12 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             AssertProfile(manifest.GetMode(SimCombatMode.Campaign), false, 0, 0, 2400,
                 new[] { 0, 100, 200, 300, 400 });
 
+        }
+
+        [Test]
+        public void SupportedModes_DefendCopies()
+        {
+            DeterministicContentManifest manifest = ModeTestFixture.Manifest();
             int[] waves = manifest.GetMode(SimCombatMode.Campaign).WaveTicks;
             waves[0] = 999;
             Assert.That(manifest.GetMode(SimCombatMode.Campaign).WaveTicks,

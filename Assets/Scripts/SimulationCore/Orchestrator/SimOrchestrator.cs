@@ -161,6 +161,13 @@ namespace ZWebGLFrameWork.SimulationCore
             // Snapshot recording AFTER phase transitions, before CurrentTick++ (Bug #6, #10)
             var snap = _world.ExportFullSnapshot();
             snap.Tick = CurrentTick;
+            SimAttackSystem attackSystem = _systems.Find<SimAttackSystem>();
+            snap.AttackSystemTick = attackSystem?.CurrentTick ?? 0;
+            snap.AttackerAlive = _deathSys.AttackerAlive;
+            snap.DefenderAlive = _deathSys.DefenderAlive;
+            snap.AttackerDead = _deathSys.AttackerDead;
+            snap.DefenderDead = _deathSys.DefenderDead;
+            snap.Winner = _deathSys.Winner;
             _snapshotHistory[CurrentTick % 64] = snap;
 
             CurrentTick++;
@@ -223,10 +230,14 @@ namespace ZWebGLFrameWork.SimulationCore
             SimCombatPhase phaseBeforeRollback = CurrentPhase;
             _world.RestoreFromFull(snapshot);
             LastChecksum = snapshot.Checksum;
-            CurrentTick = targetTick;
-            // Bug #5: Restore phase counters
-            _battleElapsed = targetTick;
-            _deployElapsed = Math.Min(_deployElapsed, targetTick);
+            _systems.Find<SimAttackSystem>()?.RestoreTick(snapshot.AttackSystemTick);
+            _deathSys.RestoreState(snapshot.AttackerAlive, snapshot.DefenderAlive,
+                snapshot.AttackerDead, snapshot.DefenderDead, snapshot.Winner);
+            // Snapshots are captured after their numbered tick completes.
+            CurrentTick = targetTick + 1;
+            // Restore phase counters to the next input tick as well.
+            _battleElapsed = targetTick + 1;
+            _deployElapsed = Math.Min(_deployElapsed, targetTick + 1);
             CurrentPhase = phaseBeforeRollback == SimCombatPhase.Battling
                 ? SimCombatPhase.Battling
                 : targetTick < _deployTimeLimit
@@ -242,7 +253,8 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             RollbackTo(fromTick);
 
-            for (int t = fromTick; t <= toTick; t++)
+            int firstReplayTick = fromTick == 0 ? 0 : fromTick + 1;
+            for (int t = firstReplayTick; t <= toTick; t++)
             {
                 // Inject commands from replay buffer for this tick
                 var cmds = replayBuffer.Peek(t);

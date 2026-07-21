@@ -420,7 +420,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
-        public void Rollback_MidBattle_RestoresCorrectState()
+        public void Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence()
         {
             const int seed = 42;
             var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 256);
@@ -435,20 +435,14 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             orch.StartBattle();
             orch.SetPhase(SimCombatPhase.Battling);
 
-            // Run 20 ticks
-            for (int t = 0; t < 20; t++)
+            var originalChecksums = new List<ulong>();
+            for (int t = 0; t < 30; t++)
             {
                 SimpleAI(world, t);
                 orch.Tick();
+                originalChecksums.Add(orch.LastChecksum);
             }
-            ulong csAt20 = orch.LastChecksum;
-
-            // Run 10 more ticks
-            for (int t = 20; t < 30; t++)
-            {
-                SimpleAI(world, t);
-                orch.Tick();
-            }
+            ulong csAt20 = originalChecksums[20];
 
             // Rollback to tick 20
             orch.RollbackTo(20);
@@ -461,16 +455,18 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(orch.CurrentPhase, Is.EqualTo(SimCombatPhase.Battling),
                 "Phase should be Battling after rollback to tick 20");
 
-            // Replay ticks 20–29 with same AI
-            for (int t = 20; t < 30; t++)
+            Assert.That(orch.CurrentTick, Is.EqualTo(21),
+                "Rollback after tick 20 should resume at tick 21.");
+
+            // Replay ticks 21–29 with the same inputs and checksum sequence.
+            for (int t = 21; t < 30; t++)
             {
                 SimpleAI(world, t);
                 orch.Tick();
+                Assert.That(orch.LastChecksum, Is.EqualTo(originalChecksums[t]),
+                    $"Tick {t} should match its pre-rollback checksum.");
             }
 
-            // After replay, checksum should be non-zero (deterministic replay)
-            Assert.That(orch.LastChecksum, Is.Not.EqualTo(0UL),
-                "After rollback + replay, checksum should be non-zero");
             Assert.That(orch.CurrentTick, Is.EqualTo(30),
                 "After replay of 10 ticks from tick 20, CurrentTick should be 30");
         }
