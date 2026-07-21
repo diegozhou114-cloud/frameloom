@@ -46,10 +46,45 @@ namespace ZWebGLFrameWork.Combat.Tests
             Assert.That(factory.CreatedCount, Is.EqualTo(factory.DestroyedCount));
         }
 
+        [Test]
+        public void Presentation_RendersBetweenTicks_AndResyncsAfterRollbackWithoutLeaks()
+        {
+            var factory = new RecordingEntityViewFactory();
+            var bridge = new SessionPresentationBridge(factory);
+            bridge.Apply(FullAt(0, -1, 1, 0));
+            bridge.Apply(DeltaAt(0, 0, 1, 10000));
+
+            bridge.Sample(0.5f);
+            Assert.That(factory.PositionX(1), Is.EqualTo(0.5f).Within(0.0001f));
+
+            bridge.Apply(FullAt(1, 0, 1, 30000));
+            bridge.Sample(0.25f);
+            Assert.That(factory.PositionX(1), Is.EqualTo(3f).Within(0.0001f));
+
+            bridge.Cleanup();
+            bridge.Cleanup();
+            Assert.That(bridge.ViewCount, Is.Zero);
+            Assert.That(factory.CreatedCount, Is.EqualTo(factory.DestroyedCount));
+        }
+
         private static PresentationFrame Full(params EntityPresentationState[] states) =>
             new PresentationFrame(true, -1, 0, 0, states,
                 System.Array.Empty<EntityPresentationState>(),
                 System.Array.Empty<EntityPresentationState>(),
+                System.Array.Empty<EntityPresentationKey>());
+
+        private static PresentationFrame FullAt(long revision, int completedTick,
+            int entityId, long xRaw) => new PresentationFrame(true, completedTick,
+                completedTick + 1, revision, new[] { State(entityId, 1, 10, xRaw) },
+                System.Array.Empty<EntityPresentationState>(),
+                System.Array.Empty<EntityPresentationState>(),
+                System.Array.Empty<EntityPresentationKey>());
+
+        private static PresentationFrame DeltaAt(long revision, int completedTick,
+            int entityId, long xRaw) => new PresentationFrame(false, completedTick,
+                completedTick + 1, revision, System.Array.Empty<EntityPresentationState>(),
+                System.Array.Empty<EntityPresentationState>(),
+                new[] { State(entityId, 1, 10, xRaw) },
                 System.Array.Empty<EntityPresentationKey>());
 
         private static EntityPresentationState State(int id, int generation,
