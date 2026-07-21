@@ -9,7 +9,8 @@
         "ZWebGLFrameWork.UI",
         "ZWebGLFrameWork.FSM",
         "ZWebGLFrameWork.Gameplay",
-        "ZWebGLFrameWork.Combat"
+        "ZWebGLFrameWork.Combat",
+        "ZWebGLFrameWork.SimulationCore"
     ],
     "includePlatforms": [
         "Editor"
