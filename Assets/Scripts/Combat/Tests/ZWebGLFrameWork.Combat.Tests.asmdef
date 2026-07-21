@@ -5,7 +5,8 @@
         "ZWebGLFrameWork.Combat",
         "ZWebGLFrameWork.ECS",
         "ZWebGLFrameWork.Core",
-        "ZWebGLFrameWork.Data"
+        "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.SimulationCore"
     ],
     "includePlatforms": [
         "Editor"

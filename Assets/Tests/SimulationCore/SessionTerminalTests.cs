@@ -243,7 +243,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Running));
                 Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
                 Assert.That(deploying.Result, Is.Null);
-                Assert.That(deploying.Presentation.Entities.Select(EntityCombatState),
+                Assert.That(session.State.Presentation.Entities.Select(EntityCombatState),
                     Is.EqualTo(initial.Select(EntityCombatState)));
             }
 
@@ -291,7 +291,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 TickResult deploying = session.Tick();
                 Assert.That(deploying.Code, Is.EqualTo(TickCode.Advanced));
                 Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
-                Assert.That(deploying.Presentation.Entities.Select(EntityCombatState),
+                Assert.That(session.State.Presentation.Entities.Select(EntityCombatState),
                     Is.EqualTo(initial.Select(EntityCombatState)));
             }
 
