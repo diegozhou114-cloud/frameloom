@@ -41,3 +41,20 @@ test('all mutating jobs end with an exact clean-tree gate', () => {
       `${name} has no clean-tree command`);
   }
 });
+
+test('CI_ServerProjects_BuildAndTestReleaseWarnAsError', () => {
+  const server = workflow.jobs.server;
+  assert.ok(server, 'server job missing');
+  assert.deepEqual(server.strategy.matrix.os, ['ubuntu-latest', 'windows-latest']);
+  const commands = server.steps.map(step => step.run || '').join('\n');
+  assert.match(commands,
+    /dotnet restore Server\/ZWebGLFrameWork\.Server\.sln --locked-mode/);
+  assert.match(commands,
+    /dotnet build Server\/ZWebGLFrameWork\.Server\.sln -c Release --no-restore --warnaserror/);
+  assert.match(commands,
+    /dotnet test Server\/ZWebGLFrameWork\.Server\.sln -c Release --no-build --no-restore/);
+  assert.match(commands, /--artifacts-path "\$DOTNET_ARTIFACTS"/);
+  assert.match(commands, /LogFilePrefix=server/);
+  assert.doesNotMatch(commands, /LogFileName=server\.trx/);
+  assert.match(commands, /validate-trx\.py --results/);
+});
