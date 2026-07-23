@@ -194,18 +194,23 @@ namespace ZWebGLFrameWork.Combat
             if (_session == null) return;
 
             _accumulator += Time.deltaTime;
+            ISimBattleSession activeSession = _session;
+            UniTaskCompletionSource<SimBattleResult> activeCompletion = _completion;
             try
             {
                 while (_session != null && _accumulator >= TickInterval)
                 {
                     _accumulator -= TickInterval;
-                    ISimBattleSession activeSession = _session;
+                    activeSession = _session;
+                    activeCompletion = _completion;
                     TickResult tick = activeSession.Tick();
-                    if (!ReferenceEquals(_session, activeSession)) return;
+                    if (!OwnsBattle(activeSession, activeCompletion)) return;
 
                     _presentation.Apply(tick.Presentation);
+                    if (!OwnsBattle(activeSession, activeCompletion)) return;
                     CompletedTick = tick.CompletedTick;
                     SetPhase(activeSession.State.Phase);
+                    if (!OwnsBattle(activeSession, activeCompletion)) return;
                     if (tick.Result == null) continue;
 
                     CompleteBattle(activeSession, tick.Result);
@@ -213,14 +218,18 @@ namespace ZWebGLFrameWork.Combat
                 }
 
                 if (_session != null)
+                {
+                    activeSession = _session;
+                    activeCompletion = _completion;
                     _presentation.Sample(_accumulator / TickInterval);
+                }
             }
             catch (Exception exception)
             {
-                UniTaskCompletionSource<SimBattleResult> completion = _completion;
-                completion?.TrySetException(exception);
+                if (!OwnsBattle(activeSession, activeCompletion)) return;
+                activeCompletion?.TrySetException(exception);
                 LogException(exception);
-                Cleanup(completion, false);
+                Cleanup(activeCompletion, false);
             }
         }
 

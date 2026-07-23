@@ -132,6 +132,108 @@ namespace ZWebGLFrameWork.Combat.PlayModeTests
             }
         }
 
+        [UnityTest]
+        public IEnumerator TickPresentation_ReentrantReplacementKeepsReplacementState()
+        {
+            var viewFactory = new RecordingEntityViewFactory();
+            var host = new GameObject("CombatManagerTickPresentationReentrantHost");
+            var manager = host.AddComponent<CombatManager>();
+            manager.ConfigureForTests(new SimBattleSessionFactory(),
+                FrameworkBattleContent.CanonicalBytes(), viewFactory);
+
+            UniTask<SimBattleResult> replacementCompletion = default;
+            bool replacementStarted = false;
+            try
+            {
+                UniTask<SimBattleResult> firstCompletion = manager.StartBattleAsync(
+                    SessionPlayModeFixture.VillageAttackParams(), CancellationToken.None);
+                viewFactory.OnCreate = () =>
+                {
+                    BattleParams replacement = SessionPlayModeFixture.VillageAttackParams();
+                    replacement.MatchId = "tick-presentation-replacement-match";
+                    replacement.SessionId = "tick-presentation-replacement-session";
+                    replacementCompletion = manager.StartBattleAsync(
+                        replacement, CancellationToken.None);
+                    replacementStarted = true;
+                };
+
+                Assert.That(manager.SubmitDeployUnit(new Vector2Int(2, 2), 10).Accepted,
+                    Is.True);
+                float deadline = Time.realtimeSinceStartup + 5f;
+                while (!replacementStarted && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+
+                Assert.That(replacementStarted, Is.True);
+                Assert.That(firstCompletion.Status, Is.EqualTo(UniTaskStatus.Canceled));
+                Assert.That(replacementCompletion.Status, Is.EqualTo(UniTaskStatus.Pending));
+                Assert.That(manager.HasActiveSession, Is.True);
+                Assert.That(manager.CurrentPhase, Is.EqualTo(SimCombatPhase.Deploying));
+                Assert.That(manager.CompletedTick, Is.EqualTo(-1),
+                    "battle A must not commit its completed tick into battle B");
+                Assert.That(manager.LastResult, Is.Null);
+                Assert.That(manager.ActiveViewCount, Is.EqualTo(1));
+                Assert.That(viewFactory.HasActiveArchetype(2), Is.True);
+                Assert.That(viewFactory.HasActiveArchetype(10), Is.False,
+                    "battle A's tick view must not survive replacement");
+            }
+            finally
+            {
+                manager.StopBattle();
+                Object.DestroyImmediate(host);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TickPresentation_ReentrantReplacementThenThrowKeepsReplacement()
+        {
+            var expected = new InvalidOperationException("stale tick presentation failure");
+            var viewFactory = new RecordingEntityViewFactory();
+            var host = new GameObject("CombatManagerTickPresentationReentrantThrowHost");
+            var manager = host.AddComponent<CombatManager>();
+            manager.ConfigureForTests(new SimBattleSessionFactory(),
+                FrameworkBattleContent.CanonicalBytes(), viewFactory, new SilentSimLogger());
+
+            UniTask<SimBattleResult> replacementCompletion = default;
+            bool replacementStarted = false;
+            try
+            {
+                UniTask<SimBattleResult> firstCompletion = manager.StartBattleAsync(
+                    SessionPlayModeFixture.VillageAttackParams(), CancellationToken.None);
+                viewFactory.OnCreate = () =>
+                {
+                    BattleParams replacement = SessionPlayModeFixture.VillageAttackParams();
+                    replacement.MatchId = "tick-throw-replacement-match";
+                    replacement.SessionId = "tick-throw-replacement-session";
+                    replacementCompletion = manager.StartBattleAsync(
+                        replacement, CancellationToken.None);
+                    replacementStarted = true;
+                    throw expected;
+                };
+
+                Assert.That(manager.SubmitDeployUnit(new Vector2Int(2, 2), 10).Accepted,
+                    Is.True);
+                float deadline = Time.realtimeSinceStartup + 5f;
+                while (!replacementStarted && Time.realtimeSinceStartup < deadline)
+                    yield return null;
+
+                Assert.That(replacementStarted, Is.True);
+                Assert.That(firstCompletion.Status, Is.EqualTo(UniTaskStatus.Canceled));
+                Assert.That(replacementCompletion.Status, Is.EqualTo(UniTaskStatus.Pending));
+                Assert.That(manager.HasActiveSession, Is.True);
+                Assert.That(manager.CurrentPhase, Is.EqualTo(SimCombatPhase.Deploying));
+                Assert.That(manager.CompletedTick, Is.EqualTo(-1));
+                Assert.That(manager.LastResult, Is.Null);
+                Assert.That(manager.ActiveViewCount, Is.EqualTo(1));
+                Assert.That(viewFactory.HasActiveArchetype(2), Is.True);
+                Assert.That(viewFactory.HasActiveArchetype(10), Is.False);
+            }
+            finally
+            {
+                manager.StopBattle();
+                Object.DestroyImmediate(host);
+            }
+        }
+
         [Test]
         public void InitialPhase_ReentrantReplacementKeepsReplacementCompletion()
         {
@@ -368,8 +470,13 @@ namespace ZWebGLFrameWork.Combat.PlayModeTests
 
         private readonly HashSet<View> _active = new HashSet<View>();
 
+        public Action OnCreate { get; set; }
+
         public IEntityView Create(EntityPresentationKey key, int archetypeId)
         {
+            Action callback = OnCreate;
+            OnCreate = null;
+            callback?.Invoke();
             var view = new View(archetypeId);
             _active.Add(view);
             return view;
@@ -408,6 +515,13 @@ namespace ZWebGLFrameWork.Combat.PlayModeTests
         }
 
         public void Destroy(IEntityView view) => DestroyCalls++;
+    }
+
+    internal sealed class SilentSimLogger : ISimLogger
+    {
+        public void Log(string message) { }
+        public void Warn(string message) { }
+        public void Error(string message) { }
     }
 
     internal sealed class FakeSimBattleSessionFactory : ISimBattleSessionFactory

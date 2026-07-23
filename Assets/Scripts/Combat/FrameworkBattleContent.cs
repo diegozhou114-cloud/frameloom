@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.Combat
@@ -6,6 +7,7 @@ namespace ZWebGLFrameWork.Combat
     public static class FrameworkBattleContent
     {
         // TODO(PRODUCTION-CONTENT): Replace framework manifest and ID mappings with versioned project content.
+        private static bool _warningEmitted;
         private static readonly byte[] CanonicalManifestBytes = new DeterministicContentManifest(
             SimComponentSchema.Version,
             new[]
@@ -25,10 +27,15 @@ namespace ZWebGLFrameWork.Combat
                 new SimModeProfile(SimCombatMode.Campaign, false, 0, 0, 600, new[] { 0 })
             }).ToCanonicalBytes();
 
-        public static byte[] CanonicalBytes() => (byte[])CanonicalManifestBytes.Clone();
+        public static byte[] CanonicalBytes()
+        {
+            WarnOnce();
+            return (byte[])CanonicalManifestBytes.Clone();
+        }
 
         public static bool TryGetBuildingArchetypeId(int buildingTypeId, out int archetypeId)
         {
+            WarnOnce();
             if (buildingTypeId == 1) { archetypeId = 1; return true; }
             if (buildingTypeId == 5) { archetypeId = 2; return true; }
             archetypeId = 0;
@@ -37,12 +44,14 @@ namespace ZWebGLFrameWork.Combat
 
         public static bool TryGetUnitArchetypeId(int unitConfigId, out int archetypeId)
         {
+            WarnOnce();
             archetypeId = unitConfigId == 1 ? 10 : 0;
             return archetypeId != 0;
         }
 
         public static SimModeProfile GetModeProfile(string modeId)
         {
+            WarnOnce();
             SimCombatMode mode;
             switch (modeId)
             {
@@ -54,6 +63,13 @@ namespace ZWebGLFrameWork.Combat
             }
 
             return DeterministicContentManifest.Parse(CanonicalManifestBytes).GetMode(mode);
+        }
+
+        private static void WarnOnce()
+        {
+            if (_warningEmitted) return;
+            _warningEmitted = true;
+            Debug.LogWarning("[FrameworkBattleContent] Using framework fallback battle content.");
         }
     }
 }

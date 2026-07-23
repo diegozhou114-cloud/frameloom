@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.SimulationCore;
 
@@ -67,6 +70,21 @@ namespace ZWebGLFrameWork.Combat.Tests
             Assert.That(FrameworkBattleContent.TryGetBuildingArchetypeId(2, out _), Is.False);
             Assert.That(FrameworkBattleContent.TryGetUnitArchetypeId(1, out int barbarian), Is.True);
             Assert.That(barbarian, Is.EqualTo(10));
+        }
+
+        [Test]
+        public void Content_FirstUseWarnsOncePerApplicationRun()
+        {
+            FieldInfo warning = typeof(FrameworkBattleContent).GetField("_warningEmitted",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            warning?.SetValue(null, false);
+            LogAssert.Expect(LogType.Warning,
+                "[FrameworkBattleContent] Using framework fallback battle content.");
+
+            FrameworkBattleContent.CanonicalBytes();
+            FrameworkBattleContent.CanonicalBytes();
+
+            LogAssert.NoUnexpectedReceived();
         }
 
         private static BattleParams CreateWithIds(string match, string session)
