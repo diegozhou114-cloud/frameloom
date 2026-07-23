@@ -1,19 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 using ZWebGLFrameWork.Combat;
+using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.UI
 {
     /// <summary>
     /// 战斗中 HUD — 顶部显示剩余时间、波次、双方存活数。
-    /// 在 CombatPhase.Battling 期间显示。
+    /// 在 SimCombatPhase.Battling 期间显示。
     /// </summary>
     public class BattleHUD : UIBase
     {
         private Text _timerText;
         private Text _waveText;
         private Text _aliveText;
-        private float _battleStartTime;
 
         public BattleHUD()
         {
@@ -23,7 +23,6 @@ namespace ZWebGLFrameWork.UI
 
         protected override void OnOpen(object data)
         {
-            _battleStartTime = Time.time;
             BuildOnce(BuildUI);
         }
 
@@ -51,14 +50,11 @@ namespace ZWebGLFrameWork.UI
             if (!IsOpen) return;
 
             var cm = CombatManager.Instance;
-            if (cm == null || cm.CurrentPhase != CombatPhase.Battling) return;
+            if (cm == null || cm.CurrentPhase != SimCombatPhase.Battling) return;
 
-            var mode = cm.CurrentMode;
-            if (mode == null) return;
-            float elapsed = Time.time - _battleStartTime;
-            float remain = Mathf.Max(0, mode.BattleTimeout - elapsed);
-            int min = (int)(remain / 60);
-            int sec = (int)(remain % 60);
+            int remainingSeconds = cm.RemainingBattleTicks / 20;
+            int min = remainingSeconds / 60;
+            int sec = remainingSeconds % 60;
             _timerText.text = $"{min}:{sec:D2}";
 
             _aliveText.text = $"⚔ {cm.AttackerAliveCount} vs {cm.DefenderAliveCount} 🛡";

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using ZWebGLFrameWork.Combat;
+using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.ECS;
 
 namespace ZWebGLFrameWork.Combat.Tests
@@ -151,10 +152,19 @@ namespace ZWebGLFrameWork.Combat.Tests
         // ==================== BattleParams ====================
 
         [Test]
-        public void BattleParams_VillageAttack_SetsCorrectMode()
+        public void BattleParams_AuthorityCreatesCompleteVillageAttack()
         {
-            var bp = BattleParams.VillageAttack(null, null);
+            var bp = new FrameworkBattleAuthority().CreateVillageAttack(
+                new PlayerData(), new VillageData(), new VillageData());
             Assert.AreEqual("village_attack", bp.ModeId);
+            Assert.IsNotNull(bp.AttackerVillage);
+            Assert.IsNotNull(bp.DefenderVillage);
+            Assert.IsNotEmpty(bp.MatchId);
+            Assert.IsNotEmpty(bp.SessionId);
+            Assert.AreNotEqual(0, bp.Seed);
+            Assert.AreNotEqual(bp.AttackerPlayerId, bp.DefenderPlayerId);
+            Assert.IsNotEmpty(bp.AttackerAccountId);
+            Assert.IsNotEmpty(bp.DefenderAccountId);
         }
 
         // ==================== 组件变更事件 ====================

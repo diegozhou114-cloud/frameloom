@@ -6,6 +6,7 @@
         "ZWebGLFrameWork.Data",
         "ZWebGLFrameWork.Combat",
         "ZWebGLFrameWork.Gameplay",
+        "ZWebGLFrameWork.SimulationCore",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

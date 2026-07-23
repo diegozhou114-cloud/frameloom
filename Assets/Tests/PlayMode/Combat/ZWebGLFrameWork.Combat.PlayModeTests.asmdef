@@ -1,0 +1,23 @@
+{
+    "name": "ZWebGLFrameWork.Combat.PlayModeTests",
+    "rootNamespace": "ZWebGLFrameWork.Combat.PlayModeTests",
+    "references": [
+        "ZWebGLFrameWork.Combat",
+        "ZWebGLFrameWork.Core",
+        "ZWebGLFrameWork.Data",
+        "ZWebGLFrameWork.FSM",
+        "ZWebGLFrameWork.Gameplay",
+        "ZWebGLFrameWork.SimulationCore",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": ["TestAssemblies"]
+}

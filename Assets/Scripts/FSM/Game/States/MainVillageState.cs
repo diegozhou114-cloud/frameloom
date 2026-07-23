@@ -17,6 +17,8 @@ namespace ZWebGLFrameWork.FSM
         private ResourceProducer _resourceProducer;
         private float _autoSaveTimer;
         private AutosaveCoordinator _autosave;
+        private readonly FrameworkBattleAuthority _battleAuthority =
+            new FrameworkBattleAuthority();
 
         public MainVillageState() : base(GameState.MainVillage) { }
 
@@ -94,9 +96,9 @@ namespace ZWebGLFrameWork.FSM
                 return;
             }
 
-            // 创建攻击参数：攻击自己的村庄（PvE 模式）
-            var bp = BattleParams.VillageAttack(village, village);
-            ChangeState(GameState.Battle, bp);
+            BattleParams parameters = _battleAuthority.CreateVillageAttack(
+                DataManager.Instance.Player, village, village);
+            ChangeState(GameState.Battle, parameters);
         }
 
         // ==================== 辅助 ====================

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.SimulationCore;
 
 namespace ZWebGLFrameWork.UI
 {
@@ -69,9 +69,9 @@ namespace ZWebGLFrameWork.UI
 
         private void BindResult(object data)
         {
-            if (!(data is CombatEndEvent result)) return;
+            if (!(data is SimBattleResult result)) return;
 
-            bool win = result.Winner == Team.Attacker;
+            bool win = result.WinnerTeamId == SimTeam.Attacker;
             int stars = Mathf.Clamp(result.Stars, 0, 3);
             _titleText.text = win ? "🏆 胜利!" : "💀 失败";
             _titleText.color = win ? Color.yellow : Color.gray;

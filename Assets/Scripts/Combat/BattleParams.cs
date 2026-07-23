@@ -17,14 +17,13 @@ namespace ZWebGLFrameWork.Combat
         /// <summary>防守方村庄数据</summary>
         public VillageData DefenderVillage;
 
-        public static BattleParams VillageAttack(VillageData attacker, VillageData defender)
-        {
-            return new BattleParams
-            {
-                ModeId = "village_attack",
-                AttackerVillage = attacker,
-                DefenderVillage = defender,
-            };
-        }
+        public string MatchId;
+        public string SessionId;
+        public int Seed;
+        public int AttackerPlayerId;
+        public int DefenderPlayerId;
+        public string AttackerAccountId;
+        public string DefenderAccountId;
+
     }
 }
