@@ -3,7 +3,6 @@
     "rootNamespace": "ZWebGLFrameWork.Combat.Tests",
     "references": [
         "ZWebGLFrameWork.Combat",
-        "ZWebGLFrameWork.ECS",
         "ZWebGLFrameWork.Core",
         "ZWebGLFrameWork.Data",
         "ZWebGLFrameWork.SimulationCore"

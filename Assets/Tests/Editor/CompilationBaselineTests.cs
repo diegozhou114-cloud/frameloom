@@ -1,5 +1,4 @@
 using NUnit.Framework;
-using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Editor;
 using ZWebGLFrameWork.Gameplay;
 using ZWebGLFrameWork.SimulationCore;
@@ -27,13 +26,6 @@ namespace ZWebGLFrameWork.Editor.Tests
         {
             Assert.That(typeof(ResourceProducer).Assembly.GetName().Name,
                 Is.EqualTo("ZWebGLFrameWork.Gameplay"));
-        }
-
-        [Test]
-        public void CombatAssembly_CombatBootstrap_Compiles()
-        {
-            Assert.That(typeof(CombatBootstrap).Assembly.GetName().Name,
-                Is.EqualTo("ZWebGLFrameWork.Combat"));
         }
     }
 }

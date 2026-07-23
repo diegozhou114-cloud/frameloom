@@ -3,7 +3,6 @@
     "rootNamespace": "ZWebGLFrameWork.Combat",
     "references": [
         "ZWebGLFrameWork.Core",
-        "ZWebGLFrameWork.ECS",
         "ZWebGLFrameWork.Data",
         "ZWebGLFrameWork.Gameplay",
         "ZWebGLFrameWork.SimulationCore",
