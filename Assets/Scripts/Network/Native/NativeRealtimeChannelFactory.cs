@@ -19,7 +19,8 @@ namespace ZWebGLFrameWork.Network.Native
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
-            RealtimeChannelFactoryRegistry.Install(new NativeRealtimeChannelFactory());
+            RealtimeChannelFactoryRegistry.Install(
+                RealtimeTransport.NativeKcp, new NativeRealtimeChannelFactory());
         }
 #endif
     }
