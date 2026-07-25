@@ -5,11 +5,73 @@ work_root=$(mktemp -d)
 stage_root="$work_root/staged"
 mkdir -p "$stage_root"
 
+publish_targets=(
+  docs/dependencies/nativewebsocket.lock
+  ThirdPartyNotices/NativeWebSocket-LICENSE.txt
+  docs/dependencies/kcp2k.lock
+  ThirdPartyNotices/kcp2k-LICENSE.txt
+)
+stage_files=(
+  "$stage_root/NativeWebSocket.lock"
+  "$stage_root/NativeWebSocket-license.txt"
+  "$stage_root/kcp2k.lock"
+  "$stage_root/kcp2k-license.txt"
+)
+publish_temps=("" "" "" "")
+rollback_files=("" "" "" "")
+target_existed=(0 0 0 0)
+rollback_failed=(0 0 0 0)
+publish_started=0
+publish_complete=0
+
 cleanup() {
+  local exit_code=$? i
+  trap - EXIT
+  trap - HUP INT TERM
+  set +e
+
+  if [[ "$publish_started" -eq 1 && "$publish_complete" -eq 0 ]]; then
+    for ((i = 0; i < 4; i++)); do
+      if [[ "${target_existed[$i]}" -eq 1 ]]; then
+        if test -n "${rollback_files[$i]}" && test -e "${rollback_files[$i]}"; then
+          if ! mv -f "${rollback_files[$i]}" "${publish_targets[$i]}"; then
+            rollback_failed[$i]=1
+            echo "rollback failed; backup retained at ${rollback_files[$i]}" >&2
+          fi
+        else
+          rollback_failed[$i]=1
+          echo "rollback failed; backup missing at ${rollback_files[$i]}" >&2
+        fi
+      else
+        if ! rm -f "${publish_targets[$i]}"; then
+          rollback_failed[$i]=1
+          echo "rollback failed to remove new target ${publish_targets[$i]}; state file retained at ${rollback_files[$i]}" >&2
+        fi
+      fi
+    done
+  fi
+
+  for ((i = 0; i < 4; i++)); do
+    if test -n "${publish_temps[$i]}"; then
+      rm -f "${publish_temps[$i]}"
+    fi
+    if test -n "${rollback_files[$i]}" && [[ "${rollback_failed[$i]}" -eq 0 ]]; then
+      rm -f "${rollback_files[$i]}"
+    fi
+  done
   rm -rf "${work_root:-}"
+  for ((i = 0; i < 4; i++)); do
+    if [[ "${rollback_failed[$i]}" -eq 1 && "$exit_code" -eq 0 ]]; then
+      exit_code=1
+    fi
+  done
+  exit "$exit_code"
 }
 
 trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 first_match() {
   awk 'NR == 1 { first = $0 } END { print first }'
@@ -73,10 +135,32 @@ capture_dependency() {
   echo "Review $name commit, source archive hash, and verbatim license before import."
 }
 
-publish_dependency() {
-  local stage_lock="$1" stage_license="$2" lock="$3" license_out="$4"
-  cp "$stage_lock" "$lock"
-  cp "$stage_license" "$license_out"
+prepare_publication() {
+  local i
+
+  for ((i = 0; i < 4; i++)); do
+    rollback_files[$i]=$(mktemp "${publish_targets[$i]}.rollback.XXXXXX")
+    if test -e "${publish_targets[$i]}"; then
+      target_existed[$i]=1
+      cp -p "${publish_targets[$i]}" "${rollback_files[$i]}"
+      cmp -s "${publish_targets[$i]}" "${rollback_files[$i]}"
+    fi
+  done
+
+  for ((i = 0; i < 4; i++)); do
+    publish_temps[$i]=$(mktemp "${publish_targets[$i]}.publish.XXXXXX")
+    cp -p "${stage_files[$i]}" "${publish_temps[$i]}"
+    cmp -s "${stage_files[$i]}" "${publish_temps[$i]}"
+  done
+}
+
+publish_all() {
+  local i
+  publish_started=1
+  for ((i = 0; i < 4; i++)); do
+    mv -f "${publish_temps[$i]}" "${publish_targets[$i]}"
+  done
+  publish_complete=1
 }
 
 capture_dependency NativeWebSocket https://github.com/endel/NativeWebSocket.git . \
@@ -87,7 +171,5 @@ capture_dependency kcp2k https://github.com/MirrorNetworking/kcp2k.git kcp2k \
   '(^|/)KcpClient\.cs$' 'TickIncoming'
 
 mkdir -p docs/dependencies ThirdPartyNotices
-publish_dependency "$stage_root/NativeWebSocket.lock" "$stage_root/NativeWebSocket-license.txt" \
-  docs/dependencies/nativewebsocket.lock ThirdPartyNotices/NativeWebSocket-LICENSE.txt
-publish_dependency "$stage_root/kcp2k.lock" "$stage_root/kcp2k-license.txt" \
-  docs/dependencies/kcp2k.lock ThirdPartyNotices/kcp2k-LICENSE.txt
+prepare_publication
+publish_all
