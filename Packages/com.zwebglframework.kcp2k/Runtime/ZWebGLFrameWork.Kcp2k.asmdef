@@ -1,0 +1,17 @@
+{
+  "name": "ZWebGLFrameWork.Kcp2k",
+  "rootNamespace": "kcp2k",
+  "references": [],
+  "includePlatforms": [
+    "Editor",
+    "WindowsStandalone64"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": true
+}

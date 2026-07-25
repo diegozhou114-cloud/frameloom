@@ -3,7 +3,9 @@
   "rootNamespace": "ZWebGLFrameWork.Network.Tests",
   "references": [
     "ZWebGLFrameWork.Network.Contracts",
-    "ZWebGLFrameWork.Network.Runtime"
+    "ZWebGLFrameWork.Network.Runtime",
+    "ZWebGLFrameWork.Network.Native",
+    "ZWebGLFrameWork.Kcp2k"
   ],
   "includePlatforms": [
     "Editor"

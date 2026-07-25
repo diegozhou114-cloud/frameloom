@@ -1,0 +1,21 @@
+{
+  "name": "ZWebGLFrameWork.Network.Native",
+  "rootNamespace": "ZWebGLFrameWork.Network.Native",
+  "references": [
+    "ZWebGLFrameWork.Network.Contracts",
+    "ZWebGLFrameWork.Network.Runtime",
+    "ZWebGLFrameWork.Kcp2k"
+  ],
+  "includePlatforms": [
+    "Editor",
+    "WindowsStandalone64"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
