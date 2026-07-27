@@ -192,12 +192,16 @@ node scripts/audit/capture-historical-red.mjs compile \
   --output /tmp/zweb-sim-migration/recovery/red/COMBAT-002.json
 
 node scripts/audit/capture-historical-red.mjs source \
-  --base <sha> --fix <sha> --method <exact-method> \
+  --base <sha> --fix <sha> [--fix <later-fix>] --method <exact-method> \
   --path Assets/Scripts/SimulationCore --path Assets/Tests/SimulationCore \
   --output /tmp/zweb-sim-migration/recovery/red/SIM-007.json
 ```
 
-Write JSON atomically through a temporary sibling and rename; never overwrite a non-identical receipt.
+Set `ZWEB_EVIDENCE_ROOT` when a different external artifact root is required;
+the output path must remain beneath that root and outside the repository.
+
+Write JSON through a temporary sibling and atomically publish without overwrite;
+never replace a non-identical receipt.
 
 - [ ] **Step 3: Use these exact real fix mappings**
 

@@ -256,3 +256,45 @@ test('requires recovery manifests declaring a historical cutoff to use schema ve
   assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
     /schemaVersion must equal 2/);
 });
+
+test('rejects compile plan citations that escape the repository docs directory', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertCompileFailureAccepted();
+  const receiptPath = path.join(fixture.artifacts, 'compile.json');
+  const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+  const outside = path.join(path.dirname(fixture.root), 'outside-plan.md');
+  await writeFile(outside, '# Outside plan\n');
+  receipt.planCitation = `docs/../../${path.basename(outside)}:1`;
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /compile plan citation is invalid/);
+});
+
+test('requires HistoricalSourceRed revisions to precede every fix commit', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  const receiptPath = path.join(fixture.artifacts, 'source.json');
+  const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+  receipt.sourceRevision = fixture.fixCommit;
+  receipt.fixCommits = [fixture.baseCommit];
+  receipt.testPresentBefore = false;
+  receipt.testPresentAfter = true;
+  const reversed = execFileSync('git', [
+    'diff', '--binary', `${fixture.fixCommit}..${fixture.baseCommit}`, '--', 'tests/Acceptance.cs',
+  ], { cwd: fixture.root });
+  receipt.gitDiffSha256 = hash(reversed);
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /source RED revision must precede every fix commit/);
+});
+
+test('reports a malformed HistoricalSourceRed revision without throwing', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  const receiptPath = path.join(fixture.artifacts, 'source.json');
+  const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+  delete receipt.sourceRevision;
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  const result = await validateRecoveryManifest(fixture.options());
+  assert.match(result.errors.join('\n'), /source RED revision is unreadable/);
+});

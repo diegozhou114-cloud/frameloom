@@ -27,6 +27,11 @@ function commitPrecedesCutoff(root, commit, cutoff) {
     git(root, ['merge-base', '--is-ancestor', commit, cutoff]).status === 0;
 }
 
+function isWithin(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
+}
+
 function isExternalAbsolute(root, artifact) {
   if (typeof artifact !== 'string' || !path.isAbsolute(artifact)) return false;
   const resolvedRoot = existsSync(root) ? realpathSync(root) : path.resolve(root);
@@ -100,8 +105,12 @@ async function validateCompileReceipt(root, receipt, errors, issue) {
       receipt.requiredDiagnostics.some(value => typeof value !== 'string' || !text.includes(value)))
       errors.push(`${issue} compile diagnostics are incomplete`);
   }
+  const citation = receipt.planCitation?.replace(/:\d+$/, '');
+  const docsRoot = path.join(root, 'docs');
+  const citedPlan = typeof citation === 'string' ? path.resolve(root, citation) : null;
   if (typeof receipt.planCitation !== 'string' || !/^[^:]+:\d+$/.test(receipt.planCitation) ||
-    !receipt.planCitation.startsWith('docs/') || !existsSync(path.join(root, receipt.planCitation.replace(/:\d+$/, ''))))
+    !receipt.planCitation.startsWith('docs/') || !citedPlan || !isWithin(path.resolve(docsRoot), citedPlan) ||
+    !existsSync(citedPlan) || !isWithin(realpathSync(docsRoot), realpathSync(citedPlan)))
     errors.push(`${issue} compile plan citation is invalid`);
 }
 
@@ -120,6 +129,11 @@ function validateSourceReceipt(root, receipt, row, errors, issue, historicalCuto
     errors.push(`${issue} source RED revision is after the historical cutoff`);
   if (!Array.isArray(receipt.fixCommits) || receipt.fixCommits.length === 0 ||
     receipt.fixCommits.some(commit => !commitIsReachable(root, commit))) errors.push(`${issue} source RED fix commits are unreadable`);
+  if (!Array.isArray(receipt.fixCommits) || receipt.fixCommits.some(commit =>
+    git(root, ['merge-base', '--is-ancestor', receipt.sourceRevision, commit]).status !== 0))
+  {
+    errors.push(`${issue} source RED revision must precede every fix commit`);
+  }
   if (!Array.isArray(receipt.fixCommits) ||
     receipt.fixCommits.some(commit => !commitPrecedesCutoff(root, commit, historicalCutoff)))
   {

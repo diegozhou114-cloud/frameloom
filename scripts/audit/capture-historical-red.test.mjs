@@ -35,10 +35,23 @@ async function fixture() {
   git(root, ['add', '.']);
   git(root, ['commit', '--quiet', '-m', 'fix']);
   const fix = git(root, ['rev-parse', 'HEAD']);
+  await writeFile(path.join(root, 'tests/Acceptance.cs'),
+    'public class Acceptance { public void AcceptanceMethod() {} } // revised\n');
+  await writeFile(path.join(root, 'tests/Second.cs'), 'class Second {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'second fix']);
+  const secondFix = git(root, ['rev-parse', 'HEAD']);
+  const headBranch = git(root, ['branch', '--show-current']);
+  git(root, ['checkout', '--quiet', '-b', 'unreachable', base]);
+  await writeFile(path.join(root, 'tests/Unreachable.cs'), 'class Unreachable {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'unreachable']);
+  const unreachable = git(root, ['rev-parse', 'HEAD']);
+  git(root, ['checkout', '--quiet', headBranch]);
 
   const logPath = path.join(artifacts, 'compile.log');
   await writeFile(logPath, 'error CS0246: ISimBattleSession\n');
-  return { root, artifacts, base, fix, logPath };
+  return { root, artifacts, base, fix, secondFix, unreachable, logPath };
 }
 
 test('compile receipts reject exit zero, missing diagnostics, and changed logs', async () => {
@@ -48,6 +61,7 @@ test('compile receipts reject exit zero, missing diagnostics, and changed logs',
     root: value.root, revision: value.base, exitCode: 1, logPath: value.logPath,
     diagnostics: ['error CS0246', 'ISimBattleSession'],
     planCitation: 'docs/plans/simulation.md:1', command: ['Unity', '-batchmode'], output,
+    evidenceRoot: value.artifacts,
   };
 
   const receipt = await captureCompileReceipt(options);
@@ -82,7 +96,7 @@ test('source receipts hash the exact diff and record method presence before and 
   const output = path.join(value.artifacts, 'source.json');
   const receipt = await captureSourceReceipt({
     root: value.root, base: value.base, fix: value.fix, method: 'AcceptanceMethod',
-    paths: ['tests/Acceptance.cs'], output,
+    paths: ['tests/Acceptance.cs'], output, evidenceRoot: value.artifacts,
   });
   const diff = execFileSync('git', [
     'diff', '--binary', `${value.base}..${value.fix}`, '--', 'tests/Acceptance.cs',
@@ -93,4 +107,60 @@ test('source receipts hash the exact diff and record method presence before and 
   assert.equal(receipt.testPresentAfter, true);
   assert.equal(receipt.gitDiffSha256, sha256(diff));
   assert.deepEqual(receipt.paths, ['tests/Acceptance.cs']);
+});
+
+test('source receipts preserve an ordered multi-commit fix set', async () => {
+  const value = await fixture();
+  const receipt = await captureSourceReceipt({
+    root: value.root, base: value.base, fixCommits: [value.fix, value.secondFix],
+    method: 'AcceptanceMethod', paths: ['tests/Acceptance.cs', 'tests/Second.cs'],
+    output: path.join(value.artifacts, 'multi-source.json'), evidenceRoot: value.artifacts,
+  });
+
+  assert.deepEqual(receipt.fixCommits, [value.fix, value.secondFix]);
+  assert.deepEqual(receipt.paths, ['tests/Acceptance.cs', 'tests/Second.cs']);
+});
+
+test('capture rejects unreachable commits, escaped plan citations, and repository outputs', async () => {
+  const value = await fixture();
+  const options = {
+    root: value.root, revision: value.base, exitCode: 1, logPath: value.logPath,
+    diagnostics: ['error CS0246'], planCitation: 'docs/plans/simulation.md:1',
+    command: ['Unity', '-batchmode'], output: path.join(value.artifacts, 'compile.json'),
+  };
+  await assert.rejects(captureCompileReceipt({ ...options, revision: value.unreachable }), /reachable/);
+  const outside = path.join(path.dirname(value.root), 'outside-plan.md');
+  await writeFile(outside, '# Outside plan\n');
+  await assert.rejects(captureCompileReceipt({ ...options, planCitation: `docs/../../${path.basename(outside)}:1` }),
+    /plan citation/);
+  await assert.rejects(captureCompileReceipt({
+    ...options, evidenceRoot: value.artifacts, output: path.join(value.root, 'inside.json'),
+  }), /evidence root/);
+});
+
+test('source capture rejects methods already present before the historical fix', async () => {
+  const value = await fixture();
+  await assert.rejects(captureSourceReceipt({
+    root: value.root, base: value.fix, fix: value.secondFix, method: 'AcceptanceMethod',
+    paths: ['tests/Acceptance.cs', 'tests/Second.cs'], output: path.join(value.artifacts, 'invalid.json'),
+    evidenceRoot: value.artifacts,
+  }), /present before/);
+});
+
+test('CLI rejects unknown and repeated single-value options', async () => {
+  const value = await fixture();
+  const script = path.resolve('scripts/audit/capture-historical-red.mjs');
+  const args = [
+    script, 'compile', '--revision', value.base, '--exit-code', '1', '--log', value.logPath,
+    '--command', 'Unity', '--diagnostic', 'error CS0246',
+    '--plan-citation', 'docs/plans/simulation.md:1',
+    '--output', path.join(value.artifacts, 'one.json'),
+  ];
+  const environment = { ...process.env, ZWEB_EVIDENCE_ROOT: value.artifacts };
+  assert.throws(() => execFileSync(process.execPath, [...args, '--typo', 'value'], {
+    cwd: value.root, env: environment, stdio: 'pipe',
+  }), /Unknown argument/);
+  assert.throws(() => execFileSync(process.execPath, [
+    ...args, '--output', path.join(value.artifacts, 'two.json'),
+  ], { cwd: value.root, env: environment, stdio: 'pipe' }), /Duplicate argument/);
 });
