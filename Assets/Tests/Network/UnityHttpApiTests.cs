@@ -71,7 +71,13 @@ namespace ZWebGLFrameWork.Network.Tests
             Assert.That(result.Credentials.SessionId, Is.EqualTo(Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")));
             Assert.That(result.Credentials.OpaqueTicket, Is.EqualTo(new byte[] { 1, 2 }));
             Assert.That(result.Credentials.ResumeToken, Is.EqualTo(new byte[] { 3, 4 }));
-            Assert.That(result.Credentials.MacKey.Length, Is.EqualTo(32));
+            Assert.That(result.Credentials.MacKey, Is.EqualTo(new byte[]
+            {
+                0, 1, 2, 3, 4, 5, 6, 7,
+                8, 9, 10, 11, 12, 13, 14, 15,
+                16, 17, 18, 19, 20, 21, 22, 23,
+                24, 25, 26, 27, 28, 29, 30, 31
+            }));
             Assert.That(result.Credentials.ExpiresAtUnixSeconds, Is.EqualTo(42));
         }
     }
