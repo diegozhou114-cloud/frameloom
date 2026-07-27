@@ -8,9 +8,10 @@ import { fileURLToPath } from 'node:url';
 
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const isSha = value => /^[a-f0-9]{40}$/.test(value || '');
+const GitMaxBuffer = 16 * 1024 * 1024;
 
 function git(root, args, encoding = 'utf8') {
-  return spawnSync('git', args, { cwd: root, encoding });
+  return spawnSync('git', args, { cwd: root, encoding, maxBuffer: GitMaxBuffer });
 }
 
 function requireCommit(root, commit, label) {

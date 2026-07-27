@@ -121,6 +121,23 @@ test('source receipts preserve an ordered multi-commit fix set', async () => {
   assert.deepEqual(receipt.paths, ['tests/Acceptance.cs', 'tests/Second.cs']);
 });
 
+test('source receipts capture historical diffs larger than the child-process default buffer', async () => {
+  const value = await fixture();
+  await writeFile(path.join(value.root, 'tests/Large.txt'), 'x'.repeat(1_200_000));
+  git(value.root, ['add', '.']);
+  git(value.root, ['commit', '--quiet', '-m', 'large historical diff']);
+  const largeFix = git(value.root, ['rev-parse', 'HEAD']);
+
+  const receipt = await captureSourceReceipt({
+    root: value.root, base: value.base, fixCommits: [value.fix, value.secondFix, largeFix],
+    method: 'AcceptanceMethod', paths: ['tests/Acceptance.cs', 'tests/Second.cs', 'tests/Large.txt'],
+    output: path.join(value.artifacts, 'large-source.json'), evidenceRoot: value.artifacts,
+  });
+
+  assert.deepEqual(receipt.fixCommits, [value.fix, value.secondFix, largeFix]);
+  assert.deepEqual(receipt.paths, ['tests/Acceptance.cs', 'tests/Large.txt', 'tests/Second.cs']);
+});
+
 test('capture rejects unreachable commits, escaped plan citations, and repository outputs', async () => {
   const value = await fixture();
   const options = {
