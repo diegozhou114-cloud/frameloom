@@ -21,6 +21,11 @@ function commitIsReachable(root, commit) {
     git(root, ['merge-base', '--is-ancestor', commit, 'HEAD']).status === 0;
 }
 
+function commitPrecedesCutoff(root, commit, cutoff) {
+  return isSha(commit) && isSha(cutoff) &&
+    git(root, ['merge-base', '--is-ancestor', commit, cutoff]).status === 0;
+}
+
 function isExternalAbsolute(root, artifact) {
   if (typeof artifact !== 'string' || !path.isAbsolute(artifact)) return false;
   const resolvedRoot = existsSync(root) ? realpathSync(root) : path.resolve(root);
@@ -108,10 +113,17 @@ function sameCommitSet(left, right) {
   return JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort());
 }
 
-function validateSourceReceipt(root, receipt, row, errors, issue) {
+function validateSourceReceipt(root, receipt, row, errors, issue, historicalCutoff) {
   if (!commitIsReachable(root, receipt.sourceRevision)) errors.push(`${issue} source RED revision is unreadable`);
+  if (!commitPrecedesCutoff(root, receipt.sourceRevision, historicalCutoff))
+    errors.push(`${issue} source RED revision is after the historical cutoff`);
   if (!Array.isArray(receipt.fixCommits) || receipt.fixCommits.length === 0 ||
     receipt.fixCommits.some(commit => !commitIsReachable(root, commit))) errors.push(`${issue} source RED fix commits are unreadable`);
+  if (!Array.isArray(receipt.fixCommits) ||
+    receipt.fixCommits.some(commit => !commitPrecedesCutoff(root, commit, historicalCutoff)))
+  {
+    errors.push(`${issue} source RED fix commits are after the historical cutoff`);
+  }
   if (!sameCommitSet(receipt.fixCommits, row.fixCommits))
     errors.push(`${issue} source RED fix commits must match row fix commits`);
   if (receipt.testPresentBefore !== false) errors.push(`${issue} source RED testPresentBefore must be false`);
@@ -136,7 +148,7 @@ function validateSourceReceipt(root, receipt, row, errors, issue) {
     errors.push(`${issue} source RED must require current acceptance when no historical method exists`);
 }
 
-async function validateRed(root, row, errors, requireArtifacts) {
+async function validateRed(root, row, errors, requireArtifacts, historicalCutoff) {
   const red = row.red;
   if (!hasOnlyKeys(red, ['kind', 'artifact']) || !isExternalAbsolute(root, red?.artifact)) {
     errors.push(`${row.issue} RED artifact must be an external absolute path`);
@@ -159,18 +171,21 @@ async function validateRed(root, row, errors, requireArtifacts) {
   validateReceiptShape(receipt, errors, row.issue);
   if (receipt.kind !== red.kind) errors.push(`${row.issue} RED kind does not match receipt`);
   if (red.kind === 'ExpectedCompileFailure') await validateCompileReceipt(root, receipt, errors, row.issue);
-  if (red.kind === 'HistoricalSourceRed') validateSourceReceipt(root, receipt, row, errors, row.issue);
+  if (red.kind === 'HistoricalSourceRed')
+    validateSourceReceipt(root, receipt, row, errors, row.issue, historicalCutoff);
 }
 
 export async function validateRecoveryManifest({ root, manifestPath, requireArtifacts = true, expectedIssueCount = 38 }) {
   const errors = [];
   const manifest = await readJson(path.join(root, manifestPath), errors, 'recovery manifest');
   if (!manifest) return { errors, rowCount: 0 };
-  if (!hasOnlyKeys(manifest, ['schemaVersion', 'ownership', 'register', 'ledger', 'rows']) || manifest.schemaVersion !== 1)
+  if (!hasOnlyKeys(manifest, ['schemaVersion', 'ownership', 'register', 'ledger', 'historicalCutoff', 'rows']) || manifest.schemaVersion !== 1)
     errors.push('recovery manifest has unknown keys or invalid schema');
   for (const key of ['ownership', 'register', 'ledger']) {
     if (typeof manifest[key] !== 'string' || path.isAbsolute(manifest[key])) errors.push(`recovery manifest ${key} is invalid`);
   }
+  if (!commitIsReachable(root, manifest.historicalCutoff))
+    errors.push('recovery manifest historical cutoff is unreadable or unreachable from HEAD');
   if (!Array.isArray(manifest.rows)) {
     errors.push('recovery manifest rows must be an array');
     return { errors, rowCount: 0 };
@@ -199,7 +214,7 @@ export async function validateRecoveryManifest({ root, manifestPath, requireArti
     for (const commit of row.fixCommits || []) if (!commitIsReachable(root, commit))
       errors.push(`${row.issue} unreadable fix commit; unreachable fix commit: ${commit}`);
     if (!ledger?.closureModes?.includes(row.mode)) errors.push(`${row.issue} has invalid closure mode`);
-    await validateRed(root, row, errors, requireArtifacts);
+    await validateRed(root, row, errors, requireArtifacts, manifest.historicalCutoff);
     if (!isExternalAbsolute(root, row.green)) errors.push(`${row.issue} GREEN artifact must be an external absolute path`);
     else if (requireArtifacts) {
       if (!existsSync(row.green)) errors.push(`${row.issue} GREEN artifact is unreadable`);

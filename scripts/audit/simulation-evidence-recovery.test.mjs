@@ -70,7 +70,8 @@ async function recoveryFixture() {
   };
   const manifest = {
     schemaVersion: 1, ownership: 'docs/specs/ownership.json',
-    register: 'docs/specs/register.md', ledger: 'docs/specs/ledger.json', rows: [row],
+    register: 'docs/specs/register.md', ledger: 'docs/specs/ledger.json',
+    historicalCutoff: fixCommit, rows: [row],
   };
   const writeManifest = async () => {
     await writeFile(path.join(root, manifestPath), JSON.stringify(manifest, null, 2) + '\n');
@@ -210,4 +211,21 @@ test('rejects readable commits that are not reachable from HEAD', async () => {
   await fixture.writeManifest();
   assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
     /unreachable fix commit/);
+});
+
+test('rejects HistoricalSourceRed commits introduced after the historical cutoff', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  fixture.manifest.historicalCutoff = fixture.baseCommit;
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /historical cutoff/);
+});
+
+test('requires the historical cutoff to be reachable from HEAD', async () => {
+  const fixture = await recoveryFixture();
+  fixture.manifest.historicalCutoff = fixture.unreachableCommit;
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /historical cutoff.*unreadable/);
 });

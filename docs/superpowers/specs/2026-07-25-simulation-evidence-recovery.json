@@ -3,5 +3,6 @@
   "ownership": "docs/superpowers/plans/2026-07-17-project-repair-ownership.json",
   "register": "docs/superpowers/specs/2026-07-16-project-repair-issue-register.md",
   "ledger": "docs/superpowers/specs/2026-07-16-project-repair-evidence.json",
+  "historicalCutoff": "dffc4ce40e4000da93546181be50b9d4b4f5b5b8",
   "rows": []
 }
