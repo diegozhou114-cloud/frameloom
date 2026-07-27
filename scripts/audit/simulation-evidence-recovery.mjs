@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { closeIssue } from './evidence-ledger.mjs';
 
 const recoveryScript = path.join(path.dirname(fileURLToPath(import.meta.url)), 'read-test-results.py');
+const productionHistoricalCutoff = 'dffc4ce40e4000da93546181be50b9d4b4f5b5b8';
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const isSha = value => /^[a-f0-9]{40}$/.test(value || '');
 const isObject = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -175,17 +176,25 @@ async function validateRed(root, row, errors, requireArtifacts, historicalCutoff
     validateSourceReceipt(root, receipt, row, errors, row.issue, historicalCutoff);
 }
 
-export async function validateRecoveryManifest({ root, manifestPath, requireArtifacts = true, expectedIssueCount = 38 }) {
+export async function validateRecoveryManifest({
+  root,
+  manifestPath,
+  requireArtifacts = true,
+  expectedIssueCount = 38,
+  trustedHistoricalCutoff = productionHistoricalCutoff,
+}) {
   const errors = [];
   const manifest = await readJson(path.join(root, manifestPath), errors, 'recovery manifest');
   if (!manifest) return { errors, rowCount: 0 };
-  if (!hasOnlyKeys(manifest, ['schemaVersion', 'ownership', 'register', 'ledger', 'historicalCutoff', 'rows']) || manifest.schemaVersion !== 1)
-    errors.push('recovery manifest has unknown keys or invalid schema');
+  if (!hasOnlyKeys(manifest, ['schemaVersion', 'ownership', 'register', 'ledger', 'historicalCutoff', 'rows']) || manifest.schemaVersion !== 2)
+    errors.push('recovery manifest has unknown keys or schemaVersion must equal 2');
   for (const key of ['ownership', 'register', 'ledger']) {
     if (typeof manifest[key] !== 'string' || path.isAbsolute(manifest[key])) errors.push(`recovery manifest ${key} is invalid`);
   }
-  if (!commitIsReachable(root, manifest.historicalCutoff))
-    errors.push('recovery manifest historical cutoff is unreadable or unreachable from HEAD');
+  if (manifest.historicalCutoff !== trustedHistoricalCutoff)
+    errors.push('recovery manifest historical cutoff is not trusted');
+  if (!commitIsReachable(root, trustedHistoricalCutoff))
+    errors.push('trusted historical cutoff is unreadable or unreachable from HEAD');
   if (!Array.isArray(manifest.rows)) {
     errors.push('recovery manifest rows must be an array');
     return { errors, rowCount: 0 };
@@ -214,7 +223,7 @@ export async function validateRecoveryManifest({ root, manifestPath, requireArti
     for (const commit of row.fixCommits || []) if (!commitIsReachable(root, commit))
       errors.push(`${row.issue} unreadable fix commit; unreachable fix commit: ${commit}`);
     if (!ledger?.closureModes?.includes(row.mode)) errors.push(`${row.issue} has invalid closure mode`);
-    await validateRed(root, row, errors, requireArtifacts, manifest.historicalCutoff);
+    await validateRed(root, row, errors, requireArtifacts, trustedHistoricalCutoff);
     if (!isExternalAbsolute(root, row.green)) errors.push(`${row.issue} GREEN artifact must be an external absolute path`);
     else if (requireArtifacts) {
       if (!existsSync(row.green)) errors.push(`${row.issue} GREEN artifact is unreadable`);

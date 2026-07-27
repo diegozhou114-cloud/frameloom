@@ -46,6 +46,10 @@ async function recoveryFixture() {
   git(root, ['add', '.']);
   git(root, ['commit', '--quiet', '-m', 'fix']);
   const fixCommit = git(root, ['rev-parse', 'HEAD']);
+  await writeFile(path.join(root, 'src/future.cs'), 'class Future {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'future']);
+  const futureCommit = git(root, ['rev-parse', 'HEAD']);
   const headBranch = git(root, ['branch', '--show-current']);
   git(root, ['checkout', '--quiet', '-b', 'unreachable', baseCommit]);
   await writeFile(path.join(root, 'src/unreachable.cs'), 'class Unreachable {}\n');
@@ -69,14 +73,17 @@ async function recoveryFixture() {
     gates: [gate], fixCommits: [fixCommit], mode: 'Fixed',
   };
   const manifest = {
-    schemaVersion: 1, ownership: 'docs/specs/ownership.json',
+    schemaVersion: 2, ownership: 'docs/specs/ownership.json',
     register: 'docs/specs/register.md', ledger: 'docs/specs/ledger.json',
     historicalCutoff: fixCommit, rows: [row],
   };
   const writeManifest = async () => {
     await writeFile(path.join(root, manifestPath), JSON.stringify(manifest, null, 2) + '\n');
   };
-  const options = () => ({ root, manifestPath, requireArtifacts: true, expectedIssueCount: 1 });
+  const options = () => ({
+    root, manifestPath, requireArtifacts: true, expectedIssueCount: 1,
+    trustedHistoricalCutoff: fixCommit,
+  });
   const writeGreen = async (name, result) => {
     await writeFile(greenXml,
       `<TestRun><Results><UnitTestResult testName="Namespace.${name}" outcome="${result}" /></Results></TestRun>`);
@@ -108,7 +115,8 @@ async function recoveryFixture() {
   };
   await writeManifest();
   return {
-    root, artifacts, manifest, row, baseCommit, fixCommit, unreachableCommit, writeManifest, options, writeGreen,
+    root, artifacts, manifest, row, baseCommit, fixCommit, futureCommit, unreachableCommit,
+    writeManifest, options, writeGreen,
     assertExecutedFailureAccepted: async () => {
       row.red = { kind: 'ExecutedTestFailure', artifact: redXml };
       await writeManifest();
@@ -226,6 +234,25 @@ test('requires the historical cutoff to be reachable from HEAD', async () => {
   const fixture = await recoveryFixture();
   fixture.manifest.historicalCutoff = fixture.unreachableCommit;
   await fixture.writeManifest();
+  const result = await validateRecoveryManifest({
+    ...fixture.options(), trustedHistoricalCutoff: fixture.unreachableCommit,
+  });
+  assert.match(result.errors.join('\n'), /trusted historical cutoff.*unreadable/);
+});
+
+test('rejects a manifest that advances the trusted historical cutoff', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  fixture.manifest.historicalCutoff = fixture.futureCommit;
+  await fixture.writeManifest();
   assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
-    /historical cutoff.*unreadable/);
+    /historical cutoff.*trusted/);
+});
+
+test('requires recovery manifests declaring a historical cutoff to use schema version 2', async () => {
+  const fixture = await recoveryFixture();
+  fixture.manifest.schemaVersion = 1;
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /schemaVersion must equal 2/);
 });
