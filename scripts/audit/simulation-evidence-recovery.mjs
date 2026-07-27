@@ -16,8 +16,9 @@ function git(root, args, encoding = 'utf8') {
   return spawnSync('git', args, { cwd: root, encoding });
 }
 
-function commitExists(root, commit) {
-  return isSha(commit) && git(root, ['cat-file', '-e', `${commit}^{commit}`]).status === 0;
+function commitIsReachable(root, commit) {
+  return isSha(commit) && git(root, ['cat-file', '-e', `${commit}^{commit}`]).status === 0 &&
+    git(root, ['merge-base', '--is-ancestor', commit, 'HEAD']).status === 0;
 }
 
 function isExternalAbsolute(root, artifact) {
@@ -78,7 +79,7 @@ function validateReceiptShape(receipt, errors, issue) {
 }
 
 async function validateCompileReceipt(root, receipt, errors, issue) {
-  if (!commitExists(root, receipt.sourceRevision)) errors.push(`${issue} RED source revision is unreadable`);
+  if (!commitIsReachable(root, receipt.sourceRevision)) errors.push(`${issue} RED source revision is unreadable`);
   if (!Array.isArray(receipt.command) || receipt.command.length === 0 || receipt.command.some(value => typeof value !== 'string'))
     errors.push(`${issue} compile command is invalid`);
   if (!Number.isInteger(receipt.exitCode) || receipt.exitCode === 0) errors.push(`${issue} compile receipt requires nonzero exit`);
@@ -102,10 +103,18 @@ function methodPresent(root, commit, method, paths) {
   return git(root, ['grep', '-F', method, commit, '--', ...paths]).status === 0;
 }
 
+function sameCommitSet(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right)) return false;
+  return JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort());
+}
+
 function validateSourceReceipt(root, receipt, row, errors, issue) {
-  if (!commitExists(root, receipt.sourceRevision)) errors.push(`${issue} source RED revision is unreadable`);
+  if (!commitIsReachable(root, receipt.sourceRevision)) errors.push(`${issue} source RED revision is unreadable`);
   if (!Array.isArray(receipt.fixCommits) || receipt.fixCommits.length === 0 ||
-    receipt.fixCommits.some(commit => !commitExists(root, commit))) errors.push(`${issue} source RED fix commits are unreadable`);
+    receipt.fixCommits.some(commit => !commitIsReachable(root, commit))) errors.push(`${issue} source RED fix commits are unreadable`);
+  if (!sameCommitSet(receipt.fixCommits, row.fixCommits))
+    errors.push(`${issue} source RED fix commits must match row fix commits`);
+  if (receipt.testPresentBefore !== false) errors.push(`${issue} source RED testPresentBefore must be false`);
   if (receipt.acceptanceMethod !== row.acceptanceMethod) errors.push(`${issue} source RED acceptance method differs`);
   if (!Array.isArray(receipt.paths) || receipt.paths.length === 0 || receipt.paths.some(value => typeof value !== 'string' || path.isAbsolute(value)))
     errors.push(`${issue} source RED paths are invalid`);
@@ -187,7 +196,8 @@ export async function validateRecoveryManifest({ root, manifestPath, requireArti
       errors.push('recovery rows contain duplicate or invalid acceptance method');
     seenMethods.add(row.acceptanceMethod);
     if (!Array.isArray(row.fixCommits) || row.fixCommits.length === 0) errors.push(`${row.issue} must contain fix commits`);
-    for (const commit of row.fixCommits || []) if (!commitExists(root, commit)) errors.push(`${row.issue} unreadable fix commit: ${commit}`);
+    for (const commit of row.fixCommits || []) if (!commitIsReachable(root, commit))
+      errors.push(`${row.issue} unreadable fix commit; unreachable fix commit: ${commit}`);
     if (!ledger?.closureModes?.includes(row.mode)) errors.push(`${row.issue} has invalid closure mode`);
     await validateRed(root, row, errors, requireArtifacts);
     if (!isExternalAbsolute(root, row.green)) errors.push(`${row.issue} GREEN artifact must be an external absolute path`);

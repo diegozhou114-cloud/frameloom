@@ -46,6 +46,13 @@ async function recoveryFixture() {
   git(root, ['add', '.']);
   git(root, ['commit', '--quiet', '-m', 'fix']);
   const fixCommit = git(root, ['rev-parse', 'HEAD']);
+  const headBranch = git(root, ['branch', '--show-current']);
+  git(root, ['checkout', '--quiet', '-b', 'unreachable', baseCommit]);
+  await writeFile(path.join(root, 'src/unreachable.cs'), 'class Unreachable {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'unreachable']);
+  const unreachableCommit = git(root, ['rev-parse', 'HEAD']);
+  git(root, ['checkout', '--quiet', headBranch]);
 
   const redXml = path.join(artifacts, 'red.trx');
   const greenXml = path.join(artifacts, 'green.trx');
@@ -100,7 +107,7 @@ async function recoveryFixture() {
   };
   await writeManifest();
   return {
-    root, artifacts, manifest, row, baseCommit, fixCommit, writeManifest, options, writeGreen,
+    root, artifacts, manifest, row, baseCommit, fixCommit, unreachableCommit, writeManifest, options, writeGreen,
     assertExecutedFailureAccepted: async () => {
       row.red = { kind: 'ExecutedTestFailure', artifact: redXml };
       await writeManifest();
@@ -175,4 +182,32 @@ test('requires HistoricalSourceRed paths to cover the exact historical diff', as
   await writeFile(receiptPath, JSON.stringify(receipt));
   assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
     /changed paths mismatch/);
+});
+
+test('requires HistoricalSourceRed to record testPresentBefore as false', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  const receiptPath = path.join(fixture.artifacts, 'source.json');
+  const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+  receipt.testPresentBefore = true;
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /testPresentBefore must be false/);
+});
+
+test('requires HistoricalSourceRed receipt fix commits to match the closure row', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  fixture.row.fixCommits = [fixture.baseCommit, fixture.fixCommit];
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /source RED fix commits must match row fix commits/);
+});
+
+test('rejects readable commits that are not reachable from HEAD', async () => {
+  const fixture = await recoveryFixture();
+  fixture.row.fixCommits = [fixture.unreachableCommit];
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /unreachable fix commit/);
 });
