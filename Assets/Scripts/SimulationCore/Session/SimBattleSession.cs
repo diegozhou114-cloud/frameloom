@@ -127,10 +127,11 @@ namespace ZWebGLFrameWork.SimulationCore
                 phase = SimCombatPhase.Battling;
 
             SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
+            bool systemsUpdated = false;
             if (phase == SimCombatPhase.Battling)
             {
                 _systems.UpdateAll();
-                tickEvents = BuildTickEvents();
+                systemsUpdated = true;
                 int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > completedTick);
                 bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
                 SimTerminalOutcome terminalOutcome = new SimModeRules(_modeProfile).Evaluate(
@@ -147,6 +148,8 @@ namespace ZWebGLFrameWork.SimulationCore
             }
             PresentationFrame fullFrame = BuildFullFrame(completedTick, nextTick, revision);
             _currentFrame = BuildDeltaFrame(_state.Presentation, fullFrame);
+            if (systemsUpdated)
+                tickEvents = BuildTickEvents(_currentFrame.Destroyed);
             _state = new SimBattleState(lifecycle, phase,
                 completedTick, nextTick, revision, 0,
                 fullFrame, null);
@@ -537,12 +540,15 @@ namespace ZWebGLFrameWork.SimulationCore
             return path;
         }
 
-        private SimBattleEvent[] BuildTickEvents()
+        private SimBattleEvent[] BuildTickEvents(
+            IReadOnlyList<EntityPresentationKey> destroyedEntities)
         {
-            if (_damageSystem == null || _damageSystem.AppliedEvents.Count == 0)
+            int damageCount = _damageSystem?.AppliedEvents.Count ?? 0;
+            int destroyedCount = destroyedEntities?.Count ?? 0;
+            if (damageCount == 0 && destroyedCount == 0)
                 return Array.Empty<SimBattleEvent>();
-            var events = new SimBattleEvent[_damageSystem.AppliedEvents.Count];
-            for (int index = 0; index < events.Length; index++)
+            var events = new SimBattleEvent[damageCount + destroyedCount];
+            for (int index = 0; index < damageCount; index++)
             {
                 SimDamageEvent damage = _damageSystem.AppliedEvents[index];
                 events[index] = new SimBattleEvent(
@@ -550,6 +556,23 @@ namespace ZWebGLFrameWork.SimulationCore
                     new EntityPresentationKey(damage.Attacker.Id, damage.Attacker.Generation),
                     new EntityPresentationKey(damage.Target.Id, damage.Target.Generation),
                     damage.Amount);
+            }
+            for (int index = 0; index < destroyedCount; index++)
+            {
+                EntityPresentationKey target = destroyedEntities[index];
+                EntityPresentationKey source = default;
+                for (int damageIndex = damageCount - 1; damageIndex >= 0; damageIndex--)
+                {
+                    SimDamageEvent damage = _damageSystem.AppliedEvents[damageIndex];
+                    if (damage.Target.Id != target.EntityId ||
+                        damage.Target.Generation != target.Generation)
+                        continue;
+                    source = new EntityPresentationKey(
+                        damage.Attacker.Id, damage.Attacker.Generation);
+                    break;
+                }
+                events[damageCount + index] = new SimBattleEvent(
+                    SimBattleEventType.EntityDestroyed, source, target, 0);
             }
             return events;
         }

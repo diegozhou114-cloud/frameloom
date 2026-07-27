@@ -110,6 +110,40 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void BattleSession_AttackDamageDeathResult_EndToEnd()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedOneHitBattle();
+            TickResult terminal = null;
+            for (int count = 0; count < 20 && terminal == null; count++)
+            {
+                TickResult tick = session.Tick();
+                if (tick.Result != null) terminal = tick;
+            }
+
+            Assert.That(terminal, Is.Not.Null);
+            Assert.That(terminal.Code, Is.EqualTo(TickCode.Ended));
+            SimBattleEvent destroyed = terminal.Events.Single(evt =>
+                evt.Type == SimBattleEventType.EntityDestroyed);
+            SimBattleEvent damage = terminal.Events.Last(evt =>
+                evt.Type == SimBattleEventType.DamageApplied &&
+                evt.TargetEntity.EntityId == destroyed.TargetEntity.EntityId &&
+                evt.TargetEntity.Generation == destroyed.TargetEntity.Generation);
+            Assert.That(destroyed.SourceEntity.EntityId,
+                Is.EqualTo(damage.SourceEntity.EntityId));
+            Assert.That(destroyed.SourceEntity.Generation,
+                Is.EqualTo(damage.SourceEntity.Generation));
+            Assert.That(destroyed.TargetEntity.EntityId,
+                Is.EqualTo(damage.TargetEntity.EntityId));
+            Assert.That(destroyed.TargetEntity.Generation,
+                Is.EqualTo(damage.TargetEntity.Generation));
+            Assert.That(destroyed.Amount, Is.Zero);
+            Assert.That(terminal.Result.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
+            Assert.That(terminal.Result.FinalChecksum, Is.EqualTo(terminal.Checksum));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Ended));
+            Assert.That(session.State.Result.ResultId, Is.EqualTo(terminal.Result.ResultId));
+        }
+
+        [Test]
         public void DeathSystem_DestructionBasisPointsRemainCumulativeAcrossTicksAndRestore()
         {
             var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
