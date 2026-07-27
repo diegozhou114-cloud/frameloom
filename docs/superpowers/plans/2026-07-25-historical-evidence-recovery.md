@@ -186,6 +186,7 @@ CLI forms are:
 ```bash
 node scripts/audit/capture-historical-red.mjs compile \
   --revision <sha> --exit-code 1 --log <absolute-log> \
+  --command <historical-executable> --command <historical-argument> \
   --diagnostic 'error CS0246' --diagnostic ISimBattleSession \
   --plan-citation docs/superpowers/plans/2026-07-17-simulationcore-migration.md:233 \
   --output /tmp/zweb-sim-migration/recovery/red/COMBAT-002.json
