@@ -1,3 +1,5 @@
 {
-	"name": "colyseus.nativewebsocket"
+  "name": "colyseus.nativewebsocket",
+  "references": ["ZWebGLFrameWork.NativeWebSocket.Core"],
+  "includePlatforms": ["Editor", "WebGL"]
 }

@@ -57,12 +57,22 @@ mkdir -p "$package/Runtime/Upstream/src" "$package/Runtime/Upstream/integrations
 cp -R "$work/src/NativeWebSocket" "$package/Runtime/Upstream/src/"
 cp -R "$work/integrations/Unity" "$package/Runtime/Upstream/integrations/"
 cp "$LICENSE_FILE" "$package/LICENSE.txt"
+native_websocket="$package/Runtime/Upstream/src/NativeWebSocket/WebSocket.cs"
+native_websocket_source=$(<"$native_websocket")
+printf '#if !UNITY_WEBGL || UNITY_EDITOR\n%s\n#endif\n' "$native_websocket_source" > "$native_websocket"
 cat > "$package/Runtime/Upstream/src/NativeWebSocket/ZWebGLFrameWork.NativeWebSocket.Core.asmdef" <<'EOF'
 {
   "name": "ZWebGLFrameWork.NativeWebSocket.Core",
   "references": [],
   "includePlatforms": ["Editor", "WebGL"],
   "autoReferenced": false
+}
+EOF
+cat > "$package/Runtime/Upstream/integrations/Unity/colyseus.nativewebsocket.asmdef" <<'EOF'
+{
+  "name": "colyseus.nativewebsocket",
+  "references": ["ZWebGLFrameWork.NativeWebSocket.Core"],
+  "includePlatforms": ["Editor", "WebGL"]
 }
 EOF
 printf '%s\n' '{' \
