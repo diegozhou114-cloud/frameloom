@@ -84,10 +84,11 @@ The production manifest shape is:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "ownership": "docs/superpowers/plans/2026-07-17-project-repair-ownership.json",
   "register": "docs/superpowers/specs/2026-07-16-project-repair-issue-register.md",
   "ledger": "docs/superpowers/specs/2026-07-16-project-repair-evidence.json",
+  "historicalCutoff": "dffc4ce40e4000da93546181be50b9d4b4f5b5b8",
   "rows": [{
     "issue": "SIM-001",
     "acceptanceMethod": "SimulationCore_HasNoUnityEngineReferences",
@@ -99,6 +100,9 @@ The production manifest shape is:
   }]
 }
 ```
+
+`historicalCutoff` is a policy-pinned, reachable commit; the validator rejects a
+manifest that changes it. Receipt schemas remain at version 1.
 
 Reject unknown top-level/row/receipt keys, duplicate issues, duplicate methods, empty arrays, non-absolute external artifacts, issue-set mismatch, and modes outside the ledger schema.
 
