@@ -274,6 +274,40 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task CloseAsync_ConcurrentCallWaitsForActiveClose()
+        {
+            var client = new FakeNativeWebSocketClient { BlockSecondDispatch = true };
+            var channel = new WebGlRealtimeChannel(
+                new FakeNativeWebSocketClientFactory(client));
+            Task firstClose = null;
+            Task secondClose = null;
+
+            try
+            {
+                await ConnectAndAuthenticateAsync(channel, client);
+                await client.WaitForBlockedDispatchAsync();
+
+                firstClose = channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+                secondClose = channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+                Task winner = await Task.WhenAny(secondClose, Task.Delay(250));
+
+                Assert.That(winner, Is.Not.SameAs(secondClose),
+                    "Concurrent close callers must wait for the active close.");
+                Assert.That(client.DisposeCount, Is.Zero);
+            }
+            finally
+            {
+                client.ReleaseBlockedDispatch();
+                if (firstClose != null) await firstClose;
+                if (secondClose != null) await secondClose;
+                if (firstClose == null && secondClose == null)
+                    await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+            }
+
+            Assert.That(client.DisposeCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public async Task ReceiveAsync_RejectsDuplicatePendingReceiver()
         {
             var client = new FakeNativeWebSocketClient();

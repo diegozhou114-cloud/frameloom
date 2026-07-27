@@ -21,6 +21,7 @@ namespace ZWebGLFrameWork.Network.WebGL
         private bool _closed;
         private CancellationTokenSource _dispatchCancellation;
         private Task _dispatchTask;
+        private Task _closeTask;
 
         public WebGlRealtimeChannel() : this(new NativeWebSocketClientFactory()) { }
 
@@ -97,39 +98,59 @@ namespace ZWebGLFrameWork.Network.WebGL
             }
         }
 
-        public async Task CloseAsync(RealtimeCloseReason reason, CancellationToken cancellationToken)
+        public Task CloseAsync(RealtimeCloseReason reason, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var completion = NewCompletion<bool>();
+            lock (_gate)
+            {
+                if (_closeTask != null) return _closeTask;
+                _closeTask = completion.Task;
+            }
+            _ = CompleteCloseAsync(reason, completion);
+            return completion.Task;
+        }
+
+        private async Task CompleteCloseAsync(
+            RealtimeCloseReason reason, TaskCompletionSource<bool> completion)
+        {
             INativeWebSocketClient client;
             TaskCompletionSource<bool> authentication;
             TaskCompletionSource<byte[]> receiver;
             CancellationTokenSource dispatchCancellation;
             Task dispatchTask;
-            lock (_gate)
-            {
-                if (_closed) return;
-                _closed = true; _started = true; _state = RealtimeChannelState.Closing;
-                client = _client; _client = null;
-                authentication = _authentication; receiver = _pendingReceive; _pendingReceive = null;
-                dispatchCancellation = _dispatchCancellation; _dispatchCancellation = null;
-                dispatchTask = _dispatchTask; _dispatchTask = null;
-            }
-            lock (_gate) _state = RealtimeChannelState.Disconnected;
-            dispatchCancellation?.Cancel();
-            authentication?.TrySetException(new InvalidOperationException("Realtime channel closed: " + reason));
-            receiver?.TrySetException(new InvalidOperationException("Realtime channel closed."));
             try
             {
-                if (dispatchTask != null) await dispatchTask.ConfigureAwait(false);
+                lock (_gate)
+                {
+                    _closed = true; _started = true; _state = RealtimeChannelState.Closing;
+                    client = _client; _client = null;
+                    authentication = _authentication; receiver = _pendingReceive; _pendingReceive = null;
+                    dispatchCancellation = _dispatchCancellation; _dispatchCancellation = null;
+                    dispatchTask = _dispatchTask; _dispatchTask = null;
+                }
+                lock (_gate) _state = RealtimeChannelState.Disconnected;
+                dispatchCancellation?.Cancel();
+                authentication?.TrySetException(new InvalidOperationException("Realtime channel closed: " + reason));
+                receiver?.TrySetException(new InvalidOperationException("Realtime channel closed."));
+                try
+                {
+                    if (dispatchTask != null) await dispatchTask.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                finally
+                {
+                    dispatchCancellation?.Dispose();
+                }
+                if (client != null) { try { await client.CloseAsync().ConfigureAwait(false); } catch { } client.Dispose(); }
+                completion.TrySetResult(true);
             }
-            catch (OperationCanceledException)
+            catch (Exception exception)
             {
+                completion.TrySetException(exception);
             }
-            finally
-            {
-                dispatchCancellation?.Dispose();
-            }
-            if (client != null) { try { await client.CloseAsync().ConfigureAwait(false); } catch { } client.Dispose(); }
         }
 
         public void Dispose() => CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None).GetAwaiter().GetResult();
