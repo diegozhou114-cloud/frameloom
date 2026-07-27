@@ -1,0 +1,6 @@
+{
+  "name": "ZWebGLFrameWork.NativeWebSocket.Core",
+  "references": [],
+  "includePlatforms": ["Editor", "WebGL"],
+  "autoReferenced": false
+}

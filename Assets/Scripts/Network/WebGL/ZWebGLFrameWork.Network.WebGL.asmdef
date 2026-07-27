@@ -1,0 +1,22 @@
+{
+  "name": "ZWebGLFrameWork.Network.WebGL",
+  "rootNamespace": "ZWebGLFrameWork.Network.WebGL",
+  "references": [
+    "ZWebGLFrameWork.Network.Contracts",
+    "ZWebGLFrameWork.Network.Runtime",
+    "colyseus.nativewebsocket",
+    "ZWebGLFrameWork.NativeWebSocket.Core"
+  ],
+  "includePlatforms": [
+    "Editor",
+    "WebGL"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

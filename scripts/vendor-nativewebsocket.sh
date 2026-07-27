@@ -57,6 +57,14 @@ mkdir -p "$package/Runtime/Upstream/src" "$package/Runtime/Upstream/integrations
 cp -R "$work/src/NativeWebSocket" "$package/Runtime/Upstream/src/"
 cp -R "$work/integrations/Unity" "$package/Runtime/Upstream/integrations/"
 cp "$LICENSE_FILE" "$package/LICENSE.txt"
+cat > "$package/Runtime/Upstream/src/NativeWebSocket/ZWebGLFrameWork.NativeWebSocket.Core.asmdef" <<'EOF'
+{
+  "name": "ZWebGLFrameWork.NativeWebSocket.Core",
+  "references": [],
+  "includePlatforms": ["Editor", "WebGL"],
+  "autoReferenced": false
+}
+EOF
 printf '%s\n' '{' \
   '  "name": "com.zwebglframework.nativewebsocket",' \
   '  "version": "0.0.0",' \

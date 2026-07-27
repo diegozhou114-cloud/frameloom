@@ -4,6 +4,7 @@
   "references": [
     "ZWebGLFrameWork.Network.Contracts",
     "ZWebGLFrameWork.Network.UnityHttp",
+    "ZWebGLFrameWork.Network.WebGL",
     "ZWebGLFrameWork.Network.Runtime",
     "ZWebGLFrameWork.Network.Native",
     "ZWebGLFrameWork.Kcp2k"
