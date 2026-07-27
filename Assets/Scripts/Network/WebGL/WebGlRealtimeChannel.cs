@@ -53,10 +53,10 @@ namespace ZWebGLFrameWork.Network.WebGL
             }
             try
             {
-                Task native = client.ConnectAsync();
-                ObserveNativeConnect(native);
                 _dispatchCancellation = new CancellationTokenSource();
                 _ = DispatchLoopAsync(client, _dispatchCancellation.Token);
+                Task native = client.ConnectAsync();
+                ObserveNativeConnect(native);
                 using (cancellationToken.Register(() => _ = CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None)))
                     await authentication.Task.ConfigureAwait(false);
             }
