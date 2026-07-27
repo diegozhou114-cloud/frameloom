@@ -1,2 +1,5 @@
 # Unity serializes empty YAML fields with trailing spaces in generated metadata.
 Packages/com.zwebglframework.nativewebsocket/**/*.meta -whitespace
+Assets/Scripts/Network/UnityHttp.meta -whitespace
+Assets/Scripts/Network/UnityHttp/**/*.meta -whitespace
+Assets/Tests/Network/UnityHttpApiTests.cs.meta -whitespace

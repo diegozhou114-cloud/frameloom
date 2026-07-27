@@ -1,0 +1,19 @@
+{
+  "name": "ZWebGLFrameWork.Network.UnityHttp",
+  "rootNamespace": "ZWebGLFrameWork.Network.UnityHttp",
+  "references": [
+    "ZWebGLFrameWork.Network.Contracts"
+  ],
+  "includePlatforms": [
+    "Editor",
+    "WebGL"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
