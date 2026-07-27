@@ -92,6 +92,113 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Commands_SameTickSamePlayer_AreOrderedBySequence()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            int entityId = session.State.Presentation.Entities[0].EntityId;
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 2,
+                EntityId = entityId, TargetX = 5, TargetY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                EntityId = entityId, TargetX = 4, TargetY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.NonMonotonicSequence));
+            TickResult result = session.Tick();
+            Assert.That(result.ExecutedCommands.Count, Is.EqualTo(1));
+            Assert.That(((MoveCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void CommandSubmit_LateFutureDuplicate_HasDeterministicDisposition()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            int entityId = session.State.Presentation.Entities[0].EntityId;
+            MoveCmd command = new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                EntityId = entityId, TargetX = 5, TargetY = 2,
+            };
+            Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Duplicate));
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = -1, PlayerId = 0, Sequence = 2,
+                EntityId = entityId, TargetX = 5, TargetY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.LateTick));
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 65, PlayerId = 0, Sequence = 3,
+                EntityId = entityId, TargetX = 5, TargetY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.FutureWindowExceeded));
+        }
+
+        [Test]
+        public void DeployCommand_RejectsOutOfPhaseDisallowedOrOverLimit()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Disposition, Is.EqualTo(CommandDisposition.WrongPhase));
+
+            using SimBattleSession deploying = SessionTestDriver.StartedDeployingBattle();
+            Assert.That(deploying.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 999, GridX = 4, GridY = 4,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(deploying.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 8, GridY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(deploying.State.Presentation.Entities.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void DeployMoveSkill_ValidCommandsMutateState_InvalidCommandsDoNot()
+        {
+            using SimBattleSession deploying = SessionTestDriver.StartedDeployingBattle();
+            ulong beforeDeploy = deploying.LastChecksum;
+            Assert.That(deploying.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            TickResult deployed = deploying.Tick();
+            Assert.That(deployed.CommandOutcomes[0].Disposition,
+                Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(deploying.LastChecksum, Is.Not.EqualTo(beforeDeploy));
+
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            EntityPresentationState mover = session.State.Presentation.Entities[0];
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = mover.OwnerPlayerId, Sequence = 1,
+                EntityId = mover.EntityId, TargetX = mover.GridX + 1, TargetY = mover.GridY,
+            }).Accepted, Is.True);
+            TickResult moved = session.Tick();
+            Assert.That(moved.CommandOutcomes[0].Disposition,
+                Is.EqualTo(CommandDisposition.Accepted));
+
+            Assert.That(session.Submit(new SkillCmd
+            {
+                Tick = session.State.NextTick, PlayerId = mover.OwnerPlayerId, Sequence = 2,
+                CasterId = mover.EntityId, SkillId = 99,
+                TargetX = mover.GridX, TargetY = mover.GridY,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+        }
+
+        [Test]
         public void MoveCommand_FromForeignPlayer_IsRejectedWithoutStateMutation()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();

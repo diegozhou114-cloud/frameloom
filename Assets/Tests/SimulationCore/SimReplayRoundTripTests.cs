@@ -165,6 +165,36 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void SessionRestart_MatchesFreshSessionState()
+        {
+            using SimBattleSession first = SessionTestDriver.StartedBattle(42);
+            using SimBattleSession fresh = SessionTestDriver.StartedBattle(42);
+
+            Assert.That(first.State.Lifecycle, Is.EqualTo(fresh.State.Lifecycle));
+            Assert.That(first.State.Phase, Is.EqualTo(fresh.State.Phase));
+            Assert.That(first.State.NextTick, Is.EqualTo(fresh.State.NextTick));
+            Assert.That(first.State.Checksum, Is.EqualTo(fresh.State.Checksum));
+            Assert.That(first.State.Presentation.Entities.Count,
+                Is.EqualTo(fresh.State.Presentation.Entities.Count));
+        }
+
+        [Test]
+        public void RollbackReplay_MatchesOriginalChecksumSequence()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle(42);
+            SimSnapshot checkpoint = session.CaptureSnapshot();
+            var original = new List<ulong>();
+            for (int tick = 0; tick < 3; tick++)
+                original.Add(session.Tick().Checksum);
+
+            Assert.That(session.RestoreSnapshot(checkpoint).Code,
+                Is.EqualTo(SnapshotRestoreCode.Restored));
+            for (int tick = 0; tick < original.Count; tick++)
+                Assert.That(session.Tick().Checksum, Is.EqualTo(original[tick]),
+                    $"Rollback replay checksum mismatch at tick {tick}");
+        }
+
+        [Test]
         public void Recorder_RecordsCommandsExecutedByTheOrchestrator()
         {
             var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
