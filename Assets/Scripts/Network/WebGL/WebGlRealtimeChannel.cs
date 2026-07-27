@@ -19,6 +19,7 @@ namespace ZWebGLFrameWork.Network.WebGL
         private RealtimeChannelState _state;
         private bool _started;
         private bool _closed;
+        private CancellationTokenSource _dispatchCancellation;
 
         public WebGlRealtimeChannel() : this(new NativeWebSocketClientFactory()) { }
 
@@ -54,6 +55,8 @@ namespace ZWebGLFrameWork.Network.WebGL
             {
                 Task native = client.ConnectAsync();
                 ObserveNativeConnect(native);
+                _dispatchCancellation = new CancellationTokenSource();
+                _ = DispatchLoopAsync(client, _dispatchCancellation.Token);
                 using (cancellationToken.Register(() => _ = CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None)))
                     await authentication.Task.ConfigureAwait(false);
             }
@@ -106,6 +109,9 @@ namespace ZWebGLFrameWork.Network.WebGL
                 authentication = _authentication; receiver = _pendingReceive; _pendingReceive = null;
             }
             lock (_gate) _state = RealtimeChannelState.Disconnected;
+            _dispatchCancellation?.Cancel();
+            _dispatchCancellation?.Dispose();
+            _dispatchCancellation = null;
             authentication?.TrySetException(new InvalidOperationException("Realtime channel closed: " + reason));
             receiver?.TrySetException(new InvalidOperationException("Realtime channel closed."));
             if (client != null) { try { await client.CloseAsync().ConfigureAwait(false); } catch { } client.Dispose(); }
@@ -126,6 +132,19 @@ namespace ZWebGLFrameWork.Network.WebGL
         {
             try { await native.ConfigureAwait(false); }
             catch { await CloseAsync(RealtimeCloseReason.AuthenticationFailed, CancellationToken.None).ConfigureAwait(false); }
+        }
+
+        private async Task DispatchLoopAsync(INativeWebSocketClient client, CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    client.DispatchMessageQueue();
+                    await Task.Delay(10, token).ConfigureAwait(false);
+                }
+            }
+            catch (OperationCanceledException) { }
         }
 
         private async void OnOpened()
