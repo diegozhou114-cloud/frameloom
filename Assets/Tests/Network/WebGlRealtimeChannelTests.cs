@@ -161,7 +161,7 @@ namespace ZWebGLFrameWork.Network.Tests
                 cancellation.Token);
             cancellation.Cancel();
 
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await connect);
+            Assert.CatchAsync<OperationCanceledException>(async () => await connect);
             Assert.That(client.CloseCount, Is.EqualTo(1));
             Assert.That(channel.State, Is.EqualTo(RealtimeChannelState.Disconnected));
         }
