@@ -58,6 +58,46 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Checksum_ChangesForPathPhaseAllocatorAndPendingEventDifferences()
+        {
+            var pathA = WorldWithPath(11, 22, out _);
+            var pathB = WorldWithPath(11, 33, out _);
+            Assert.That(pathA.ComputeChecksum(), Is.Not.EqualTo(pathB.ComputeChecksum()));
+
+            using SimBattleSession deploying = SessionTestDriver.StartedDeployingBattle();
+            using SimBattleSession battling = SessionTestDriver.StartedBattle();
+            Assert.That(battling.Submit(new EndDeploymentCmd
+            {
+                Tick = battling.State.NextTick,
+                PlayerId = 0,
+                Sequence = 1,
+            }).Accepted, Is.True);
+            battling.Tick();
+            Assert.That(deploying.State.Phase, Is.Not.EqualTo(battling.State.Phase));
+            Assert.That(deploying.State.Checksum, Is.Not.EqualTo(battling.State.Checksum));
+
+            var cleanWorld = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            var advancedAllocator = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity temporary = advancedAllocator.CreateEntity(typeof(SimHealthComponent));
+            advancedAllocator.DestroyEntity(temporary);
+            Assert.That(advancedAllocator.ComputeChecksum(), Is.Not.EqualTo(cleanWorld.ComputeChecksum()));
+
+            var noEventWorld = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            var pendingEventWorld = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity attacker = pendingEventWorld.CreateEntity(typeof(SimHealthComponent));
+            SimEntity target = pendingEventWorld.CreateEntity(typeof(SimHealthComponent));
+            noEventWorld.CreateEntity(typeof(SimHealthComponent));
+            noEventWorld.CreateEntity(typeof(SimHealthComponent));
+            pendingEventWorld.EnqueueEvent(new SimDamageEvent
+            {
+                Amount = 5,
+                Attacker = attacker,
+                Target = target,
+            });
+            Assert.That(pendingEventWorld.ComputeChecksum(), Is.Not.EqualTo(noEventWorld.ComputeChecksum()));
+        }
+
+        [Test]
         public void Snapshot_PathMutationIsIsolatedFromCapturedState()
         {
             var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
@@ -116,6 +156,70 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.That(session.State.Checksum, Is.EqualTo(before));
         }
 
+        [Test]
+        public void Snapshot_PathMutationAndSystemClock_AreIsolatedAndRestored()
+        {
+            var world = WorldWithPath(11, 22, out SimEntity entity);
+            TickSnapshot snapshot = world.ExportFullSnapshot();
+            Assert.That(world.TryGetComponent(entity, out SimMovementComponent live), Is.True);
+            live.Path[0] = 99;
+            world.SetComponent(entity, live);
+            world.RestoreFromFull(snapshot);
+            SimEntity restoredEntity = SimEntity.Invalid;
+            world.ForEachComponent<SimMovementComponent>((candidate, movement) => restoredEntity = candidate);
+            Assert.That(world.TryGetComponent(restoredEntity, out SimMovementComponent restored), Is.True);
+            Assert.That(restored.Path, Is.EqualTo(new[] { 11, 22 }));
+
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot captured = session.CaptureSnapshot();
+            session.Tick();
+            SnapshotRestoreResult result = session.RestoreSnapshot(captured);
+            Assert.That(result.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(session.State.Checksum, Is.EqualTo(captured.StateChecksum));
+            Assert.That(session.State.NextTick, Is.EqualTo(captured.NextTick));
+        }
+
+        [Test]
+        public void SnapshotRestore_ForeignSchemaCorruptOrStale_IsRejectedAtomically()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot source = session.CaptureSnapshot();
+            ulong before = session.State.Checksum;
+
+            Assert.That(session.RestoreSnapshot(CopySnapshot(source,
+                matchId: source.MatchId + "-foreign")).Code,
+                Is.EqualTo(SnapshotRestoreCode.ForeignMatch));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+
+            Assert.That(session.RestoreSnapshot(CopySnapshot(source,
+                schemaVersion: source.SchemaVersion + 1)).Code,
+                Is.EqualTo(SnapshotRestoreCode.UnsupportedSchema));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+
+            byte[] corruptPayload = source.Payload;
+            corruptPayload[0] ^= 0x01;
+            Assert.That(session.RestoreSnapshot(CopySnapshot(source, payload: corruptPayload)).Code,
+                Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+
+            Assert.That(session.RestoreSnapshot(CopySnapshot(source, timelineRevision: -1)).Code,
+                Is.EqualTo(SnapshotRestoreCode.StaleRevision));
+            Assert.That(session.State.Checksum, Is.EqualTo(before));
+        }
+
+        private static SimWorld WorldWithPath(int first, int second, out SimEntity entity)
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            entity = world.CreateEntity(typeof(SimMovementComponent));
+            world.SetComponent(entity, new SimMovementComponent
+            {
+                Speed = LogicInt.FromInt(1),
+                CellSize = LogicInt.FromInt(1),
+                Path = new List<int> { first, second },
+            });
+            return world;
+        }
+
         private static void SubmitDeploy(SimBattleSession session, int sequence, int gridX)
         {
             Assert.That(session.Submit(new DeployCmd
@@ -130,16 +234,16 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         private static SimSnapshot CopySnapshot(SimSnapshot source, string matchId = null,
-            byte[] payload = null)
+            int? schemaVersion = null, long? timelineRevision = null, byte[] payload = null)
         {
             return new SimSnapshot(
                 matchId ?? source.MatchId,
                 source.SessionId,
-                source.SchemaVersion,
+                schemaVersion ?? source.SchemaVersion,
                 source.ContentHash,
                 source.CompletedTick,
                 source.NextTick,
-                source.TimelineRevision,
+                timelineRevision ?? source.TimelineRevision,
                 payload?.Length ?? source.UncompressedLength,
                 source.StateChecksum,
                 payload ?? source.Payload,
