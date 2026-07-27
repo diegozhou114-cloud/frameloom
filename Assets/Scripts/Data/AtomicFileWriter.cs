@@ -49,7 +49,7 @@ namespace ZWebGLFrameWork.Data
 
         public FileWriteResult Write(string path, string content)
         {
-            string temporaryPath = path + ".tmp";
+            string temporaryPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
                 _files.WriteAllText(temporaryPath, content);

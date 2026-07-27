@@ -7,13 +7,13 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
 {
     public sealed class AtomicFileWriterTests
     {
-        private sealed class MemoryFiles : IFileOperations
+        private class MemoryFiles : IFileOperations
         {
             public readonly Dictionary<string, string> Files =
                 new Dictionary<string, string>();
             public bool ThrowOnReplace { get; set; }
             public bool Exists(string path) => Files.ContainsKey(path);
-            public void WriteAllText(string path, string content) => Files[path] = content;
+            public virtual void WriteAllText(string path, string content) => Files[path] = content;
             public void Move(string source, string destination)
             {
                 Files[destination] = Files[source];
@@ -25,6 +25,20 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 Move(source, destination);
             }
             public void Delete(string path) => Files.Remove(path);
+        }
+
+        private sealed class ReentrantFiles : MemoryFiles
+        {
+            public System.Action OnFirstWrite { get; set; }
+            private bool _entered;
+
+            public override void WriteAllText(string path, string content)
+            {
+                base.WriteAllText(path, content);
+                if (_entered) return;
+                _entered = true;
+                OnFirstWrite?.Invoke();
+            }
         }
 
         [Test]
@@ -65,6 +79,21 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(failed.Succeeded, Is.False);
             Assert.That(replaceFiles.Files["save.json"], Is.EqualTo("old"));
             Assert.That(replaceFiles.Files.ContainsKey("save.json.tmp"), Is.False);
+        }
+
+        [Test]
+        public void ConcurrentWrites_UseSeparateTemporaryFiles()
+        {
+            var files = new ReentrantFiles();
+            var writer = new AtomicFileWriter(files);
+            FileWriteResult nested = default;
+            files.OnFirstWrite = () => nested = writer.Write("save.json", "second");
+
+            FileWriteResult first = writer.Write("save.json", "first");
+
+            Assert.That(first.Succeeded, Is.True);
+            Assert.That(nested.Succeeded, Is.True);
+            Assert.That(files.Files["save.json"], Is.EqualTo("first"));
         }
     }
 }
