@@ -125,9 +125,6 @@ namespace ZWebGLFrameWork.Data
             var data = Load<PlayerSaveData>(targetSlot);
             if (data == null) return false;
 
-            if (data.Version != PlayerSaveData.CurrentVersion)
-                Debug.LogWarning($"[SaveManager] 存档版本不匹配: 存档={data.Version}, 当前={PlayerSaveData.CurrentVersion}");
-
             var dm = DataManager.Instance;
             if (dm?.Player == null || dm?.Village == null)
             {
@@ -135,11 +132,17 @@ namespace ZWebGLFrameWork.Data
                 return false;
             }
 
+            if (!TryPrepareForLoad(data, out List<BuildingData> buildings, out string error))
+            {
+                Debug.LogError($"[SaveManager] 存档无效: {error}");
+                return false;
+            }
+
             var player = dm.Player;
             RestorePlayer(player, data);
 
             var village = dm.Village;
-            RestoreBuildings(village, data, targetSlot);
+            RestoreBuildings(village, data, buildings);
 
             Debug.Log($"[SaveManager] 数据写入 DataManager: slot={targetSlot}");
             return true;
@@ -158,32 +161,59 @@ namespace ZWebGLFrameWork.Data
             player.Exp.Value = data.Exp;
         }
 
-        private static void RestoreBuildings(VillageData village, PlayerSaveData data, int targetSlot)
+        private static bool TryPrepareForLoad(
+            PlayerSaveData data, out List<BuildingData> buildings, out string error)
         {
-            village.Name.Value = data.VillageName ?? village.Name.Value;
-            if (data.MaxBuildings > 0)
-                village.MaxBuildings.Value = data.MaxBuildings;
-            village.Buildings.Clear();
-            if (data.Buildings != null)
+            buildings = null;
+            error = null;
+            if (data.Version != PlayerSaveData.CurrentVersion)
+                return Fail("存档版本不匹配", out error);
+            if (string.IsNullOrWhiteSpace(data.PlayerName) ||
+                string.IsNullOrWhiteSpace(data.VillageName))
+                return Fail("玩家或村庄名称为空", out error);
+            if (data.PlayerLevel < 1 || data.TownHallLevel < 1 || data.Gold < 0 ||
+                data.Elixir < 0 || data.DarkElixir < 0 || data.Gems < 0 ||
+                data.Trophies < 0 || data.Exp < 0)
+                return Fail("玩家数值超出有效范围", out error);
+            if (data.MaxBuildings < 1 || data.Buildings == null ||
+                data.Buildings.Count > data.MaxBuildings)
+                return Fail("建筑容量无效", out error);
+
+            buildings = new List<BuildingData>(data.Buildings.Count);
+            var buildingIds = new HashSet<string>();
+            foreach (BuildingSaveData saved in data.Buildings)
             {
-                foreach (var b in data.Buildings)
-                {
-                    // 校验 TypeId 在配置表中存在
-                    if (ConfigTableManager.Instance.IsReady)
-                    {
-                        if (ConfigTableManager.Instance.GetBuilding(b.TypeId) == null)
-                        {
-                            Debug.LogWarning($"[SaveManager] 存档中的建筑类型 {b.TypeId} 在配置表中不存在，跳过");
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[SaveManager] Configs not ready, skipping building validation for slot {targetSlot}");
-                    }
-                    village.AddBuilding(SaveDataMapper.RestoreBuilding(b));
-                }
+                if (saved == null || string.IsNullOrWhiteSpace(saved.Id) ||
+                    !buildingIds.Add(saved.Id) || saved.TypeId < 1 || saved.GridX < 0 ||
+                    saved.GridY < 0 || saved.Level < 1 ||
+                    !Enum.IsDefined(typeof(BuildingState), saved.State) ||
+                    saved.UpgradeEndTime < 0 ||
+                    (saved.State == BuildingState.Upgrading && saved.UpgradeEndTime == 0))
+                    return Fail("建筑数据无效", out error);
+
+                if (ConfigTableManager.Instance.IsReady &&
+                    ConfigTableManager.Instance.GetBuilding(saved.TypeId) == null)
+                    return Fail("建筑类型不存在", out error);
+
+                buildings.Add(SaveDataMapper.RestoreBuilding(saved));
             }
+            return true;
+        }
+
+        private static bool Fail(string message, out string error)
+        {
+            error = message;
+            return false;
+        }
+
+        private static void RestoreBuildings(
+            VillageData village, PlayerSaveData data, List<BuildingData> buildings)
+        {
+            village.Name.Value = data.VillageName;
+            village.MaxBuildings.Value = data.MaxBuildings;
+            village.Buildings.Clear();
+            foreach (BuildingData building in buildings)
+                village.AddBuilding(building);
         }
 
         // ==================== 删除 ====================

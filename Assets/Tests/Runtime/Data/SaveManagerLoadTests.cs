@@ -1,0 +1,51 @@
+using System.IO;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using ZWebGLFrameWork.Data;
+using ZWebGLFrameWork.Runtime.Tests.Support;
+
+namespace ZWebGLFrameWork.Runtime.Tests.Data
+{
+    public sealed class SaveManagerLoadTests : RuntimeTestBase
+    {
+        [Test]
+        public void LoadToDataManager_UnknownVersionLeavesRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Player.Gold.Value = 123;
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2000;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var incompatible = new PlayerSaveData
+                {
+                    Version = PlayerSaveData.CurrentVersion + 1,
+                    PlayerName = "CorruptedPlayer",
+                    Gold = 9999,
+                    VillageName = "CorruptedVillage",
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(incompatible));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 存档版本不匹配");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Player.Gold.Value, Is.EqualTo(123));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
+    }
+}
