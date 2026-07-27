@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "ownership": "docs/superpowers/plans/2026-07-17-project-repair-ownership.json",
+  "register": "docs/superpowers/specs/2026-07-16-project-repair-issue-register.md",
+  "ledger": "docs/superpowers/specs/2026-07-16-project-repair-evidence.json",
+  "rows": []
+}

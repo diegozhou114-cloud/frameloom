@@ -1,0 +1,178 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { validateRecoveryManifest } from './simulation-evidence-recovery.mjs';
+
+const hash = value => createHash('sha256').update(value).digest('hex');
+
+function git(root, args) {
+  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+}
+
+async function recoveryFixture() {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'zweb-recovery-'));
+  const artifacts = await mkdtemp(path.join(os.tmpdir(), 'zweb-recovery-artifacts-'));
+  git(root, ['init', '--quiet']);
+  git(root, ['config', 'user.email', 'audit@example.test']);
+  git(root, ['config', 'user.name', 'Audit Test']);
+  await mkdir(path.join(root, 'docs/plans'), { recursive: true });
+  await mkdir(path.join(root, 'docs/specs'), { recursive: true });
+  await mkdir(path.join(root, 'src'), { recursive: true });
+  await mkdir(path.join(root, 'tests'), { recursive: true });
+  await writeFile(path.join(root, 'docs/plans/simulation.md'), '# Simulation plan\n');
+  await writeFile(path.join(root, 'docs/specs/register.md'),
+    '| ID | Method |\n|---|---|\n| SIM-001 | AcceptanceMethod |\n');
+  await writeFile(path.join(root, 'docs/specs/ownership.json'), JSON.stringify({
+    schemaVersion: 1,
+    plans: { simulationcore: { path: 'docs/plans/simulation.md', issues: ['SIM-001'] } },
+  }, null, 2));
+  await writeFile(path.join(root, 'docs/specs/ledger.json'), JSON.stringify({
+    schemaVersion: 1,
+    register: 'docs/specs/register.md',
+    allowedStatuses: ['Open', 'Closed'],
+    closureModes: ['Fixed'],
+    issues: { 'SIM-001': {} },
+  }, null, 2));
+  await writeFile(path.join(root, 'src/feature.cs'), 'class Feature {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'base']);
+  const baseCommit = git(root, ['rev-parse', 'HEAD']);
+  await writeFile(path.join(root, 'tests/Acceptance.cs'),
+    'public void AcceptanceMethod() {}\n');
+  git(root, ['add', '.']);
+  git(root, ['commit', '--quiet', '-m', 'fix']);
+  const fixCommit = git(root, ['rev-parse', 'HEAD']);
+
+  const redXml = path.join(artifacts, 'red.trx');
+  const greenXml = path.join(artifacts, 'green.trx');
+  const gate = path.join(artifacts, 'gate.json');
+  await writeFile(redXml,
+    '<TestRun><Results><UnitTestResult testName="Namespace.AcceptanceMethod" outcome="Failed" /></Results></TestRun>');
+  await writeFile(greenXml,
+    '<TestRun><Results><UnitTestResult testName="Namespace.AcceptanceMethod" outcome="Passed" /></Results></TestRun>');
+  await writeFile(gate, '{"passed":true}\n');
+  const manifestPath = 'docs/specs/recovery.json';
+  const row = {
+    issue: 'SIM-001', acceptanceMethod: 'AcceptanceMethod',
+    red: { kind: 'ExecutedTestFailure', artifact: redXml }, green: greenXml,
+    gates: [gate], fixCommits: [fixCommit], mode: 'Fixed',
+  };
+  const manifest = {
+    schemaVersion: 1, ownership: 'docs/specs/ownership.json',
+    register: 'docs/specs/register.md', ledger: 'docs/specs/ledger.json', rows: [row],
+  };
+  const writeManifest = async () => {
+    await writeFile(path.join(root, manifestPath), JSON.stringify(manifest, null, 2) + '\n');
+  };
+  const options = () => ({ root, manifestPath, requireArtifacts: true, expectedIssueCount: 1 });
+  const writeGreen = async (name, result) => {
+    await writeFile(greenXml,
+      `<TestRun><Results><UnitTestResult testName="Namespace.${name}" outcome="${result}" /></Results></TestRun>`);
+  };
+  const writeCompileReceipt = async () => {
+    const logPath = path.join(artifacts, 'compile.log');
+    const log = 'error CS0246: ISimBattleSession\n';
+    await writeFile(logPath, log);
+    const receipt = path.join(artifacts, 'compile.json');
+    await writeFile(receipt, JSON.stringify({
+      schemaVersion: 1, kind: 'ExpectedCompileFailure', sourceRevision: baseCommit,
+      command: ['unity', '-batchmode'], exitCode: 1, logPath, logSha256: hash(log),
+      requiredDiagnostics: ['error CS0246', 'ISimBattleSession'],
+      planCitation: 'docs/plans/simulation.md:1',
+    }, null, 2));
+    row.red = { kind: 'ExpectedCompileFailure', artifact: receipt };
+  };
+  const writeSourceReceipt = async () => {
+    const diff = execFileSync('git', ['diff', '--binary', `${baseCommit}..${fixCommit}`, '--', 'tests/Acceptance.cs'],
+      { cwd: root });
+    const receipt = path.join(artifacts, 'source.json');
+    await writeFile(receipt, JSON.stringify({
+      schemaVersion: 1, kind: 'HistoricalSourceRed', sourceRevision: baseCommit,
+      fixCommits: [fixCommit], acceptanceMethod: 'AcceptanceMethod',
+      testPresentBefore: false, testPresentAfter: true, paths: ['tests/Acceptance.cs'],
+      gitDiffSha256: hash(diff), reason: 'The historical change added the acceptance test.',
+    }, null, 2));
+    row.red = { kind: 'HistoricalSourceRed', artifact: receipt };
+  };
+  await writeManifest();
+  return {
+    root, artifacts, manifest, row, baseCommit, fixCommit, writeManifest, options, writeGreen,
+    assertExecutedFailureAccepted: async () => {
+      row.red = { kind: 'ExecutedTestFailure', artifact: redXml };
+      await writeManifest();
+      assert.deepEqual((await validateRecoveryManifest(options())).errors, []);
+    },
+    assertCompileFailureAccepted: async () => {
+      await writeCompileReceipt();
+      await writeManifest();
+      assert.deepEqual((await validateRecoveryManifest(options())).errors, []);
+    },
+    assertHistoricalSourceRedAccepted: async () => {
+      await writeSourceReceipt();
+      await writeManifest();
+      assert.deepEqual((await validateRecoveryManifest(options())).errors, []);
+    },
+  };
+}
+
+test('requires exactly the 38 simulation-owned rows', async () => {
+  const fixture = await recoveryFixture();
+  fixture.manifest.rows.pop();
+  await fixture.writeManifest();
+  const result = await validateRecoveryManifest(fixture.options());
+  assert.match(result.errors.join('\n'), /exactly match simulation ownership/);
+});
+
+test('accepts multiple reachable fix commits and rejects an unreadable commit', async () => {
+  const fixture = await recoveryFixture();
+  fixture.row.fixCommits = [fixture.baseCommit, fixture.fixCommit];
+  await fixture.writeManifest();
+  assert.deepEqual((await validateRecoveryManifest(fixture.options())).errors, []);
+  fixture.row.fixCommits.push('f'.repeat(40));
+  await fixture.writeManifest();
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /unreadable fix commit/);
+});
+
+test('validates all three RED classes without treating source receipts as tests', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertExecutedFailureAccepted();
+  await fixture.assertCompileFailureAccepted();
+  await fixture.assertHistoricalSourceRedAccepted();
+});
+
+test('always requires exact Passed GREEN and a gate artifact', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.writeGreen('DifferentMethod', 'Passed');
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /exact acceptance method.*Passed/);
+});
+
+test('rejects malformed and unknown test result formats', async () => {
+  const fixture = await recoveryFixture();
+  await writeFile(fixture.row.green, '<unknown />');
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'), /GREEN results/);
+});
+
+test('validates RED provenance when deferred GREEN artifacts are allowed', async () => {
+  const fixture = await recoveryFixture();
+  fixture.row.red = { kind: 'UnknownReceipt', artifact: fixture.row.green };
+  await fixture.writeManifest();
+  const result = await validateRecoveryManifest({ ...fixture.options(), requireArtifacts: false });
+  assert.match(result.errors.join('\n'), /invalid RED kind/);
+});
+
+test('requires HistoricalSourceRed paths to cover the exact historical diff', async () => {
+  const fixture = await recoveryFixture();
+  await fixture.assertHistoricalSourceRedAccepted();
+  const receiptPath = path.join(fixture.artifacts, 'source.json');
+  const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
+  receipt.paths = ['src/feature.cs'];
+  await writeFile(receiptPath, JSON.stringify(receipt));
+  assert.match((await validateRecoveryManifest(fixture.options())).errors.join('\n'),
+    /changed paths mismatch/);
+});
