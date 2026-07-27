@@ -47,6 +47,74 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void CampaignAndBuilderBase_StartupDoesNotPrematurelyEnd()
+        {
+            foreach (SimCombatMode mode in new[] { SimCombatMode.Campaign, SimCombatMode.BuilderBase })
+            {
+                SimModeProfile profile = ModeTestFixture.Manifest().GetMode(mode);
+                var rules = new SimModeRules(profile);
+                int futureWaves = mode == SimCombatMode.Campaign
+                    ? profile.WaveTicks.Length - 1
+                    : 0;
+                bool deploymentSealed = !profile.ManualDeployment;
+
+                Assert.That(rules.Evaluate(new SimModeEvaluationInput(
+                    0, 0, 1, 0, futureWaves, false, deploymentSealed)),
+                    Is.Null, mode.ToString());
+            }
+        }
+
+        [Test]
+        public void CombatResult_UnityAndDotNet_AreIdentical()
+        {
+            SimBattleResult result = ModeTestFixture.EvaluateVillageAttackVector();
+            Assert.That(result.ResultId, Is.EqualTo("mode-vector:120:00000000000A11CE"));
+            Assert.That(result.WinnerTeamId, Is.EqualTo(SimTeam.Attacker));
+            Assert.That(result.FinalChecksum, Is.EqualTo(0xA11CEUL));
+            Assert.That(result.Stars, Is.EqualTo(3));
+            Assert.That(result.LootGold, Is.EqualTo(500));
+            Assert.That(result.LootElixir, Is.EqualTo(300));
+        }
+
+        [Test]
+        public void SimulationModes_ImplementApprovedStartupWaveAndTerminalMatrix()
+        {
+            DeterministicContentManifest manifest = ModeTestFixture.Manifest();
+            Assert.That(manifest.Modes.Count, Is.EqualTo(4));
+            foreach (SimModeProfile profile in manifest.Modes)
+            {
+                var rules = new SimModeRules(profile);
+                int futureWaves = profile.WaveTicks.Length > 0 ? 1 : 0;
+                bool deploymentSealed = !profile.ManualDeployment;
+
+                Assert.That(rules.Evaluate(new SimModeEvaluationInput(
+                    0, 0, 1, 0, futureWaves, false, deploymentSealed)),
+                    Is.Null, profile.Mode.ToString());
+
+                SimTerminalOutcome exhausted = rules.Evaluate(new SimModeEvaluationInput(
+                    1, 0, 1, 0, 0, false, true));
+                Assert.That(exhausted.WinnerTeamId, Is.EqualTo(SimTeam.Defender),
+                    profile.Mode.ToString());
+
+                SimTerminalOutcome attackerWin = rules.Evaluate(new SimModeEvaluationInput(
+                    1, 1, 0, 10000, 0, false, true));
+                Assert.That(attackerWin.WinnerTeamId, Is.EqualTo(SimTeam.Attacker),
+                    profile.Mode.ToString());
+                Assert.That(attackerWin.Stars, Is.EqualTo(3), profile.Mode.ToString());
+
+                SimTerminalOutcome draw = rules.Evaluate(new SimModeEvaluationInput(
+                    1, 0, 0, 0, 0, false, true));
+                Assert.That(draw.WinnerTeamId, Is.EqualTo(SimTeam.None),
+                    profile.Mode.ToString());
+
+                SimTerminalOutcome timeout = rules.Evaluate(new SimModeEvaluationInput(
+                    profile.TimeoutTicks, 1, 1, 0, 0, true, true));
+                Assert.That(timeout.WinnerTeamId, Is.EqualTo(SimTeam.Defender),
+                    profile.Mode.ToString());
+            }
+        }
+
+        [Test]
         public void ManifestConstructor_RejectsInvalidModeTablesAndProfiles()
         {
             Assert.Throws<ArgumentNullException>(() =>
