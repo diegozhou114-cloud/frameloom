@@ -20,6 +20,7 @@ namespace ZWebGLFrameWork.Network.WebGL
         private bool _started;
         private bool _closed;
         private CancellationTokenSource _dispatchCancellation;
+        private Task _dispatchTask;
 
         public WebGlRealtimeChannel() : this(new NativeWebSocketClientFactory()) { }
 
@@ -37,6 +38,7 @@ namespace ZWebGLFrameWork.Network.WebGL
             Validate(endpoint, credentials);
             INativeWebSocketClient client;
             TaskCompletionSource<bool> authentication;
+            CancellationTokenSource dispatchCancellation;
             lock (_gate)
             {
                 if (_started) throw new InvalidOperationException("A WebGL channel can only connect once.");
@@ -50,11 +52,11 @@ namespace ZWebGLFrameWork.Network.WebGL
                 client.MessageReceived += OnMessage;
                 client.Error += OnError;
                 client.Closed += OnClosed;
+                _dispatchCancellation = dispatchCancellation = new CancellationTokenSource();
             }
             try
             {
-                _dispatchCancellation = new CancellationTokenSource();
-                _ = DispatchLoopAsync(client, _dispatchCancellation.Token);
+                _dispatchTask = DispatchLoopAsync(client, dispatchCancellation.Token);
                 Task native = client.ConnectAsync();
                 ObserveNativeConnect(native);
                 using (cancellationToken.Register(() => _ = CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None)))
@@ -101,19 +103,32 @@ namespace ZWebGLFrameWork.Network.WebGL
             INativeWebSocketClient client;
             TaskCompletionSource<bool> authentication;
             TaskCompletionSource<byte[]> receiver;
+            CancellationTokenSource dispatchCancellation;
+            Task dispatchTask;
             lock (_gate)
             {
                 if (_closed) return;
                 _closed = true; _started = true; _state = RealtimeChannelState.Closing;
                 client = _client; _client = null;
                 authentication = _authentication; receiver = _pendingReceive; _pendingReceive = null;
+                dispatchCancellation = _dispatchCancellation; _dispatchCancellation = null;
+                dispatchTask = _dispatchTask; _dispatchTask = null;
             }
             lock (_gate) _state = RealtimeChannelState.Disconnected;
-            _dispatchCancellation?.Cancel();
-            _dispatchCancellation?.Dispose();
-            _dispatchCancellation = null;
+            dispatchCancellation?.Cancel();
             authentication?.TrySetException(new InvalidOperationException("Realtime channel closed: " + reason));
             receiver?.TrySetException(new InvalidOperationException("Realtime channel closed."));
+            try
+            {
+                if (dispatchTask != null) await dispatchTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                dispatchCancellation?.Dispose();
+            }
             if (client != null) { try { await client.CloseAsync().ConfigureAwait(false); } catch { } client.Dispose(); }
         }
 

@@ -69,23 +69,30 @@ namespace ZWebGLFrameWork.Network.Tests
             var factory = new FakeNativeWebSocketClientFactory(client);
             var channel = new WebGlRealtimeChannel(factory);
 
-            Task connect = channel.ConnectAsync(Endpoint, TestCredentials.Valid,
-                CancellationToken.None);
-            client.RaiseOpened();
-            await client.WaitForSendAsync();
-            Assert.That(RealtimeCodec.Decode(client.Sent.Single()).Kind,
-                Is.EqualTo(RealtimeMessageKind.AuthHello));
-            client.RaiseMessage(RealtimeCodec.Encode(new AuthAccepted
+            try
             {
-                SessionId = TestCredentials.Valid.SessionId,
-                LastAuthorityTick = -1,
-                TimelineRevision = 0
-            }));
-            await connect;
+                Task connect = channel.ConnectAsync(Endpoint, TestCredentials.Valid,
+                    CancellationToken.None);
+                client.RaiseOpened();
+                await client.WaitForSendAsync();
+                Assert.That(RealtimeCodec.Decode(client.Sent.Single()).Kind,
+                    Is.EqualTo(RealtimeMessageKind.AuthHello));
+                client.RaiseMessage(RealtimeCodec.Encode(new AuthAccepted
+                {
+                    SessionId = TestCredentials.Valid.SessionId,
+                    LastAuthorityTick = -1,
+                    TimelineRevision = 0
+                }));
+                await connect;
 
-            Assert.That(factory.Subprotocols, Is.EqualTo(
-                new[] { RealtimeProtocol.WebSocketSubprotocol }));
-            Assert.That(channel.State, Is.EqualTo(RealtimeChannelState.Connected));
+                Assert.That(factory.Subprotocols, Is.EqualTo(
+                    new[] { RealtimeProtocol.WebSocketSubprotocol }));
+                Assert.That(channel.State, Is.EqualTo(RealtimeChannelState.Connected));
+            }
+            finally
+            {
+                await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+            }
         }
 
         [Test]
@@ -201,15 +208,22 @@ namespace ZWebGLFrameWork.Network.Tests
             var client = new FakeNativeWebSocketClient();
             var channel = new WebGlRealtimeChannel(
                 new FakeNativeWebSocketClientFactory(client));
-            await ConnectAndAuthenticateAsync(channel, client);
-            byte[] first = { 1, 2, 3 };
-            byte[] second = { 4, 5, 6 };
+            try
+            {
+                await ConnectAndAuthenticateAsync(channel, client);
+                byte[] first = { 1, 2, 3 };
+                byte[] second = { 4, 5, 6 };
 
-            client.RaiseMessage(first);
-            client.RaiseMessage(second);
+                client.RaiseMessage(first);
+                client.RaiseMessage(second);
 
-            Assert.That(await channel.ReceiveAsync(CancellationToken.None), Is.EqualTo(first));
-            Assert.That(await channel.ReceiveAsync(CancellationToken.None), Is.EqualTo(second));
+                Assert.That(await channel.ReceiveAsync(CancellationToken.None), Is.EqualTo(first));
+                Assert.That(await channel.ReceiveAsync(CancellationToken.None), Is.EqualTo(second));
+            }
+            finally
+            {
+                await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+            }
         }
 
         [Test]
@@ -229,20 +243,58 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task CloseAsync_WaitsForDispatchLoopBeforeDisposingClient()
+        {
+            var client = new FakeNativeWebSocketClient { BlockSecondDispatch = true };
+            var channel = new WebGlRealtimeChannel(
+                new FakeNativeWebSocketClientFactory(client));
+            Task close = null;
+
+            try
+            {
+                await ConnectAndAuthenticateAsync(channel, client);
+                await client.WaitForBlockedDispatchAsync();
+
+                close = channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+                Task winner = await Task.WhenAny(close, Task.Delay(250));
+
+                Assert.That(winner, Is.Not.SameAs(close),
+                    "Close must await the active dispatch loop.");
+                Assert.That(client.DisposeCount, Is.Zero,
+                    "The native client must outlive its dispatch loop.");
+            }
+            finally
+            {
+                client.ReleaseBlockedDispatch();
+                if (close != null) await close;
+                else await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+            }
+
+            Assert.That(client.DisposeCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public async Task ReceiveAsync_RejectsDuplicatePendingReceiver()
         {
             var client = new FakeNativeWebSocketClient();
             var channel = new WebGlRealtimeChannel(
                 new FakeNativeWebSocketClientFactory(client));
-            await ConnectAndAuthenticateAsync(channel, client);
+            try
+            {
+                await ConnectAndAuthenticateAsync(channel, client);
 
-            Task<byte[]> first = channel.ReceiveAsync(CancellationToken.None);
-            Assert.Throws<InvalidOperationException>(() =>
-                channel.ReceiveAsync(CancellationToken.None));
-            byte[] message = { 9, 8, 7 };
-            client.RaiseMessage(message);
+                Task<byte[]> first = channel.ReceiveAsync(CancellationToken.None);
+                Assert.Throws<InvalidOperationException>(() =>
+                    channel.ReceiveAsync(CancellationToken.None));
+                byte[] message = { 9, 8, 7 };
+                client.RaiseMessage(message);
 
-            Assert.That(await first, Is.EqualTo(message));
+                Assert.That(await first, Is.EqualTo(message));
+            }
+            finally
+            {
+                await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+            }
         }
 
         private static async Task ConnectAndAuthenticateAsync(
@@ -286,6 +338,11 @@ namespace ZWebGLFrameWork.Network.Tests
         {
             private readonly TaskCompletionSource<bool> _sent =
                 new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly TaskCompletionSource<bool> _dispatchBlocked =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            private readonly ManualResetEventSlim _releaseBlockedDispatch = new ManualResetEventSlim();
+            private int _dispatchCalls;
+            private int _disposeCount;
 
             public event Action Opened;
             public event Action<byte[]> MessageReceived;
@@ -295,6 +352,8 @@ namespace ZWebGLFrameWork.Network.Tests
             public List<byte[]> Sent { get; } = new List<byte[]>();
             public Task ConnectTask { get; set; } = Task.CompletedTask;
             public int CloseCount { get; private set; }
+            public bool BlockSecondDispatch { get; set; }
+            public int DisposeCount => Volatile.Read(ref _disposeCount);
 
             public Task ConnectAsync() => ConnectTask;
 
@@ -314,10 +373,14 @@ namespace ZWebGLFrameWork.Network.Tests
 
             public void DispatchMessageQueue()
             {
+                if (!BlockSecondDispatch || Interlocked.Increment(ref _dispatchCalls) != 2) return;
+                _dispatchBlocked.TrySetResult(true);
+                _releaseBlockedDispatch.Wait();
             }
 
             public void Dispose()
             {
+                Interlocked.Increment(ref _disposeCount);
             }
 
             public void RaiseOpened() => Opened?.Invoke();
@@ -330,6 +393,16 @@ namespace ZWebGLFrameWork.Network.Tests
                 Assert.That(winner, Is.SameAs(_sent.Task), "AuthHello was not sent.");
                 await _sent.Task;
             }
+
+            public async Task WaitForBlockedDispatchAsync()
+            {
+                Task winner = await Task.WhenAny(_dispatchBlocked.Task, Task.Delay(1000));
+                Assert.That(winner, Is.SameAs(_dispatchBlocked.Task),
+                    "Dispatch loop did not reach its controlled blocked iteration.");
+                await _dispatchBlocked.Task;
+            }
+
+            public void ReleaseBlockedDispatch() => _releaseBlockedDispatch.Set();
         }
     }
 }
