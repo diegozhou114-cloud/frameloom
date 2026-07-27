@@ -9,10 +9,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Assets/Scripts/Network/Contracts/**/*.cs" Link="Network/Contracts/%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="../../Assets/Scripts/Network/Runtime/**/*.cs" Link="Network/Runtime/%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="../../Assets/Scripts/Network/Core/INetworkClient.cs" Link="Network/INetworkClient.cs" />
-    <Compile Include="../../Assets/Scripts/Network/Core/NetworkClientBinding.cs" Link="Network/NetworkClientBinding.cs" />
-    <Compile Include="../../Assets/Scripts/Network/Core/NetworkDefine.cs" Link="Network/NetworkDefine.cs" />
+    <Compile Include="../../Assets/Scripts/Network/Runtime/IRealtimeChannelFactory.cs" Link="Network/Runtime/IRealtimeChannelFactory.cs" />
+    <Compile Include="../../Assets/Scripts/Network/Runtime/RealtimeChannelFactoryRegistry.cs" Link="Network/Runtime/RealtimeChannelFactoryRegistry.cs" />
+    <Compile Include="../../Assets/Scripts/Network/Runtime/RealtimeConnectionController.cs" Link="Network/Runtime/RealtimeConnectionController.cs" />
     <Compile Include="../../Assets/Tests/Network/RealtimeCodecTests.cs" Link="Tests/Network/RealtimeCodecTests.cs" />
     <Compile Include="../../Assets/Tests/Network/BoundedMessagePumpTests.cs" Link="Tests/Network/BoundedMessagePumpTests.cs" />
     <Compile Include="../../Assets/Tests/Network/AuthenticatedPacketCodecTests.cs" Link="Tests/Network/AuthenticatedPacketCodecTests.cs" />

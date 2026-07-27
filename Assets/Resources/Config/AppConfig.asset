@@ -17,6 +17,8 @@ MonoBehaviour:
   _runInBackground: 1
   _throttleInBackground: 0
   _backgroundFrameRate: 10
+  _httpsApiBaseUrl: https://127.0.0.1:7443
+  _wssRealtimeUrl: wss://127.0.0.1:7443/v1/realtime
   _loadingMode: 0
   _qualityLevel: 1
   _minLogLevel: 0

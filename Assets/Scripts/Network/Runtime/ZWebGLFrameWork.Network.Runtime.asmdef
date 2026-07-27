@@ -2,7 +2,9 @@
   "name": "ZWebGLFrameWork.Network.Runtime",
   "rootNamespace": "ZWebGLFrameWork.Network.Runtime",
   "references": [
-    "ZWebGLFrameWork.Network.Contracts"
+    "ZWebGLFrameWork.Core",
+    "ZWebGLFrameWork.Network.Contracts",
+    "ZWebGLFrameWork.Network.UnityHttp"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
@@ -12,5 +14,5 @@
   "autoReferenced": true,
   "defineConstraints": [],
   "versionDefines": [],
-  "noEngineReferences": true
+  "noEngineReferences": false
 }

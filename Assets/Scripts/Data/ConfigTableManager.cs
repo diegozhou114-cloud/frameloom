@@ -39,15 +39,15 @@ namespace ZWebGLFrameWork.Data
         /// 异步预加载全部配置表。
         /// 返回 false 表示部分表加载失败（已记录错误日志）。
         /// </summary>
-        public async UniTask<bool> PreloadAllAsync()
+        public UniTask<bool> PreloadAllAsync()
         {
-            if (IsReady) return true;
+            if (IsReady) return UniTask.FromResult(true);
 
             Debug.Log("[ConfigTableManager] 开始预加载配置表...");
             bool allOk = true;
 
             // ─── 建筑表 ───
-            _buildings = await LoadConfigTableAsync<BuildingConfig>("Config/Buildings");
+            _buildings = LoadConfigTable<BuildingConfig>("Config/Buildings");
             if (_buildings == null || _buildings.Count == 0)
             {
                 Debug.LogError("[ConfigTableManager] ❌ 建筑配置表加载失败或为空");
@@ -60,7 +60,7 @@ namespace ZWebGLFrameWork.Data
             }
 
             // ─── 兵种表 ───
-            _units = await LoadConfigTableAsync<UnitConfig>("Config/Units");
+            _units = LoadConfigTable<UnitConfig>("Config/Units");
             if (_units == null || _units.Count == 0)
             {
                 Debug.LogError("[ConfigTableManager] ❌ 兵种配置表加载失败或为空");
@@ -73,7 +73,7 @@ namespace ZWebGLFrameWork.Data
             }
 
             // ─── 关卡表 ───
-            _levels = await LoadConfigTableAsync<LevelConfig>("Config/Levels");
+            _levels = LoadConfigTable<LevelConfig>("Config/Levels");
             if (_levels == null || _levels.Count == 0)
             {
                 Debug.LogError("[ConfigTableManager] ❌ 关卡配置表加载失败或为空");
@@ -87,7 +87,7 @@ namespace ZWebGLFrameWork.Data
 
             IsReady = allOk;
             Debug.Log($"[ConfigTableManager] 预加载完成 (Ready={IsReady})");
-            return allOk;
+            return UniTask.FromResult(allOk);
         }
 
         // ==================== 查询 API — 建筑 ====================
@@ -193,7 +193,7 @@ namespace ZWebGLFrameWork.Data
         }
 
         /// <summary>从 Resources 异步加载 JSON 数组配置表，按 Id 建立索引</summary>
-        private async UniTask<Dictionary<int, T>> LoadConfigTableAsync<T>(string path)
+        private Dictionary<int, T> LoadConfigTable<T>(string path)
             where T : class
         {
             // 静态缓存 Id 字段反射（只反射一次）

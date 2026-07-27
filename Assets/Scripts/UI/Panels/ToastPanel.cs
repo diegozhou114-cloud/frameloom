@@ -12,7 +12,6 @@ namespace ZWebGLFrameWork.UI
     public class ToastPanel : UIBase
     {
         private Text _messageText;
-        private float _duration = 2f;
         private Coroutine _autoCloseCoroutine;
 
         public ToastPanel()

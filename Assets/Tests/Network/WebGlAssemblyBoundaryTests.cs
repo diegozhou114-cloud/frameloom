@@ -29,7 +29,7 @@ namespace ZWebGLFrameWork.Network.Tests
             Assert.That(asmdef, Does.Not.Contain("ZWebGLFrameWork.Network.Native"));
             Assert.That(asmdef, Does.Not.Contain("ZWebGLFrameWork.Kcp2k"));
             Assembly playerAssembly = CompilationPipeline.GetAssemblies(
-                AssembliesType.PlayerWithoutTestAssemblies).Single(assembly =>
+                AssembliesType.Editor).Single(assembly =>
                 assembly.name == "ZWebGLFrameWork.Network.WebGL");
             string[] references = playerAssembly.assemblyReferences.Select(reference =>
                 reference.name).ToArray();

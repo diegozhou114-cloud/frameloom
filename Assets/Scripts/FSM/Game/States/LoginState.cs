@@ -1,8 +1,10 @@
-using Cysharp.Threading.Tasks;
+using System;
+using System.Threading;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.Network;
+using ZWebGLFrameWork.Network.UnityHttp;
 using ZWebGLFrameWork.UI;
 
 namespace ZWebGLFrameWork.FSM
@@ -19,18 +21,14 @@ namespace ZWebGLFrameWork.FSM
 
         public LoginState() : base(GameState.Login) { }
 
-        private System.Threading.CancellationTokenSource _loginCts;
+        private CancellationTokenSource _loginCts;
 
         public override void OnEnter(object data = null)
         {
             base.OnEnter(data);
-            _loginCts = new System.Threading.CancellationTokenSource();
+            _loginCts = new CancellationTokenSource();
             Debug.Log("[GameFSM] 进入登录状态");
             EventBus.Publish("LoginStarted");
-
-            // 统一注册网络状态监听（联网和离线共用，避免在 EventBus 回调中修改订阅）
-            EventBus.Subscribe<NetworkStateChangedEvent>(
-                NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
 
             var cfg = GameLauncher.Config;
 
@@ -58,8 +56,6 @@ namespace ZWebGLFrameWork.FSM
             EventBus.Unsubscribe(LoginEvents.GuestLogin, OnGuestLogin);
             EventBus.Unsubscribe(LoginEvents.OfflineLogin, OnOfflineLogin);
             EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
-            EventBus.Unsubscribe<NetworkStateChangedEvent>(
-                NetworkManager.EventNetworkStateChanged, OnNetworkStateChanged);
             UIManager.Instance.Close<LoginPanel>();
             UIManager.Instance.Close<CharacterSelectPanel>();
             base.OnExit();
@@ -69,31 +65,32 @@ namespace ZWebGLFrameWork.FSM
 
         private async void OnGuestLogin()
         {
-            var token = _loginCts?.Token ?? System.Threading.CancellationToken.None;
+            if (_loginCts == null)
+                return;
+
+            CancellationToken token = _loginCts.Token;
             UIManager.Instance.Close<LoginPanel>();
-
-            var cfg = GameLauncher.Config;
-            string host = cfg?.DefaultServerHost ?? "127.0.0.1";
-            int port = cfg?.DefaultServerPort ?? 7777;
-
-            NetworkManager.Instance.Connect(NetworkProtocol.TCP, host, port);
-
-            // 10 秒超时检测（支持取消）
             try
             {
-                await UniTask.Delay(10000, cancellationToken: token);
-            }
-            catch (System.OperationCanceledException)
-            {
-                return; // 状态已退出，静默终止
-            }
+                Uri endpoint = new Uri(GameLauncher.Config.HttpsApiBaseUrl);
+                GuestLoginResult result =
+                    await NetworkManager.Instance.GuestLoginAsync(endpoint, token);
+                if (!result.Success)
+                {
+                    PublishLoginFailure(result.Error);
+                    return;
+                }
 
-            if (!NetworkManager.Instance.IsConnected)
+                NetworkSession.Current =
+                    new NetworkSession(result.PlayerId, result.Credentials);
+                ChangeState(GameState.MainVillage);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                NetworkManager.Instance.Disconnect();
-                Debug.LogError("[LoginState] ⏰ 连接超时");
-                UIManager.Instance.Open<LoginPanel>();
-                EventBus.Publish(LoginEvents.LoginError, "连接超时，请检查网络后重试");
+            }
+            catch (Exception exception)
+            {
+                PublishLoginFailure(exception.Message);
             }
         }
 
@@ -133,21 +130,11 @@ namespace ZWebGLFrameWork.FSM
             EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
         }
 
-        private void OnNetworkStateChanged(NetworkStateChangedEvent evt)
+        private void PublishLoginFailure(string message)
         {
-            if (evt.NewState == ConnectionState.Connected)
-            {
-                Debug.Log("[LoginState] ✅ 服务器连接成功 → MainVillage");
-                ChangeState(GameState.MainVillage);
-            }
-            else if (evt.NewState == ConnectionState.Disconnected
-                     && !string.IsNullOrEmpty(evt.Message))
-            {
-                Debug.LogError($"[LoginState] ❌ 连接失败: {evt.Message}");
-                // 重新打开登录面板并显示错误
-                UIManager.Instance.Open<LoginPanel>();
-                EventBus.Publish(LoginEvents.LoginError, evt.Message);
-            }
+            Debug.LogError($"[LoginState] 登录失败: {message}");
+            UIManager.Instance.Open<LoginPanel>();
+            EventBus.Publish(LoginEvents.LoginError, message);
         }
 
         // ==================== 辅助 ====================

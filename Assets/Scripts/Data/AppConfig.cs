@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 
@@ -71,15 +72,26 @@ namespace ZWebGLFrameWork.Data
         [SerializeField] private bool _enableOfflineMode = true;
         public bool EnableOfflineMode => _enableOfflineMode;
 
-        /// <summary>默认服务器地址（联网模式使用）</summary>
-        [Tooltip("默认连接的服务器主机名或IP")]
-        [SerializeField] private string _defaultServerHost = "127.0.0.1";
-        public string DefaultServerHost => _defaultServerHost;
+        [Header("网络 - 在线端点")]
+        [SerializeField] private string _httpsApiBaseUrl = "https://127.0.0.1:7443";
+        public string HttpsApiBaseUrl
+        {
+            get
+            {
+                ValidateOnlineUri(_httpsApiBaseUrl, Uri.UriSchemeHttps, null);
+                return _httpsApiBaseUrl;
+            }
+        }
 
-        /// <summary>默认服务器端口</summary>
-        [Tooltip("默认服务器端口")]
-        [SerializeField] private int _defaultServerPort = 7777;
-        public int DefaultServerPort => _defaultServerPort;
+        [SerializeField] private string _wssRealtimeUrl = "wss://127.0.0.1:7443/v1/realtime";
+        public string WssRealtimeUrl
+        {
+            get
+            {
+                ValidateOnlineUri(_wssRealtimeUrl, "wss", "/v1/realtime");
+                return _wssRealtimeUrl;
+            }
+        }
 
         [Header("资源 — 加载方式切换")]
         /// <summary>资源加载提供者：Resources=本地开发 / AssetBundle=热更模式 / Addressables=生产环境</summary>
@@ -130,6 +142,9 @@ namespace ZWebGLFrameWork.Data
         /// <summary>将配置应用到 Unity 全局设置</summary>
         public void Apply()
         {
+            _ = HttpsApiBaseUrl;
+            _ = WssRealtimeUrl;
+
             // -------- 平台自适应 --------
             if (_enablePlatformAutoDetect)
                 ApplyPlatformDefaults();
@@ -160,6 +175,21 @@ namespace ZWebGLFrameWork.Data
                       + (AutoDetectActive ? $"(平台自适应，原始值:{_targetFrameRate})" : "")
                       + $", VSync:{_vSyncCount}, 后台:{_runInBackground}"
                       + $", 画质:{_runtimeQualityLevel}, 后台省电:{_runtimeThrottleInBackground}");
+        }
+
+        private static void ValidateOnlineUri(
+            string value, string requiredScheme, string requiredPath)
+        {
+            if (!Uri.TryCreate(value, UriKind.Absolute, out Uri uri) ||
+                !string.Equals(uri.Scheme, requiredScheme, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    $"Online endpoint must use {requiredScheme}.");
+
+            if (requiredPath != null &&
+                (!string.Equals(uri.AbsolutePath, requiredPath, StringComparison.Ordinal) ||
+                 !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment)))
+                throw new InvalidOperationException(
+                    $"Realtime endpoint path must be exactly {requiredPath}.");
         }
 
         /// <summary>平台自适应是否已激活</summary>

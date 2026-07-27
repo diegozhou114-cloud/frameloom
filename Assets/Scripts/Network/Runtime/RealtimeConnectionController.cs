@@ -6,7 +6,7 @@ using ZWebGLFrameWork.Network.Contracts.Transport;
 
 namespace ZWebGLFrameWork.Network.Runtime
 {
-    public sealed class RealtimeConnectionController
+    public sealed class RealtimeConnectionController : IDisposable
     {
         private readonly object _gate = new object();
         private readonly IRealtimeChannelFactory _factory;
@@ -135,6 +135,22 @@ namespace ZWebGLFrameWork.Network.Runtime
                 await CloseAndDisposeAsync(
                     current, RealtimeCloseReason.Normal, cancellationToken,
                     suppressCloseErrors: false);
+        }
+
+        public void Dispose()
+        {
+            PendingConnect pendingConnect;
+            IRealtimeChannel current;
+            lock (_gate)
+            {
+                _generation++;
+                pendingConnect = _pendingConnect;
+                _pendingConnect = null;
+                current = _current;
+                _current = null;
+            }
+            pendingConnect?.RequestCancellation();
+            current?.Dispose();
         }
 
         private sealed class PendingConnect
