@@ -232,9 +232,9 @@ namespace ZWebGLFrameWork.Data
                 int id = (int)idField.GetValue(item);
                 if (dict.ContainsKey(id))
                 {
-                    Debug.LogWarning(
-                        $"[ConfigTableManager] {typeof(T).Name} Id={id} 重复，跳过");
-                    continue;
+                    Debug.LogError(
+                        $"[ConfigTableManager] {typeof(T).Name} Id={id} is duplicated");
+                    return null;
                 }
 
                 dict[id] = item;
