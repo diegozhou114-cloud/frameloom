@@ -47,5 +47,53 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
         }
+
+        [Test]
+        public void LoadToDataManager_InvalidBuildingTimingLeavesRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Player.Gold.Value = 123;
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2001;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>
+                    {
+                        new BuildingSaveData
+                        {
+                            Id = "invalid-timing",
+                            TypeId = 1,
+                            Level = 1,
+                            State = BuildingState.Normal,
+                            UpgradeEndTime = 1,
+                        },
+                    },
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 建筑数据无效");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Player.Gold.Value, Is.EqualTo(123));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }

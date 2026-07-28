@@ -191,7 +191,8 @@ namespace ZWebGLFrameWork.Data
                     saved.GridY < 0 || saved.Level < 1 ||
                     !Enum.IsDefined(typeof(BuildingState), saved.State) ||
                     saved.UpgradeEndTime < 0 ||
-                    (saved.State == BuildingState.Upgrading && saved.UpgradeEndTime == 0))
+                    (saved.State == BuildingState.Upgrading && saved.UpgradeEndTime == 0) ||
+                    (saved.State != BuildingState.Upgrading && saved.UpgradeEndTime != 0))
                     return Fail("建筑数据无效", out error);
 
                 if (ConfigTableManager.Instance.IsReady &&
