@@ -237,7 +237,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     data.TerminalFinalTick == data.CompletedTick;
                 if (terminalState != (data.TerminalOutcome != null) ||
                     (data.Lifecycle == SessionLifecycle.Ended) != terminalState ||
-                    data.DeployedCount > _modeProfile.MaxDeployCount)
+                    data.DeployedCount > _modeProfile.MaxDeployCount ||
+                    !HasValidRestoredCommandState(data))
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
                 int capacity = Math.Max(8, data.WorldSnapshot.Generations?.Length ?? 0);
                 detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
@@ -461,6 +462,26 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (SimPlayerIdentity player in _init.Players)
                 if (player.PlayerId == playerId) return true;
             return false;
+        }
+
+        private bool HasValidRestoredCommandState(SessionSnapshotData data)
+        {
+            foreach (KeyValuePair<int, int> sequence in data.LastSequenceByPlayer)
+                if (!IsPlayer(sequence.Key) || sequence.Value < 0)
+                    return false;
+
+            var sequences = new HashSet<(int PlayerId, int Sequence)>();
+            foreach (ISimCommand command in data.PendingCommands)
+            {
+                if (command == null || command.Sequence < 0 || !IsPlayer(command.PlayerId) ||
+                    command.Tick < data.NextTick ||
+                    (long)command.Tick > (long)data.NextTick + 64 ||
+                    !sequences.Add((command.PlayerId, command.Sequence)) ||
+                    !data.LastSequenceByPlayer.TryGetValue(command.PlayerId,
+                        out int acceptedSequence) || command.Sequence > acceptedSequence)
+                    return false;
+            }
+            return true;
         }
 
         private CommandDisposition ValidateCommand(ISimCommand command)

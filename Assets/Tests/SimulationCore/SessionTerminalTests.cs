@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using NUnit.Framework;
 
@@ -441,6 +442,72 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Snapshot_UnknownPlayerPendingCommand_IsRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.PendingCommands = new ISimCommand[]
+            {
+                new DeployCmd
+                {
+                    Tick = data.NextTick,
+                    PlayerId = 999,
+                    Sequence = 0,
+                    UnitTypeId = 10,
+                    GridX = 20,
+                    GridY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(
+                session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
+        public void Snapshot_DuplicatePendingCommandSequence_IsRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[0] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new DeployCmd
+                {
+                    Tick = data.NextTick,
+                    PlayerId = 0,
+                    Sequence = 1,
+                    UnitTypeId = 10,
+                    GridX = 20,
+                    GridY = 2,
+                },
+                new DeployCmd
+                {
+                    Tick = data.NextTick,
+                    PlayerId = 0,
+                    Sequence = 1,
+                    UnitTypeId = 10,
+                    GridX = 21,
+                    GridY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(
+                session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
         public void Snapshot_GenerationCountExceedsPayload_IsRejectedBeforeAllocation()
         {
             var writer = new DeterministicBinaryWriter();
@@ -623,6 +690,26 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
         private static string EntityCombatState(EntityPresentationState entity) =>
             entity.EntityId + ":" + entity.GridX + ":" + entity.GridY + ":" + entity.Health;
+
+        private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
+            SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(),
+                Math.Max(8, data.WorldSnapshot.Generations.Length));
+            world.RestoreFromFull(data.WorldSnapshot);
+            MethodInfo checksumMethod = typeof(SimBattleSession).GetMethod(
+                "ComputeChecksum", BindingFlags.Instance | BindingFlags.NonPublic,
+                null, new[] { typeof(SessionSnapshotData), typeof(SimWorld) }, null);
+            ulong checksum = (ulong)checksumMethod.Invoke(session, new object[] { data, world });
+            byte[] payload = SessionSnapshotCodec.Encode(data);
+            byte[] payloadHash;
+            using (SHA256 sha256 = SHA256.Create())
+                payloadHash = sha256.ComputeHash(payload);
+            return new SimSnapshot(baseline.MatchId, baseline.SessionId,
+                baseline.SchemaVersion, baseline.ContentHash, data.CompletedTick,
+                data.NextTick, baseline.TimelineRevision, payload.Length, checksum,
+                payload, payloadHash);
+        }
 
         private static void WriteSnapshotPrefix(DeterministicBinaryWriter writer)
         {
