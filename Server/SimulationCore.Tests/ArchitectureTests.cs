@@ -25,12 +25,12 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
-        public void SimulationCore_ObsoleteOrchestratorIsNotPublicApi()
+        public void SimulationCore_ObsoleteOrchestratorIsRemoved()
         {
             Type orchestrator = typeof(SimBattleSession).Assembly.GetType(
-                "ZWebGLFrameWork.SimulationCore.SimOrchestrator", throwOnError: true);
+                "ZWebGLFrameWork.SimulationCore.SimOrchestrator", throwOnError: false);
 
-            Assert.That(orchestrator.IsPublic, Is.False);
+            Assert.That(orchestrator, Is.Null);
         }
 
         [Test]
