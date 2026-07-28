@@ -38,7 +38,9 @@ namespace ZWebGLFrameWork.SimulationCore
         public int Next(int min, int max)
         {
             if (min >= max) return min;
-            return min + Next(max - min);
+            ulong range = (ulong)((long)max - min);
+            long offset = (long)(NextULong() % range);
+            return (int)((long)min + offset);
         }
 
         /// <summary>返回 [0, 1) 范围的概率值（以 basis points 表示，0~9999）</summary>
