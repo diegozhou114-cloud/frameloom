@@ -708,6 +708,22 @@ namespace ZWebGLFrameWork.SimulationCore
                     return;
                 }
 
+                bool hasMovement = world.TryGetComponent(entity, out SimMovementComponent movement);
+                if (archetype.SpeedRaw == 0)
+                {
+                    if (hasMovement)
+                    {
+                        valid = false;
+                        return;
+                    }
+                }
+                else if (!hasMovement || movement.Speed.RawValue != archetype.SpeedRaw ||
+                    movement.CellSize.RawValue != LogicInt.FromInt(1).RawValue)
+                {
+                    valid = false;
+                    return;
+                }
+
                 if (entity.Id < initialEntities.Length)
                 {
                     InitialEntitySpec initial = initialEntities[entity.Id];

@@ -660,6 +660,22 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsForgedEntityMovementSpeed()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            SetMovementSpeed(data.WorldSnapshot, attacker.EntityId, 99999);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+        }
+
         private static void SetOwner(TickSnapshot snapshot, int entityId, int ownerPlayerId)
         {
             foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
@@ -736,6 +752,25 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             }
 
             Assert.Fail("Expected attack component was not found in snapshot.");
+        }
+
+        private static void SetMovementSpeed(TickSnapshot snapshot, int entityId, long speedRaw)
+        {
+            foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
+            {
+                int entityIndex = System.Array.IndexOf(chunk.EntityIds, entityId);
+                int movementIndex = System.Array.IndexOf(
+                    chunk.ComponentTypeIds, SimComponentTypeId.Movement);
+                if (entityIndex < 0 || movementIndex < 0) continue;
+
+                var movement = (SimMovementComponent[])chunk.Columns[movementIndex];
+                SimMovementComponent component = movement[entityIndex];
+                component.Speed = LogicInt.FromRaw(speedRaw);
+                movement[entityIndex] = component;
+                return;
+            }
+
+            Assert.Fail("Expected movement component was not found in snapshot.");
         }
 
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
