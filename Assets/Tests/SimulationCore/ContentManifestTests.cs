@@ -82,5 +82,31 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             Assert.That(error.Message, Is.EqualTo("Archetype count exceeds the manifest payload."));
         }
+
+        [Test]
+        public void ContentManifest_WaveCountExceedsRemainingPayload_IsRejectedBeforeAllocation()
+        {
+            byte[] payload = CreateManifestWithEmptyModeWaves();
+            payload[payload.Length - sizeof(int)] = 0x01;
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                DeterministicContentManifest.Parse(payload));
+
+            Assert.That(error.Message, Is.EqualTo("Wave count exceeds the manifest payload."));
+        }
+
+        private static byte[] CreateManifestWithEmptyModeWaves()
+        {
+            return new DeterministicContentManifest(1, new[]
+            {
+                new SimArchetypeDefinition(1, "unit", 1, 0, 0, 0, 0),
+            }, new[]
+            {
+                new SimModeProfile(SimCombatMode.VillageAttack, true, 0, 0, 0, Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.BuilderBase, true, 0, 0, 0, Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.ClanWar, true, 0, 0, 0, Array.Empty<int>()),
+                new SimModeProfile(SimCombatMode.Campaign, false, 0, 0, 0, Array.Empty<int>()),
+            }).ToCanonicalBytes();
+        }
     }
 }

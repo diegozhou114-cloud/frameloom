@@ -238,7 +238,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     int waveCount = reader.ReadInt32();
                     if (waveCount < 0)
                         throw new FormatException("Negative wave count.");
-                    if (waveCount > bytes.Length / sizeof(int))
+                    if (waveCount > reader.RemainingBytes / sizeof(int))
                         throw new FormatException("Wave count exceeds the manifest payload.");
                     var waves = new int[waveCount];
                     for (int waveIndex = 0; waveIndex < waveCount; waveIndex++)
