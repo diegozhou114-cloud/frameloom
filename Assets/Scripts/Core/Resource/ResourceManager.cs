@@ -24,7 +24,7 @@ namespace ZWebGLFrameWork.Core
         public IResourceProvider Provider
         {
             get => _provider ??= new ResourcesProvider();
-            set => _provider = value;
+            set => SetProvider(value);
         }
 
         /// <summary>
@@ -37,8 +37,8 @@ namespace ZWebGLFrameWork.Core
         {
             try
             {
-                if (customProvider != null)
-                    _provider = customProvider;
+                if (customProvider != null && !ReferenceEquals(_provider, customProvider))
+                    SetProvider(customProvider);
                 else
                     _provider ??= new ResourcesProvider();
 
@@ -59,13 +59,16 @@ namespace ZWebGLFrameWork.Core
             if (newProvider == null)
                 throw new ArgumentNullException(nameof(newProvider));
 
+            IResourceProvider previousProvider;
             lock (_cacheLock)
             {
                 _cache.Clear();
+                _providerVersion++;
+                previousProvider = _provider;
+                _provider = newProvider;
             }
 
-            _provider?.UnloadUnused();
-            _provider = newProvider;
+            previousProvider?.UnloadUnused();
             IsReady = true;
         }
 
@@ -77,9 +80,11 @@ namespace ZWebGLFrameWork.Core
             if (TryGetCache<T>(path, out var cached))
                 return cached;
 
-            var asset = await Provider.LoadAsync<T>(path);
+            IResourceProvider provider = Provider;
+            int providerVersion = _providerVersion;
+            var asset = await provider.LoadAsync<T>(path);
             if (asset != null)
-                SetCache(path, asset);
+                SetCacheIfCurrent(path, asset, provider, providerVersion);
             return asset;
         }
 
@@ -89,9 +94,11 @@ namespace ZWebGLFrameWork.Core
             if (TryGetCache<T>(path, out var cached))
                 return cached;
 
-            var asset = Provider.Load<T>(path);
+            IResourceProvider provider = Provider;
+            int providerVersion = _providerVersion;
+            var asset = provider.Load<T>(path);
             if (asset != null)
-                SetCache(path, asset);
+                SetCacheIfCurrent(path, asset, provider, providerVersion);
             return asset;
         }
 
@@ -119,6 +126,7 @@ namespace ZWebGLFrameWork.Core
 
         private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _cache = new();
         private readonly object _cacheLock = new object();
+        private int _providerVersion;
 
         private bool TryGetCache<T>(string key, out T asset) where T : UnityEngine.Object
         {
@@ -138,10 +146,13 @@ namespace ZWebGLFrameWork.Core
             }
         }
 
-        private void SetCache<T>(string key, T asset) where T : UnityEngine.Object
+        private void SetCacheIfCurrent<T>(string key, T asset, IResourceProvider provider,
+            int providerVersion) where T : UnityEngine.Object
         {
             lock (_cacheLock)
             {
+                if (!ReferenceEquals(_provider, provider) || _providerVersion != providerVersion)
+                    return;
                 _cache[key] = new WeakReference<UnityEngine.Object>(asset);
             }
         }
