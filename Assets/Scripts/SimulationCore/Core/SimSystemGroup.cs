@@ -37,6 +37,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>按 Order 更新所有系统</summary>
         public void UpdateAll()
         {
+            Sort();
             foreach (var sys in _systems)
             {
                 if (sys.Enabled)
@@ -47,6 +48,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>清理所有系统</summary>
         public void CleanupAll()
         {
+            Sort();
             foreach (var sys in _systems)
             {
                 if (sys.Enabled)
