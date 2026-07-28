@@ -62,15 +62,19 @@ namespace ZWebGLFrameWork.Data
 
             public Dictionary<string, StoreEntry> ToDictionary()
             {
+                if (Keys == null || TypeNames == null || JsonValues == null ||
+                    Keys.Count != TypeNames.Count || Keys.Count != JsonValues.Count)
+                    return new Dictionary<string, StoreEntry>();
+
                 var result = new Dictionary<string, StoreEntry>(Keys.Count);
-                int count = Math.Min(Keys.Count, Math.Min(TypeNames.Count, JsonValues.Count));
-                for (int index = 0; index < count; index++)
+                for (int index = 0; index < Keys.Count; index++)
                 {
-                    result[Keys[index]] = new StoreEntry
+                    if (!result.TryAdd(Keys[index], new StoreEntry
                     {
                         TypeName = TypeNames[index],
                         JsonData = JsonValues[index],
-                    };
+                    }))
+                        return new Dictionary<string, StoreEntry>();
                 }
                 return result;
             }

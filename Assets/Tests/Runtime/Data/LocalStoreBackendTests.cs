@@ -56,5 +56,35 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 Is.EqualTo(LocalStoreWriteCode.WriteFailed));
             Assert.That(first.Count, Is.EqualTo(countBeforeClear));
         }
+
+        [Test]
+        public void LocalStore_MismatchedSerializedColumns_RejectsTheEntireStore()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-corrupt"), "store.json");
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[\"first\",\"lost\"],\"TypeNames\":[\"System.Int32\"]," +
+                "\"JsonValues\":[\"{\\\"Value\\\":1}\",\"{\\\"Value\\\":2}\"]}");
+
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+
+            Assert.That(store.Count, Is.EqualTo(0));
+            Assert.That(store.Has("first"), Is.False);
+        }
+
+        [Test]
+        public void LocalStore_DuplicateSerializedKeys_RejectsTheEntireStore()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-duplicates"), "store.json");
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[\"same\",\"same\"],\"TypeNames\":[\"System.Int32\",\"System.Int32\"]," +
+                "\"JsonValues\":[\"{\\\"Value\\\":1}\",\"{\\\"Value\\\":2}\"]}");
+
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+
+            Assert.That(store.Count, Is.EqualTo(0));
+            Assert.That(store.Has("same"), Is.False);
+        }
     }
 }
