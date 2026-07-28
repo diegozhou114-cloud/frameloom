@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ZWebGLFrameWork.Network.Contracts.Protocol
@@ -333,6 +334,9 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             ResyncSnapshotEnvelope snapshot = null;
             if (hasSnapshot == 1 && !TryReadSnapshot(ref reader, out snapshot))
                 return Failure(ProtocolError.InvalidPayload, kind);
+            if (snapshot != null && !string.Equals(
+                    snapshot.MatchId, matchId, StringComparison.Ordinal))
+                return Failure(ProtocolError.InvalidPayload, kind);
 
             return new DecodeResult
             {
@@ -358,6 +362,11 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             if (frame.Tick < 0) throw new ArgumentOutOfRangeException(nameof(frame));
             if (frame.ResyncSnapshot != null && !IsValidSnapshot(frame.ResyncSnapshot))
                 throw new ArgumentException("Authority snapshot is invalid.", nameof(frame));
+            if (frame.ResyncSnapshot != null && !string.Equals(
+                    frame.ResyncSnapshot.MatchId, frame.MatchId,
+                    StringComparison.Ordinal))
+                throw new ArgumentException(
+                    "Authority snapshot match must match the frame.", nameof(frame));
             CommandEnvelope[] commands = frame.OrderedInputs ?? Array.Empty<CommandEnvelope>();
             if (commands.Length > RealtimeProtocol.MaxCommandsPerAuthorityFrame)
                 throw new ArgumentException("Authority frame command count exceeds the limit.", nameof(frame));
@@ -464,8 +473,16 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 snapshot.ContentHash != null && snapshot.ContentHash.Length == 32 &&
                 snapshot.CompletedTick >= -1 && snapshot.NextTick == snapshot.CompletedTick + 1 &&
                 snapshot.TimelineRevision >= 0 && snapshot.UncompressedLength >= 0 &&
-                snapshot.Payload != null && snapshot.Payload.Length <= snapshot.UncompressedLength &&
-                snapshot.PayloadSha256 != null && snapshot.PayloadSha256.Length == 32;
+                snapshot.Payload != null && snapshot.Payload.Length == snapshot.UncompressedLength &&
+                snapshot.PayloadSha256 != null && snapshot.PayloadSha256.Length == 32 &&
+                HasMatchingPayloadHash(snapshot.Payload, snapshot.PayloadSha256);
+        }
+
+        private static bool HasMatchingPayloadHash(byte[] payload, byte[] expectedHash)
+        {
+            using SHA256 sha256 = SHA256.Create();
+            return CryptographicOperations.FixedTimeEquals(
+                sha256.ComputeHash(payload), expectedHash);
         }
 
         private static bool TryReadSnapshot(

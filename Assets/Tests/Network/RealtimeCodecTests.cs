@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using NUnit.Framework;
 using ZWebGLFrameWork.Network.Contracts.Protocol;
 
@@ -124,20 +125,7 @@ namespace ZWebGLFrameWork.Network.Tests
         [Test]
         public void ResyncSnapshotRequestAndClose_RoundTrip_PreserveControlState()
         {
-            var snapshot = new ResyncSnapshotEnvelope
-            {
-                MatchId = "match-1",
-                SessionId = "session-1",
-                SchemaVersion = 1,
-                ContentHash = new byte[32],
-                CompletedTick = 6,
-                NextTick = 7,
-                TimelineRevision = 3,
-                UncompressedLength = 3,
-                StateChecksum = 99,
-                Payload = new byte[] { 1, 2, 3 },
-                PayloadSha256 = new byte[32]
-            };
+            ResyncSnapshotEnvelope snapshot = CreateSnapshot();
             DecodeResult decodedSnapshot = RealtimeCodec.Decode(RealtimeCodec.Encode(snapshot));
             Assert.That(decodedSnapshot.Error, Is.EqualTo(ProtocolError.None));
             Assert.That(decodedSnapshot.ResyncSnapshot.NextTick, Is.EqualTo(7));
@@ -160,6 +148,33 @@ namespace ZWebGLFrameWork.Network.Tests
             }));
             Assert.That(close.Error, Is.EqualTo(ProtocolError.None));
             Assert.That(close.Close.Code, Is.EqualTo(RealtimeCloseCode.Malformed));
+        }
+
+        [Test]
+        public void ResyncSnapshot_RejectsMismatchedPayloadLengthOrHash()
+        {
+            ResyncSnapshotEnvelope snapshot = CreateSnapshot();
+            snapshot.UncompressedLength++;
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(snapshot));
+
+            snapshot = CreateSnapshot();
+            snapshot.PayloadSha256[0] ^= 0x01;
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(snapshot));
+        }
+
+        [Test]
+        public void AuthorityFrame_RejectsEmbeddedSnapshotForDifferentMatch()
+        {
+            ResyncSnapshotEnvelope snapshot = CreateSnapshot();
+            snapshot.MatchId = "other-match";
+            var frame = new AuthorityFrame
+            {
+                MatchId = "match-1",
+                Tick = 7,
+                ResyncSnapshot = snapshot,
+            };
+
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(frame));
         }
 
         [Test]
@@ -227,6 +242,26 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         private static byte[] Clone(byte[] bytes) => (byte[])bytes.Clone();
+
+        private static ResyncSnapshotEnvelope CreateSnapshot()
+        {
+            byte[] payload = { 1, 2, 3 };
+            using SHA256 sha256 = SHA256.Create();
+            return new ResyncSnapshotEnvelope
+            {
+                MatchId = "match-1",
+                SessionId = "session-1",
+                SchemaVersion = 1,
+                ContentHash = new byte[32],
+                CompletedTick = 6,
+                NextTick = 7,
+                TimelineRevision = 3,
+                UncompressedLength = payload.Length,
+                StateChecksum = 99,
+                Payload = payload,
+                PayloadSha256 = sha256.ComputeHash(payload),
+            };
+        }
 
         private static void WriteUInt16(byte[] bytes, int offset, ushort value)
         {
