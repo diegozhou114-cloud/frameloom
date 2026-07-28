@@ -193,6 +193,30 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void Inbox_RejectsSequenceOutsideSimulationRange()
+        {
+            MatchActorFixture fixture = MatchActorFixture.Create();
+
+            Assert.That(fixture.Actor.SubmitInput(0,
+                fixture.Input(0, 0, (uint)int.MaxValue + 1)),
+                Is.EqualTo(InputAcceptance.InvalidInput));
+        }
+
+        [Test]
+        public void MapperMetadataMismatch_FaultsBeforeSimulationOrBroadcast()
+        {
+            MatchActorFixture fixture = MatchActorFixture.Create(
+                mapper: new MetadataMismatchMapper());
+            fixture.Actor.SubmitInput(0, fixture.Input(0, 0, 1));
+            fixture.Actor.SubmitInput(1, fixture.Input(0, 1, 1));
+
+            Assert.Throws<InvalidOperationException>(() => fixture.Actor.Pump());
+            Assert.That(fixture.Actor.IsFaulted, Is.True);
+            Assert.That(fixture.Session.SubmittedCommands, Is.Empty);
+            Assert.That(fixture.Broadcaster.Frames, Is.Empty);
+        }
+
+        [Test]
         public void BroadcastReentrancy_CannotRewriteJustSealedTick()
         {
             MatchActorFixture fixture = MatchActorFixture.Create();
@@ -342,6 +366,17 @@ namespace ZWebGLFrameWork.Server.Tests
             }
         }
 
+        private sealed class MetadataMismatchMapper : IAuthorityCommandMapper
+        {
+            public ISimCommand ToSimulation(CommandEnvelope input) =>
+                new EndDeploymentCmd
+                {
+                    Tick = input.Tick + 1,
+                    PlayerId = input.PlayerId,
+                    Sequence = checked((int)input.Sequence)
+                };
+        }
+
         private sealed class StubSession : ISimBattleSession
         {
             private readonly int _endAtTick;
@@ -349,6 +384,7 @@ namespace ZWebGLFrameWork.Server.Tests
             private int _nextTick;
             public int TickCalls { get; private set; }
             public int DisposeCalls { get; private set; }
+            public List<ISimCommand> SubmittedCommands { get; } = new List<ISimCommand>();
 
             public StubSession(int endAtTick, bool rejectSubmit)
             {
@@ -357,10 +393,13 @@ namespace ZWebGLFrameWork.Server.Tests
             }
             public SimBattleState State => null;
             public StartResult Start(BattleInit init) => default;
-            public CommandSubmitResult Submit(ISimCommand command) =>
-                new CommandSubmitResult(_rejectSubmit
+            public CommandSubmitResult Submit(ISimCommand command)
+            {
+                SubmittedCommands.Add(command);
+                return new CommandSubmitResult(_rejectSubmit
                     ? CommandDisposition.InvalidPayload
                     : CommandDisposition.Accepted);
+            }
             public TickResult Tick()
             {
                 int tick = _nextTick++;

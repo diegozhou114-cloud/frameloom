@@ -54,6 +54,8 @@ namespace ZWebGLFrameWork.FrameSync
             if (input.IsNoOp || input.Payload == null ||
                 input.Payload.Length > RealtimeProtocol.MaxMessageBytes)
                 return InputAcceptance.InvalidInput;
+            if (input.Sequence > int.MaxValue)
+                return InputAcceptance.InvalidInput;
             if (input.Tick < nextUnsealedTick) return InputAcceptance.LateRejected;
             if ((long)input.Tick > (long)nextUnsealedTick + _maxFutureTicks)
                 return InputAcceptance.TooFarAhead;

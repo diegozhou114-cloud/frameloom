@@ -94,7 +94,11 @@ namespace ZWebGLFrameWork.FrameSync
                         {
                             if (envelope.IsNoOp) continue;
                             ISimCommand command = _commandMapper.ToSimulation(envelope);
-                            if (command == null || !_session.Submit(command).Accepted)
+                            if (command == null ||
+                                command.Tick != envelope.Tick ||
+                                command.PlayerId != envelope.PlayerId ||
+                                command.Sequence != (int)envelope.Sequence ||
+                                !_session.Submit(command).Accepted)
                                 throw new InvalidOperationException(
                                     "Validated authority input was rejected by SimulationCore.");
                         }
