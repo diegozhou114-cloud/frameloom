@@ -249,6 +249,18 @@ namespace ZWebGLFrameWork.Data
                         $"[ConfigTableManager] BuildingConfig Id={id} has an invalid MaxLevel");
                     return null;
                 }
+                if (item is BuildingConfig levelArrays &&
+                    (levelArrays.BuildCost == null ||
+                     levelArrays.BuildTime == null ||
+                     levelArrays.HP == null ||
+                     levelArrays.BuildCost.Length < levelArrays.MaxLevel ||
+                     levelArrays.BuildTime.Length < levelArrays.MaxLevel ||
+                     levelArrays.HP.Length < levelArrays.MaxLevel))
+                {
+                    Debug.LogError(
+                        $"[ConfigTableManager] BuildingConfig Id={id} has incomplete level arrays");
+                    return null;
+                }
                 if (item is BuildingConfig footprint &&
                     (footprint.SizeX <= 0 || footprint.SizeY <= 0))
                 {

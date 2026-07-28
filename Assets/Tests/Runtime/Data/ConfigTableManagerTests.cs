@@ -134,6 +134,32 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         }
 
         [Test]
+        public void PreloadAllAsync_IncompleteBuildingLevelArrays_ReturnsFalseWithoutPublishingTheRow()
+        {
+            var cache = (IDictionary)CacheField.GetValue(null);
+            cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] = new[]
+            {
+                new BuildingConfig
+                {
+                    Id = 1, MaxLevel = 2, SizeX = 1, SizeY = 1,
+                    BuildCost = new[] { 0 }, BuildTime = new[] { 0, 10 }, HP = new[] { 100, 200 },
+                },
+            };
+            ConfigTableManager manager = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            bool result = true;
+
+            LogAssert.Expect(LogType.Error,
+                "[ConfigTableManager] BuildingConfig Id=1 has incomplete level arrays");
+            LogAssert.Expect(LogType.Error,
+                "[ConfigTableManager] ❌ 建筑配置表加载失败或为空");
+            Assert.DoesNotThrow(() => result = manager.PreloadAllAsync().GetAwaiter().GetResult());
+
+            Assert.That(result, Is.False);
+            Assert.That(manager.GetBuilding(1), Is.Null);
+        }
+
+        [Test]
         public void PreloadAllAsync_NonPositiveBuildingFootprint_ReturnsFalseWithoutPublishingTheRow()
         {
             var cache = (IDictionary)CacheField.GetValue(null);
