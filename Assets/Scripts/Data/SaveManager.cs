@@ -230,7 +230,11 @@ namespace ZWebGLFrameWork.Data
                 }
 
                 if (saved.TypeId == 1)
+                {
+                    if (townHallLevel.HasValue)
+                        return Fail("村庄包含多个大本营", out error);
                     townHallLevel = saved.Level;
+                }
 
                 BuildingData building = SaveDataMapper.RestoreBuilding(saved);
                 var footprint = new BuildingFootprint(building,

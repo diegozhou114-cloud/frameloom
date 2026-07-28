@@ -285,5 +285,58 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
         }
+
+        [Test]
+        public void LoadToDataManager_MultipleTownHallsLeaveRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Player.TownHallLevel.Value = 1;
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2006;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    TownHallLevel = 1,
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>
+                    {
+                        new BuildingSaveData
+                        {
+                            Id = "town-hall-first", TypeId = 1, GridX = 4, GridY = 5, Level = 1,
+                        },
+                        new BuildingSaveData
+                        {
+                            Id = "town-hall-second", TypeId = 1, GridX = 8, GridY = 5, Level = 1,
+                        },
+                    },
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 村庄包含多个大本营");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Player.TownHallLevel.Value, Is.EqualTo(1));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }
