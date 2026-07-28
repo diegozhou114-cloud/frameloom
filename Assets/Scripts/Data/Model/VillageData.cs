@@ -45,6 +45,12 @@ namespace ZWebGLFrameWork.Data
                 return false;
             }
 
+            if (building.TypeId == 1 && Buildings.Exists(item => item.TypeId == 1))
+            {
+                Debug.LogWarning("[VillageData] 村庄只能包含一个大本营");
+                return false;
+            }
+
             if (Buildings.Count >= MaxBuildings.Value)
             {
                 Debug.LogWarning($"[VillageData] 建筑已满: {Buildings.Count}/{MaxBuildings.Value}");

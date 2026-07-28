@@ -52,5 +52,17 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(village.AddBuilding(duplicate), Is.False);
             Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
         }
+
+        [Test]
+        public void Village_AddBuilding_SecondTownHallIsRejected()
+        {
+            var village = new VillageData(_ => null);
+            var first = new BuildingData { Id = "town-hall-first", TypeId = 1 };
+            var second = new BuildingData { Id = "town-hall-second", TypeId = 1 };
+
+            Assert.That(village.AddBuilding(first), Is.True);
+            Assert.That(village.AddBuilding(second), Is.False);
+            Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
+        }
     }
 }
