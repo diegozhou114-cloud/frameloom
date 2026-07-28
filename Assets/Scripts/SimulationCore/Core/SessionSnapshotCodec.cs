@@ -131,6 +131,8 @@ namespace ZWebGLFrameWork.SimulationCore
             }
 
             int playerCount = ReadCount(reader, MaxPlayers, "player sequence");
+            if (playerCount > reader.RemainingBytes / (sizeof(int) * 2))
+                throw new FormatException("Player sequence count exceeds the snapshot payload.");
             data.LastSequenceByPlayer = new Dictionary<int, int>(playerCount);
             for (int index = 0; index < playerCount; index++)
             {
@@ -141,6 +143,8 @@ namespace ZWebGLFrameWork.SimulationCore
             }
 
             int commandCount = ReadCount(reader, MaxCommands, "pending command");
+            if (commandCount > reader.RemainingBytes / (sizeof(byte) + sizeof(int) * 3))
+                throw new FormatException("Pending command count exceeds the snapshot payload.");
             data.PendingCommands = new ISimCommand[commandCount];
             for (int index = 0; index < commandCount; index++)
                 data.PendingCommands[index] = ReadCommand(reader);
@@ -329,6 +333,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         int targetY = reader.ReadInt32(); int pathLength = reader.ReadInt32();
                         if (pathLength < -1 || pathLength > MaxPathLength)
                             throw new FormatException("Invalid movement path length.");
+                        if (pathLength > reader.RemainingBytes / sizeof(int))
+                            throw new FormatException("Movement path length exceeds the snapshot payload.");
                         List<int> path = null;
                         if (pathLength >= 0)
                         {

@@ -363,20 +363,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void Snapshot_GenerationCountExceedsPayload_IsRejectedBeforeAllocation()
         {
             var writer = new DeterministicBinaryWriter();
-            writer.WriteBytes(new byte[] { 0x5A, 0x53, 0x4E, 0x50 });
-            writer.WriteInt32(2);
-            writer.WriteInt32((int)SessionLifecycle.Created);
-            writer.WriteInt32((int)SimCombatPhase.Idle);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteInt32(0);
-            writer.WriteByte(0);
-            writer.WriteInt32(0);
-            writer.WriteByte(0);
+            WriteSnapshotPrefix(writer);
             writer.WriteInt32(0);
             writer.WriteInt32(0);
             writer.WriteInt32(0);
@@ -386,6 +373,63 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 SessionSnapshotCodec.Decode(writer.ToArray()));
 
             Assert.That(error.Message, Is.EqualTo("Generation count exceeds the snapshot payload."));
+        }
+
+        [Test]
+        public void Snapshot_PlayerSequenceCountExceedsPayload_IsRejectedBeforeAllocation()
+        {
+            var writer = new DeterministicBinaryWriter();
+            WriteSnapshotPrefix(writer);
+            writer.WriteInt32(1);
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                SessionSnapshotCodec.Decode(writer.ToArray()));
+
+            Assert.That(error.Message, Is.EqualTo("Player sequence count exceeds the snapshot payload."));
+        }
+
+        [Test]
+        public void Snapshot_PendingCommandCountExceedsPayload_IsRejectedBeforeAllocation()
+        {
+            var writer = new DeterministicBinaryWriter();
+            WriteSnapshotPrefix(writer);
+            writer.WriteInt32(0);
+            writer.WriteInt32(1);
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                SessionSnapshotCodec.Decode(writer.ToArray()));
+
+            Assert.That(error.Message, Is.EqualTo("Pending command count exceeds the snapshot payload."));
+        }
+
+        [Test]
+        public void Snapshot_MovementPathLengthExceedsRemainingPayload_IsRejectedBeforeAllocation()
+        {
+            var writer = new DeterministicBinaryWriter();
+            WriteSnapshotPrefix(writer);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteUInt64(0);
+            writer.WriteInt32(1);
+            writer.WriteInt32(1);
+            writer.WriteInt32(SimComponentTypeId.Movement);
+            writer.WriteInt32(1);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt64(0);
+            writer.WriteInt64(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(1);
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                SessionSnapshotCodec.Decode(writer.ToArray()));
+
+            Assert.That(error.Message, Is.EqualTo("Movement path length exceeds the snapshot payload."));
         }
 
         [Test]
@@ -413,5 +457,23 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
         private static string EntityCombatState(EntityPresentationState entity) =>
             entity.EntityId + ":" + entity.GridX + ":" + entity.GridY + ":" + entity.Health;
+
+        private static void WriteSnapshotPrefix(DeterministicBinaryWriter writer)
+        {
+            writer.WriteBytes(new byte[] { 0x5A, 0x53, 0x4E, 0x50 });
+            writer.WriteInt32(2);
+            writer.WriteInt32((int)SessionLifecycle.Created);
+            writer.WriteInt32((int)SimCombatPhase.Idle);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteByte(0);
+            writer.WriteInt32(0);
+            writer.WriteByte(0);
+        }
     }
 }
