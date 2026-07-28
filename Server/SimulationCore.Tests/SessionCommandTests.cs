@@ -628,6 +628,38 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsForgedEntityAttackDamage()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            SetAttackDamage(data.WorldSnapshot, attacker.EntityId, 999);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+        }
+
+        [Test]
+        public void RestoreSnapshot_RejectsOverflowingAttackClock()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            SetAttackLastTick(data.WorldSnapshot, attacker.EntityId, int.MinValue);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+        }
+
         private static void SetOwner(TickSnapshot snapshot, int entityId, int ownerPlayerId)
         {
             foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
@@ -666,6 +698,44 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             }
 
             Assert.Fail("Expected health component was not found in snapshot.");
+        }
+
+        private static void SetAttackDamage(TickSnapshot snapshot, int entityId, int damage)
+        {
+            foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
+            {
+                int entityIndex = System.Array.IndexOf(chunk.EntityIds, entityId);
+                int attackIndex = System.Array.IndexOf(
+                    chunk.ComponentTypeIds, SimComponentTypeId.Attack);
+                if (entityIndex < 0 || attackIndex < 0) continue;
+
+                var attacks = (SimAttackComponent[])chunk.Columns[attackIndex];
+                SimAttackComponent attack = attacks[entityIndex];
+                attack.Damage = damage;
+                attacks[entityIndex] = attack;
+                return;
+            }
+
+            Assert.Fail("Expected attack component was not found in snapshot.");
+        }
+
+        private static void SetAttackLastTick(TickSnapshot snapshot, int entityId, int lastAttackTick)
+        {
+            foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
+            {
+                int entityIndex = System.Array.IndexOf(chunk.EntityIds, entityId);
+                int attackIndex = System.Array.IndexOf(
+                    chunk.ComponentTypeIds, SimComponentTypeId.Attack);
+                if (entityIndex < 0 || attackIndex < 0) continue;
+
+                var attacks = (SimAttackComponent[])chunk.Columns[attackIndex];
+                SimAttackComponent attack = attacks[entityIndex];
+                attack.LastAttackTick = lastAttackTick;
+                attacks[entityIndex] = attack;
+                return;
+            }
+
+            Assert.Fail("Expected attack component was not found in snapshot.");
         }
 
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(

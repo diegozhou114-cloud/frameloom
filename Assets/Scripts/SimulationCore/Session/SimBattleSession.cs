@@ -687,6 +687,27 @@ namespace ZWebGLFrameWork.SimulationCore
                     return;
                 }
 
+                bool hasAttack = world.TryGetComponent(entity, out SimAttackComponent attack);
+                bool hasTarget = world.TryGetComponent(entity, out SimTargetComponent _);
+                if (archetype.Damage == 0)
+                {
+                    if (hasAttack || hasTarget)
+                    {
+                        valid = false;
+                        return;
+                    }
+                }
+                else if (!hasAttack || !hasTarget || attack.Damage != archetype.Damage ||
+                    attack.Range.RawValue != archetype.RangeRaw ||
+                    attack.CooldownTicks != archetype.CooldownTicks ||
+                    (attack.LastAttackTick != -99999 &&
+                        (attack.LastAttackTick < 1 ||
+                            attack.LastAttackTick > data.AttackSystemTick)))
+                {
+                    valid = false;
+                    return;
+                }
+
                 if (entity.Id < initialEntities.Length)
                 {
                     InitialEntitySpec initial = initialEntities[entity.Id];
