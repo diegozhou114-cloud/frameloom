@@ -338,5 +338,48 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
         }
+
+        [Test]
+        public void LoadToDataManager_TownHallLevelAboveConfigLeavesRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Player.TownHallLevel.Value = 1;
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2007;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    TownHallLevel = 11,
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>(),
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 玩家大本营等级超出配置范围");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Player.TownHallLevel.Value, Is.EqualTo(1));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }

@@ -202,6 +202,13 @@ namespace ZWebGLFrameWork.Data
                 data.Buildings.Count > data.MaxBuildings)
                 return Fail("建筑容量无效", out error);
 
+            if (ConfigTableManager.Instance.IsReady)
+            {
+                BuildingConfig townHallConfig = ConfigTableManager.Instance.GetBuilding(1);
+                if (townHallConfig == null || data.TownHallLevel > townHallConfig.MaxLevel)
+                    return Fail("玩家大本营等级超出配置范围", out error);
+            }
+
             buildings = new List<BuildingData>(data.Buildings.Count);
             var footprints = new List<BuildingFootprint>(data.Buildings.Count);
             var buildingIds = new HashSet<string>();
