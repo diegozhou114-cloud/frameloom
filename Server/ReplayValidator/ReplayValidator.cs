@@ -390,6 +390,7 @@ namespace ZWebGLFrameWork.Server
         {
             if (command == null || command.Tick != tick ||
                 (command.PlayerId != 0 && command.PlayerId != 1) || command.Sequence < 0 ||
+                command.Sequence == int.MaxValue ||
                 !Enum.TryParse(command.Type, false, out SimCommandType type) ||
                 type == SimCommandType.None)
                 return false;

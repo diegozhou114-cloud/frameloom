@@ -76,6 +76,15 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public void Encode_RejectsTerminalSimulationSequenceValue()
+        {
+            CommandEnvelope command = CommandEnvelope.Create(
+                7, 0, (uint)int.MaxValue, 1, Array.Empty<byte>());
+
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(command));
+        }
+
+        [Test]
         public void AuthenticationMessages_RoundTrip_PreserveSessionAndResumeState()
         {
             Guid sessionId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");

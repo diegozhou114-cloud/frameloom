@@ -76,6 +76,22 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void ReplayValidator_TerminalSimulationSequence_IsRejectedBeforeSessionCreation()
+        {
+            var factory = new CountingFactory();
+            var validator = new ReplayValidator(factory, SessionTestDriver.ManifestBytes());
+            ReplayFile replay = ValidReplay();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = "Deploy", Tick = 0, PlayerId = 0, Sequence = int.MaxValue,
+                UnitTypeId = 10, GridX = 3, GridY = 3,
+            });
+
+            Assert.That(validator.Validate(replay).IsValid, Is.False);
+            Assert.That(factory.CreateCount, Is.Zero);
+        }
+
+        [Test]
         public void ReplayValidator_NullSessionFactoryResult_IsRejected()
         {
             var validator = new ReplayValidator(
@@ -90,6 +106,18 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         {
             public ISimBattleSession Create(byte[] canonicalManifestBytes,
                 ISimLogger logger = null) => null;
+        }
+
+        private sealed class CountingFactory : ISimBattleSessionFactory
+        {
+            public int CreateCount { get; private set; }
+
+            public ISimBattleSession Create(byte[] canonicalManifestBytes,
+                ISimLogger logger = null)
+            {
+                CreateCount++;
+                return null;
+            }
         }
 
         private static ReplayFile ValidReplay() => new ReplayFile

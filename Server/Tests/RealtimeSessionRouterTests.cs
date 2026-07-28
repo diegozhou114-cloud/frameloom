@@ -67,11 +67,12 @@ namespace ZWebGLFrameWork.Server.Tests
                 Is.EqualTo(ProtocolError.WrongSession));
         }
 
-        [Test]
-        public void Codec_RejectsCommandSequenceOutsideSimulationRange()
+        [TestCase((uint)int.MaxValue)]
+        [TestCase((uint)int.MaxValue + 1)]
+        public void Codec_RejectsCommandSequenceOutsideSimulationRange(uint sequence)
         {
             RouterFixture fixture = RouterFixture.Create();
-            CommandEnvelope command = fixture.Command(0, (uint)int.MaxValue + 1);
+            CommandEnvelope command = fixture.Command(0, sequence);
 
             Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(command));
         }

@@ -100,6 +100,27 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void ReplayValidator_TerminalSimulationSequence_IsRejected()
+        {
+            var validator = new ReplayStructuralValidator(
+                ApprovedLimits, KnownCommandSchema.Version1);
+            ReplayFile replay = ReplayFixture.Valid();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = nameof(SimCommandType.Deploy),
+                Tick = 0,
+                PlayerId = 0,
+                Sequence = int.MaxValue,
+                UnitTypeId = 10,
+                GridX = 2,
+                GridY = 3,
+            });
+
+            Assert.That(validator.Validate(replay, 128).Code,
+                Is.EqualTo(ReplayValidationCode.InvalidCommand));
+        }
+
+        [Test]
         public void ReplayValidator_EndDeploymentRequiresZeroPayload()
         {
             var validator = new ReplayStructuralValidator(
