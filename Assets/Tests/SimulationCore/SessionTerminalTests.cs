@@ -448,6 +448,23 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void WorldSnapshot_WrongColumnType_IsRejectedBeforeLiveWorldMutation()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+            world.SetComponent(entity, new SimHealthComponent { CurrentHP = 1, MaxHP = 1 });
+            ulong checksumBefore = world.ComputeChecksum();
+            TickSnapshot snapshot = world.ExportFullSnapshot();
+            snapshot.ChunkSnapshots[0].Columns[0] = new int[1];
+
+            ArgumentException error = Assert.Throws<ArgumentException>(() =>
+                world.RestoreFromFull(snapshot));
+
+            Assert.That(error.Message, Is.EqualTo("Invalid world snapshot chunk. (Parameter 'snapshot')"));
+            Assert.That(world.ComputeChecksum(), Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
         public void Checksum_ChangesWhenTerminalNumericOutcomeChanges()
         {
             byte[] contentHash = { 1, 2, 3 };
