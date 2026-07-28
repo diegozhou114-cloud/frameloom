@@ -243,6 +243,13 @@ namespace ZWebGLFrameWork.Data
                         $"[ConfigTableManager] BuildingConfig Id={id} has an invalid ResourceType");
                     return null;
                 }
+                if (item is BuildingConfig footprint &&
+                    (footprint.SizeX <= 0 || footprint.SizeY <= 0))
+                {
+                    Debug.LogError(
+                        $"[ConfigTableManager] BuildingConfig Id={id} has an invalid footprint");
+                    return null;
+                }
                 if (dict.ContainsKey(id))
                 {
                     Debug.LogError(
