@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using NUnit.Framework;
@@ -7,6 +8,31 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 {
     public sealed class SessionTerminalTests
     {
+        private struct UnregisteredComponent : ISimComponent
+        {
+        }
+
+        [Test]
+        public void CreateEntity_InvalidComponentSet_DoesNotMutateWorld()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 1);
+
+            Assert.Throws<ArgumentNullException>(() => world.CreateEntity((Type[])null));
+            Assert.Throws<KeyNotFoundException>(() => world.CreateEntity(
+                typeof(UnregisteredComponent)));
+            Assert.Throws<ArgumentException>(() => world.CreateEntity(
+                typeof(SimHealthComponent), typeof(SimHealthComponent)));
+            Assert.That(world.EntityCount, Is.Zero);
+
+            SimEntity empty = world.CreateEntity();
+            Assert.That(empty.Id, Is.Zero);
+            Assert.That(empty.Generation, Is.EqualTo(1));
+
+            SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+            Assert.That(entity.Id, Is.EqualTo(1));
+            Assert.That(entity.Generation, Is.EqualTo(1));
+        }
+
         [Test]
         public void EndDeployment_RoundTripsRecorderAndTransitionsManualSession()
         {

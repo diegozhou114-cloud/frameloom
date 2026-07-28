@@ -66,6 +66,9 @@ namespace ZWebGLFrameWork.SimulationCore
         /// </summary>
         public SimEntity CreateEntity(params Type[] componentTypes)
         {
+            int[] compTypeIds = ArchetypeUtils.BuildComponentTypeIds(_registry, componentTypes);
+            string key = SimArchetype.GetKey(compTypeIds);
+
             // 确保 arrays 足够大
             int id = _nextId++;
             if (id >= _generationCap)
@@ -81,10 +84,6 @@ namespace ZWebGLFrameWork.SimulationCore
 
             var entity = new SimEntity(id, _generations[id], _worldEpoch);
             EntityCount++;
-
-            // 确定 Archetype：按类型全名排序确保键确定性
-            int[] compTypeIds = ArchetypeUtils.BuildComponentTypeIds(_registry, componentTypes);
-            string key = SimArchetype.GetKey(compTypeIds);
 
             if (!_archetypes.TryGetValue(key, out var archetype))
             {

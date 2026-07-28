@@ -56,10 +56,20 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>从一组组件 Type 派生出排序的 int[] ID</summary>
         public static int[] BuildComponentTypeIds(ComponentTypeRegistry registry, System.Type[] componentTypes)
         {
+            if (componentTypes == null)
+                throw new System.ArgumentNullException(nameof(componentTypes));
+
             var ids = new int[componentTypes.Length];
             for (int i = 0; i < componentTypes.Length; i++)
                 ids[i] = registry.GetId(componentTypes[i]);
             System.Array.Sort(ids);
+            for (int i = 1; i < ids.Length; i++)
+            {
+                if (ids[i] == ids[i - 1])
+                    throw new System.ArgumentException(
+                        "Component types must not contain duplicates.",
+                        nameof(componentTypes));
+            }
             return ids;
         }
     }
