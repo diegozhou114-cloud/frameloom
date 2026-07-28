@@ -131,7 +131,7 @@ namespace ZWebGLFrameWork.Data
             if (CurrentLanguage == language) return;
             _scanned = false;
             Init(language);
-            OnLanguageChanged?.Invoke(language);
+            OnLanguageChanged?.Invoke(CurrentLanguage);
         }
 
         /// <summary>从系统语言自动检测最佳匹配</summary>

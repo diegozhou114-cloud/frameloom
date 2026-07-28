@@ -1,0 +1,7 @@
+{
+  "entries": [
+    { "key": "test_key", "value": "Test text" },
+    { "key": "login_title", "value": "Welcome" },
+    { "key": "welcome", "value": "Welcome, {0}!" }
+  ]
+}
