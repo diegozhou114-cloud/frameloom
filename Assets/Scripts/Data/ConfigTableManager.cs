@@ -230,6 +230,12 @@ namespace ZWebGLFrameWork.Data
                 }
 
                 int id = (int)idField.GetValue(item);
+                if (id <= 0)
+                {
+                    Debug.LogError(
+                        $"[ConfigTableManager] {typeof(T).Name} Id={id} must be positive");
+                    return null;
+                }
                 if (dict.ContainsKey(id))
                 {
                     Debug.LogError(
