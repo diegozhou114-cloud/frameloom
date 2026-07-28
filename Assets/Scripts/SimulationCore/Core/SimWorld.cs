@@ -589,6 +589,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 snapshot.NextId < 0 || snapshot.NextId > snapshot.Generations.Length ||
                 snapshot.ChunkSnapshots == null)
                 throw new ArgumentException("Invalid world snapshot.", nameof(snapshot));
+            var entityIds = new HashSet<int>();
             foreach (var chunk in snapshot.ChunkSnapshots)
             {
                 if (chunk == null || chunk.ComponentTypeIds == null ||
@@ -603,7 +604,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 {
                     int id = chunk.EntityIds[index];
                     if (id < 0 || id >= snapshot.Generations.Length ||
-                        snapshot.Generations[id] != chunk.Generations[index])
+                        snapshot.Generations[id] != chunk.Generations[index] ||
+                        !entityIds.Add(id))
                         throw new ArgumentException("Snapshot entity metadata is inconsistent.", nameof(snapshot));
                 }
             }
