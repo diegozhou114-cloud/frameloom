@@ -605,6 +605,64 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_RejectsPendingMoveForUnknownEntity()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[0] = 2;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new MoveCmd
+                {
+                    Tick = data.NextTick, PlayerId = 0, Sequence = 2,
+                    EntityId = 999, TargetX = 3, TargetY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(baseline.NextTick));
+        }
+
+        [Test]
+        public void RestoreSnapshot_RejectsPendingMoveForForeignLiveEntity()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Defender);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[0] = 2;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new MoveCmd
+                {
+                    Tick = data.NextTick, PlayerId = 0, Sequence = 2,
+                    EntityId = defender.EntityId, TargetX = 7, TargetY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(baseline.NextTick));
+        }
+
+        [Test]
         public void RestoreSnapshot_RejectsUnreachableAcceptedSequenceWatermark()
         {
             using var session = (SimBattleSession)SessionTestDriver.StartedBattle();

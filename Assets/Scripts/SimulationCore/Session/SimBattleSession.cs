@@ -258,6 +258,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     !HasValidRestoredEntityIdentities(data, detachedWorld) ||
                     !HasValidRestoredDeathState(data, detachedWorld) ||
                     !HasValidRestoredTerminalOutcome(data) ||
+                    !HasValidRestoredLiveCommandOwnership(data, detachedWorld) ||
                     detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
                     ComputeChecksum(data, detachedWorld) != snapshot.StateChecksum)
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
@@ -511,10 +512,54 @@ namespace ZWebGLFrameWork.SimulationCore
                     !data.LastSequenceByPlayer.TryGetValue(command.PlayerId,
                         out int acceptedSequence) || command.Sequence > acceptedSequence ||
                     !HasWaypointCoordinates(command) ||
+                    !HasAllocatedEntityReference(command, data.WorldSnapshot.NextId) ||
                     !HasValidRestoredCommandAuthorization(command))
                     return false;
             }
             return true;
+        }
+
+        private static bool HasAllocatedEntityReference(ISimCommand command, int nextEntityId)
+        {
+            return command switch
+            {
+                MoveCmd move => move.EntityId >= 0 && move.EntityId < nextEntityId,
+                SkillCmd skill => skill.CasterId >= 0 && skill.CasterId < nextEntityId,
+                _ => true,
+            };
+        }
+
+        private static bool HasValidRestoredLiveCommandOwnership(
+            SessionSnapshotData data, SimWorld world)
+        {
+            foreach (ISimCommand command in data.PendingCommands)
+            {
+                int entityId = command switch
+                {
+                    MoveCmd move => move.EntityId,
+                    SkillCmd skill => skill.CasterId,
+                    _ => -1,
+                };
+                if (entityId < 0 || !TryGetLiveEntityOwner(world, entityId,
+                        out int ownerPlayerId))
+                    continue;
+                if (ownerPlayerId != command.PlayerId)
+                    return false;
+            }
+            return true;
+        }
+
+        private static bool TryGetLiveEntityOwner(
+            SimWorld world, int entityId, out int ownerPlayerId)
+        {
+            int? owner = null;
+            world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
+            {
+                if (entity.Id == entityId)
+                    owner = identity.OwnerPlayerId;
+            });
+            ownerPlayerId = owner.GetValueOrDefault();
+            return owner.HasValue;
         }
 
         private bool HasValidRestoredCommandAuthorization(ISimCommand command)
