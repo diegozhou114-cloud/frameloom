@@ -65,5 +65,22 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             Assert.That(error.Message, Is.EqualTo("Archetype count exceeds the manifest payload."));
         }
+
+        [Test]
+        public void ContentManifest_ArchetypeRowSmallerThanFixedFields_IsRejectedBeforeAllocation()
+        {
+            byte[] payload = new byte[44];
+            payload[0] = 0x5A;
+            payload[1] = 0x53;
+            payload[2] = 0x49;
+            payload[3] = 0x4D;
+            payload[4] = 0x01;
+            payload[8] = 0x01;
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                DeterministicContentManifest.Parse(payload));
+
+            Assert.That(error.Message, Is.EqualTo("Archetype count exceeds the manifest payload."));
+        }
     }
 }

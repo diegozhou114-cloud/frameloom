@@ -360,6 +360,35 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Snapshot_GenerationCountExceedsPayload_IsRejectedBeforeAllocation()
+        {
+            var writer = new DeterministicBinaryWriter();
+            writer.WriteBytes(new byte[] { 0x5A, 0x53, 0x4E, 0x50 });
+            writer.WriteInt32(2);
+            writer.WriteInt32((int)SessionLifecycle.Created);
+            writer.WriteInt32((int)SimCombatPhase.Idle);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteByte(0);
+            writer.WriteInt32(0);
+            writer.WriteByte(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(0);
+            writer.WriteInt32(1);
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                SessionSnapshotCodec.Decode(writer.ToArray()));
+
+            Assert.That(error.Message, Is.EqualTo("Generation count exceeds the snapshot payload."));
+        }
+
+        [Test]
         public void Checksum_ChangesWhenTerminalNumericOutcomeChanges()
         {
             byte[] contentHash = { 1, 2, 3 };

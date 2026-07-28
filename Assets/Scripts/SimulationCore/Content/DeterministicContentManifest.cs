@@ -76,7 +76,7 @@ namespace ZWebGLFrameWork.SimulationCore
     public sealed class DeterministicContentManifest
     {
         private const int MagicLength = 4;
-        private const int MinimumArchetypeBytes = sizeof(int) * 4 + sizeof(long) * 2;
+        private const int MinimumArchetypeBytes = sizeof(int) * 5 + sizeof(long) * 2;
         private static readonly byte[] Magic = { 0x5A, 0x53, 0x49, 0x4D };
         private readonly SimArchetypeDefinition[] _archetypes;
         private readonly SimModeProfile[] _modes;

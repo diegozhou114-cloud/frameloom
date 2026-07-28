@@ -190,6 +190,8 @@ namespace ZWebGLFrameWork.SimulationCore
             int nextId = ReadNonNegative(reader, "next entity ID");
             int generationCount = ReadCount(reader, MaxGenerations, "generation");
             if (nextId > generationCount) throw new FormatException("Allocator exceeds generation table.");
+            if (generationCount > reader.RemainingBytes / sizeof(int))
+                throw new FormatException("Generation count exceeds the snapshot payload.");
             var generations = new int[generationCount];
             for (int index = 0; index < generationCount; index++)
                 generations[index] = reader.ReadInt32();
