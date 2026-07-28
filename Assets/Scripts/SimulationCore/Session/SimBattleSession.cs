@@ -79,7 +79,7 @@ namespace ZWebGLFrameWork.SimulationCore
             if (_disposed || _state.Lifecycle != SessionLifecycle.Running)
                 return new CommandSubmitResult(CommandDisposition.WrongPhase);
             if (command == null) return new CommandSubmitResult(CommandDisposition.InvalidPayload);
-            if (command.Sequence < 0)
+            if (command.Sequence < 0 || command.Sequence == int.MaxValue)
                 return new CommandSubmitResult(CommandDisposition.InvalidPayload);
             if (!IsPlayer(command.PlayerId))
                 return new CommandSubmitResult(CommandDisposition.UnknownPlayer);
@@ -492,13 +492,15 @@ namespace ZWebGLFrameWork.SimulationCore
         private bool HasValidRestoredCommandState(SessionSnapshotData data)
         {
             foreach (KeyValuePair<int, int> sequence in data.LastSequenceByPlayer)
-                if (!IsPlayer(sequence.Key) || sequence.Value < 0)
+                if (!IsPlayer(sequence.Key) || sequence.Value < 0 ||
+                    sequence.Value == int.MaxValue)
                     return false;
 
             var sequences = new HashSet<(int PlayerId, int Sequence)>();
             foreach (ISimCommand command in data.PendingCommands)
             {
-                if (command == null || command.Sequence < 0 || !IsPlayer(command.PlayerId) ||
+                if (command == null || command.Sequence < 0 ||
+                    command.Sequence == int.MaxValue || !IsPlayer(command.PlayerId) ||
                     command.Tick < data.NextTick ||
                     (long)command.Tick > (long)data.NextTick + 64 ||
                     !sequences.Add((command.PlayerId, command.Sequence)) ||

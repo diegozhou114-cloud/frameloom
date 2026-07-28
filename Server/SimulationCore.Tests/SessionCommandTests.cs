@@ -118,6 +118,21 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void Submit_RejectsTerminalSequenceValueWithoutConsumingSequence()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = int.MaxValue,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+        }
+
+        [Test]
         public void SkillTargeting_UsesEntityTeamInsteadOfAssumingPlayerIdsZeroAndOne()
         {
             byte[] bytes = SessionTestDriver.ManifestBytes();
@@ -548,6 +563,24 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 CasterId = defender.EntityId, SkillId = 1,
                 TargetX = attacker.GridX, TargetY = attacker.GridY,
             }).Disposition, Is.EqualTo(CommandDisposition.UnauthorizedEntity));
+        }
+
+        [Test]
+        public void RestoreSnapshot_RejectsUnreachableAcceptedSequenceWatermark()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[0] = int.MaxValue;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = session.State.NextTick, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
         }
 
         private static void SetOwner(TickSnapshot snapshot, int entityId, int ownerPlayerId)
