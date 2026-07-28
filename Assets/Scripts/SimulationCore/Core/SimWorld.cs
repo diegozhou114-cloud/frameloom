@@ -614,7 +614,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 for (int index = 0; index < chunk.Count; index++)
                 {
                     int id = chunk.EntityIds[index];
-                    if (id < 0 || id >= snapshot.Generations.Length ||
+                    if (id < 0 || id >= snapshot.NextId ||
                         snapshot.Generations[id] != chunk.Generations[index] ||
                         !entityIds.Add(id))
                         throw new ArgumentException("Snapshot entity metadata is inconsistent.", nameof(snapshot));

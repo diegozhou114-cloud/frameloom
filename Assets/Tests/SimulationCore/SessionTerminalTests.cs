@@ -486,6 +486,22 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void WorldSnapshot_EntityIdBeyondAllocator_IsRejectedBeforeRestore()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+            world.SetComponent(entity, new SimHealthComponent { CurrentHP = 1, MaxHP = 1 });
+            TickSnapshot snapshot = world.ExportFullSnapshot();
+            snapshot.ChunkSnapshots[0].EntityIds[0] = snapshot.NextId;
+            snapshot.Generations[snapshot.NextId] = snapshot.ChunkSnapshots[0].Generations[0];
+
+            ArgumentException error = Assert.Throws<ArgumentException>(() =>
+                world.RestoreFromFull(snapshot));
+
+            Assert.That(error.Message, Is.EqualTo("Snapshot entity metadata is inconsistent. (Parameter 'snapshot')"));
+        }
+
+        [Test]
         public void Checksum_ChangesWhenTerminalNumericOutcomeChanges()
         {
             byte[] contentHash = { 1, 2, 3 };
