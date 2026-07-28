@@ -89,6 +89,10 @@ require_absent DATA-008 Assets/Scripts/Data/SaveManager.cs \
   'village.Buildings.Clear();'
 require_absent DATA-008 Assets/Scripts/Data/DataManager.cs \
   'Village.Buildings.Clear();'
+require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
+  'if (building == null || string.IsNullOrWhiteSpace(building.Id))'
+require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
+  'if (GetBuilding(building.Id) != null)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
   'if (!configOk)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
@@ -108,4 +112,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=9\n'
+printf '[CompilationContracts] PASS count=10\n'

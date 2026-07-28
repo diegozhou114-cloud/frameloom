@@ -36,7 +36,14 @@ namespace ZWebGLFrameWork.Data
         /// <summary>添加建筑</summary>
         public bool AddBuilding(BuildingData building)
         {
-            if (building == null) return false;
+            if (building == null || string.IsNullOrWhiteSpace(building.Id))
+                return false;
+
+            if (GetBuilding(building.Id) != null)
+            {
+                Debug.LogWarning($"[VillageData] 建筑 Id 已存在: {building.Id}");
+                return false;
+            }
 
             if (Buildings.Count >= MaxBuildings.Value)
             {

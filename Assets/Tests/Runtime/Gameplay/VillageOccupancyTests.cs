@@ -30,5 +30,27 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(village.Buildings, Is.Empty);
             Assert.DoesNotThrow(() => village.IsOccupied(0, 0));
         }
+
+        [Test]
+        public void Village_AddBuilding_EmptyIdIsRejected()
+        {
+            var village = new VillageData(_ => null);
+            var building = new BuildingData { Id = string.Empty, TypeId = 1 };
+
+            Assert.That(village.AddBuilding(building), Is.False);
+            Assert.That(village.Buildings, Is.Empty);
+        }
+
+        [Test]
+        public void Village_AddBuilding_DuplicateIdIsRejected()
+        {
+            var village = new VillageData(_ => null);
+            var first = new BuildingData { Id = "shared-id", TypeId = 1 };
+            var duplicate = new BuildingData { Id = "shared-id", TypeId = 2 };
+
+            Assert.That(village.AddBuilding(first), Is.True);
+            Assert.That(village.AddBuilding(duplicate), Is.False);
+            Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
+        }
     }
 }
