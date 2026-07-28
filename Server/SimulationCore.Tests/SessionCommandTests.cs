@@ -663,6 +663,34 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_RejectsPendingSkillWithUnsupportedSkillId()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Defender);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[attacker.OwnerPlayerId] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new SkillCmd
+                {
+                    Tick = data.NextTick, PlayerId = attacker.OwnerPlayerId, Sequence = 1,
+                    CasterId = attacker.EntityId, SkillId = 99,
+                    TargetX = defender.GridX, TargetY = defender.GridY,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(baseline.NextTick));
+        }
+
+        [Test]
         public void RestoreSnapshot_RejectsUnreachableAcceptedSequenceWatermark()
         {
             using var session = (SimBattleSession)SessionTestDriver.StartedBattle();

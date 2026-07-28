@@ -512,11 +512,21 @@ namespace ZWebGLFrameWork.SimulationCore
                     !data.LastSequenceByPlayer.TryGetValue(command.PlayerId,
                         out int acceptedSequence) || command.Sequence > acceptedSequence ||
                     !HasWaypointCoordinates(command) ||
+                    !HasValidRestoredCommandPayload(command) ||
                     !HasAllocatedEntityReference(command, data.WorldSnapshot.NextId) ||
                     !HasValidRestoredCommandAuthorization(command))
                     return false;
             }
             return true;
+        }
+
+        private static bool HasValidRestoredCommandPayload(ISimCommand command)
+        {
+            return command switch
+            {
+                SkillCmd skill => skill.SkillId == BasicSkillId,
+                _ => true,
+            };
         }
 
         private static bool HasAllocatedEntityReference(ISimCommand command, int nextEntityId)
