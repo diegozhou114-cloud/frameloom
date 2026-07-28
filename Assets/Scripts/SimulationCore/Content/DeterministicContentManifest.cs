@@ -76,6 +76,7 @@ namespace ZWebGLFrameWork.SimulationCore
     public sealed class DeterministicContentManifest
     {
         private const int MagicLength = 4;
+        private const int MinimumArchetypeBytes = sizeof(int) * 4 + sizeof(long) * 2;
         private static readonly byte[] Magic = { 0x5A, 0x53, 0x49, 0x4D };
         private readonly SimArchetypeDefinition[] _archetypes;
         private readonly SimModeProfile[] _modes;
@@ -191,6 +192,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 throw new FormatException("Unsupported content manifest schema.");
             int count = reader.ReadInt32();
             if (count < 0) throw new FormatException("Negative archetype count.");
+            if (count > reader.RemainingBytes / MinimumArchetypeBytes)
+                throw new FormatException("Archetype count exceeds the manifest payload.");
 
             var rows = new SimArchetypeDefinition[count];
             int previousId = 0;

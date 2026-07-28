@@ -49,5 +49,21 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 new DeterministicContentManifest(2, Array.Empty<SimArchetypeDefinition>()));
         }
+
+        [Test]
+        public void ContentManifest_ArchetypeCountExceedsPayload_IsRejectedBeforeAllocation()
+        {
+            byte[] payload =
+            {
+                0x5A, 0x53, 0x49, 0x4D,
+                0x01, 0x00, 0x00, 0x00,
+                0x01, 0x00, 0x00, 0x00,
+            };
+
+            FormatException error = Assert.Throws<FormatException>(() =>
+                DeterministicContentManifest.Parse(payload));
+
+            Assert.That(error.Message, Is.EqualTo("Archetype count exceeds the manifest payload."));
+        }
     }
 }

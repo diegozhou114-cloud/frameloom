@@ -56,6 +56,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private int _offset;
 
         public bool AtEnd => _offset == _bytes.Length;
+        public int RemainingBytes => _bytes.Length - _offset;
 
         public DeterministicBinaryReader(byte[] bytes)
         {
