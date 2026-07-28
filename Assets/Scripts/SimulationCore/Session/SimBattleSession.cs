@@ -242,6 +242,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         data.Phase != SimCombatPhase.Deploying &&
                         data.Phase != SimCombatPhase.Battling) ||
                     (data.Phase == SimCombatPhase.Deploying && !_modeProfile.ManualDeployment) ||
+                    (data.Phase == SimCombatPhase.Deploying &&
+                        data.NextTick >= _modeProfile.DeployDurationTicks) ||
                     (data.Lifecycle == SessionLifecycle.Running &&
                         ShouldHaveTerminalOutcome(data)) ||
                     data.AttackSystemTick > data.NextTick ||
