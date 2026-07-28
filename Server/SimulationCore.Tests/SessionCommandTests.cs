@@ -427,6 +427,21 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 Is.EqualTo(CommandDisposition.InvalidPayload));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsRunningSessionWithEndedPhase()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.Phase = SimCombatPhase.Ended;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {

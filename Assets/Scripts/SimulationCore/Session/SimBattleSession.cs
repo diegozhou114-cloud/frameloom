@@ -238,6 +238,9 @@ namespace ZWebGLFrameWork.SimulationCore
                     data.TerminalFinalTick == data.CompletedTick;
                 if (terminalState != (data.TerminalOutcome != null) ||
                     (data.Lifecycle == SessionLifecycle.Ended) != terminalState ||
+                    (data.Lifecycle == SessionLifecycle.Running &&
+                        data.Phase != SimCombatPhase.Deploying &&
+                        data.Phase != SimCombatPhase.Battling) ||
                     (data.Phase == SimCombatPhase.Deploying && !_modeProfile.ManualDeployment) ||
                     data.DeployedCount > _modeProfile.MaxDeployCount ||
                     !HasValidRestoredCommandState(data))
