@@ -673,6 +673,20 @@ namespace ZWebGLFrameWork.SimulationCore
                     return;
                 }
 
+                if (!world.TryGetComponent(entity, out SimHealthComponent health))
+                {
+                    valid = false;
+                    return;
+                }
+
+                SimArchetypeDefinition archetype = _manifest.GetArchetype(identity.ArchetypeId);
+                if (archetype == null || health.MaxHP != archetype.MaxHealth ||
+                    health.CurrentHP <= 0 || health.CurrentHP > health.MaxHP)
+                {
+                    valid = false;
+                    return;
+                }
+
                 if (entity.Id < initialEntities.Length)
                 {
                     InitialEntitySpec initial = initialEntities[entity.Id];
@@ -683,8 +697,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     return;
                 }
 
-                if (_manifest.GetArchetype(identity.ArchetypeId) == null ||
-                    identity.OwnerPlayerId != _init.Players[0].PlayerId ||
+                if (identity.OwnerPlayerId != _init.Players[0].PlayerId ||
                     team.TeamId != SimTeam.Attacker)
                     valid = false;
             });
