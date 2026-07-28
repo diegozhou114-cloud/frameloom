@@ -601,7 +601,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 _deployedCount,
                 _terminalOutcome,
                 _terminalFinalTick,
-                commandHash);
+                commandHash,
+                HashAcceptedSequences(_lastSequenceByPlayer));
             ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
             if (_attackSystem != null) hash = _attackSystem.HashInto(hash);
             if (_deathSystem != null) hash = _deathSystem.HashInto(hash);
@@ -639,12 +640,29 @@ namespace ZWebGLFrameWork.SimulationCore
             var sessionState = new SessionChecksumState(
                 _init.ProtocolVersion, _init.SchemaVersion, _manifest.ContentHash, _init.Seed,
                 data.Lifecycle, data.Phase, data.CompletedTick, data.NextTick,
-                data.DeployedCount, data.TerminalOutcome, data.TerminalFinalTick, commandHash);
+                data.DeployedCount, data.TerminalOutcome, data.TerminalFinalTick,
+                commandHash, HashAcceptedSequences(data.LastSequenceByPlayer));
             ulong hash = sessionState.HashInto(DeterministicHash64.OffsetBasis);
             hash = SimAttackSystem.HashStateInto(hash, data.AttackSystemTick);
             hash = SimDeathSystem.HashStateInto(hash, data.AttackerAlive, data.DefenderAlive,
                 data.AttackerDead, data.DefenderDead, data.Winner);
             return world.HashInto(hash);
+        }
+
+        private static ulong HashAcceptedSequences(
+            IReadOnlyDictionary<int, int> sequences)
+        {
+            var ordered = new List<KeyValuePair<int, int>>(
+                sequences ?? new Dictionary<int, int>());
+            ordered.Sort((left, right) => left.Key.CompareTo(right.Key));
+            var hash = new DeterministicHash64(DeterministicHash64.OffsetBasis);
+            hash.AddInt32(ordered.Count);
+            foreach (KeyValuePair<int, int> sequence in ordered)
+            {
+                hash.AddInt32(sequence.Key);
+                hash.AddInt32(sequence.Value);
+            }
+            return hash.Value;
         }
 
         private TickResult CreateTickResult(TickCode code)

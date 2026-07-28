@@ -523,10 +523,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             byte[] contentHash = { 1, 2, 3 };
             var attacker = new SessionChecksumState(1, 1, contentHash, 42,
                 SessionLifecycle.Ended, SimCombatPhase.Ended, 0, 1, 0,
-                new SimTerminalOutcome(SimTeam.Attacker, 3, 500, 300), 0, 0);
+                new SimTerminalOutcome(SimTeam.Attacker, 3, 500, 300), 0, 0, 0);
             var defender = new SessionChecksumState(1, 1, contentHash, 42,
                 SessionLifecycle.Ended, SimCombatPhase.Ended, 0, 1, 0,
-                new SimTerminalOutcome(SimTeam.Defender, 0, 0, 0), 0, 0);
+                new SimTerminalOutcome(SimTeam.Defender, 0, 0, 0), 0, 0, 0);
 
             Assert.That(attacker.HashInto(DeterministicHash64.OffsetBasis),
                 Is.Not.EqualTo(defender.HashInto(DeterministicHash64.OffsetBasis)));

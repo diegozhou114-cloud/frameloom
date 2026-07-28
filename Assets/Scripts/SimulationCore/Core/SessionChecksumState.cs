@@ -21,11 +21,13 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly int _terminalLootElixir;
         private readonly int _terminalFinalTick;
         private readonly ulong _commandHash;
+        private readonly ulong _acceptedSequenceHash;
 
         public SessionChecksumState(int protocolVersion, int schemaVersion, byte[] contentHash,
             int seed, SessionLifecycle lifecycle, SimCombatPhase phase,
             int completedTick, int nextTick, int deployedCount,
-            SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash)
+            SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash,
+            ulong acceptedSequenceHash)
         {
             _protocolVersion = protocolVersion;
             _schemaVersion = schemaVersion;
@@ -43,6 +45,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _terminalLootElixir = terminalOutcome?.LootElixir ?? 0;
             _terminalFinalTick = terminalFinalTick;
             _commandHash = commandHash;
+            _acceptedSequenceHash = acceptedSequenceHash;
         }
 
         public ulong HashInto(ulong hash)
@@ -67,6 +70,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 state.AddInt32(_terminalFinalTick);
             }
             state.AddUInt64(_commandHash);
+            state.AddUInt64(_acceptedSequenceHash);
             return state.Value;
         }
     }

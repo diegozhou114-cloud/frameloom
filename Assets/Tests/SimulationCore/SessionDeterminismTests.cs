@@ -58,6 +58,30 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void AcceptedSequenceState_ChangesChecksumAfterCommandsDrain()
+        {
+            using SimBattleSession first = SessionTestDriver.StartedBattle();
+            using SimBattleSession second = SessionTestDriver.StartedBattle();
+            EntityPresentationState entity = first.State.Presentation.Entities[0];
+
+            Assert.That(first.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                EntityId = entity.EntityId, TargetX = entity.GridX, TargetY = entity.GridY,
+            }).Accepted, Is.True);
+            Assert.That(second.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 2,
+                EntityId = entity.EntityId, TargetX = entity.GridX, TargetY = entity.GridY,
+            }).Accepted, Is.True);
+
+            first.Tick();
+            second.Tick();
+
+            Assert.That(first.State.Checksum, Is.Not.EqualTo(second.State.Checksum));
+        }
+
+        [Test]
         public void Checksum_ChangesForPathPhaseAllocatorAndPendingEventDifferences()
         {
             var pathA = WorldWithPath(11, 22, out _);
