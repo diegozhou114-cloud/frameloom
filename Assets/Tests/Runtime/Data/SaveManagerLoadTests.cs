@@ -95,5 +95,51 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
         }
+
+        [Test]
+        public void LoadToDataManager_OverlappingBuildingOriginsLeaveRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2002;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>
+                    {
+                        new BuildingSaveData
+                        {
+                            Id = "first", TypeId = 1, GridX = 4, GridY = 5, Level = 1,
+                        },
+                        new BuildingSaveData
+                        {
+                            Id = "overlap", TypeId = 2, GridX = 4, GridY = 5, Level = 1,
+                        },
+                    },
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 建筑位置重叠");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }

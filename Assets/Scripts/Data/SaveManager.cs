@@ -11,6 +11,26 @@ namespace ZWebGLFrameWork.Data
     /// </summary>
     public static class SaveManager
     {
+        private readonly struct BuildingFootprint
+        {
+            public long Left { get; }
+            public long Bottom { get; }
+            public long Right { get; }
+            public long Top { get; }
+
+            public BuildingFootprint(BuildingData building, int width, int height)
+            {
+                Left = building.GridX.Value;
+                Bottom = building.GridY.Value;
+                Right = Left + width;
+                Top = Bottom + height;
+            }
+
+            public bool Overlaps(BuildingFootprint other) =>
+                Left < other.Right && other.Left < Right &&
+                Bottom < other.Top && other.Bottom < Top;
+        }
+
         private const string SaveIndexKey = "Save_Index";     // 当前选中的存档槽位
         private const string SaveFilePrefix = "save_";        // 文件名前缀
         private const string SaveExtension = ".json";
@@ -183,6 +203,7 @@ namespace ZWebGLFrameWork.Data
                 return Fail("建筑容量无效", out error);
 
             buildings = new List<BuildingData>(data.Buildings.Count);
+            var footprints = new List<BuildingFootprint>(data.Buildings.Count);
             var buildingIds = new HashSet<string>();
             foreach (BuildingSaveData saved in data.Buildings)
             {
@@ -199,7 +220,21 @@ namespace ZWebGLFrameWork.Data
                     ConfigTableManager.Instance.GetBuilding(saved.TypeId) == null)
                     return Fail("建筑类型不存在", out error);
 
-                buildings.Add(SaveDataMapper.RestoreBuilding(saved));
+                BuildingData building = SaveDataMapper.RestoreBuilding(saved);
+                BuildingConfig config = ConfigTableManager.Instance.IsReady
+                    ? ConfigTableManager.Instance.GetBuilding(building.TypeId)
+                    : null;
+                var footprint = new BuildingFootprint(building,
+                    Math.Max(1, config?.SizeX ?? 1),
+                    Math.Max(1, config?.SizeY ?? 1));
+                foreach (BuildingFootprint existing in footprints)
+                {
+                    if (footprint.Overlaps(existing))
+                        return Fail("建筑位置重叠", out error);
+                }
+
+                footprints.Add(footprint);
+                buildings.Add(building);
             }
             return true;
         }
