@@ -313,6 +313,120 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsDeploymentCommandForCampaign()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using var session = (SimBattleSession)new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "campaign-command-match", "campaign-command-session", 42, 20,
+                SimCombatMode.Campaign, manifest.ContentHash,
+                new[] { new SimPlayerIdentity(10, "attacker"), new SimPlayerIdentity(20, "defender") },
+                new[] { new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 20) }, 6);
+            Assert.That(session.Start(init).Accepted, Is.True);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[10] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new DeployCmd
+                {
+                    Tick = data.NextTick,
+                    PlayerId = 10,
+                    Sequence = 1,
+                    UnitTypeId = 10,
+                    GridX = 20,
+                    GridY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
+        public void RestoreSnapshot_PreservesQueuedDeploymentAfterCellBecomesOccupied()
+        {
+            using var session = SessionTestDriver.StartedDeployingBattle();
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            session.Tick();
+            SimSnapshot pending = session.CaptureSnapshot();
+
+            session.Tick();
+            SnapshotRestoreResult restored = session.RestoreSnapshot(pending);
+            TickResult replayed = session.Tick();
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(replayed.CommandOutcomes.Single().Disposition,
+                Is.EqualTo(CommandDisposition.InvalidPayload));
+        }
+
+        [Test]
+        public void RestoreSnapshot_PreservesQueuedDeploymentAfterPhaseChanges()
+        {
+            using var session = SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            session.Tick();
+            SimSnapshot pending = session.CaptureSnapshot();
+
+            session.Tick();
+            SnapshotRestoreResult restored = session.RestoreSnapshot(pending);
+            TickResult replayed = session.Tick();
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(replayed.CommandOutcomes.Single().Disposition,
+                Is.EqualTo(CommandDisposition.WrongPhase));
+        }
+
+        [Test]
+        public void RestoreSnapshot_PreservesSameCellDeploymentConflictForExecution()
+        {
+            using var session = SessionTestDriver.StartedDeployingBattle();
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 2,
+                UnitTypeId = 10, GridX = 4, GridY = 4,
+            }).Accepted, Is.True);
+            SimSnapshot pending = session.CaptureSnapshot();
+
+            session.Tick();
+            SnapshotRestoreResult restored = session.RestoreSnapshot(pending);
+            TickResult replayed = session.Tick();
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(replayed.CommandOutcomes.Count, Is.EqualTo(2));
+            Assert.That(replayed.CommandOutcomes[0].Disposition,
+                Is.EqualTo(CommandDisposition.Accepted));
+            Assert.That(replayed.CommandOutcomes[1].Disposition,
+                Is.EqualTo(CommandDisposition.InvalidPayload));
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {

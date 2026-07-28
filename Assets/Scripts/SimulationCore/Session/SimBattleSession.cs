@@ -507,8 +507,9 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             return command switch
             {
-                DeployCmd deploy => IsAttacker(deploy.PlayerId),
-                EndDeploymentCmd endDeployment => IsAttacker(endDeployment.PlayerId),
+                DeployCmd deploy => _modeProfile.ManualDeployment && IsAttacker(deploy.PlayerId),
+                EndDeploymentCmd endDeployment => _modeProfile.ManualDeployment &&
+                    IsAttacker(endDeployment.PlayerId),
                 _ => true,
             };
         }
