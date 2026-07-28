@@ -33,9 +33,12 @@ namespace ZWebGLFrameWork.UI
         protected override void OnOpen(object data)
         {
             _deployedCount = 0;
-            var allUnits = ConfigTableManager.Instance?.GetAllUnits();
-            _availableUnits = allUnits != null
-                ? new List<UnitConfig>(allUnits)
+            PlayerData player = DataManager.Instance?.Player;
+            var availableUnits = player != null
+                ? ConfigTableManager.Instance?.GetUnitsByTownHall(player.TownHallLevel.Value)
+                : null;
+            _availableUnits = availableUnits != null
+                ? new List<UnitConfig>(availableUnits)
                 : new List<UnitConfig>();
             if (_availableUnits.Count > 0)
                 _selectedUnit = _availableUnits[0];
