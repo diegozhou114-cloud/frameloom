@@ -60,7 +60,7 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 directory != null; directory = directory.Parent)
             {
                 string candidate = directory.FullName;
-                if (File.Exists(Path.Combine(candidate, ".git")) &&
+                if (Directory.Exists(Path.Combine(candidate, ".git")) &&
                     Directory.Exists(Path.Combine(candidate, "Assets")) &&
                     Directory.Exists(Path.Combine(candidate, "Server")))
                     return candidate;
