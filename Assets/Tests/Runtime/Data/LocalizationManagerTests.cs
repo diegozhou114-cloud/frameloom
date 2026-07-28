@@ -19,5 +19,16 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(manager.CurrentLanguage, Is.EqualTo("en-US"));
             Assert.That(observedLanguage, Is.EqualTo(manager.CurrentLanguage));
         }
+
+        [Test]
+        public void Init_DiscoveredLanguage_RegistersItAsSupported()
+        {
+            LocalizationManager manager = CreateOwnedObject("LocalizationManager")
+                .AddComponent<LocalizationManager>();
+
+            Assert.That(manager.Init("fr-CA"), Is.True);
+
+            Assert.That(manager.SupportedLanguages, Does.Contain("fr-CA"));
+        }
     }
 }

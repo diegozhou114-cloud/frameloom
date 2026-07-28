@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
@@ -158,15 +159,13 @@ namespace ZWebGLFrameWork.Data
             _scanned = true;
 
             SupportedLanguages.Clear();
-            // TODO: Hardcoded 9-language list is brittle — new languages added as assets are
-            // ignored until this array is manually updated. Use Resources.LoadAll<TextAsset>
-            // to dynamically discover all language files under Config/Languages/ at runtime.
-            string[] candidates = { "zh-CN", "zh-TW", "en-US", "ja-JP", "ko-KR", "de-DE", "fr-FR", "es-ES", "pt-BR" };
-            foreach (var lang in candidates)
+            foreach (TextAsset languageAsset in Resources.LoadAll<TextAsset>("Config/Languages"))
             {
-                if (Resources.Load<TextAsset>($"Config/Languages/{lang}") != null)
-                    SupportedLanguages.Add(lang);
+                string language = languageAsset.name;
+                if (!string.IsNullOrWhiteSpace(language) && !SupportedLanguages.Contains(language))
+                    SupportedLanguages.Add(language);
             }
+            SupportedLanguages.Sort(StringComparer.Ordinal);
             Debug.Log($"[LocalizationManager] 可用语言: {string.Join(", ", SupportedLanguages)}");
         }
 
