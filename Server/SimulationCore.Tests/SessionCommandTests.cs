@@ -442,6 +442,21 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsAttackClockAheadOfNextTick()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.AttackSystemTick = data.NextTick + 1;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(0));
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {

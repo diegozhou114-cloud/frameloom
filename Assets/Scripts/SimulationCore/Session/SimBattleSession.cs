@@ -242,6 +242,7 @@ namespace ZWebGLFrameWork.SimulationCore
                         data.Phase != SimCombatPhase.Deploying &&
                         data.Phase != SimCombatPhase.Battling) ||
                     (data.Phase == SimCombatPhase.Deploying && !_modeProfile.ManualDeployment) ||
+                    data.AttackSystemTick > data.NextTick ||
                     data.DeployedCount > _modeProfile.MaxDeployCount ||
                     !HasValidRestoredCommandState(data))
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
