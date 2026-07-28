@@ -142,6 +142,13 @@ namespace ZWebGLFrameWork.Gameplay
                 return;
             }
 
+            BuildingConfig config = ConfigTableManager.Instance.GetBuilding(building.TypeId);
+            if (config != null && building.Level.Value >= config.MaxLevel)
+            {
+                Debug.LogWarning("[BuildingInteraction] 已是最高等级");
+                return;
+            }
+
             var player = DataManager.Instance.Player;
 
             // 检查资源

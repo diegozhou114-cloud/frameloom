@@ -224,6 +224,8 @@ namespace ZWebGLFrameWork.Data
                         return Fail("建筑类型不存在", out error);
                     if (saved.Level > config.MaxLevel)
                         return Fail("建筑等级超出配置范围", out error);
+                    if (saved.State == BuildingState.Upgrading && saved.Level >= config.MaxLevel)
+                        return Fail("满级建筑不能处于升级状态", out error);
                 }
 
                 BuildingData building = SaveDataMapper.RestoreBuilding(saved);

@@ -188,5 +188,53 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
         }
+
+        [Test]
+        public void LoadToDataManager_MaxLevelBuildingStillUpgradingLeavesRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2004;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>
+                    {
+                        new BuildingSaveData
+                        {
+                            Id = "max-level-upgrading", TypeId = 1, GridX = 4, GridY = 5,
+                            Level = 10, State = BuildingState.Upgrading,
+                            UpgradeEndTime = 1924992000,
+                        },
+                    },
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 满级建筑不能处于升级状态");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }
