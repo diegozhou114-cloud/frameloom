@@ -23,7 +23,8 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void PreloadAllAsync_NullRow_ReturnsFalseWithoutThrowing()
         {
             var cache = (IDictionary)CacheField.GetValue(null);
-            cache["res_arr:Config/Buildings"] = new BuildingConfig[] { null };
+            cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] =
+                new BuildingConfig[] { null };
             ConfigTableManager manager = CreateOwnedObject("ConfigTableManager")
                 .AddComponent<ConfigTableManager>();
             bool result = true;
@@ -42,7 +43,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void PreloadAllAsync_DuplicateId_ReturnsFalseWithoutDiscardingAConfigRow()
         {
             var cache = (IDictionary)CacheField.GetValue(null);
-            cache["res_arr:Config/Buildings"] = new[]
+            cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] = new[]
             {
                 new BuildingConfig { Id = 1 },
                 new BuildingConfig { Id = 1 },
@@ -60,5 +61,33 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(result, Is.False);
             Assert.That(manager.GetBuilding(1), Is.Null);
         }
+
+        [Test]
+        public void ConfigLoader_SameResourcePathWithDifferentTypes_DoesNotReuseIncompatibleCache()
+        {
+            BuildingConfig[] buildings = ConfigLoader.LoadJsonArrayFromResources<BuildingConfig>(
+                "Config/Buildings");
+            UnitConfig[] units = ConfigLoader.LoadJsonArrayFromResources<UnitConfig>(
+                "Config/Buildings");
+
+            Assert.That(buildings, Is.Not.Empty);
+            Assert.That(units, Is.Not.Empty);
+            Assert.That(units[0].Id, Is.EqualTo(buildings[0].Id));
+        }
+
+        [Test]
+        public void ConfigLoader_RemoveCache_RemovesEveryTypeCachedAtThePath()
+        {
+            ConfigLoader.LoadJsonArrayFromResources<BuildingConfig>("Config/Buildings");
+            ConfigLoader.LoadJsonArrayFromResources<UnitConfig>("Config/Buildings");
+            Assert.That(ConfigLoader.CacheCount, Is.EqualTo(2));
+
+            ConfigLoader.RemoveCache("Config/Buildings");
+
+            Assert.That(ConfigLoader.CacheCount, Is.EqualTo(0));
+        }
+
+        private static string ResourceArrayCacheKey<T>(string path) =>
+            $"res_arr:{typeof(T).AssemblyQualifiedName}:{path}";
     }
 }

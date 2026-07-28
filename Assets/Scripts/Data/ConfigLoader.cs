@@ -19,7 +19,7 @@ namespace ZWebGLFrameWork.Data
         public static T LoadJsonFromResources<T>(string path) where T : class
         {
             // 去掉 .json 后缀（Resources.Load 不需要）
-            string key = $"res:{path}";
+            string key = $"res:{typeof(T).AssemblyQualifiedName}:{path}";
 
             if (_cache.TryGetValue(key, out var cached))
                 return cached as T;
@@ -48,7 +48,7 @@ namespace ZWebGLFrameWork.Data
         /// <summary>从 Resources 加载 JSON 配置（数组）</summary>
         public static T[] LoadJsonArrayFromResources<T>(string path) where T : class
         {
-            string key = $"res_arr:{path}";
+            string key = $"res_arr:{typeof(T).AssemblyQualifiedName}:{path}";
 
             if (_cache.TryGetValue(key, out var cached))
                 return cached as T[];
@@ -80,7 +80,7 @@ namespace ZWebGLFrameWork.Data
         /// <summary>从 StreamingAssets 加载 JSON 配置</summary>
         public static T LoadJsonFromStreamingAssets<T>(string relativePath) where T : class
         {
-            string key = $"sa:{relativePath}";
+            string key = $"sa:{typeof(T).AssemblyQualifiedName}:{relativePath}";
 
             if (_cache.TryGetValue(key, out var cached))
                 return cached as T;
@@ -170,7 +170,16 @@ namespace ZWebGLFrameWork.Data
         /// <summary>清除指定路径的缓存</summary>
         public static void RemoveCache(string path)
         {
-            _cache.Remove(path);
+            if (string.IsNullOrWhiteSpace(path)) return;
+
+            string suffix = ":" + path;
+            var keys = new List<string>();
+            foreach (string key in _cache.Keys)
+                if (key.EndsWith(suffix, StringComparison.Ordinal))
+                    keys.Add(key);
+
+            foreach (string key in keys)
+                _cache.Remove(key);
         }
 
         /// <summary>当前缓存数量</summary>
