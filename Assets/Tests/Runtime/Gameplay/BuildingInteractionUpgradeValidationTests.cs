@@ -45,6 +45,30 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(building.State.Value, Is.EqualTo(BuildingState.Upgrading));
         }
 
+        [Test]
+        public void InstantUpgrade_TownHallSynchronizesPlayersTownHallLevel()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            var selection = CreateOwnedObject("SelectionManager").AddComponent<SelectionManager>();
+            var interaction = CreateOwnedObject("BuildingInteraction")
+                .AddComponent<BuildingInteraction>();
+            SetPrivateField(interaction, "_selection", selection);
+
+            BuildingData townHall = BuildingData.Create(1, 0, 0);
+            Assert.That(DataManager.Instance.Village.AddBuilding(townHall), Is.True);
+            DataManager.Instance.Player.Gold.Value = 1000;
+            SelectBuilding(selection, townHall.Id);
+
+            interaction.UpgradeSelected();
+            interaction.InstantUpgrade(0);
+
+            Assert.That(townHall.Level.Value, Is.EqualTo(2));
+            Assert.That(DataManager.Instance.Player.TownHallLevel.Value, Is.EqualTo(2));
+        }
+
         private static void SelectBuilding(SelectionManager selection, string buildingId)
         {
             MethodInfo method = typeof(SelectionManager).GetMethod("SelectBuilding",

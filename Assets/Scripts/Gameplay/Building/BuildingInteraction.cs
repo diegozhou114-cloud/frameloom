@@ -198,6 +198,8 @@ namespace ZWebGLFrameWork.Gameplay
         private void CompleteUpgrade(BuildingData building)
         {
             building.Level.Value++;
+            if (building.TypeId == 1)
+                DataManager.Instance.Player.TownHallLevel.Value = building.Level.Value;
             building.State.Value = BuildingState.Normal;
             building.UpgradeEndTime.Value = 0;
 
