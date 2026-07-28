@@ -458,6 +458,28 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_RejectsRunningStateAfterTimeout()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.CompletedTick = 3599;
+            data.NextTick = 3600;
+            data.AttackSystemTick = 3600;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.CompletedTick, Is.EqualTo(baseline.CompletedTick));
+        }
+
+        [Test]
         public void RestoreSnapshot_RejectsAttackClockAheadOfNextTick()
         {
             using var session = (SimBattleSession)SessionTestDriver.StartedBattle();

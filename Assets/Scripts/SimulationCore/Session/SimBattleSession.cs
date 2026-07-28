@@ -242,6 +242,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         data.Phase != SimCombatPhase.Deploying &&
                         data.Phase != SimCombatPhase.Battling) ||
                     (data.Phase == SimCombatPhase.Deploying && !_modeProfile.ManualDeployment) ||
+                    (data.Lifecycle == SessionLifecycle.Running &&
+                        ShouldHaveTerminalOutcome(data)) ||
                     data.AttackSystemTick > data.NextTick ||
                     data.DeployedCount > _modeProfile.MaxDeployCount ||
                     !HasValidRestoredCommandState(data))
@@ -787,20 +789,29 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             if (data.TerminalOutcome == null) return true;
 
+            SimTerminalOutcome expected = GetExpectedTerminalOutcome(data);
+            return expected != null &&
+                expected.WinnerTeamId == data.TerminalOutcome.WinnerTeamId &&
+                expected.Stars == data.TerminalOutcome.Stars &&
+                expected.LootGold == data.TerminalOutcome.LootGold &&
+                expected.LootElixir == data.TerminalOutcome.LootElixir;
+        }
+
+        private bool ShouldHaveTerminalOutcome(SessionSnapshotData data) =>
+            data.Phase == SimCombatPhase.Battling &&
+            GetExpectedTerminalOutcome(data) != null;
+
+        private SimTerminalOutcome GetExpectedTerminalOutcome(SessionSnapshotData data)
+        {
             int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > data.CompletedTick);
             bool timedOut = data.NextTick >= _modeProfile.TimeoutTicks;
             int defenderTotal = data.DefenderAlive + data.DefenderDead;
             int destructionBasisPoints = defenderTotal == 0
                 ? 0
                 : (int)((long)data.DefenderDead * 10000 / defenderTotal);
-            SimTerminalOutcome expected = new SimModeRules(_modeProfile).Evaluate(
+            return new SimModeRules(_modeProfile).Evaluate(
                 new SimModeEvaluationInput(data.CompletedTick, data.AttackerAlive,
                     data.DefenderAlive, destructionBasisPoints, futureWaves, timedOut, true));
-            return expected != null &&
-                expected.WinnerTeamId == data.TerminalOutcome.WinnerTeamId &&
-                expected.Stars == data.TerminalOutcome.Stars &&
-                expected.LootGold == data.TerminalOutcome.LootGold &&
-                expected.LootElixir == data.TerminalOutcome.LootElixir;
         }
 
         private bool IsCellOccupied(int gridX, int gridY)
