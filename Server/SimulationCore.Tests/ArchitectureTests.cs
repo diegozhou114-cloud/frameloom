@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,6 +22,15 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
                 .ToArray();
 
             Assert.That(offenders, Is.Empty, string.Join("\n", offenders));
+        }
+
+        [Test]
+        public void SimulationCore_ObsoleteOrchestratorIsNotPublicApi()
+        {
+            Type orchestrator = typeof(SimBattleSession).Assembly.GetType(
+                "ZWebGLFrameWork.SimulationCore.SimOrchestrator", throwOnError: true);
+
+            Assert.That(orchestrator.IsPublic, Is.False);
         }
 
         [Test]

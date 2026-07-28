@@ -15,7 +15,7 @@ namespace ZWebGLFrameWork.SimulationCore
     /// 仿真战斗编排器 — 驱动阶段流转和 Tick 循环。
     /// 纯同步，零 Unity 依赖。命令管线：Drain→Update→Checksum→Record。
     /// </summary>
-    public class SimOrchestrator
+    internal class SimOrchestrator
     {
         /// <summary>当前阶段</summary>
         public SimCombatPhase CurrentPhase { get; private set; } = SimCombatPhase.Idle;
@@ -69,7 +69,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <param name="deployTimeLimitSeconds">部署阶段时限（秒）</param>
         /// <param name="battleTimeoutSeconds">战斗超时（秒）</param>
         /// <param name="ticksPerSecond">逻辑帧率</param>
-        public SimOrchestrator(
+        internal SimOrchestrator(
             SimWorld world,
             SimSystemGroup systems,
             SimDeathSystem deathSys,
