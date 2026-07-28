@@ -250,6 +250,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
                 if (!HasValidWorldCoordinates(detachedWorld) ||
+                    !HasValidRestoredDeathState(data, detachedWorld) ||
                     detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
                     ComputeChecksum(data, detachedWorld) != snapshot.StateChecksum)
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
@@ -594,6 +595,59 @@ namespace ZWebGLFrameWork.SimulationCore
                     valid = false;
             });
             return valid;
+        }
+
+        private bool HasValidRestoredDeathState(SessionSnapshotData data, SimWorld world)
+        {
+            if (data.CompletedTick < 0 || data.Phase == SimCombatPhase.Deploying)
+            {
+                return data.AttackerAlive == 0 && data.DefenderAlive == 0 &&
+                    data.AttackerDead == 0 && data.DefenderDead == 0 &&
+                    !data.Winner.HasValue;
+            }
+
+            int attackerAlive = 0;
+            int defenderAlive = 0;
+            bool valid = true;
+            world.ForEachComponent<SimHealthComponent>((entity, health) =>
+            {
+                if (!health.IsAlive ||
+                    !world.TryGetComponent(entity, out SimTeamComponent team) ||
+                    (team.TeamId != SimTeam.Attacker && team.TeamId != SimTeam.Defender))
+                {
+                    valid = false;
+                    return;
+                }
+
+                if (team.TeamId == SimTeam.Attacker) attackerAlive++;
+                else defenderAlive++;
+            });
+            if (!valid || attackerAlive + defenderAlive != world.EntityCount)
+                return false;
+
+            int initialAttackers = 0;
+            int initialDefenders = 0;
+            foreach (InitialEntitySpec entity in _init.InitialEntities)
+            {
+                if (entity.TeamId == SimTeam.Attacker) initialAttackers++;
+                else if (entity.TeamId == SimTeam.Defender) initialDefenders++;
+            }
+
+            int attackerTotal = initialAttackers + data.DeployedCount;
+            if (attackerAlive > attackerTotal || defenderAlive > initialDefenders)
+                return false;
+            int attackerDead = attackerTotal - attackerAlive;
+            int defenderDead = initialDefenders - defenderAlive;
+            int? winner = attackerAlive == 0 && defenderAlive > 0
+                ? SimTeam.Defender
+                : defenderAlive == 0 && attackerAlive > 0
+                    ? SimTeam.Attacker
+                    : (int?)null;
+            return data.AttackerAlive == attackerAlive &&
+                data.DefenderAlive == defenderAlive &&
+                data.AttackerDead == attackerDead &&
+                data.DefenderDead == defenderDead &&
+                data.Winner == winner;
         }
 
         private bool IsCellOccupied(int gridX, int gridY)
