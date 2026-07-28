@@ -315,6 +315,7 @@ namespace ZWebGLFrameWork.Server
 
             using ISimBattleSession session =
                 _sessionFactory.Create(_canonicalManifestBytes, _logger);
+            if (session == null) return Invalid(-1, 0, 0);
             StartResult started = session.Start(init);
             if (!started.Accepted)
                 return Invalid(-1, 0, session.State.Checksum);

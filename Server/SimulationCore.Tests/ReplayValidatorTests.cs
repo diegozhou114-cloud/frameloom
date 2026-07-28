@@ -75,6 +75,23 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(validator.Validate(replay).IsValid, Is.False);
         }
 
+        [Test]
+        public void ReplayValidator_NullSessionFactoryResult_IsRejected()
+        {
+            var validator = new ReplayValidator(
+                new NullFactory(), SessionTestDriver.ManifestBytes());
+
+            ReplayResult result = validator.Validate(ValidReplay());
+
+            Assert.That(result.IsValid, Is.False);
+        }
+
+        private sealed class NullFactory : ISimBattleSessionFactory
+        {
+            public ISimBattleSession Create(byte[] canonicalManifestBytes,
+                ISimLogger logger = null) => null;
+        }
+
         private static ReplayFile ValidReplay() => new ReplayFile
         {
             Version = 1,
