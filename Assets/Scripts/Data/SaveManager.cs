@@ -216,14 +216,17 @@ namespace ZWebGLFrameWork.Data
                     (saved.State != BuildingState.Upgrading && saved.UpgradeEndTime != 0))
                     return Fail("建筑数据无效", out error);
 
-                if (ConfigTableManager.Instance.IsReady &&
-                    ConfigTableManager.Instance.GetBuilding(saved.TypeId) == null)
-                    return Fail("建筑类型不存在", out error);
+                BuildingConfig config = null;
+                if (ConfigTableManager.Instance.IsReady)
+                {
+                    config = ConfigTableManager.Instance.GetBuilding(saved.TypeId);
+                    if (config == null)
+                        return Fail("建筑类型不存在", out error);
+                    if (saved.Level > config.MaxLevel)
+                        return Fail("建筑等级超出配置范围", out error);
+                }
 
                 BuildingData building = SaveDataMapper.RestoreBuilding(saved);
-                BuildingConfig config = ConfigTableManager.Instance.IsReady
-                    ? ConfigTableManager.Instance.GetBuilding(building.TypeId)
-                    : null;
                 var footprint = new BuildingFootprint(building,
                     Math.Max(1, config?.SizeX ?? 1),
                     Math.Max(1, config?.SizeY ?? 1));
