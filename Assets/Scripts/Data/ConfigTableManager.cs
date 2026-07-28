@@ -250,6 +250,12 @@ namespace ZWebGLFrameWork.Data
                         $"[ConfigTableManager] BuildingConfig Id={id} has an invalid footprint");
                     return null;
                 }
+                if (item is UnitConfig unit && unit.RequiredTownHall <= 0)
+                {
+                    Debug.LogError(
+                        $"[ConfigTableManager] UnitConfig Id={id} has an invalid RequiredTownHall");
+                    return null;
+                }
                 if (dict.ContainsKey(id))
                 {
                     Debug.LogError(
