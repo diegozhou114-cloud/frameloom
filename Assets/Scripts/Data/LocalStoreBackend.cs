@@ -70,6 +70,8 @@ namespace ZWebGLFrameWork.Data
                 for (int index = 0; index < Keys.Count; index++)
                 {
                     if (string.IsNullOrWhiteSpace(Keys[index]) ||
+                        string.IsNullOrWhiteSpace(TypeNames[index]) ||
+                        string.IsNullOrWhiteSpace(JsonValues[index]) ||
                         !result.TryAdd(Keys[index], new StoreEntry
                     {
                         TypeName = TypeNames[index],
