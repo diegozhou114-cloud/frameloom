@@ -107,6 +107,8 @@ require_text CONFIG-003 Assets/Scripts/Data/ConfigTableManager.cs \
   '(footprint.SizeX <= 0 || footprint.SizeY <= 0)'
 require_text DATA-013 Assets/Scripts/UI/Panels/DeployPanel.cs \
   'GetUnitsByTownHall(player.TownHallLevel.Value)'
+require_text DATA-014 Assets/Scripts/UI/Panels/DeployPanel.cs \
+  'FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
   'if (!configOk)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
@@ -126,4 +128,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=17\n'
+printf '[CompilationContracts] PASS count=18\n'

@@ -38,7 +38,8 @@ namespace ZWebGLFrameWork.UI
                 ? ConfigTableManager.Instance?.GetUnitsByTownHall(player.TownHallLevel.Value)
                 : null;
             _availableUnits = availableUnits != null
-                ? new List<UnitConfig>(availableUnits)
+                ? availableUnits.FindAll(unit =>
+                    FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _))
                 : new List<UnitConfig>();
             if (_availableUnits.Count > 0)
                 _selectedUnit = _availableUnits[0];

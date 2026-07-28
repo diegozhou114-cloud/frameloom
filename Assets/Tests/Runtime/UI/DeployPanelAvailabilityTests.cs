@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.Runtime.Tests.Support;
 using ZWebGLFrameWork.UI;
@@ -29,7 +31,10 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             Assert.That(available, Is.Not.Empty);
             Assert.That(available, Is.All.Matches<UnitConfig>(
                 unit => unit.RequiredTownHall <= 1));
+            Assert.That(available, Is.All.Matches<UnitConfig>(
+                unit => FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _)));
             Assert.That(available, Has.None.Matches<UnitConfig>(unit => unit.Id == 3));
+            Assert.That(available.Select(unit => unit.Id), Is.EquivalentTo(new[] { 1 }));
         }
 
         private static void InvokeOnOpen(DeployPanel panel)
