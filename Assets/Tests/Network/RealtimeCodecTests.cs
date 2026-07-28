@@ -163,6 +163,16 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public void ResyncSnapshot_RejectsTickThatWouldOverflowNextTick()
+        {
+            ResyncSnapshotEnvelope snapshot = CreateSnapshot();
+            snapshot.CompletedTick = int.MaxValue;
+            snapshot.NextTick = int.MinValue;
+
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(snapshot));
+        }
+
+        [Test]
         public void AuthorityFrame_RejectsEmbeddedSnapshotForDifferentMatch()
         {
             ResyncSnapshotEnvelope snapshot = CreateSnapshot();

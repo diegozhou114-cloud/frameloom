@@ -471,7 +471,8 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
             return snapshot != null && !string.IsNullOrWhiteSpace(snapshot.MatchId) &&
                 !string.IsNullOrWhiteSpace(snapshot.SessionId) && snapshot.SchemaVersion > 0 &&
                 snapshot.ContentHash != null && snapshot.ContentHash.Length == 32 &&
-                snapshot.CompletedTick >= -1 && snapshot.NextTick == snapshot.CompletedTick + 1 &&
+                snapshot.CompletedTick >= -1 && snapshot.CompletedTick < int.MaxValue &&
+                snapshot.NextTick == snapshot.CompletedTick + 1 &&
                 snapshot.TimelineRevision >= 0 && snapshot.UncompressedLength >= 0 &&
                 snapshot.Payload != null && snapshot.Payload.Length == snapshot.UncompressedLength &&
                 snapshot.PayloadSha256 != null && snapshot.PayloadSha256.Length == 32 &&
