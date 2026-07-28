@@ -208,6 +208,12 @@ namespace ZWebGLFrameWork.Server
                     code = ReplayValidationCode.MatchMismatch;
                     return false;
                 }
+                if (!HasValidAllowedSubmitters(
+                        init.Players, match.AllowedSubmitterPlayerIds))
+                {
+                    code = ReplayValidationCode.UnauthorizedSubmitter;
+                    return false;
+                }
 
                 DeterministicContentManifest manifest =
                     DeterministicContentManifest.Parse(match.CanonicalManifestBytes);
@@ -229,6 +235,27 @@ namespace ZWebGLFrameWork.Server
             }
 
             code = ReplayValidationCode.Valid;
+            return true;
+        }
+
+        private static bool HasValidAllowedSubmitters(
+            SimPlayerIdentity[] players, string[] allowedSubmitters)
+        {
+            if (players == null || allowedSubmitters == null ||
+                allowedSubmitters.Length == 0)
+                return false;
+            var participantAccounts = new HashSet<string>(StringComparer.Ordinal);
+            foreach (SimPlayerIdentity player in players)
+                if (string.IsNullOrWhiteSpace(player.AccountId) ||
+                    !participantAccounts.Add(player.AccountId))
+                    return false;
+
+            var authorizedAccounts = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string submitter in allowedSubmitters)
+                if (string.IsNullOrWhiteSpace(submitter) ||
+                    !participantAccounts.Contains(submitter) ||
+                    !authorizedAccounts.Add(submitter))
+                    return false;
             return true;
         }
 

@@ -71,6 +71,22 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task ReplayValidator_RejectsAllowedSubmitterOutsideBattleParticipants()
+        {
+            AuthorityFixture fixture = AuthorityFixture.Create();
+            AuthoritativeMatchRecord match = fixture.Match with
+            {
+                AllowedSubmitterPlayerIds = new[] { "third-party" }
+            };
+
+            ReplayValidationResult result = await fixture.CreateValidator().ValidateAsync(
+                fixture.Replay, match, "third-party", fixture.SerializedBytes,
+                CancellationToken.None);
+
+            Assert.That(result.Code, Is.EqualTo(ReplayValidationCode.UnauthorizedSubmitter));
+        }
+
+        [Test]
         public async Task ReplayValidator_AuthorityMetadataAndSnapshot_AreValidated()
         {
             AuthorityFixture fixture = AuthorityFixture.Create();
