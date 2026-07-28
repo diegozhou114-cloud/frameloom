@@ -591,15 +591,57 @@ namespace ZWebGLFrameWork.SimulationCore
             bool valid = true;
             world.ForEachComponent<SimTransformComponent>((entity, transform) =>
             {
-                if (!IsWaypointCoordinate(transform.GridX, transform.GridY))
-                    valid = false;
-            });
-            world.ForEachComponent<SimMovementComponent>((entity, movement) =>
-            {
-                if (!IsWaypointCoordinate(movement.TargetGridX, movement.TargetGridY))
+                if (!IsWaypointCoordinate(transform.GridX, transform.GridY) ||
+                    (world.TryGetComponent(entity, out SimMovementComponent movement)
+                        ? !HasValidMovementPosition(transform, movement)
+                        : !IsAtCellCenter(transform, LogicInt.FromInt(1))))
                     valid = false;
             });
             return valid;
+        }
+
+        private static bool HasValidMovementPosition(
+            SimTransformComponent transform, SimMovementComponent movement)
+        {
+            LogicInt cellSize = movement.CellSize;
+            if (!IsWaypointCoordinate(movement.TargetGridX, movement.TargetGridY))
+                return false;
+            LogicInt halfCell = cellSize / LogicInt.FromInt(2);
+            LogicInt originX = LogicInt.FromInt(transform.GridX) * cellSize + halfCell;
+            LogicInt originY = LogicInt.FromInt(transform.GridY) * cellSize + halfCell;
+            if (!movement.HasPath)
+                return IsAtCellCenter(transform, cellSize);
+
+            (int x, int y)? next = movement.NextWaypoint;
+            if (!next.HasValue ||
+                Math.Abs(next.Value.x - transform.GridX) > 1 ||
+                Math.Abs(next.Value.y - transform.GridY) > 1 ||
+                (next.Value.x == transform.GridX && next.Value.y == transform.GridY))
+                return false;
+
+            LogicInt destinationX = LogicInt.FromInt(next.Value.x) * cellSize + halfCell;
+            LogicInt destinationY = LogicInt.FromInt(next.Value.y) * cellSize + halfCell;
+            if (!IsBetween(transform.PosX, originX, destinationX) ||
+                !IsBetween(transform.PosY, originY, destinationY))
+                return false;
+            if (originX == destinationX) return transform.PosX == originX;
+            if (originY == destinationY) return transform.PosY == originY;
+            return LogicInt.Abs(transform.PosX - originX) ==
+                LogicInt.Abs(transform.PosY - originY);
+        }
+
+        private static bool IsAtCellCenter(SimTransformComponent transform, LogicInt cellSize)
+        {
+            LogicInt halfCell = cellSize / LogicInt.FromInt(2);
+            return transform.PosX == LogicInt.FromInt(transform.GridX) * cellSize + halfCell &&
+                transform.PosY == LogicInt.FromInt(transform.GridY) * cellSize + halfCell;
+        }
+
+        private static bool IsBetween(LogicInt value, LogicInt left, LogicInt right)
+        {
+            LogicInt minimum = LogicInt.Min(left, right);
+            LogicInt maximum = LogicInt.Max(left, right);
+            return value >= minimum && value <= maximum;
         }
 
         private bool HasValidRestoredDeathState(SessionSnapshotData data, SimWorld world)

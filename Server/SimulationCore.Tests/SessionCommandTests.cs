@@ -676,6 +676,23 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsTransformOutsideItsGridCell()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            SetTransformPosition(data.WorldSnapshot, attacker.EntityId,
+                LogicInt.FromInt(500).RawValue, LogicInt.FromInt(500).RawValue);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+        }
+
         private static void SetOwner(TickSnapshot snapshot, int entityId, int ownerPlayerId)
         {
             foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
@@ -771,6 +788,27 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             }
 
             Assert.Fail("Expected movement component was not found in snapshot.");
+        }
+
+        private static void SetTransformPosition(TickSnapshot snapshot, int entityId,
+            long posXRaw, long posYRaw)
+        {
+            foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
+            {
+                int entityIndex = System.Array.IndexOf(chunk.EntityIds, entityId);
+                int transformIndex = System.Array.IndexOf(
+                    chunk.ComponentTypeIds, SimComponentTypeId.Transform);
+                if (entityIndex < 0 || transformIndex < 0) continue;
+
+                var transforms = (SimTransformComponent[])chunk.Columns[transformIndex];
+                SimTransformComponent transform = transforms[entityIndex];
+                transform.PosX = LogicInt.FromRaw(posXRaw);
+                transform.PosY = LogicInt.FromRaw(posYRaw);
+                transforms[entityIndex] = transform;
+                return;
+            }
+
+            Assert.Fail("Expected transform component was not found in snapshot.");
         }
 
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
