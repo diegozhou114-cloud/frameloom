@@ -75,6 +75,7 @@ namespace ZWebGLFrameWork.FSM
                 Uri endpoint = new Uri(GameLauncher.Config.HttpsApiBaseUrl);
                 GuestLoginResult result =
                     await NetworkManager.Instance.GuestLoginAsync(endpoint, token);
+                if (token.IsCancellationRequested || !IsActive) return;
                 if (!result.Success)
                 {
                     PublishLoginFailure(result.Error);

@@ -37,6 +37,8 @@ require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs 
 require_text BUILD-003 Assets/Scripts/Gameplay/Economy/ResourceProducer.cs 'using System;'
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
+require_text BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
+  'if (token.IsCancellationRequested || !IsActive) return;'
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \
@@ -52,4 +54,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=7\n'
+printf '[CompilationContracts] PASS count=8\n'
