@@ -44,6 +44,17 @@ require_count() {
   fi
 }
 
+require_missing() {
+  local issue="$1"
+  local file="$2"
+  if [[ -e "$repo_root/$file" ]]; then
+    printf '[%s] FAIL obsolete path remains: %s\n' "$issue" "$file"
+    failures=$((failures + 1))
+  else
+    printf '[%s] PASS %s\n' "$issue" "$file"
+  fi
+}
+
 require_text BUILD-001 Assets/Editor/AutoFixProcessor.cs \
   'private static int FindUsingInsertPosition(string content)'
 require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs \
@@ -55,6 +66,7 @@ require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'Check
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
 require_count BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
   'if (token.IsCancellationRequested || !IsActive) return;' 2
+require_missing RESOURCE-002 Assets/Scripts/FSM/Game/HotUpdateManager.cs
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \
