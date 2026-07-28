@@ -125,6 +125,10 @@ require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
   'private static bool HasSupportedDefender(VillageData village)'
 require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
   'FrameworkBattleContent.TryGetBuildingArchetypeId(building.TypeId, out _)'
+require_text REPLAY-008 Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs \
+  'throw new FormatException("Replay JSON contains a null record.");'
+require_text REPLAY-008 Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs \
+  'throw new FormatException("Replay JSON contains a null command.");'
 require_text CONFIG-004 Assets/Scripts/Data/ConfigTableManager.cs \
   'item is UnitConfig unit && unit.RequiredTownHall <= 0'
 require_text CONFIG-005 Assets/Scripts/Data/ConfigTableManager.cs \
@@ -150,4 +154,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=28\n'
+printf '[CompilationContracts] PASS count=29\n'

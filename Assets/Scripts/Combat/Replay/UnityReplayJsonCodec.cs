@@ -90,11 +90,19 @@ namespace ZWebGLFrameWork.Combat
                     Records = new List<ReplayTickRecord>(Records?.Length ?? 0)
                 };
                 for (int index = 0; index < replay.InitialLayout.Length; index++)
+                {
+                    if (InitialLayout[index] == null)
+                        throw new FormatException("Replay JSON contains a null initial layout entry.");
                     replay.InitialLayout[index] = InitialLayout[index].ToSpawnInfo();
+                }
                 if (Records != null)
                 {
                     foreach (TickDto record in Records)
+                    {
+                        if (record == null)
+                            throw new FormatException("Replay JSON contains a null record.");
                         replay.Records.Add(record.ToTickRecord());
+                    }
                 }
                 return replay;
             }
@@ -147,10 +155,18 @@ namespace ZWebGLFrameWork.Combat
             {
                 var players = new SimPlayerIdentity[Players?.Length ?? 0];
                 for (int index = 0; index < players.Length; index++)
+                {
+                    if (Players[index] == null)
+                        throw new FormatException("Replay JSON contains a null player.");
                     players[index] = Players[index].ToPlayer();
+                }
                 var entities = new InitialEntitySpec[InitialEntities?.Length ?? 0];
                 for (int index = 0; index < entities.Length; index++)
+                {
+                    if (InitialEntities[index] == null)
+                        throw new FormatException("Replay JSON contains a null initial entity.");
                     entities[index] = InitialEntities[index].ToEntity();
+                }
                 return new ReplayBattleInit(ProtocolVersion, SchemaVersion,
                     MatchId, SessionId, Seed, TickRate, Mode,
                     ContentHash ?? Array.Empty<byte>(), players, entities,
@@ -285,7 +301,11 @@ namespace ZWebGLFrameWork.Combat
                 if (Commands != null)
                 {
                     foreach (CommandDto command in Commands)
+                    {
+                        if (command == null)
+                            throw new FormatException("Replay JSON contains a null command.");
                         record.Commands.Add(command.ToCommand());
+                    }
                 }
                 return record;
             }

@@ -53,6 +53,17 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 recorded.FinalResult, replaySession.State.Result);
         }
 
+        [TestCase("{\"InitialLayout\":[null]}")]
+        [TestCase("{\"BattleInit\":{\"Players\":[null]}}")]
+        [TestCase("{\"BattleInit\":{\"InitialEntities\":[null]}}")]
+        [TestCase("{\"Records\":[null]}")]
+        [TestCase("{\"Records\":[{\"Commands\":[null]}]}")]
+        public void UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(string json)
+        {
+            Assert.That(() => UnityReplayJsonCodec.Deserialize(json),
+                Throws.TypeOf<System.FormatException>());
+        }
+
         [Test]
         public void UnityAndValidator_SameBattleInitAndCommands_SameTickResults()
         {
