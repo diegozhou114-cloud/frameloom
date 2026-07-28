@@ -86,5 +86,19 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(store.Count, Is.EqualTo(0));
             Assert.That(store.Has("same"), Is.False);
         }
+
+        [Test]
+        public void LocalStore_EmptySerializedKey_RejectsTheEntireStore()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-empty-key"), "store.json");
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[\"\"],\"TypeNames\":[\"System.Int32\"]," +
+                "\"JsonValues\":[\"{\\\"Value\\\":1}\"]}");
+
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+
+            Assert.That(store.Count, Is.EqualTo(0));
+        }
     }
 }

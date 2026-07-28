@@ -69,7 +69,8 @@ namespace ZWebGLFrameWork.Data
                 var result = new Dictionary<string, StoreEntry>(Keys.Count);
                 for (int index = 0; index < Keys.Count; index++)
                 {
-                    if (!result.TryAdd(Keys[index], new StoreEntry
+                    if (string.IsNullOrWhiteSpace(Keys[index]) ||
+                        !result.TryAdd(Keys[index], new StoreEntry
                     {
                         TypeName = TypeNames[index],
                         JsonData = JsonValues[index],
