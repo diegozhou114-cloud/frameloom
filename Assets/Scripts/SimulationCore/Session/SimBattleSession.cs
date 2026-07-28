@@ -382,7 +382,8 @@ namespace ZWebGLFrameWork.SimulationCore
                             _state.Phase == SimCombatPhase.Deploying
                                 ? CommandDisposition.InvalidPayload : CommandDisposition.WrongPhase,
                             -1, -1);
-                    int team = deploy.PlayerId == 1 ? SimTeam.Defender : SimTeam.Attacker;
+                    int team = IsDefender(deploy.PlayerId)
+                        ? SimTeam.Defender : SimTeam.Attacker;
                     SimArchetypeDefinition definition = _manifest.GetArchetype(deploy.UnitTypeId);
                     if (definition == null || !IsWaypointCoordinate(deploy.GridX, deploy.GridY) ||
                         IsCellOccupied(deploy.GridX, deploy.GridY))
@@ -465,6 +466,12 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (SimPlayerIdentity player in _init.Players)
                 if (player.PlayerId == playerId) return true;
             return false;
+        }
+
+        private bool IsDefender(int playerId)
+        {
+            SimPlayerIdentity[] players = _init.Players;
+            return players.Length > 1 && players[1].PlayerId == playerId;
         }
 
         private bool HasValidRestoredCommandState(SessionSnapshotData data)

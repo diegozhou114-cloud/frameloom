@@ -152,5 +152,32 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
 
             Assert.That(session.Tick().Events.Count, Is.EqualTo(1));
         }
+
+        [Test]
+        public void Deploy_UsesSecondBattlePlayerAsDefenderWithCustomPlayerIds()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "custom-deploy-match", "custom-deploy-session", 42, 20,
+                SimCombatMode.VillageAttack, manifest.ContentHash,
+                new[] { new SimPlayerIdentity(10, "attacker"), new SimPlayerIdentity(20, "defender") },
+                new[]
+                {
+                    new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 20),
+                }, 6);
+            Assert.That(session.Start(init).Accepted, Is.True);
+            Assert.That(session.Submit(new DeployCmd
+            {
+                Tick = 0, PlayerId = 20, Sequence = 1, UnitTypeId = 10, GridX = 7, GridY = 2,
+            }).Accepted, Is.True);
+
+            Assert.That(session.Tick().CommandOutcomes[0].Disposition,
+                Is.EqualTo(CommandDisposition.Accepted));
+            EntityPresentationState deployed = session.State.Presentation.Entities.Single(entity =>
+                entity.OwnerPlayerId == 20 && entity.GridX == 7 && entity.GridY == 2);
+
+            Assert.That(deployed.TeamId, Is.EqualTo(SimTeam.Defender));
+        }
     }
 }
