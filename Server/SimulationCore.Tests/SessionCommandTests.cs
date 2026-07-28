@@ -714,6 +714,31 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_RejectsPendingMoveForStationaryLiveEntity()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Defender);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[defender.OwnerPlayerId] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new MoveCmd
+                {
+                    Tick = data.NextTick, PlayerId = defender.OwnerPlayerId, Sequence = 1,
+                    EntityId = defender.EntityId, TargetX = 7, TargetY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(baseline.NextTick));
+        }
+
+        [Test]
         public void RestoreSnapshot_RejectsUnreachableAcceptedSequenceWatermark()
         {
             using var session = (SimBattleSession)SessionTestDriver.StartedBattle();

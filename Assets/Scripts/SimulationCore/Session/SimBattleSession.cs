@@ -552,23 +552,31 @@ namespace ZWebGLFrameWork.SimulationCore
                     _ => -1,
                 };
                 if (entityId < 0 || !TryGetLiveEntityOwner(world, entityId,
-                        out int ownerPlayerId))
+                        out int ownerPlayerId, out SimEntity entity))
                     continue;
                 if (ownerPlayerId != command.PlayerId)
+                    return false;
+                if (command is MoveCmd &&
+                    !world.TryGetComponent(entity, out SimMovementComponent _))
                     return false;
             }
             return true;
         }
 
         private static bool TryGetLiveEntityOwner(
-            SimWorld world, int entityId, out int ownerPlayerId)
+            SimWorld world, int entityId, out int ownerPlayerId, out SimEntity found)
         {
             int? owner = null;
+            SimEntity candidate = SimEntity.Invalid;
             world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
             {
                 if (entity.Id == entityId)
+                {
                     owner = identity.OwnerPlayerId;
+                    candidate = entity;
+                }
             });
+            found = candidate;
             ownerPlayerId = owner.GetValueOrDefault();
             return owner.HasValue;
         }
