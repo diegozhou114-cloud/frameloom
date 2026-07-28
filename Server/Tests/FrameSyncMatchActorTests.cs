@@ -203,6 +203,16 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void Inbox_RejectsTerminalSimulationSequenceValue()
+        {
+            MatchActorFixture fixture = MatchActorFixture.Create();
+
+            Assert.That(fixture.Actor.SubmitInput(0,
+                fixture.Input(0, 0, int.MaxValue)),
+                Is.EqualTo(InputAcceptance.InvalidInput));
+        }
+
+        [Test]
         public void MapperMetadataMismatch_FaultsBeforeSimulationOrBroadcast()
         {
             MatchActorFixture fixture = MatchActorFixture.Create(
