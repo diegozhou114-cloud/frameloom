@@ -251,6 +251,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
                 if ((data.WorldSnapshot.PendingDamageEvents?.Count ?? 0) != 0 ||
                     !HasValidWorldCoordinates(detachedWorld) ||
+                    !HasValidRestoredEntityIdentities(data, detachedWorld) ||
                     !HasValidRestoredDeathState(data, detachedWorld) ||
                     !HasValidRestoredTerminalOutcome(data) ||
                     detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
@@ -650,6 +651,42 @@ namespace ZWebGLFrameWork.SimulationCore
                 data.AttackerDead == attackerDead &&
                 data.DefenderDead == defenderDead &&
                 data.Winner == winner;
+        }
+
+        private bool HasValidRestoredEntityIdentities(SessionSnapshotData data, SimWorld world)
+        {
+            InitialEntitySpec[] initialEntities = _init.InitialEntities;
+            long expectedNextId = (long)initialEntities.Length + data.DeployedCount;
+            if (expectedNextId != data.WorldSnapshot.NextId)
+                return false;
+
+            int identityCount = 0;
+            bool valid = true;
+            world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
+            {
+                identityCount++;
+                if (!world.TryGetComponent(entity, out SimTeamComponent team))
+                {
+                    valid = false;
+                    return;
+                }
+
+                if (entity.Id < initialEntities.Length)
+                {
+                    InitialEntitySpec initial = initialEntities[entity.Id];
+                    if (identity.ArchetypeId != initial.ArchetypeId ||
+                        identity.OwnerPlayerId != initial.OwnerPlayerId ||
+                        team.TeamId != initial.TeamId)
+                        valid = false;
+                    return;
+                }
+
+                if (_manifest.GetArchetype(identity.ArchetypeId) == null ||
+                    identity.OwnerPlayerId != _init.Players[0].PlayerId ||
+                    team.TeamId != SimTeam.Attacker)
+                    valid = false;
+            });
+            return valid && identityCount == world.EntityCount;
         }
 
         private bool HasValidRestoredTerminalOutcome(SessionSnapshotData data)

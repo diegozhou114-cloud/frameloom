@@ -521,6 +521,54 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.State.Checksum, Is.EqualTo(baseline.StateChecksum));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsForgedEntityOwnership()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Attacker);
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Defender);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            SetOwner(data.WorldSnapshot, defender.EntityId, 0);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.Submit(new SkillCmd
+            {
+                Tick = session.State.NextTick, PlayerId = 0, Sequence = 2,
+                CasterId = defender.EntityId, SkillId = 1,
+                TargetX = attacker.GridX, TargetY = attacker.GridY,
+            }).Disposition, Is.EqualTo(CommandDisposition.UnauthorizedEntity));
+        }
+
+        private static void SetOwner(TickSnapshot snapshot, int entityId, int ownerPlayerId)
+        {
+            foreach (ChunkSnapshot chunk in snapshot.ChunkSnapshots)
+            {
+                int entityIndex = System.Array.IndexOf(chunk.EntityIds, entityId);
+                int identityIndex = System.Array.IndexOf(
+                    chunk.ComponentTypeIds, SimComponentTypeId.Identity);
+                if (entityIndex < 0 || identityIndex < 0) continue;
+
+                var identities = (SimIdentityComponent[])chunk.Columns[identityIndex];
+                SimIdentityComponent identity = identities[entityIndex];
+                identity.OwnerPlayerId = ownerPlayerId;
+                identities[entityIndex] = identity;
+                return;
+            }
+
+            Assert.Fail("Expected identity component was not found in snapshot.");
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {
