@@ -249,7 +249,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 int capacity = Math.Max(8, data.WorldSnapshot.Generations?.Length ?? 0);
                 detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
-                if (!HasValidWorldCoordinates(detachedWorld) ||
+                if ((data.WorldSnapshot.PendingDamageEvents?.Count ?? 0) != 0 ||
+                    !HasValidWorldCoordinates(detachedWorld) ||
                     !HasValidRestoredDeathState(data, detachedWorld) ||
                     !HasValidRestoredTerminalOutcome(data) ||
                     detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||

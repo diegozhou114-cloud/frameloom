@@ -494,6 +494,33 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.State.Result.LootGold, Is.EqualTo(500));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsInjectedPendingDamageEvent()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(
+                entity => entity.TeamId == SimTeam.Defender);
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.WorldSnapshot.PendingDamageEvents.Add(new SimDamageEvent
+            {
+                Amount = 1,
+                Attacker = SimEntity.Invalid,
+                Target = new SimEntity(defender.EntityId, defender.Generation),
+            });
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(baseline.StateChecksum));
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {
