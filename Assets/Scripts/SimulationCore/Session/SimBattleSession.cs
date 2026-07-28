@@ -329,12 +329,15 @@ namespace ZWebGLFrameWork.SimulationCore
 
             var owners = new HashSet<int>(players);
             var occupiedCells = new HashSet<(int X, int Y)>();
+            int attackerPlayerId = init.Players[0].PlayerId;
             foreach (var entity in init.InitialEntities)
             {
                 if (_manifest.GetArchetype(entity.ArchetypeId) == null ||
                     !owners.Contains(entity.OwnerPlayerId) ||
                     !IsWaypointCoordinate(entity.GridX, entity.GridY) ||
                     (entity.TeamId != SimTeam.Attacker && entity.TeamId != SimTeam.Defender) ||
+                    (entity.TeamId == SimTeam.Attacker) !=
+                        (entity.OwnerPlayerId == attackerPlayerId) ||
                     !occupiedCells.Add((entity.GridX, entity.GridY)))
                     return StartCode.InvalidEntity;
             }

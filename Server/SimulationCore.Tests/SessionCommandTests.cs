@@ -71,6 +71,28 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void Start_RejectsInitialEntityOwnedByOpposingPlayer()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "wrong-team-owner-match",
+                "wrong-team-owner-session", 42, 20, SimCombatMode.VillageAttack,
+                manifest.ContentHash,
+                new[] { new SimPlayerIdentity(10, "attacker"),
+                    new SimPlayerIdentity(20, "defender") },
+                new[]
+                {
+                    new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 10),
+                }, 6);
+
+            StartResult result = session.Start(init);
+
+            Assert.That(result.Code, Is.EqualTo(StartCode.InvalidEntity));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Created));
+        }
+
+        [Test]
         public void SessionSkill_DotNetHostProducesDamageAndEvent()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
