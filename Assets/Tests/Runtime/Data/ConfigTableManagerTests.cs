@@ -112,6 +112,31 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         }
 
         [Test]
+        public void PreloadAllAsync_ResourceBuildingWithoutProducerType_ReturnsFalseWithoutPublishingTheRow()
+        {
+            var cache = (IDictionary)CacheField.GetValue(null);
+            cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] = new[]
+            {
+                new BuildingConfig
+                {
+                    Id = 1, Category = "Resource", ResourceType = ResourceType.None,
+                },
+            };
+            ConfigTableManager manager = CreateOwnedObject("ConfigTableManager")
+                .AddComponent<ConfigTableManager>();
+            bool result = true;
+
+            LogAssert.Expect(LogType.Error,
+                "[ConfigTableManager] BuildingConfig Id=1 has an invalid ResourceType");
+            LogAssert.Expect(LogType.Error,
+                "[ConfigTableManager] ❌ 建筑配置表加载失败或为空");
+            Assert.DoesNotThrow(() => result = manager.PreloadAllAsync().GetAwaiter().GetResult());
+
+            Assert.That(result, Is.False);
+            Assert.That(manager.GetBuilding(1), Is.Null);
+        }
+
+        [Test]
         public void PreloadAllAsync_NonPositiveBuildingMaxLevel_ReturnsFalseWithoutPublishingTheRow()
         {
             var cache = (IDictionary)CacheField.GetValue(null);

@@ -103,6 +103,8 @@ require_text CONFIG-001 Assets/Scripts/Data/ConfigTableManager.cs \
   'if (id <= 0)'
 require_text CONFIG-002 Assets/Scripts/Data/ConfigTableManager.cs \
   '!Enum.IsDefined(typeof(ResourceType), building.ResourceType)'
+require_text CONFIG-007 Assets/Scripts/Data/ConfigTableManager.cs \
+  'building.ResourceType == ResourceType.None'
 require_text CONFIG-003 Assets/Scripts/Data/ConfigTableManager.cs \
   '(footprint.SizeX <= 0 || footprint.SizeY <= 0)'
 require_text DATA-013 Assets/Scripts/UI/Panels/DeployPanel.cs \
@@ -144,4 +146,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=26\n'
+printf '[CompilationContracts] PASS count=27\n'

@@ -237,7 +237,8 @@ namespace ZWebGLFrameWork.Data
                     return null;
                 }
                 if (item is BuildingConfig building && building.Category == "Resource" &&
-                    !Enum.IsDefined(typeof(ResourceType), building.ResourceType))
+                    (!Enum.IsDefined(typeof(ResourceType), building.ResourceType) ||
+                     building.ResourceType == ResourceType.None))
                 {
                     Debug.LogError(
                         $"[ConfigTableManager] BuildingConfig Id={id} has an invalid ResourceType");
