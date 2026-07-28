@@ -68,6 +68,19 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task Router_ExpiredAuthenticatedSession_CannotPostCommands()
+        {
+            RouterFixture fixture = RouterFixture.Create(expiresAtUnixSeconds: 101);
+            await fixture.AuthenticateAsync();
+            fixture.Clock.UtcUnixSeconds = 101;
+
+            Assert.That(await fixture.Router.RouteAsync(
+                    fixture.Session, RealtimeCodec.Encode(fixture.Command(0, 1)),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.ExpiredTicket));
+            Assert.That(fixture.Sink.Accepted, Is.Empty);
+        }
+
+        [Test]
         public async Task Router_RejectsOversizeDecodeErrorsAndRateExcess()
         {
             RouterFixture fixture = RouterFixture.Create(messagesPerSecond: 1, burst: 1);

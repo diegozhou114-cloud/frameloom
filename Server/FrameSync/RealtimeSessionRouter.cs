@@ -77,6 +77,11 @@ namespace ZWebGLFrameWork.FrameSync
             if (authenticated == null) return ProtocolError.AuthenticationFailed;
             if (!IsOwner(authenticated.SessionId, connection))
                 return ProtocolError.AuthenticationFailed;
+            if (_clock.UtcUnixSeconds >= authenticated.ExpiresAtUnixSeconds)
+            {
+                Disconnect(connection);
+                return ProtocolError.ExpiredTicket;
+            }
             if (!_rateLimiter.TryConsume(
                     authenticated.SessionId, _clock.Milliseconds))
                 return ProtocolError.RateLimited;
