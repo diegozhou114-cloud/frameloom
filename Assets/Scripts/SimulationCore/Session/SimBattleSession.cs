@@ -520,10 +520,11 @@ namespace ZWebGLFrameWork.SimulationCore
             return true;
         }
 
-        private static bool HasValidRestoredCommandPayload(ISimCommand command)
+        private bool HasValidRestoredCommandPayload(ISimCommand command)
         {
             return command switch
             {
+                DeployCmd deploy => _manifest.GetArchetype(deploy.UnitTypeId) != null,
                 SkillCmd skill => skill.SkillId == BasicSkillId,
                 _ => true,
             };

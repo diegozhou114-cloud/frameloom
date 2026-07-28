@@ -691,6 +691,29 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_RejectsPendingDeploymentWithUnknownArchetype()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[0] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new DeployCmd
+                {
+                    Tick = data.NextTick, PlayerId = 0, Sequence = 1,
+                    UnitTypeId = 999, GridX = 3, GridY = 3,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.NextTick, Is.EqualTo(baseline.NextTick));
+        }
+
+        [Test]
         public void RestoreSnapshot_RejectsUnreachableAcceptedSequenceWatermark()
         {
             using var session = (SimBattleSession)SessionTestDriver.StartedBattle();
