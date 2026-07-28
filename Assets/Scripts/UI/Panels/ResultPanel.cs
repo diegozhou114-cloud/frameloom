@@ -7,7 +7,7 @@ namespace ZWebGLFrameWork.UI
 {
     /// <summary>
     /// 结算面板 — 显示星级、战利品、返回按钮。
-    /// 在收到 CombatEnded 事件后打开。
+    /// 在战斗结果成功结算并持久化后打开。
     /// </summary>
     public class ResultPanel : UIBase
     {

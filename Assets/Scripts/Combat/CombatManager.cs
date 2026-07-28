@@ -11,7 +11,6 @@ namespace ZWebGLFrameWork.Combat
     public class CombatManager : SingletonDontDestroy<CombatManager>
     {
         public const string EventPhaseChanged = "CombatPhaseChanged";
-        public const string EventCombatEnded = "CombatEnded";
 
         private const float TickInterval = 1f / 20f;
         private ISimBattleSessionFactory _sessionFactory;
@@ -247,7 +246,6 @@ namespace ZWebGLFrameWork.Combat
                 return;
 
             LastResult = result;
-            EventBus.Publish(EventCombatEnded, result);
             Cleanup(completion, true);
         }
 

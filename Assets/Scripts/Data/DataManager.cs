@@ -46,6 +46,7 @@ namespace ZWebGLFrameWork.Data
         public void ResetAll()
         {
             Player.Reset();
+            Player.AppliedBattleResultIds.Clear();
             Village.Reset();
             Village.Buildings.Clear();
         }

@@ -15,8 +15,10 @@ namespace ZWebGLFrameWork.FSM
     public class BattleState : FSMState<GameState>
     {
         private readonly CombatManager _combatManager;
+        private readonly BattleRewardService _rewardService = new BattleRewardService();
         private CancellationTokenSource _battleLifetime;
         private bool _battleStarted;
+        private string _expectedMatchId;
 
         public BattleState() : this(CombatManager.Instance) { }
 
@@ -36,10 +38,10 @@ namespace ZWebGLFrameWork.FSM
             }
 
             EventBus.Subscribe<SimCombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
-            EventBus.Subscribe<SimBattleResult>(CombatManager.EventCombatEnded, OnCombatEnded);
             EventBus.Subscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
             _battleLifetime = new CancellationTokenSource();
+            _expectedMatchId = parameters.MatchId;
             SaveManager.SaveGame();
             _battleStarted = false;
             SafeStartBattle(parameters, _battleLifetime);
@@ -63,7 +65,6 @@ namespace ZWebGLFrameWork.FSM
             _combatManager.StopBattle();
 
             EventBus.Unsubscribe<SimCombatPhase>(CombatManager.EventPhaseChanged, OnPhaseChanged);
-            EventBus.Unsubscribe<SimBattleResult>(CombatManager.EventCombatEnded, OnCombatEnded);
             EventBus.Unsubscribe("Battle_ReturnToVillage", OnReturnToVillage);
 
             UIManager.Instance.Close<DeployPanel>();
@@ -89,12 +90,6 @@ namespace ZWebGLFrameWork.FSM
             }
         }
 
-        private void OnCombatEnded(SimBattleResult result)
-        {
-            Debug.Log($"[BattleState] 战斗结束: winner={result.WinnerTeamId}, stars={result.Stars}");
-            UIManager.Instance.Open<ResultPanel>(result);
-        }
-
         private void OnReturnToVillage()
         {
             Debug.Log("[BattleState] 返回主城");
@@ -106,7 +101,20 @@ namespace ZWebGLFrameWork.FSM
         {
             try
             {
-                await _combatManager.StartBattleAsync(parameters, lifetime.Token);
+                SimBattleResult result = await _combatManager.StartBattleAsync(parameters, lifetime.Token);
+                if (lifetime.IsCancellationRequested || !ReferenceEquals(_battleLifetime, lifetime) ||
+                    !IsActive)
+                    return;
+
+                BattleRewardCommitStatus status = _rewardService.Commit(_expectedMatchId, result,
+                    BattleResultTrust.Accepted, DataManager.Instance.Player,
+                    () => SaveManager.SaveGame(), committed => UIManager.Instance.Open<ResultPanel>(committed));
+                if (status != BattleRewardCommitStatus.Applied &&
+                    status != BattleRewardCommitStatus.Duplicate)
+                {
+                    EventBus.Publish("BattleRewardRejected", status);
+                    Debug.LogError($"[BattleState] Result commit rejected: {status}");
+                }
             }
             catch (OperationCanceledException)
             {

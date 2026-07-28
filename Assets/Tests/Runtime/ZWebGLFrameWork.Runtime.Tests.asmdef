@@ -8,6 +8,7 @@
         "ZWebGLFrameWork.UI",
         "ZWebGLFrameWork.FSM",
         "ZWebGLFrameWork.Combat",
+        "ZWebGLFrameWork.SimulationCore",
         "UniTask",
         "UnityEngine.UI"
     ],

@@ -67,6 +67,18 @@ require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'Downl
 require_count BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
   'if (token.IsCancellationRequested || !IsActive) return;' 2
 require_missing RESOURCE-002 Assets/Scripts/FSM/Game/HotUpdateManager.cs
+require_text DATA-005 Assets/Scripts/FSM/Game/BattleRewardService.cs \
+  'public sealed class BattleRewardService'
+require_text DATA-005 Assets/Scripts/FSM/Game/BattleRewardService.cs \
+  'SaveFailed,'
+require_text DATA-005 Assets/Scripts/Data/PlayerSaveData.cs \
+  'public List<string> AppliedBattleResultIds = new List<string>();'
+require_text DATA-005 Assets/Scripts/FSM/Game/States/BattleState.cs \
+  'BattleRewardCommitStatus status = _rewardService.Commit('
+require_absent DATA-005 Assets/Scripts/FSM/Game/States/BattleState.cs \
+  'EventBus.Subscribe<SimBattleResult>(CombatManager.EventCombatEnded'
+require_absent DATA-005 Assets/Scripts/Combat/CombatManager.cs \
+  'EventBus.Publish(EventCombatEnded, result);'
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \

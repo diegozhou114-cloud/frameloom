@@ -161,6 +161,7 @@ namespace ZWebGLFrameWork.Data
             player.Gems.Value = data.Gems;
             player.Trophies.Value = data.Trophies;
             player.Exp.Value = data.Exp;
+            SaveDataMapper.RestoreRewardReceipts(data, player);
         }
 
         private static bool TryPrepareForLoad(

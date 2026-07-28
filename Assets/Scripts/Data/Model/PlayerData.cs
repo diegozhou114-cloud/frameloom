@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.Data
 {
     /// <summary>玩家核心数据</summary>
     public class PlayerData : ObservableModel
     {
+        /// <summary>已成功保存的战斗结算收据，用于跨重启的 exactly-once 奖励去重。</summary>
+        public readonly List<string> AppliedBattleResultIds = new List<string>();
+
         /// <summary>玩家昵称</summary>
         public Observable<string> Name = new Observable<string>("Villager");
 

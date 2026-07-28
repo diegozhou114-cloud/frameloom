@@ -22,6 +22,7 @@ namespace ZWebGLFrameWork.Data
                 Gems = player.Gems.Value,
                 Trophies = player.Trophies.Value,
                 Exp = player.Exp.Value,
+                AppliedBattleResultIds = new List<string>(player.AppliedBattleResultIds),
                 VillageName = village.Name.Value,
                 MaxBuildings = village.MaxBuildings.Value,
                 Buildings = new List<BuildingSaveData>(),
@@ -42,6 +43,20 @@ namespace ZWebGLFrameWork.Data
                 });
             }
             return result;
+        }
+
+        public static void RestoreRewardReceipts(PlayerSaveData saved, PlayerData player)
+        {
+            if (saved == null) throw new ArgumentNullException(nameof(saved));
+            if (player == null) throw new ArgumentNullException(nameof(player));
+
+            player.AppliedBattleResultIds.Clear();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string resultId in saved.AppliedBattleResultIds ?? new List<string>())
+            {
+                if (!string.IsNullOrWhiteSpace(resultId) && seen.Add(resultId))
+                    player.AppliedBattleResultIds.Add(resultId);
+            }
         }
 
         public static BuildingData RestoreBuilding(BuildingSaveData saved)

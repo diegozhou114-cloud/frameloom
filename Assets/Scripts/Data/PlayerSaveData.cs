@@ -34,6 +34,7 @@ namespace ZWebGLFrameWork.Data
         public int Gems = 50;
         public int Trophies = 0;
         public int Exp = 0;
+        public List<string> AppliedBattleResultIds = new List<string>();
         public string VillageName = "My Village";
         public int MaxBuildings = 50;
         public List<BuildingSaveData> Buildings = new List<BuildingSaveData>();
