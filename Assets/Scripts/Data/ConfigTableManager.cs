@@ -236,6 +236,13 @@ namespace ZWebGLFrameWork.Data
                         $"[ConfigTableManager] {typeof(T).Name} Id={id} must be positive");
                     return null;
                 }
+                if (item is BuildingConfig building && building.Category == "Resource" &&
+                    !Enum.IsDefined(typeof(ResourceType), building.ResourceType))
+                {
+                    Debug.LogError(
+                        $"[ConfigTableManager] BuildingConfig Id={id} has an invalid ResourceType");
+                    return null;
+                }
                 if (dict.ContainsKey(id))
                 {
                     Debug.LogError(
