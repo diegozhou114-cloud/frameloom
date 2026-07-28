@@ -238,6 +238,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     data.TerminalFinalTick == data.CompletedTick;
                 if (terminalState != (data.TerminalOutcome != null) ||
                     (data.Lifecycle == SessionLifecycle.Ended) != terminalState ||
+                    (data.Phase == SimCombatPhase.Deploying && !_modeProfile.ManualDeployment) ||
                     data.DeployedCount > _modeProfile.MaxDeployCount ||
                     !HasValidRestoredCommandState(data))
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
@@ -377,25 +378,31 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 case DeployCmd deploy:
                     if (_state.Phase != SimCombatPhase.Deploying ||
-                        _deployedCount >= _modeProfile.MaxDeployCount)
+                        !_modeProfile.ManualDeployment)
                         return new CommandExecutionResult(command,
-                            _state.Phase == SimCombatPhase.Deploying
-                                ? CommandDisposition.InvalidPayload : CommandDisposition.WrongPhase,
-                            -1, -1);
-                    int team = IsDefender(deploy.PlayerId)
-                        ? SimTeam.Defender : SimTeam.Attacker;
+                            CommandDisposition.WrongPhase, -1, -1);
+                    if (_deployedCount >= _modeProfile.MaxDeployCount)
+                        return new CommandExecutionResult(command,
+                            CommandDisposition.InvalidPayload, -1, -1);
+                    if (!IsAttacker(deploy.PlayerId))
+                        return new CommandExecutionResult(command,
+                            CommandDisposition.UnauthorizedEntity, -1, -1);
                     SimArchetypeDefinition definition = _manifest.GetArchetype(deploy.UnitTypeId);
                     if (definition == null || !IsWaypointCoordinate(deploy.GridX, deploy.GridY) ||
                         IsCellOccupied(deploy.GridX, deploy.GridY))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
                     SimEntity deployed = CreateInitialEntity(new InitialEntitySpec(
-                        deploy.UnitTypeId, deploy.GridX, deploy.GridY, team, deploy.PlayerId));
+                        deploy.UnitTypeId, deploy.GridX, deploy.GridY,
+                        SimTeam.Attacker, deploy.PlayerId));
                     _deployedCount++;
                     return new CommandExecutionResult(command, CommandDisposition.Accepted,
                         deployed.Id, deployed.Generation);
                 case EndDeploymentCmd:
                     if (_state.Phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
                         return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
+                    if (!IsAttacker(command.PlayerId))
+                        return new CommandExecutionResult(command,
+                            CommandDisposition.UnauthorizedEntity, -1, -1);
                     _state = new SimBattleState(_state.Lifecycle, SimCombatPhase.Battling,
                         _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
                         _state.Checksum, _state.Presentation, _state.Result);
@@ -468,10 +475,10 @@ namespace ZWebGLFrameWork.SimulationCore
             return false;
         }
 
-        private bool IsDefender(int playerId)
+        private bool IsAttacker(int playerId)
         {
             SimPlayerIdentity[] players = _init.Players;
-            return players.Length > 1 && players[1].PlayerId == playerId;
+            return players.Length > 0 && players[0].PlayerId == playerId;
         }
 
         private bool HasValidRestoredCommandState(SessionSnapshotData data)
@@ -489,10 +496,21 @@ namespace ZWebGLFrameWork.SimulationCore
                     !sequences.Add((command.PlayerId, command.Sequence)) ||
                     !data.LastSequenceByPlayer.TryGetValue(command.PlayerId,
                         out int acceptedSequence) || command.Sequence > acceptedSequence ||
-                    !HasWaypointCoordinates(command))
+                    !HasWaypointCoordinates(command) ||
+                    !HasValidRestoredCommandAuthorization(command))
                     return false;
             }
             return true;
+        }
+
+        private bool HasValidRestoredCommandAuthorization(ISimCommand command)
+        {
+            return command switch
+            {
+                DeployCmd deploy => IsAttacker(deploy.PlayerId),
+                EndDeploymentCmd endDeployment => IsAttacker(endDeployment.PlayerId),
+                _ => true,
+            };
         }
 
         private CommandDisposition ValidateCommand(ISimCommand command)
@@ -500,18 +518,23 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (command)
             {
                 case DeployCmd deploy:
-                    if (_state.Phase != SimCombatPhase.Deploying)
+                    if (_state.Phase != SimCombatPhase.Deploying ||
+                        !_modeProfile.ManualDeployment)
                         return CommandDisposition.WrongPhase;
                     if (_deployedCount >= _modeProfile.MaxDeployCount)
                         return CommandDisposition.InvalidPayload;
+                    if (!IsAttacker(deploy.PlayerId))
+                        return CommandDisposition.UnauthorizedEntity;
                     return deploy.UnitTypeId > 0 &&
                         IsWaypointCoordinate(deploy.GridX, deploy.GridY) &&
                         _manifest.GetArchetype(deploy.UnitTypeId) != null &&
                         !IsCellOccupied(deploy.GridX, deploy.GridY)
                         ? CommandDisposition.Accepted : CommandDisposition.InvalidPayload;
                 case EndDeploymentCmd:
-                    return _state.Phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment
-                        ? CommandDisposition.Accepted : CommandDisposition.WrongPhase;
+                    if (_state.Phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
+                        return CommandDisposition.WrongPhase;
+                    return IsAttacker(command.PlayerId)
+                        ? CommandDisposition.Accepted : CommandDisposition.UnauthorizedEntity;
                 case MoveCmd move:
                     if (!IsWaypointCoordinate(move.TargetX, move.TargetY) ||
                         !TryFindEntity(move.EntityId, out SimEntity mover) ||

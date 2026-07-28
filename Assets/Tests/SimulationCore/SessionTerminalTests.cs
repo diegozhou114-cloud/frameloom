@@ -502,6 +502,41 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Snapshot_DefenderDeploymentCommand_IsRejectedBeforeLiveMutation()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using var session = (SimBattleSession)new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "snapshot-role-match", "snapshot-role-session", 42, 20,
+                SimCombatMode.VillageAttack, manifest.ContentHash,
+                new[] { new SimPlayerIdentity(10, "attacker"), new SimPlayerIdentity(20, "defender") },
+                new[] { new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 20) }, 6);
+            Assert.That(session.Start(init).Accepted, Is.True);
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.LastSequenceByPlayer[20] = 1;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new DeployCmd
+                {
+                    Tick = data.NextTick,
+                    PlayerId = 20,
+                    Sequence = 1,
+                    UnitTypeId = 10,
+                    GridX = 20,
+                    GridY = 2,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
         public void Snapshot_DuplicatePendingCommandSequence_IsRejectedBeforeLiveMutation()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
