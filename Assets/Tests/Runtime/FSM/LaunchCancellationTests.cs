@@ -1,7 +1,10 @@
 using System.Threading;
+using System.Reflection;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.TestTools;
+using ZWebGLFrameWork.Core;
+using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.FSM;
 
 namespace ZWebGLFrameWork.Runtime.Tests.FSM
@@ -45,6 +48,20 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
 
             Assert.That(pipeline.Cancelled, Is.True);
             Assert.That(fsm.CurrentStateId, Is.EqualTo(GameState.MainVillage));
+        }
+
+        [TestCase(ResourceProviderType.AssetBundle)]
+        [TestCase(ResourceProviderType.Addressables)]
+        public void LaunchState_LegacyResourceProviderSelection_FallsBackToResources(
+            ResourceProviderType configuredProvider)
+        {
+            MethodInfo factory = typeof(LaunchState).GetMethod("CreateResourceProvider",
+                BindingFlags.Static | BindingFlags.NonPublic);
+
+            IResourceProvider provider = (IResourceProvider)factory.Invoke(
+                null, new object[] { configuredProvider });
+
+            Assert.That(provider, Is.TypeOf<ResourcesProvider>());
         }
     }
 }

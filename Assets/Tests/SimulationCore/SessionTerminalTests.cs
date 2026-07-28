@@ -89,6 +89,38 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void CommandsAndInitialEntities_RejectCoordinatesOutsideWaypointEncodingRange()
+        {
+            const int outsideWaypointRange = ushort.MaxValue + 1;
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            int entityId = session.State.Presentation.Entities[0].EntityId;
+
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+                EntityId = entityId, TargetX = outsideWaypointRange, TargetY = 2,
+            }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+
+            byte[] manifest = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest content = DeterministicContentManifest.Parse(manifest);
+            using ISimBattleSession initial = new SimBattleSessionFactory().Create(manifest);
+            var init = new BattleInit(1, 1, "out-of-range-match", "out-of-range-session",
+                42, 20, SimCombatMode.VillageAttack, content.ContentHash,
+                new[]
+                {
+                    new SimPlayerIdentity(0, "attacker"),
+                    new SimPlayerIdentity(1, "defender"),
+                },
+                new[]
+                {
+                    new InitialEntitySpec(10, outsideWaypointRange, 2,
+                        SimTeam.Attacker, 0),
+                }, 6);
+
+            Assert.That(initial.Start(init).Code, Is.EqualTo(StartCode.InvalidEntity));
+        }
+
+        [Test]
         public void DeserializeCommand_InvalidOrMissingType_ReturnsNull()
         {
             int invalidType = 999;
@@ -508,6 +540,52 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Snapshot_TransformOutsideWaypointEncodingRange_IsRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            ChunkSnapshot chunk = data.WorldSnapshot.ChunkSnapshots.First(candidate =>
+                Array.IndexOf(candidate.ComponentTypeIds,
+                    SimComponentTypeId.Transform) >= 0);
+            int transformColumn = Array.IndexOf(chunk.ComponentTypeIds,
+                SimComponentTypeId.Transform);
+            var transforms = (SimTransformComponent[])chunk.Columns[transformColumn];
+            transforms[0].GridX = ushort.MaxValue + 1;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(
+                session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
+        public void Snapshot_MovementTargetOutsideWaypointEncodingRange_IsRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            ChunkSnapshot chunk = data.WorldSnapshot.ChunkSnapshots.First(candidate =>
+                Array.IndexOf(candidate.ComponentTypeIds,
+                    SimComponentTypeId.Movement) >= 0);
+            int movementColumn = Array.IndexOf(chunk.ComponentTypeIds,
+                SimComponentTypeId.Movement);
+            var movements = (SimMovementComponent[])chunk.Columns[movementColumn];
+            movements[0].TargetGridX = ushort.MaxValue + 1;
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(
+                session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
         public void Snapshot_GenerationCountExceedsPayload_IsRejectedBeforeAllocation()
         {
             var writer = new DeterministicBinaryWriter();
@@ -697,6 +775,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var world = new SimWorld(SimComponentSchema.CreateRegistry(),
                 Math.Max(8, data.WorldSnapshot.Generations.Length));
             world.RestoreFromFull(data.WorldSnapshot);
+            data.WorldSnapshot.Checksum = world.ComputeChecksum();
             MethodInfo checksumMethod = typeof(SimBattleSession).GetMethod(
                 "ComputeChecksum", BindingFlags.Instance | BindingFlags.NonPublic,
                 null, new[] { typeof(SessionSnapshotData), typeof(SimWorld) }, null);

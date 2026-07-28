@@ -112,8 +112,8 @@ namespace ZWebGLFrameWork.Editor
             string providerHint = cfg.ResourceProvider switch
             {
                 ResourceProviderType.Resources    => "📁 Resources 目录 — 本地开发，无需打包，即改即用",
-                ResourceProviderType.AssetBundle  => "📦 AssetBundle 包 — 热更模式，从 StreamingAssets 或下载目录加载",
-                ResourceProviderType.Addressables => "☁ Addressables — 生产环境，支持远程资源与增量更新",
+                ResourceProviderType.AssetBundle  => "TODO(YooAsset)：保留旧序列化值；当前启动时回退到 Resources",
+                ResourceProviderType.Addressables => "TODO(YooAsset)：保留旧序列化值；当前启动时回退到 Resources",
                 _                                 => "",
             };
             EditorGUILayout.HelpBox(providerHint, MessageType.Info);

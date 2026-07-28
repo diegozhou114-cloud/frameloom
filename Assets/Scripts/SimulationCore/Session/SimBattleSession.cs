@@ -7,6 +7,7 @@ namespace ZWebGLFrameWork.SimulationCore
 {
     public sealed class SimBattleSession : ISimBattleSession
     {
+        private const int MaxWaypointCoordinate = ushort.MaxValue;
         private readonly SimWorld _world;
         private readonly DeterministicContentManifest _manifest;
         private readonly ISimLogger _logger;
@@ -243,7 +244,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 int capacity = Math.Max(8, data.WorldSnapshot.Generations?.Length ?? 0);
                 detachedWorld = new SimWorld(SimComponentSchema.CreateRegistry(), capacity);
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
-                if (detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
+                if (!HasValidWorldCoordinates(detachedWorld) ||
+                    detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
                     ComputeChecksum(data, detachedWorld) != snapshot.StateChecksum)
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
             }
@@ -315,7 +317,7 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 if (_manifest.GetArchetype(entity.ArchetypeId) == null ||
                     !owners.Contains(entity.OwnerPlayerId) ||
-                    entity.GridX < 0 || entity.GridY < 0 ||
+                    !IsWaypointCoordinate(entity.GridX, entity.GridY) ||
                     (entity.TeamId != SimTeam.Attacker && entity.TeamId != SimTeam.Defender) ||
                     !occupiedCells.Add((entity.GridX, entity.GridY)))
                     return StartCode.InvalidEntity;
@@ -382,7 +384,7 @@ namespace ZWebGLFrameWork.SimulationCore
                             -1, -1);
                     int team = deploy.PlayerId == 1 ? SimTeam.Defender : SimTeam.Attacker;
                     SimArchetypeDefinition definition = _manifest.GetArchetype(deploy.UnitTypeId);
-                    if (definition == null || deploy.GridX < 0 || deploy.GridY < 0 ||
+                    if (definition == null || !IsWaypointCoordinate(deploy.GridX, deploy.GridY) ||
                         IsCellOccupied(deploy.GridX, deploy.GridY))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
                     SimEntity deployed = CreateInitialEntity(new InitialEntitySpec(
@@ -405,7 +407,7 @@ namespace ZWebGLFrameWork.SimulationCore
                         moveIdentity.OwnerPlayerId != move.PlayerId)
                         return new CommandExecutionResult(command, CommandDisposition.UnauthorizedEntity,
                             mover.Id, mover.Generation);
-                    if (move.TargetX < 0 || move.TargetY < 0)
+                    if (!IsWaypointCoordinate(move.TargetX, move.TargetY))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload,
                             mover.Id, mover.Generation);
                     movement.Path = BuildPath(mover, move.TargetX, move.TargetY);
@@ -425,7 +427,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     if (!_world.TryGetComponent(caster, out SimTeamComponent casterTeam))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload,
                             caster.Id, caster.Generation);
-                    if (skill.SkillId != BasicSkillId || skill.TargetX < 0 || skill.TargetY < 0)
+                    if (skill.SkillId != BasicSkillId ||
+                        !IsWaypointCoordinate(skill.TargetX, skill.TargetY))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload,
                             caster.Id, caster.Generation);
                     SimEntity target = FindEnemyAt(skill.TargetX, skill.TargetY, casterTeam.TeamId);
@@ -478,7 +481,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     (long)command.Tick > (long)data.NextTick + 64 ||
                     !sequences.Add((command.PlayerId, command.Sequence)) ||
                     !data.LastSequenceByPlayer.TryGetValue(command.PlayerId,
-                        out int acceptedSequence) || command.Sequence > acceptedSequence)
+                        out int acceptedSequence) || command.Sequence > acceptedSequence ||
+                    !HasWaypointCoordinates(command))
                     return false;
             }
             return true;
@@ -493,7 +497,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         return CommandDisposition.WrongPhase;
                     if (_deployedCount >= _modeProfile.MaxDeployCount)
                         return CommandDisposition.InvalidPayload;
-                    return deploy.UnitTypeId > 0 && deploy.GridX >= 0 && deploy.GridY >= 0 &&
+                    return deploy.UnitTypeId > 0 &&
+                        IsWaypointCoordinate(deploy.GridX, deploy.GridY) &&
                         _manifest.GetArchetype(deploy.UnitTypeId) != null &&
                         !IsCellOccupied(deploy.GridX, deploy.GridY)
                         ? CommandDisposition.Accepted : CommandDisposition.InvalidPayload;
@@ -501,7 +506,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     return _state.Phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment
                         ? CommandDisposition.Accepted : CommandDisposition.WrongPhase;
                 case MoveCmd move:
-                    if (move.TargetX < 0 || move.TargetY < 0 ||
+                    if (!IsWaypointCoordinate(move.TargetX, move.TargetY) ||
                         !TryFindEntity(move.EntityId, out SimEntity mover) ||
                         !_world.TryGetComponent(mover, out SimMovementComponent _))
                         return CommandDisposition.InvalidPayload;
@@ -510,7 +515,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         return CommandDisposition.UnauthorizedEntity;
                     return CommandDisposition.Accepted;
                 case SkillCmd skill:
-                    if (skill.SkillId != BasicSkillId || skill.TargetX < 0 || skill.TargetY < 0 ||
+                    if (skill.SkillId != BasicSkillId ||
+                        !IsWaypointCoordinate(skill.TargetX, skill.TargetY) ||
                         !TryFindEntity(skill.CasterId, out SimEntity caster))
                         return CommandDisposition.InvalidPayload;
                     if (!_world.TryGetComponent(caster, out SimIdentityComponent skillIdentity) ||
@@ -523,6 +529,36 @@ namespace ZWebGLFrameWork.SimulationCore
                 default:
                     return CommandDisposition.InvalidPayload;
             }
+        }
+
+        private static bool IsWaypointCoordinate(int x, int y) =>
+            x >= 0 && x <= MaxWaypointCoordinate && y >= 0 && y <= MaxWaypointCoordinate;
+
+        private static bool HasWaypointCoordinates(ISimCommand command)
+        {
+            return command switch
+            {
+                DeployCmd deploy => IsWaypointCoordinate(deploy.GridX, deploy.GridY),
+                MoveCmd move => IsWaypointCoordinate(move.TargetX, move.TargetY),
+                SkillCmd skill => IsWaypointCoordinate(skill.TargetX, skill.TargetY),
+                _ => true,
+            };
+        }
+
+        private static bool HasValidWorldCoordinates(SimWorld world)
+        {
+            bool valid = true;
+            world.ForEachComponent<SimTransformComponent>((entity, transform) =>
+            {
+                if (!IsWaypointCoordinate(transform.GridX, transform.GridY))
+                    valid = false;
+            });
+            world.ForEachComponent<SimMovementComponent>((entity, movement) =>
+            {
+                if (!IsWaypointCoordinate(movement.TargetGridX, movement.TargetGridY))
+                    valid = false;
+            });
+            return valid;
         }
 
         private bool IsCellOccupied(int gridX, int gridY)

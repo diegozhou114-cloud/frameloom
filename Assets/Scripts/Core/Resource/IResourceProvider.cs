@@ -4,7 +4,8 @@ using UnityEngine;
 namespace ZWebGLFrameWork.Core
 {
     /// <summary>
-    /// 资源加载抽象接口 — 支持多种加载模式（Resources / AssetBundle / Addressables）。
+    /// 资源加载抽象接口。当前使用 Resources；正式项目接入资源更新和分包时迁移至 YooAsset。
+    /// TODO(YooAsset): 不在当前框架阶段接入 AssetBundle 或 Addressables。
     /// 所有异步方法返回 UniTask，Unity 主线程安全。
     /// </summary>
     public interface IResourceProvider

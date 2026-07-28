@@ -235,11 +235,9 @@ namespace ZWebGLFrameWork.FSM
 
         private static IResourceProvider CreateResourceProvider(ResourceProviderType type)
         {
-            return type switch
-            {
-                ResourceProviderType.AssetBundle => new AssetBundleProvider(),
-                _ => new ResourcesProvider(),
-            };
+            if (type != ResourceProviderType.Resources)
+                Debug.LogWarning($"[LaunchState] {type} is reserved for TODO(YooAsset); using ResourcesProvider.");
+            return new ResourcesProvider();
         }
 
         private static void PublishProgress(string phase, float progress, string hint = "")

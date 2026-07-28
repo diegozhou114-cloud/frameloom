@@ -94,8 +94,8 @@ namespace ZWebGLFrameWork.Data
         }
 
         [Header("资源 — 加载方式切换")]
-        /// <summary>资源加载提供者：Resources=本地开发 / AssetBundle=热更模式 / Addressables=生产环境</summary>
-        [Tooltip("Resources=本地开发  AssetBundle=热更包  Addressables=远程资源")]
+        /// <summary>资源加载提供者：当前仅 Resources 生效；旧枚举值为序列化兼容保留。</summary>
+        [Tooltip("当前仅 Resources 生效；AssetBundle/Addressables 保留旧配置值，TODO(YooAsset)")]
         [SerializeField] private ResourceProviderType _resourceProvider = ResourceProviderType.Resources;
         public ResourceProviderType ResourceProvider => _resourceProvider;
 
@@ -248,16 +248,16 @@ namespace ZWebGLFrameWork.Data
         FullWithStacktrace,
     }
 
-    /// <summary>资源加载提供者 — 决定底层从何处加载资源</summary>
+    /// <summary>资源加载提供者。AssetBundle/Addressables 的数值为既有序列化数据保留，当前回退至 Resources。</summary>
     public enum ResourceProviderType
     {
         /// <summary>Resources 目录：本地开发模式，无需打包，即改即用</summary>
         Resources,
 
-        /// <summary>AssetBundle 包：热更模式，从 StreamingAssets 或下载目录加载</summary>
+        /// <summary>保留既有序列化值。TODO(YooAsset)：当前启动时回退至 Resources。</summary>
         AssetBundle,
 
-        /// <summary>Addressables：生产环境，支持远程资源与增量更新</summary>
+        /// <summary>保留既有序列化值。TODO(YooAsset)：当前启动时回退至 Resources。</summary>
         Addressables,
     }
 }
