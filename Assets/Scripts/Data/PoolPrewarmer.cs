@@ -46,7 +46,8 @@ namespace ZWebGLFrameWork.Data
             {
                 // NOTE: prefab path $"Prefabs/Units/{unit.Name}" is fragile — if a prefab
                 // is renamed the lookup silently returns null and the unit is skipped.
-                // Consider storing the prefab GUID or using Addressables with a direct reference.
+                // TODO(YooAsset): Formal content packaging should replace this name-derived path
+                // with a stable resource identifier; do not add Addressables in the current stage.
                 string prefabPath = $"Prefabs/Units/{unit.Name}";
                 var prefab = await ResourceManager.Instance.LoadAsync<GameObject>(prefabPath);
 
