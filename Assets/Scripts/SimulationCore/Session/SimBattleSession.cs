@@ -320,8 +320,10 @@ namespace ZWebGLFrameWork.SimulationCore
             if (_manifest.GetMode(init.Mode) == null) return StartCode.InvalidMode;
 
             var players = new HashSet<int>();
+            var accounts = new HashSet<string>(StringComparer.Ordinal);
             foreach (var player in init.Players)
-                if (!players.Add(player.PlayerId) || string.IsNullOrEmpty(player.AccountId))
+                if (!players.Add(player.PlayerId) || string.IsNullOrEmpty(player.AccountId) ||
+                    !accounts.Add(player.AccountId))
                     return StartCode.InvalidPlayer;
             if (players.Count == 0) return StartCode.InvalidPlayer;
 
