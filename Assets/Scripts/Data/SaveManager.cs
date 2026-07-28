@@ -50,6 +50,8 @@ namespace ZWebGLFrameWork.Data
         /// </summary>
         public static bool Save<T>(T data, int? slot = null)
         {
+            if (data == null) return false;
+
             int targetSlot = slot ?? CurrentSlot;
             try
             {

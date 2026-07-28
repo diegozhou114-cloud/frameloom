@@ -95,5 +95,27 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(nested.Succeeded, Is.True);
             Assert.That(files.Files["save.json"], Is.EqualTo("first"));
         }
+
+        [Test]
+        public void SaveManager_NullData_DoesNotOverwriteExistingSave()
+        {
+            int slot = SaveManager.MaxSaveSlots + 1001;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                Assert.That(SaveManager.Save(
+                    new PlayerSaveData { PlayerName = "ExistingSave" }, slot), Is.True);
+                string saved = File.ReadAllText(path);
+
+                Assert.That(SaveManager.Save<PlayerSaveData>(null, slot), Is.False);
+                Assert.That(File.ReadAllText(path), Is.EqualTo(saved));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
     }
 }
