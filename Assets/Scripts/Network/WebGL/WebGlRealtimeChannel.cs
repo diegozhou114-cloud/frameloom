@@ -126,6 +126,7 @@ namespace ZWebGLFrameWork.Network.WebGL
                     _closed = true; _started = true; _state = RealtimeChannelState.Closing;
                     client = _client; _client = null;
                     authentication = _authentication; receiver = _pendingReceive; _pendingReceive = null;
+                    _received.Clear();
                     dispatchCancellation = _dispatchCancellation; _dispatchCancellation = null;
                     dispatchTask = _dispatchTask; _dispatchTask = null;
                 }

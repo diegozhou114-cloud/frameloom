@@ -234,6 +234,21 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task ReceiveAsync_AfterClose_RejectsQueuedMessage()
+        {
+            var client = new FakeNativeWebSocketClient();
+            var channel = new WebGlRealtimeChannel(
+                new FakeNativeWebSocketClientFactory(client));
+            await ConnectAndAuthenticateAsync(channel, client);
+            client.RaiseMessage(new byte[] { 1, 2, 3 });
+
+            await channel.CloseAsync(RealtimeCloseReason.Normal, CancellationToken.None);
+
+            Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await channel.ReceiveAsync(CancellationToken.None));
+        }
+
+        [Test]
         public async Task CloseAsync_IsIdempotent()
         {
             var client = new FakeNativeWebSocketClient();
