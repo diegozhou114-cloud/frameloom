@@ -81,6 +81,10 @@ require_absent DATA-005 Assets/Scripts/Combat/CombatManager.cs \
   'EventBus.Publish(EventCombatEnded, result);'
 require_text DATA-006 Assets/Scripts/Data/SaveManager.cs \
   '(saved.State != BuildingState.Upgrading && saved.UpgradeEndTime != 0)'
+require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
+  'if (!configOk)'
+require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
+  'PublishError("ConfigTableManager", "部分配置表加载失败，可能影响游戏功能");'
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \

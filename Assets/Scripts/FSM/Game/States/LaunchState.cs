@@ -165,7 +165,10 @@ namespace ZWebGLFrameWork.FSM
             var configOk = await ConfigTableManager.Instance.PreloadAllAsync()
                 .AttachExternalCancellation(token);
             if (!configOk)
+            {
                 PublishError("ConfigTableManager", "部分配置表加载失败，可能影响游戏功能");
+                return;
+            }
 
             // 对象池预热（异步）
             PublishProgress("预热对象池...", 0.70f);
