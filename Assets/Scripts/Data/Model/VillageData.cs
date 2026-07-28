@@ -60,6 +60,17 @@ namespace ZWebGLFrameWork.Data
             return true;
         }
 
+        /// <summary>移除所有建筑，并为每个已移除建筑通知订阅者。</summary>
+        public void ClearBuildings()
+        {
+            while (Buildings.Count > 0)
+            {
+                BuildingData building = Buildings[Buildings.Count - 1];
+                Buildings.RemoveAt(Buildings.Count - 1);
+                OnBuildingRemoved?.Invoke(building);
+            }
+        }
+
         /// <summary>根据 ID 查找建筑</summary>
         public BuildingData GetBuilding(string buildingId)
         {

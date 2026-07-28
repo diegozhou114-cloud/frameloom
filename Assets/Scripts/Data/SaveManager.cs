@@ -215,7 +215,7 @@ namespace ZWebGLFrameWork.Data
         {
             village.Name.Value = data.VillageName;
             village.MaxBuildings.Value = data.MaxBuildings;
-            village.Buildings.Clear();
+            village.ClearBuildings();
             foreach (BuildingData building in buildings)
                 village.AddBuilding(building);
         }
