@@ -121,6 +121,49 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void ReplayValidator_CoordinateBeyondSimulationRange_IsRejected()
+        {
+            var validator = new ReplayStructuralValidator(
+                ApprovedLimits, KnownCommandSchema.Version1);
+            ReplayFile replay = ReplayFixture.Valid();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = nameof(SimCommandType.Deploy),
+                Tick = 0,
+                PlayerId = 0,
+                Sequence = 1,
+                UnitTypeId = 10,
+                GridX = ushort.MaxValue + 1,
+                GridY = 3,
+            });
+
+            Assert.That(validator.Validate(replay, 128).Code,
+                Is.EqualTo(ReplayValidationCode.InvalidCommand));
+        }
+
+        [Test]
+        public void ReplayValidator_SkillWithoutTarget_IsRejected()
+        {
+            var validator = new ReplayStructuralValidator(
+                ApprovedLimits, KnownCommandSchema.Version1);
+            ReplayFile replay = ReplayFixture.Valid();
+            replay.Records[0].Commands.Add(new SerializableCommand
+            {
+                Type = nameof(SimCommandType.Skill),
+                Tick = 0,
+                PlayerId = 0,
+                Sequence = 1,
+                CasterId = 1,
+                SkillId = 1,
+                TargetX = -1,
+                TargetY = -1,
+            });
+
+            Assert.That(validator.Validate(replay, 128).Code,
+                Is.EqualTo(ReplayValidationCode.InvalidCommand));
+        }
+
+        [Test]
         public void ReplayValidator_EndDeploymentRequiresZeroPayload()
         {
             var validator = new ReplayStructuralValidator(

@@ -397,12 +397,14 @@ namespace ZWebGLFrameWork.Server
             switch (type)
             {
                 case SimCommandType.Deploy:
-                    return command.UnitTypeId > 0 && command.GridX >= 0 && command.GridY >= 0;
+                    return command.UnitTypeId > 0 &&
+                        HasValidWaypoint(command.GridX, command.GridY);
                 case SimCommandType.Move:
-                    return command.EntityId >= 0 && command.TargetX >= 0 && command.TargetY >= 0;
+                    return command.EntityId >= 0 &&
+                        HasValidWaypoint(command.TargetX, command.TargetY);
                 case SimCommandType.Skill:
                     return command.CasterId >= 0 && command.SkillId > 0 &&
-                        command.TargetX >= 0 && command.TargetY >= 0;
+                        HasValidWaypoint(command.TargetX, command.TargetY);
                 case SimCommandType.EndDeployment:
                     return command.UnitTypeId == 0 && command.EntityId == 0 &&
                         command.CasterId == 0 && command.SkillId == 0 &&
@@ -412,6 +414,9 @@ namespace ZWebGLFrameWork.Server
                     return false;
             }
         }
+
+        private static bool HasValidWaypoint(int x, int y) =>
+            x >= 0 && x <= ushort.MaxValue && y >= 0 && y <= ushort.MaxValue;
 
         private static InitialEntitySpec[] ConvertInitialEntities(SimEntitySpawnInfo[] layout)
         {

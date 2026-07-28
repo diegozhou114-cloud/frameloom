@@ -41,9 +41,9 @@ namespace ZWebGLFrameWork.SimulationCore
         public int CasterId;
         /// <summary>技能 ID</summary>
         public int SkillId;
-        /// <summary>目标网格 X（-1 表示无目标）</summary>
+        /// <summary>目标网格 X</summary>
         public int TargetX;
-        /// <summary>目标网格 Y（-1 表示无目标）</summary>
+        /// <summary>目标网格 Y</summary>
         public int TargetY;
     }
 

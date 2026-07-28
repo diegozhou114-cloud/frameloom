@@ -28,7 +28,7 @@ namespace ZWebGLFrameWork.Server
             {
                 case SimCommandType.Deploy:
                     return command.UnitTypeId > 0 &&
-                        command.GridX >= 0 && command.GridY >= 0 &&
+                        HasValidWaypoint(command.GridX, command.GridY) &&
                         command.EntityId == 0 && command.CasterId == 0 &&
                         command.SkillId == 0 && command.TargetX == 0 &&
                         command.TargetY == 0
@@ -36,17 +36,15 @@ namespace ZWebGLFrameWork.Server
                             : ReplayValidationCode.InvalidCommand;
                 case SimCommandType.Move:
                     return command.EntityId >= 0 &&
-                        command.TargetX >= 0 && command.TargetY >= 0 &&
+                        HasValidWaypoint(command.TargetX, command.TargetY) &&
                         command.UnitTypeId == 0 && command.CasterId == 0 &&
                         command.SkillId == 0 && command.GridX == 0 &&
                         command.GridY == 0
                             ? ReplayValidationCode.Valid
                             : ReplayValidationCode.InvalidCommand;
                 case SimCommandType.Skill:
-                    bool hasNoTarget = command.TargetX == -1 && command.TargetY == -1;
-                    bool hasGridTarget = command.TargetX >= 0 && command.TargetY >= 0;
                     return command.CasterId >= 0 && command.SkillId > 0 &&
-                        (hasNoTarget || hasGridTarget) &&
+                        HasValidWaypoint(command.TargetX, command.TargetY) &&
                         command.UnitTypeId == 0 && command.EntityId == 0 &&
                         command.GridX == 0 && command.GridY == 0
                             ? ReplayValidationCode.Valid
@@ -62,5 +60,8 @@ namespace ZWebGLFrameWork.Server
                     return ReplayValidationCode.UnknownCommand;
             }
         }
+
+        private static bool HasValidWaypoint(int x, int y) =>
+            x >= 0 && x <= ushort.MaxValue && y >= 0 && y <= ushort.MaxValue;
     }
 }
