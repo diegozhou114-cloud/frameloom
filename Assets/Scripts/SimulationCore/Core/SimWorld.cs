@@ -51,11 +51,11 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             _registry = registry;
             _logger = logger;
-            _generationCap = initialCapacity;
-            _generations = new int[initialCapacity];
-            _entityArchetypeKey = new string[initialCapacity];
-            _entityChunkIndex = new int[initialCapacity];
-            _entityLocalIndex = new int[initialCapacity];
+            _generationCap = Math.Max(1, initialCapacity);
+            _generations = new int[_generationCap];
+            _entityArchetypeKey = new string[_generationCap];
+            _entityChunkIndex = new int[_generationCap];
+            _entityLocalIndex = new int[_generationCap];
         }
 
         // ==================== Entity 生命周期 ====================

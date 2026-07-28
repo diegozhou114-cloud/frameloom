@@ -31,6 +31,17 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void CreateEntity_ZeroInitialCapacity_AllocatesFirstEntity()
+        {
+            var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 0);
+
+            SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+
+            Assert.That(entity.IsValid, Is.True);
+            Assert.That(world.EntityCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void GetSetComponent_RoundTrips()
         {
             var world = CreateWorld();
