@@ -223,6 +223,12 @@ namespace ZWebGLFrameWork.Data
             var dict = new Dictionary<int, T>(items.Length);
             foreach (var item in items)
             {
+                if (item == null)
+                {
+                    Debug.LogError($"[ConfigTableManager] {typeof(T).Name} contains a null configuration item");
+                    return null;
+                }
+
                 int id = (int)idField.GetValue(item);
                 if (dict.ContainsKey(id))
                 {
