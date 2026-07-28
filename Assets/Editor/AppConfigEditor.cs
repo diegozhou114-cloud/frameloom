@@ -80,10 +80,10 @@ namespace ZWebGLFrameWork.Editor
 
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_enableHotUpdate"),
-                new GUIContent("启用热更新", "关闭后跳过版本检查与资源下载，直接进入登录"));
+                new GUIContent("启用热更新", "TODO(YooAsset)：当前仅保留旧配置值，不会执行资源下载"));
             EditorGUILayout.HelpBox(cfg.EnableHotUpdate
-                ? "✅ 线上模式 — 启动时检查版本并下载热更包"
-                : "⏭ 本地模式 — 跳过热更，直接进入登录", MessageType.None);
+                ? "TODO(YooAsset)：资源更新与分包尚未接入，启动时跳过旧下载流程"
+                : "⏭ 资源更新已关闭，直接进入登录", MessageType.None);
 
             EditorGUILayout.PropertyField(
                 serializedObject.FindProperty("_enableAudio"),

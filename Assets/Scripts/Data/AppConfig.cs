@@ -47,8 +47,8 @@ namespace ZWebGLFrameWork.Data
         public int BackgroundFrameRate => _backgroundFrameRate;
 
         [Header("功能开关 — 模块启停（本地测试可关闭）")]
-        /// <summary>是否启用热更新：关闭后跳过版本检查与资源下载，直接进登录</summary>
-        [Tooltip("关闭后跳过热更检查，本地开发推荐关闭")]
+        /// <summary>保留的热更新开关。TODO(YooAsset)：当前启动流程不会下载或应用资源更新。</summary>
+        [Tooltip("TODO(YooAsset)：保留旧配置值，当前启动流程跳过资源更新与分包下载")]
         [SerializeField] private bool _enableHotUpdate = false;
         public bool EnableHotUpdate => _enableHotUpdate;
 

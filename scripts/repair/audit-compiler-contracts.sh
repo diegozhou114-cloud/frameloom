@@ -16,6 +16,18 @@ require_text() {
   fi
 }
 
+require_absent() {
+  local issue="$1"
+  local file="$2"
+  local text="$3"
+  if rg -Fq -- "$text" "$repo_root/$file"; then
+    printf '[%s] FAIL %s contains forbidden contract: %s\n' "$issue" "$file" "$text"
+    failures=$((failures + 1))
+  else
+    printf '[%s] PASS %s\n' "$issue" "$file"
+  fi
+}
+
 require_text BUILD-001 Assets/Editor/AutoFixProcessor.cs \
   'private static int FindUsingInsertPosition(string content)'
 require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs \
@@ -23,6 +35,8 @@ require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimMovementSystem.c
 require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs \
   '(SimEntity entity, ref SimAttackComponent attack, ref SimTransformComponent transform) =>'
 require_text BUILD-003 Assets/Scripts/Gameplay/Economy/ResourceProducer.cs 'using System;'
+require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
+require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \
@@ -38,4 +52,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=5\n'
+printf '[CompilationContracts] PASS count=7\n'
