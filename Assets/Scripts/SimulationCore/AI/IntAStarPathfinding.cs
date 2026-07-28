@@ -32,7 +32,8 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>寻路，返回网格坐标列表（不含起点）</summary>
         public List<(int x, int y)> FindPath(int startX, int startY, int endX, int endY)
         {
-            if (!InBounds(endX, endY)) return new List<(int, int)>();
+            if (!InBounds(startX, startY) || !InBounds(endX, endY))
+                return new List<(int, int)>();
             if (startX == endX && startY == endY) return new List<(int, int)> { (endX, endY) };
 
             _nodeCache.Clear();

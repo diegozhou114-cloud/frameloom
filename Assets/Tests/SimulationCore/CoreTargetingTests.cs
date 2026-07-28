@@ -47,6 +47,16 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void BattlePathfinding_OutOfBoundsStart_IsRejected()
+        {
+            var pathfinder = new IntAStarPathfinding(4, 4, (_, _) => true);
+
+            List<(int x, int y)> path = pathfinder.FindPath(-1, 0, 1, 1);
+
+            Assert.That(path, Is.Empty);
+        }
+
+        [Test]
         public void DefenseBuilding_AcquiresAndDamagesAttacker()
         {
             var world = new SimWorld(ComponentTypeRegistry.CreateCombatRegistry(), 64);
