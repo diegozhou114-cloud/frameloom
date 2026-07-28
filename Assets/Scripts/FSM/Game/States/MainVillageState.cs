@@ -96,12 +96,25 @@ namespace ZWebGLFrameWork.FSM
                 return;
             }
 
+            if (!HasSupportedDefender(village))
+            {
+                Debug.LogWarning("[MainVillageState] 村庄没有框架战斗内容支持的防守建筑，无法发起战斗");
+                return;
+            }
+
             BattleParams parameters = _battleAuthority.CreateVillageAttack(
                 DataManager.Instance.Player, village, village);
             ChangeState(GameState.Battle, parameters);
         }
 
         // ==================== 辅助 ====================
+
+        private static bool HasSupportedDefender(VillageData village)
+        {
+            return village != null && village.Buildings.Exists(building =>
+                building != null &&
+                FrameworkBattleContent.TryGetBuildingArchetypeId(building.TypeId, out _));
+        }
 
         private Vector3 FindTownHallPosition()
         {

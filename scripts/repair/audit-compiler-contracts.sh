@@ -121,6 +121,10 @@ require_text DATA-018 Assets/Scripts/Data/Model/VillageData.cs \
   'Buildings.Exists(item => item.TypeId == 1)'
 require_text DATA-019 Assets/Scripts/Data/SaveManager.cs \
   'return Fail("玩家大本营等级超出配置范围", out error);'
+require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
+  'private static bool HasSupportedDefender(VillageData village)'
+require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
+  'FrameworkBattleContent.TryGetBuildingArchetypeId(building.TypeId, out _)'
 require_text CONFIG-004 Assets/Scripts/Data/ConfigTableManager.cs \
   'item is UnitConfig unit && unit.RequiredTownHall <= 0'
 require_text CONFIG-005 Assets/Scripts/Data/ConfigTableManager.cs \
@@ -146,4 +150,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=27\n'
+printf '[CompilationContracts] PASS count=28\n'
