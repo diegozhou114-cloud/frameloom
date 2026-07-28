@@ -78,6 +78,8 @@ namespace ZWebGLFrameWork.SimulationCore
             if (_disposed || _state.Lifecycle != SessionLifecycle.Running)
                 return new CommandSubmitResult(CommandDisposition.WrongPhase);
             if (command == null) return new CommandSubmitResult(CommandDisposition.InvalidPayload);
+            if (command.Sequence < 0)
+                return new CommandSubmitResult(CommandDisposition.InvalidPayload);
             if (!IsPlayer(command.PlayerId))
                 return new CommandSubmitResult(CommandDisposition.UnknownPlayer);
             if (command.Tick < _state.NextTick)

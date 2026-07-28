@@ -46,6 +46,22 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void CommandSubmit_NegativeSequence_IsRejectedBeforeBuffering()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            int entityId = session.State.Presentation.Entities[0].EntityId;
+
+            CommandSubmitResult result = session.Submit(new MoveCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = -1,
+                EntityId = entityId, TargetX = 5, TargetY = 2,
+            });
+
+            Assert.That(result.Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
+            Assert.That(session.Tick().ExecutedCommands, Is.Empty);
+        }
+
+        [Test]
         public void ManualDeployment_ZeroAttackersRemainOpenAndDeployLimitIsEnforced()
         {
             using SimBattleSession session = SessionTestDriver.StartedDeployingBattle();
