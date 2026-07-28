@@ -27,5 +27,18 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That((min / LogicInt.FromInt(-1)).RawValue, Is.EqualTo(long.MaxValue));
             Assert.That(LogicInt.ApplyPercent(min, 20000).RawValue, Is.EqualTo(long.MinValue));
         }
+
+        [Test]
+        public void LogicInt_ExtremeBasicArithmetic_SaturatesInsteadOfWrapping()
+        {
+            LogicInt max = LogicInt.FromRaw(long.MaxValue);
+            LogicInt min = LogicInt.FromRaw(long.MinValue);
+
+            Assert.That((max + LogicInt.FromRaw(1)).RawValue, Is.EqualTo(long.MaxValue));
+            Assert.That((min - LogicInt.FromRaw(1)).RawValue, Is.EqualTo(long.MinValue));
+            Assert.That((max * 2).RawValue, Is.EqualTo(long.MaxValue));
+            Assert.That((-min).RawValue, Is.EqualTo(long.MaxValue));
+            Assert.That((min / -1).RawValue, Is.EqualTo(long.MaxValue));
+        }
     }
 }

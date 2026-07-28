@@ -43,13 +43,13 @@ namespace ZWebGLFrameWork.SimulationCore
         // ==================== 算术运算 ====================
 
         public static LogicInt operator +(LogicInt a, LogicInt b)
-            => new LogicInt(a.RawValue + b.RawValue);
+            => new LogicInt(Saturate((BigInteger)a.RawValue + b.RawValue));
 
         public static LogicInt operator -(LogicInt a, LogicInt b)
-            => new LogicInt(a.RawValue - b.RawValue);
+            => new LogicInt(Saturate((BigInteger)a.RawValue - b.RawValue));
 
         public static LogicInt operator *(LogicInt a, int b)
-            => new LogicInt(a.RawValue * b);
+            => new LogicInt(Saturate((BigInteger)a.RawValue * b));
 
         public static LogicInt operator *(LogicInt a, LogicInt b)
             => new LogicInt(Saturate((BigInteger)a.RawValue * b.RawValue / Scale));
@@ -57,7 +57,7 @@ namespace ZWebGLFrameWork.SimulationCore
         public static LogicInt operator /(LogicInt a, int b)
         {
             if (b == 0) throw new DivideByZeroException("LogicInt division by zero");
-            return new LogicInt(a.RawValue / b);
+            return new LogicInt(Saturate((BigInteger)a.RawValue / b));
         }
 
         public static LogicInt operator /(LogicInt a, LogicInt b)
@@ -67,7 +67,7 @@ namespace ZWebGLFrameWork.SimulationCore
         }
 
         public static LogicInt operator -(LogicInt a)
-            => new LogicInt(-a.RawValue);
+            => new LogicInt(Saturate(-(BigInteger)a.RawValue));
 
         // ==================== 比较运算 ====================
 
