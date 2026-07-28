@@ -119,7 +119,11 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>从 SerializableCommand 还原为 ISimCommand</summary>
         public static ISimCommand DeserializeCommand(SerializableCommand sc)
         {
-            var type = System.Enum.Parse<SimCommandType>(sc.Type);
+            if (sc == null || !System.Enum.TryParse(sc.Type, false, out SimCommandType type) ||
+                !System.Enum.IsDefined(typeof(SimCommandType), type) ||
+                !string.Equals(sc.Type, type.ToString(), System.StringComparison.Ordinal))
+                return null;
+
             return type switch
             {
                 SimCommandType.Deploy => new DeployCmd

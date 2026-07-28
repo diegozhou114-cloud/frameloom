@@ -62,6 +62,26 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void DeserializeCommand_InvalidOrMissingType_ReturnsNull()
+        {
+            int invalidType = 999;
+            Assert.That(CommandRecorder.DeserializeCommand(null), Is.Null);
+            Assert.That(CommandRecorder.DeserializeCommand(new SerializableCommand()), Is.Null);
+            Assert.That(CommandRecorder.DeserializeCommand(new SerializableCommand
+            {
+                Type = "Unknown"
+            }), Is.Null);
+            Assert.That(CommandRecorder.DeserializeCommand(new SerializableCommand
+            {
+                Type = "Deploy, Move"
+            }), Is.Null);
+            Assert.That(CommandRecorder.DeserializeCommand(new SerializableCommand
+            {
+                Type = ((SimCommandType)invalidType).ToString()
+            }), Is.Null);
+        }
+
+        [Test]
         public void ContentArchetype_RejectsInvalidDeterministicValues()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
