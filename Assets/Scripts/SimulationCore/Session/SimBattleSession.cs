@@ -251,6 +251,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 detachedWorld.RestoreFromFull(data.WorldSnapshot);
                 if (!HasValidWorldCoordinates(detachedWorld) ||
                     !HasValidRestoredDeathState(data, detachedWorld) ||
+                    !HasValidRestoredTerminalOutcome(data) ||
                     detachedWorld.ComputeChecksum() != data.WorldSnapshot.Checksum ||
                     ComputeChecksum(data, detachedWorld) != snapshot.StateChecksum)
                     return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
@@ -648,6 +649,26 @@ namespace ZWebGLFrameWork.SimulationCore
                 data.AttackerDead == attackerDead &&
                 data.DefenderDead == defenderDead &&
                 data.Winner == winner;
+        }
+
+        private bool HasValidRestoredTerminalOutcome(SessionSnapshotData data)
+        {
+            if (data.TerminalOutcome == null) return true;
+
+            int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > data.CompletedTick);
+            bool timedOut = data.NextTick >= _modeProfile.TimeoutTicks;
+            int defenderTotal = data.DefenderAlive + data.DefenderDead;
+            int destructionBasisPoints = defenderTotal == 0
+                ? 0
+                : (int)((long)data.DefenderDead * 10000 / defenderTotal);
+            SimTerminalOutcome expected = new SimModeRules(_modeProfile).Evaluate(
+                new SimModeEvaluationInput(data.CompletedTick, data.AttackerAlive,
+                    data.DefenderAlive, destructionBasisPoints, futureWaves, timedOut, true));
+            return expected != null &&
+                expected.WinnerTeamId == data.TerminalOutcome.WinnerTeamId &&
+                expected.Stars == data.TerminalOutcome.Stars &&
+                expected.LootGold == data.TerminalOutcome.LootGold &&
+                expected.LootElixir == data.TerminalOutcome.LootElixir;
         }
 
         private bool IsCellOccupied(int gridX, int gridY)

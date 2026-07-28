@@ -477,6 +477,23 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             Assert.That(session.State.Checksum, Is.EqualTo(baseline.StateChecksum));
         }
 
+        [Test]
+        public void RestoreSnapshot_RejectsForgedTerminalOutcome()
+        {
+            using var session = (SimBattleSession)SessionTestDriver.StartedOneHitBattle();
+            Assert.That(session.Tick().Code, Is.EqualTo(TickCode.Ended));
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            data.TerminalOutcome = new SimTerminalOutcome(
+                SimTeam.Attacker, 3, 499, 300);
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Result.LootGold, Is.EqualTo(500));
+        }
+
         private static SimSnapshot CreateSnapshotWithCalculatedChecksum(
             SimBattleSession session, SimSnapshot baseline, SessionSnapshotData data)
         {
