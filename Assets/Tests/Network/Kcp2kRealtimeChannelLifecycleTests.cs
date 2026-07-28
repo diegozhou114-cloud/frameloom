@@ -85,6 +85,23 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task ConnectedTransportError_StopsPumpAndWakesPendingReceiver()
+        {
+            var client = new ControlledKcp2kClient(TestCredentials.Valid);
+            using var channel = CreateChannel(client);
+            await channel.ConnectAsync(
+                Endpoint, TestCredentials.Valid, CancellationToken.None);
+            Task<byte[]> receive = channel.ReceiveAsync(CancellationToken.None);
+
+            client.FailTransport();
+
+            await AssertDisconnectedAsync(receive);
+            Assert.That(channel.State, Is.EqualTo(RealtimeChannelState.Disconnected));
+            Assert.That(client.DisposeCount, Is.EqualTo(1));
+            AssertTicksStop(client);
+        }
+
+        [Test]
         public async Task ClosedChannel_CannotBeReusedAcrossSessions()
         {
             var first = new ControlledKcp2kClient(TestCredentials.Valid);
@@ -237,6 +254,9 @@ namespace ZWebGLFrameWork.Network.Tests
         {
             _callbacks.Disconnected();
         }
+
+        public void FailTransport() =>
+            _callbacks.Error(kcp2k.ErrorCode.Timeout, "simulated transport failure");
 
         public void Dispose()
         {

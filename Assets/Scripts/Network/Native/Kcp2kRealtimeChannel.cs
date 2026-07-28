@@ -345,12 +345,19 @@ namespace ZWebGLFrameWork.Network.Native
 
         private void HandleError(kcp2k.ErrorCode code, string message)
         {
+            CancellationTokenSource pumpCancellation;
             lock (_gate)
             {
-                if (_state == RealtimeChannelState.Connecting)
+                if (_state == RealtimeChannelState.Closing ||
+                    _state == RealtimeChannelState.Disconnected) return;
+                bool connecting = _state == RealtimeChannelState.Connecting;
+                _state = RealtimeChannelState.Disconnected;
+                if (connecting)
                     _connectCompletion.TrySetException(
                         new InvalidOperationException($"kcp2k {code}: {message}"));
+                pumpCancellation = _pumpCancellation;
             }
+            pumpCancellation?.Cancel();
         }
 
         private void EnsureConnected()
