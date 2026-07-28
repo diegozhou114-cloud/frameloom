@@ -121,6 +121,8 @@ require_text DATA-019 Assets/Scripts/Data/SaveManager.cs \
   'return Fail("玩家大本营等级超出配置范围", out error);'
 require_text CONFIG-004 Assets/Scripts/Data/ConfigTableManager.cs \
   'item is UnitConfig unit && unit.RequiredTownHall <= 0'
+require_text CONFIG-005 Assets/Scripts/Data/ConfigTableManager.cs \
+  'item is BuildingConfig maxLevel && maxLevel.MaxLevel <= 0'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
   'if (!configOk)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
@@ -140,4 +142,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=24\n'
+printf '[CompilationContracts] PASS count=25\n'
