@@ -37,6 +37,46 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void FloorToInt_NegativeFraction_RoundsTowardNegativeInfinity()
+        {
+            var result = LogicInt.FromFloat(-1.5f);
+            Assert.That(result.FloorToInt(), Is.EqualTo(-2));
+        }
+
+        [Test]
+        public void FloorToInt_OutsideIntRange_Saturates()
+        {
+            Assert.That(LogicInt.FromRaw(long.MaxValue).FloorToInt(), Is.EqualTo(int.MaxValue));
+            Assert.That(LogicInt.FromRaw(long.MinValue).FloorToInt(), Is.EqualTo(int.MinValue));
+        }
+
+        [Test]
+        public void CeilToInt_FractionsAndExtremes_UseMathematicalCeilingAndSaturation()
+        {
+            Assert.That(LogicInt.FromFloat(1.5f).CeilToInt(), Is.EqualTo(2));
+            Assert.That(LogicInt.FromFloat(-1.5f).CeilToInt(), Is.EqualTo(-1));
+            Assert.That(LogicInt.FromRaw(long.MaxValue).CeilToInt(), Is.EqualTo(int.MaxValue));
+            Assert.That(LogicInt.FromRaw(long.MinValue).CeilToInt(), Is.EqualTo(int.MinValue));
+        }
+
+        [Test]
+        public void RoundToInt_FractionsAndExtremes_PreserveRoundingAndSaturate()
+        {
+            Assert.That(LogicInt.FromFloat(1.5f).RoundToInt(), Is.EqualTo(2));
+            Assert.That(LogicInt.FromFloat(-1.5f).RoundToInt(), Is.EqualTo(-1));
+            Assert.That(LogicInt.FromRaw(long.MaxValue).RoundToInt(), Is.EqualTo(int.MaxValue));
+            Assert.That(LogicInt.FromRaw(long.MinValue).RoundToInt(), Is.EqualTo(int.MinValue));
+        }
+
+        [Test]
+        public void ToBasisPoints_Extremes_Saturates()
+        {
+            Assert.That(LogicInt.FromFloat(1.5f).ToBasisPoints(), Is.EqualTo(15000));
+            Assert.That(LogicInt.FromRaw(long.MaxValue).ToBasisPoints(), Is.EqualTo(int.MaxValue));
+            Assert.That(LogicInt.FromRaw(long.MinValue).ToBasisPoints(), Is.EqualTo(int.MinValue));
+        }
+
+        [Test]
         public void FromFloat_Zero_ReturnsZero()
         {
             var result = LogicInt.FromFloat(0f);

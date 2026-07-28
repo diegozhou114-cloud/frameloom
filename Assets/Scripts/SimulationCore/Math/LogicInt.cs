@@ -94,20 +94,26 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public int ToBasisPoints()
         {
-            return (int)(RawValue * 10000 / Scale);
+            return SaturateToInt((BigInteger)RawValue * 10000 / Scale);
         }
 
         // ==================== 转换 ====================
 
-        public int FloorToInt() => (int)(RawValue / Scale);
+        public int FloorToInt()
+        {
+            long value = RawValue / Scale;
+            if (RawValue < 0 && RawValue % Scale != 0)
+                value--;
+            return SaturateToInt(value);
+        }
         public int CeilToInt()
         {
-            if (RawValue >= 0)
-                return (int)((RawValue + Scale - 1) / Scale);
-            else
-                return (int)(RawValue / Scale);
+            long value = RawValue / Scale;
+            if (RawValue > 0 && RawValue % Scale != 0)
+                value++;
+            return SaturateToInt(value);
         }
-        public int RoundToInt() => (int)((RawValue + Half) / Scale);
+        public int RoundToInt() => SaturateToInt(((BigInteger)RawValue + Half) / Scale);
         public float ToFloat() => (float)RawValue / Scale;
 
         // ==================== 工具方法 ====================
@@ -127,6 +133,13 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public static LogicInt Lerp(LogicInt a, LogicInt b, LogicInt t)
             => a + (b - a) * t;
+
+        private static int SaturateToInt(BigInteger value)
+        {
+            if (value > int.MaxValue) return int.MaxValue;
+            if (value < int.MinValue) return int.MinValue;
+            return (int)value;
+        }
 
         // ==================== 接口实现 ====================
 
