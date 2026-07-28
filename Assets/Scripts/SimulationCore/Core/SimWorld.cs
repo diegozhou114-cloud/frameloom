@@ -600,13 +600,16 @@ namespace ZWebGLFrameWork.SimulationCore
                     chunk.Generations.Length < chunk.Count ||
                     chunk.Columns.Length != chunk.ComponentTypeIds.Length)
                     throw new ArgumentException("Invalid world snapshot chunk.", nameof(snapshot));
+                int previousTypeId = 0;
                 for (int column = 0; column < chunk.Columns.Length; column++)
                 {
-                    Array expected = SimChunkHelper.CreateColumn(chunk.ComponentTypeIds[column], 0);
-                    if (expected == null || chunk.Columns[column] == null ||
+                    int typeId = chunk.ComponentTypeIds[column];
+                    Array expected = SimChunkHelper.CreateColumn(typeId, 0);
+                    if (typeId <= previousTypeId || expected == null || chunk.Columns[column] == null ||
                         chunk.Columns[column].Length < chunk.Count ||
                         chunk.Columns[column].GetType() != expected.GetType())
                         throw new ArgumentException("Invalid world snapshot chunk.", nameof(snapshot));
+                    previousTypeId = typeId;
                 }
                 for (int index = 0; index < chunk.Count; index++)
                 {

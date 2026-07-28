@@ -465,6 +465,27 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void WorldSnapshot_DuplicateComponentType_IsRejectedBeforeRestore()
+        {
+            var world = new SimWorld(SimComponentSchema.CreateRegistry(), 8);
+            SimEntity entity = world.CreateEntity(typeof(SimHealthComponent));
+            world.SetComponent(entity, new SimHealthComponent { CurrentHP = 1, MaxHP = 1 });
+            TickSnapshot snapshot = world.ExportFullSnapshot();
+            ChunkSnapshot chunk = snapshot.ChunkSnapshots[0];
+            chunk.ComponentTypeIds = new[] { SimComponentTypeId.Health, SimComponentTypeId.Health };
+            chunk.Columns = new Array[]
+            {
+                new[] { new SimHealthComponent { CurrentHP = 1, MaxHP = 1 } },
+                new[] { new SimHealthComponent { CurrentHP = 1, MaxHP = 1 } },
+            };
+
+            ArgumentException error = Assert.Throws<ArgumentException>(() =>
+                world.RestoreFromFull(snapshot));
+
+            Assert.That(error.Message, Is.EqualTo("Invalid world snapshot chunk. (Parameter 'snapshot')"));
+        }
+
+        [Test]
         public void Checksum_ChangesWhenTerminalNumericOutcomeChanges()
         {
             byte[] contentHash = { 1, 2, 3 };
