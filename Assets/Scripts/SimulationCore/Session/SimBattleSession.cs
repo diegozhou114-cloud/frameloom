@@ -306,14 +306,17 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var player in init.Players)
                 if (!players.Add(player.PlayerId) || string.IsNullOrEmpty(player.AccountId))
                     return StartCode.InvalidPlayer;
+            if (players.Count == 0) return StartCode.InvalidPlayer;
 
             var owners = new HashSet<int>(players);
+            var occupiedCells = new HashSet<(int X, int Y)>();
             foreach (var entity in init.InitialEntities)
             {
                 if (_manifest.GetArchetype(entity.ArchetypeId) == null ||
                     !owners.Contains(entity.OwnerPlayerId) ||
                     entity.GridX < 0 || entity.GridY < 0 ||
-                    (entity.TeamId != SimTeam.Attacker && entity.TeamId != SimTeam.Defender))
+                    (entity.TeamId != SimTeam.Attacker && entity.TeamId != SimTeam.Defender) ||
+                    !occupiedCells.Add((entity.GridX, entity.GridY)))
                     return StartCode.InvalidEntity;
             }
             return StartCode.Accepted;

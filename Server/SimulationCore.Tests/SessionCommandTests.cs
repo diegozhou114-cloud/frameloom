@@ -7,6 +7,44 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
     public sealed class SessionCommandTests
     {
         [Test]
+        public void Start_RejectsInitialEntitiesThatOccupyTheSameCell()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "overlap-match", "overlap-session", 42, 20,
+                SimCombatMode.VillageAttack, manifest.ContentHash,
+                new[] { new SimPlayerIdentity(0, "attacker"), new SimPlayerIdentity(1, "defender") },
+                new[]
+                {
+                    new InitialEntitySpec(10, 2, 2, SimTeam.Attacker, 0),
+                    new InitialEntitySpec(2, 2, 2, SimTeam.Defender, 1),
+                }, 6);
+
+            StartResult result = session.Start(init);
+
+            Assert.That(result.Code, Is.EqualTo(StartCode.InvalidEntity));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Created));
+        }
+
+        [Test]
+        public void Start_RejectsBattleWithoutPlayers()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "empty-players-match", "empty-players-session", 42, 20,
+                SimCombatMode.VillageAttack, manifest.ContentHash,
+                System.Array.Empty<SimPlayerIdentity>(),
+                System.Array.Empty<InitialEntitySpec>(), 6);
+
+            StartResult result = session.Start(init);
+
+            Assert.That(result.Code, Is.EqualTo(StartCode.InvalidPlayer));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Created));
+        }
+
+        [Test]
         public void SessionSkill_DotNetHostProducesDamageAndEvent()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
