@@ -29,7 +29,9 @@ namespace ZWebGLFrameWork.Core
 
         /// <summary>
         /// 初始化资源管理器。
-        /// 默认使用 ResourcesProvider；在热更完成后可切换为 AssetBundleProvider。
+        /// 默认使用 ResourcesProvider。
+        /// TODO(YooAsset): 正式项目接入资源更新与分包管理时，使用 YooAsset Provider 替换当前加载策略；
+        /// 目前不构建或加载 AssetBundle。
         /// </summary>
         public bool Init(IResourceProvider customProvider = null)
         {

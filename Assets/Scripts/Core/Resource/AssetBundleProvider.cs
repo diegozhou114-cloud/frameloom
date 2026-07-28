@@ -8,8 +8,9 @@ using Object = UnityEngine.Object;
 namespace ZWebGLFrameWork.Core
 {
     /// <summary>
-    /// AssetBundle 资源加载器。
-    /// 需要先加载 Manifest 和依赖 Bundle，再加载资源。
+    /// 旧版 AssetBundle 资源加载器，仅保留作兼容参考。
+    /// TODO(YooAsset): 当前项目暂未接入 AB；正式资源更新和分包管理将迁移至 YooAsset，
+    /// 届时以 YooAsset Provider 替换该实现，而非扩展此加载流程。
     /// </summary>
     public class AssetBundleProvider : IResourceProvider
     {
