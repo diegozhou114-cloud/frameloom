@@ -238,6 +238,51 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         }
 
         [Test]
+        public void LoadToDataManager_MissingTownHallLeavesRuntimeStateUnchanged()
+        {
+            CreateOwnedObject("DataManager").AddComponent<DataManager>();
+            DataManager manager = DataManager.Instance;
+            manager.Player.Name.Value = "CurrentPlayer";
+            manager.Player.TownHallLevel.Value = 1;
+            manager.Village.Name.Value = "CurrentVillage";
+            Assert.That(manager.Village.AddBuilding(BuildingData.Create(1, 2, 3)), Is.True);
+
+            int slot = SaveManager.MaxSaveSlots + 2008;
+            string path = SaveManager.GetFilePath(slot);
+            byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
+            try
+            {
+                var malformed = new PlayerSaveData
+                {
+                    PlayerName = "CorruptedPlayer",
+                    TownHallLevel = 1,
+                    VillageName = "CorruptedVillage",
+                    Buildings = new System.Collections.Generic.List<BuildingSaveData>
+                    {
+                        new BuildingSaveData
+                        {
+                            Id = "gold-mine", TypeId = 2, GridX = 4, GridY = 5, Level = 1,
+                        },
+                    },
+                };
+                File.WriteAllText(path, JsonUtility.ToJson(malformed));
+
+                LogAssert.Expect(LogType.Error,
+                    "[SaveManager] 存档无效: 村庄缺少大本营");
+                Assert.That(SaveManager.LoadToDataManager(slot), Is.False);
+                Assert.That(manager.Player.Name.Value, Is.EqualTo("CurrentPlayer"));
+                Assert.That(manager.Player.TownHallLevel.Value, Is.EqualTo(1));
+                Assert.That(manager.Village.Name.Value, Is.EqualTo("CurrentVillage"));
+                Assert.That(manager.Village.Buildings, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                File.Delete(path);
+                if (previous != null) File.WriteAllBytes(path, previous);
+            }
+        }
+
+        [Test]
         public void LoadToDataManager_TownHallLevelMismatchLeavesRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();

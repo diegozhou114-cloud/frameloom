@@ -257,7 +257,9 @@ namespace ZWebGLFrameWork.Data
                 buildings.Add(building);
             }
 
-            if (townHallLevel.HasValue && data.TownHallLevel != townHallLevel.Value)
+            if (!townHallLevel.HasValue)
+                return Fail("村庄缺少大本营", out error);
+            if (data.TownHallLevel != townHallLevel.Value)
                 return Fail("玩家大本营等级与建筑等级不一致", out error);
             return true;
         }
