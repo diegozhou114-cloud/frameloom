@@ -36,6 +36,8 @@ namespace ZWebGLFrameWork.Data
         /// <summary>添加建筑</summary>
         public bool AddBuilding(BuildingData building)
         {
+            if (building == null) return false;
+
             if (Buildings.Count >= MaxBuildings.Value)
             {
                 Debug.LogWarning($"[VillageData] 建筑已满: {Buildings.Count}/{MaxBuildings.Value}");

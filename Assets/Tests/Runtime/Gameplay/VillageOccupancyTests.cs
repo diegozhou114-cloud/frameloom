@@ -20,5 +20,15 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(village.IsOccupied(8, 7), Is.False);
             Assert.That(village.IsOccupied(5, 9), Is.False);
         }
+
+        [Test]
+        public void Village_AddBuilding_NullBuildingIsRejected()
+        {
+            var village = new VillageData(_ => null);
+
+            Assert.That(village.AddBuilding(null), Is.False);
+            Assert.That(village.Buildings, Is.Empty);
+            Assert.DoesNotThrow(() => village.IsOccupied(0, 0));
+        }
     }
 }
