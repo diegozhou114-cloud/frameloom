@@ -397,6 +397,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
         {
             if (command == null || command.Version != RealtimeProtocol.Version ||
                 command.Tick < 0 || (command.PlayerId != 0 && command.PlayerId != 1) ||
+                command.Sequence > int.MaxValue ||
                 command.Payload == null || command.Payload.Length > RealtimeProtocol.MaxMessageBytes)
                 return false;
             if (requireMatchId && string.IsNullOrWhiteSpace(command.MatchId)) return false;

@@ -68,6 +68,15 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void Codec_RejectsCommandSequenceOutsideSimulationRange()
+        {
+            RouterFixture fixture = RouterFixture.Create();
+            CommandEnvelope command = fixture.Command(0, (uint)int.MaxValue + 1);
+
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(command));
+        }
+
+        [Test]
         public async Task Router_ExpiredAuthenticatedSession_CannotPostCommands()
         {
             RouterFixture fixture = RouterFixture.Create(expiresAtUnixSeconds: 101);
