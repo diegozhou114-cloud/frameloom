@@ -18,8 +18,22 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimArchetypeDefinition(int archetypeId, string name, int maxHealth,
             long speedRaw, int damage, long rangeRaw, int cooldownTicks)
         {
+            if (archetypeId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(archetypeId));
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Archetype name is required.", nameof(name));
+            if (maxHealth <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxHealth));
+            if (speedRaw < 0)
+                throw new ArgumentOutOfRangeException(nameof(speedRaw));
+            if (damage < 0)
+                throw new ArgumentOutOfRangeException(nameof(damage));
+            if (rangeRaw < 0)
+                throw new ArgumentOutOfRangeException(nameof(rangeRaw));
+            if (cooldownTicks < 0)
+                throw new ArgumentOutOfRangeException(nameof(cooldownTicks));
             ArchetypeId = archetypeId;
-            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Name = name;
             MaxHealth = maxHealth;
             SpeedRaw = speedRaw;
             Damage = damage;

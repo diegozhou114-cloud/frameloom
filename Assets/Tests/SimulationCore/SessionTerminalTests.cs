@@ -62,6 +62,25 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void ContentArchetype_RejectsInvalidDeterministicValues()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(0, "unit", 1, 0, 0, 0, 0));
+            Assert.Throws<ArgumentException>(() =>
+                new SimArchetypeDefinition(1, " ", 1, 0, 0, 0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(1, "unit", 0, 0, 0, 0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(1, "unit", 1, -1, 0, 0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(1, "unit", 1, 0, -1, 0, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(1, "unit", 1, 0, 0, -1, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+                new SimArchetypeDefinition(1, "unit", 1, 0, 0, 0, -1));
+        }
+
+        [Test]
         public void ManualDeployment_ZeroAttackersRemainOpenAndDeployLimitIsEnforced()
         {
             using SimBattleSession session = SessionTestDriver.StartedDeployingBattle();
