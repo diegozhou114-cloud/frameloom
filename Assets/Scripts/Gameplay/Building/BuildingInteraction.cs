@@ -130,6 +130,12 @@ namespace ZWebGLFrameWork.Gameplay
             var building = _selection.SelectedBuilding;
             if (building == null) return;
 
+            if (costGold < 0 || costElixir < 0 || durationSeconds < 0)
+            {
+                Debug.LogError("[BuildingInteraction] 升级消耗或时长不能为负数");
+                return;
+            }
+
             if (building.IsUpgrading)
             {
                 Debug.LogWarning("[BuildingInteraction] 建筑正在升级中");
@@ -164,6 +170,12 @@ namespace ZWebGLFrameWork.Gameplay
             if (_selection == null) return;
             var building = _selection.SelectedBuilding;
             if (building == null || !building.IsUpgrading) return;
+
+            if (gemCost < 0)
+            {
+                Debug.LogError("[BuildingInteraction] 宝石消耗不能为负数");
+                return;
+            }
 
             var player = DataManager.Instance.Player;
             if (player.Gems.Value < gemCost)
