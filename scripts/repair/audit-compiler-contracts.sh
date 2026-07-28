@@ -28,6 +28,22 @@ require_absent() {
   fi
 }
 
+require_count() {
+  local issue="$1"
+  local file="$2"
+  local text="$3"
+  local expected="$4"
+  local actual
+  actual=$(rg -F -- "$text" "$repo_root/$file" | wc -l | tr -d ' ')
+  if [[ "$actual" != "$expected" ]]; then
+    printf '[%s] FAIL %s expected %s occurrences of contract, found %s: %s\n' \
+      "$issue" "$file" "$expected" "$actual" "$text"
+    failures=$((failures + 1))
+  else
+    printf '[%s] PASS %s\n' "$issue" "$file"
+  fi
+}
+
 require_text BUILD-001 Assets/Editor/AutoFixProcessor.cs \
   'private static int FindUsingInsertPosition(string content)'
 require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs \
@@ -37,8 +53,8 @@ require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs 
 require_text BUILD-003 Assets/Scripts/Gameplay/Economy/ResourceProducer.cs 'using System;'
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
-require_text BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
-  'if (token.IsCancellationRequested || !IsActive) return;'
+require_count BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
+  'if (token.IsCancellationRequested || !IsActive) return;' 2
 if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
   require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
 elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \

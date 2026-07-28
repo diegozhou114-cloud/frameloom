@@ -91,6 +91,7 @@ namespace ZWebGLFrameWork.FSM
             }
             catch (Exception exception)
             {
+                if (token.IsCancellationRequested || !IsActive) return;
                 PublishLoginFailure(exception.Message);
             }
         }
