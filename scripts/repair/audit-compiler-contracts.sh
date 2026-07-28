@@ -111,6 +111,8 @@ require_text DATA-014 Assets/Scripts/UI/Panels/DeployPanel.cs \
   'FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _)'
 require_text DATA-015 Assets/Scripts/Gameplay/Building/BuildingInteraction.cs \
   'DataManager.Instance.Player.TownHallLevel.Value = building.Level.Value;'
+require_text DATA-016 Assets/Scripts/Data/SaveManager.cs \
+  'return Fail("玩家大本营等级与建筑等级不一致", out error);'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
   'if (!configOk)'
 require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
@@ -130,4 +132,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-printf '[CompilationContracts] PASS count=19\n'
+printf '[CompilationContracts] PASS count=20\n'

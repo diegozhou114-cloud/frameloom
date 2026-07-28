@@ -205,6 +205,7 @@ namespace ZWebGLFrameWork.Data
             buildings = new List<BuildingData>(data.Buildings.Count);
             var footprints = new List<BuildingFootprint>(data.Buildings.Count);
             var buildingIds = new HashSet<string>();
+            int? townHallLevel = null;
             foreach (BuildingSaveData saved in data.Buildings)
             {
                 if (saved == null || string.IsNullOrWhiteSpace(saved.Id) ||
@@ -228,6 +229,9 @@ namespace ZWebGLFrameWork.Data
                         return Fail("满级建筑不能处于升级状态", out error);
                 }
 
+                if (saved.TypeId == 1)
+                    townHallLevel = saved.Level;
+
                 BuildingData building = SaveDataMapper.RestoreBuilding(saved);
                 var footprint = new BuildingFootprint(building,
                     Math.Max(1, config?.SizeX ?? 1),
@@ -241,6 +245,9 @@ namespace ZWebGLFrameWork.Data
                 footprints.Add(footprint);
                 buildings.Add(building);
             }
+
+            if (townHallLevel.HasValue && data.TownHallLevel != townHallLevel.Value)
+                return Fail("玩家大本营等级与建筑等级不一致", out error);
             return true;
         }
 
