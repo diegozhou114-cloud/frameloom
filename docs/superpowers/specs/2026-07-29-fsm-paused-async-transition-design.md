@@ -75,17 +75,22 @@ operations and would make pause duration affect application behavior.
 The protected `FSMState<T>.ChangeState` helper passes `this` to an internal FSM
 entry point together with the target and data. The request has three outcomes:
 
-1. If the source is current, process it through the existing queued,
-   re-entrant-safe transition path.
-2. If the source is present in the suspended stack, validate the source-to-
-   target rule and retain it without changing the current overlay.
+1. If the source is current and no overlay is active, process it through the
+   existing queued, re-entrant-safe transition path.
+2. If the source is the single suspended state, validate the source-to-target
+   rule and retain it without changing the current overlay.
 3. If the source is neither current nor suspended, reject it as stale.
+
+The application contract supports one overlay at a time. `PushState` returns
+`false` when a state is already suspended. This matches the single global
+Pause use case and avoids inventing scheduling semantics for nested overlays.
 
 The public `FSM<T>.ChangeState` remains the synchronous external entry point.
 When an overlay is active, it returns `false` instead of transitioning through
-the overlay. An external caller that intentionally wants to leave an overlay
-must first use `PopState`. This prevents any public caller from orphaning the
-suspended stack.
+the overlay. A transition requested by the overlay state is rejected for the
+same reason. Any caller that intentionally wants to leave an overlay must first
+use `PopState`. This prevents both public and state-owned callers from
+orphaning the suspended state.
 
 ### Deferred request ownership and ordering
 
@@ -95,12 +100,8 @@ first request executes return `false`.
 
 First-wins matches foreground behavior: the first accepted transition exits
 the source state immediately, so later callbacks from that lifetime cannot
-choose another target. A single slot is also sufficient for the application's
-single Pause overlay and avoids introducing a general scheduler.
-
-Nested overlays remain well-defined: a request stays pending until its exact
-source becomes current. Popping an unrelated upper overlay does not execute or
-discard it.
+choose another target. A single slot is sufficient for the application's
+single Pause overlay and avoids introducing a general overlay scheduler.
 
 ### Resume flow
 
@@ -161,10 +162,11 @@ They will prove:
 2. the first deferred request wins and later requests are rejected;
 3. a public transition cannot bypass an active overlay and the original state
    remains resumable;
-4. stale and cleared sources cannot execute retained requests;
-5. a controllable Launch pipeline completing during Pause transitions only
+4. an overlay-owned transition and a nested `PushState` are rejected;
+5. stale and cleared sources cannot execute retained requests;
+6. a controllable Launch pipeline completing during Pause transitions only
    after resume; and
-6. Login and Battle regard a suspended lifetime as retained while continuing
+7. Login and Battle regard a suspended lifetime as retained while continuing
    to reject completions after exit.
 
 After focused RED/GREEN evidence, run the complete PlayMode and EditMode suites.
