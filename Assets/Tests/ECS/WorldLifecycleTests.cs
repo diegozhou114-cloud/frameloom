@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using ZWebGLFrameWork.ECS;
 
@@ -45,6 +46,37 @@ namespace ZWebGLFrameWork.ECS.Tests
 
             Assert.That(entity.Id, Is.EqualTo(0));
             Assert.That(world.EntityCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ComponentQueries_ReturnFalseForInvalidAndDestroyedEntities()
+        {
+            var world = new World();
+            Entity entity = world.CreateEntity();
+            world.DestroyEntity(entity);
+
+            Assert.That(world.HasComponent<TestComponent>(Entity.Invalid), Is.False);
+            Assert.That(world.TryGetComponent<TestComponent>(Entity.Invalid, out _), Is.False);
+            Assert.That(world.HasComponent<TestComponent>(entity), Is.False);
+            Assert.That(world.TryGetComponent<TestComponent>(entity, out _), Is.False);
+        }
+
+        [Test]
+        public void ComponentWrites_RejectDestroyedEntities()
+        {
+            var world = new World();
+            Entity entity = world.CreateEntity();
+            world.DestroyEntity(entity);
+
+            Assert.DoesNotThrow(() => world.RemoveComponent<TestComponent>(entity));
+            Assert.Throws<InvalidOperationException>(() =>
+                world.AddComponent(entity, default(TestComponent)));
+            Assert.Throws<InvalidOperationException>(() =>
+                world.SetComponent(entity, default(TestComponent)));
+        }
+
+        private struct TestComponent : IComponent
+        {
         }
     }
 }

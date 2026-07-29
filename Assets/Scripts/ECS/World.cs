@@ -86,22 +86,41 @@ namespace ZWebGLFrameWork.ECS
 
         public void AddComponent<T>(Entity entity, T component) where T : struct, IComponent
         {
+            EnsureAlive(entity);
             bool added = !HasComponent<T>(entity);
             GetPool<T>().Add(entity, component);
             if (added) OnComponentChanged?.Invoke(entity, typeof(T), true);
         }
-        public ref T GetComponent<T>(Entity entity) where T : struct, IComponent => ref GetPool<T>().Get(entity);
-        public bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponent => GetPool<T>().TryGet(entity, out component);
-        public bool HasComponent<T>(Entity entity) where T : struct, IComponent => GetPool<T>().Has(entity);
+        public ref T GetComponent<T>(Entity entity) where T : struct, IComponent
+        {
+            EnsureAlive(entity);
+            return ref GetPool<T>().Get(entity);
+        }
+        public bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponent
+        {
+            if (!IsAlive(entity))
+            {
+                component = default;
+                return false;
+            }
+            return GetPool<T>().TryGet(entity, out component);
+        }
+        public bool HasComponent<T>(Entity entity) where T : struct, IComponent =>
+            IsAlive(entity) && GetPool<T>().Has(entity);
         public void RemoveComponent<T>(Entity entity) where T : struct, IComponent
         {
+            if (!IsAlive(entity)) return;
             bool removed = HasComponent<T>(entity);
             GetPool<T>().Remove(entity);
             if (removed) OnComponentChanged?.Invoke(entity, typeof(T), false);
         }
 
         /// <summary>设置组件（存在则覆盖，不存在则新增）— 解决 TryGetComponent 副本修改后无法写回的问题</summary>
-        public void SetComponent<T>(Entity entity, T component) where T : struct, IComponent => GetPool<T>().Set(entity, component);
+        public void SetComponent<T>(Entity entity, T component) where T : struct, IComponent
+        {
+            EnsureAlive(entity);
+            GetPool<T>().Set(entity, component);
+        }
         public IEnumerable<Entity> GetEntitiesWith<T>() where T : struct, IComponent => GetPool<T>().GetEntities();
         public void ForEachEntities<T>(Action<Entity> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
         public void ForEachComponent<T>(ValAction<Entity, T> action) where T : struct, IComponent => GetPool<T>().ForEach(action);
@@ -184,6 +203,17 @@ namespace ZWebGLFrameWork.ECS
                 _componentPools[type] = pool;
             }
             return (ComponentPool<T>)pool;
+        }
+
+        private bool IsAlive(Entity entity) => entity.Id >= 0 &&
+            entity.Id < _generations.Length &&
+            entity.Generation == _generations[entity.Id] &&
+            _entityIndexMap.ContainsKey(entity.Id);
+
+        private void EnsureAlive(Entity entity)
+        {
+            if (!IsAlive(entity))
+                throw new InvalidOperationException($"Entity {entity} is not valid or has been destroyed.");
         }
     }
 
