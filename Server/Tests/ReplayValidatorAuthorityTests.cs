@@ -205,6 +205,41 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task ReplayValidator_TerminalChecksumAndTrailingRecords_AreValidated()
+        {
+            AuthorityFixture checksumFixture = AuthorityFixture.Create();
+            ReplayFile wrongChecksum = checksumFixture.CopyReplay();
+            wrongChecksum.FinalChecksum ^= 1;
+
+            ReplayValidationResult checksumResult = await checksumFixture.CreateValidator()
+                .ValidateAsync(wrongChecksum, checksumFixture.Match,
+                    checksumFixture.Submitter, checksumFixture.SerializedBytes,
+                    CancellationToken.None);
+
+            Assert.That(checksumResult.Code,
+                Is.EqualTo(ReplayValidationCode.FinalChecksumMismatch));
+
+            AuthorityFixture trailingFixture = AuthorityFixture.Create();
+            ReplayFile trailing = trailingFixture.CopyReplay();
+            trailing.FinalTick = 1;
+            trailing.Records.Add(new ReplayTickRecord
+            {
+                Tick = 1,
+                Commands = new System.Collections.Generic.List<SerializableCommand>(),
+                Checksum = trailing.FinalChecksum
+            });
+
+            ReplayValidationResult trailingResult = await trailingFixture.CreateValidator()
+                .ValidateAsync(trailing, trailingFixture.Match,
+                    trailingFixture.Submitter, trailingFixture.SerializedBytes,
+                    CancellationToken.None);
+
+            Assert.That(trailingResult.Code,
+                Is.EqualTo(ReplayValidationCode.TrailingRecord));
+            Assert.That(trailingResult.FailedTick, Is.EqualTo(1));
+        }
+
+        [Test]
         public async Task ReplayValidator_SessionRejectedCommand_IsRejectedAtThatTick()
         {
             AuthorityFixture fixture = AuthorityFixture.Create();
