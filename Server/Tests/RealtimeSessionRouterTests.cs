@@ -239,6 +239,20 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task Router_ExpiredRetentionDoesNotBlockFreshTicketAuthentication()
+        {
+            RouterFixture fixture = RouterFixture.Create();
+            await fixture.AuthenticateAsync();
+            fixture.Router.Disconnect(fixture.Session);
+            fixture.Clock.Milliseconds = 10_000;
+
+            var replacement = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(replacement,
+                    fixture.AuthBytes(), CancellationToken.None),
+                Is.EqualTo(ProtocolError.None));
+        }
+
+        [Test]
         public async Task Router_StaleDisconnectCannotReleaseReplacementOwner()
         {
             RouterFixture fixture = RouterFixture.Create();

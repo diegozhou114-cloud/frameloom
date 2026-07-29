@@ -179,6 +179,7 @@ namespace ZWebGLFrameWork.FrameSync
         {
             lock (_activeGate)
             {
+                RemoveExpiredRetentionLocked(state.Claims.SessionId);
                 if (_disconnected.TryGetValue(connection, out _) ||
                     _sessionByConnection.ContainsKey(connection) ||
                     _retainedSessions.ContainsKey(state.Claims.SessionId) ||
@@ -188,6 +189,15 @@ namespace ZWebGLFrameWork.FrameSync
                 _activeStateBySession.Add(state.Claims.SessionId, state);
                 return true;
             }
+        }
+
+        private void RemoveExpiredRetentionLocked(Guid sessionId)
+        {
+            if (_retainedSessions.TryGetValue(sessionId,
+                    out RetainedRealtimeSession? retained) &&
+                _clock.Milliseconds - retained.DisconnectedAtMilliseconds >=
+                    DisconnectedRetentionMilliseconds)
+                _retainedSessions.Remove(sessionId);
         }
 
         private bool IsOwner(Guid sessionId, IRealtimeServerSession connection)
