@@ -120,6 +120,103 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             Assert.That(lower.CanvasGroup.interactable, Is.False);
         }
 
+        [UnityTest]
+        public IEnumerator UIManager_CloseMiddleModal_ResumesLowerLayersUnderNonModalTop()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            LowerLayerPanel lower = manager.Open<LowerLayerPanel>();
+            MiddleLayerPanel modal = manager.Open<MiddleLayerPanel>();
+            NonModalPopupPanel nonModal = manager.Open<NonModalPopupPanel>();
+            Assert.That(lower.IsPaused, Is.True);
+            Assert.That(modal.IsPaused, Is.True);
+
+            manager.Close(modal);
+
+            Assert.That(nonModal.IsOpen, Is.True);
+            Assert.That(nonModal.IsPaused, Is.False);
+            Assert.That(nonModal.CanvasGroup.interactable, Is.True);
+            Assert.That(lower.IsOpen, Is.True);
+            Assert.That(lower.IsPaused, Is.False);
+            Assert.That(lower.CanvasGroup.interactable, Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator UIManager_CloseMiddleModalUnderHigherModal_KeepsPanelsPaused()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            LowerLayerPanel lower = manager.Open<LowerLayerPanel>();
+            MiddleLayerPanel modal = manager.Open<MiddleLayerPanel>();
+            NonModalPopupPanel nonModal = manager.Open<NonModalPopupPanel>();
+            manager.Open<TopLayerPanel>();
+
+            manager.Close(modal);
+
+            Assert.That(nonModal.IsOpen, Is.True);
+            Assert.That(nonModal.IsPaused, Is.True);
+            Assert.That(nonModal.CanvasGroup.interactable, Is.False);
+            Assert.That(lower.IsOpen, Is.True);
+            Assert.That(lower.IsPaused, Is.True);
+            Assert.That(lower.CanvasGroup.interactable, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator UIManager_CloseMiddleModal_KeepsLowerLayersPausedByRemainingModal()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            LowerLayerPanel lower = manager.Open<LowerLayerPanel>();
+            manager.Open<MiddleLayerPanel>();
+            SecondModalPopupPanel closingModal = manager.Open<SecondModalPopupPanel>();
+            NonModalPopupPanel nonModal = manager.Open<NonModalPopupPanel>();
+
+            manager.Close(closingModal);
+
+            Assert.That(nonModal.IsOpen, Is.True);
+            Assert.That(nonModal.IsPaused, Is.False);
+            Assert.That(nonModal.CanvasGroup.interactable, Is.True);
+            Assert.That(lower.IsOpen, Is.True);
+            Assert.That(lower.IsPaused, Is.True);
+            Assert.That(lower.CanvasGroup.interactable, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator UIManager_CloseTop_StopsBelowLayerContainingPausedModal()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            LowerLayerPanel lower = manager.Open<LowerLayerPanel>();
+            manager.Open<MiddleLayerPanel>();
+            NonModalPopupPanel nonModal = manager.Open<NonModalPopupPanel>();
+            manager.Open<TopLayerPanel>();
+
+            manager.CloseLayer(UILayer.Top);
+
+            Assert.That(nonModal.IsOpen, Is.True);
+            Assert.That(nonModal.IsPaused, Is.False);
+            Assert.That(nonModal.CanvasGroup.interactable, Is.True);
+            Assert.That(lower.IsOpen, Is.True);
+            Assert.That(lower.IsPaused, Is.True);
+            Assert.That(lower.CanvasGroup.interactable, Is.False);
+        }
+
         private sealed class LowerLayerPanel : UIBase
         {
             protected override void Awake()
@@ -156,6 +253,16 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             {
                 _layer = UILayer.Popup;
                 _pauseLowerPanels = false;
+                base.Awake();
+            }
+        }
+
+        private sealed class SecondModalPopupPanel : UIBase
+        {
+            protected override void Awake()
+            {
+                _layer = UILayer.Popup;
+                _pauseLowerPanels = true;
                 base.Awake();
             }
         }

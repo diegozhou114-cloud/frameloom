@@ -120,9 +120,9 @@ namespace ZWebGLFrameWork.UI
                 RemoveFromMiddle(stack, panel);
                 panel.DoClose();
                 // 恢复被中间面板阻挡的下层
-                if (stack.Count > 0 && panel.PauseLowerPanels)
+                if (panel.PauseLowerPanels)
                 {
-                    stack.Peek().DoResume();
+                    ResumeLowerLayers(layer);
                 }
                 return;
             }
@@ -204,7 +204,18 @@ namespace ZWebGLFrameWork.UI
             for (int i = (int)currentLayer + 1; i <= (int)UILayer.Top; i++)
             {
                 var stack = _stacks[(UILayer)i];
-                if (stack.Count > 0 && stack.Peek().PauseLowerPanels)
+                if (ContainsBlockingPanel(stack))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool ContainsBlockingPanel(Stack<UIBase> stack)
+        {
+            foreach (var panel in stack)
+            {
+                if (panel.PauseLowerPanels)
                     return true;
             }
 
@@ -218,7 +229,7 @@ namespace ZWebGLFrameWork.UI
             {
                 var checkLayer = (UILayer)i;
                 var stack = _stacks[checkLayer];
-                if (stack.Count > 0 && stack.Peek().PauseLowerPanels)
+                if (ContainsBlockingPanel(stack))
                     return; // 仍有上层需要暂停下层，不恢复
             }
 
@@ -231,7 +242,7 @@ namespace ZWebGLFrameWork.UI
                 {
                     var panel = stack.Peek();
                     panel.DoResume();
-                    if (panel.PauseLowerPanels)
+                    if (ContainsBlockingPanel(stack))
                         return;
                 }
             }
