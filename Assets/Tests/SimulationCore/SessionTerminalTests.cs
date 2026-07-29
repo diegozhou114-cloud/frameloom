@@ -745,7 +745,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ArgumentException error = Assert.Throws<ArgumentException>(() =>
                 world.RestoreFromFull(snapshot));
 
-            Assert.That(error.Message, Is.EqualTo("Snapshot entity metadata is inconsistent. (Parameter 'snapshot')"));
+            Assert.That(error.ParamName, Is.EqualTo("snapshot"));
+            Assert.That(error.Message, Does.StartWith("Snapshot entity metadata is inconsistent."));
         }
 
         [Test]
@@ -761,7 +762,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ArgumentException error = Assert.Throws<ArgumentException>(() =>
                 world.RestoreFromFull(snapshot));
 
-            Assert.That(error.Message, Is.EqualTo("Invalid world snapshot chunk. (Parameter 'snapshot')"));
+            Assert.That(error.ParamName, Is.EqualTo("snapshot"));
+            Assert.That(error.Message, Does.StartWith("Invalid world snapshot chunk."));
             Assert.That(world.ComputeChecksum(), Is.EqualTo(checksumBefore));
         }
 
@@ -783,7 +785,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ArgumentException error = Assert.Throws<ArgumentException>(() =>
                 world.RestoreFromFull(snapshot));
 
-            Assert.That(error.Message, Is.EqualTo("Invalid world snapshot chunk. (Parameter 'snapshot')"));
+            Assert.That(error.ParamName, Is.EqualTo("snapshot"));
+            Assert.That(error.Message, Does.StartWith("Invalid world snapshot chunk."));
         }
 
         [Test]
@@ -799,7 +802,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ArgumentException error = Assert.Throws<ArgumentException>(() =>
                 world.RestoreFromFull(snapshot));
 
-            Assert.That(error.Message, Is.EqualTo("Snapshot entity metadata is inconsistent. (Parameter 'snapshot')"));
+            Assert.That(error.ParamName, Is.EqualTo("snapshot"));
+            Assert.That(error.Message, Does.StartWith("Snapshot entity metadata is inconsistent."));
         }
 
         [Test]
@@ -815,7 +819,8 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             ArgumentException error = Assert.Throws<ArgumentException>(() =>
                 world.RestoreFromFull(snapshot));
 
-            Assert.That(error.Message, Is.EqualTo("Snapshot entity metadata is inconsistent. (Parameter 'snapshot')"));
+            Assert.That(error.ParamName, Is.EqualTo("snapshot"));
+            Assert.That(error.Message, Does.StartWith("Snapshot entity metadata is inconsistent."));
         }
 
         [Test]

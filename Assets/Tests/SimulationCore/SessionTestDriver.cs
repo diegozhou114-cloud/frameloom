@@ -59,6 +59,28 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             return session;
         }
 
+        public static SimBattleSession StartedBattlingBattle()
+        {
+            SimBattleSession session = StartedBattle();
+            if (!session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted)
+            {
+                session.Dispose();
+                throw new System.InvalidOperationException("EndDeployment rejected.");
+            }
+
+            session.Tick();
+            if (session.State.Phase != SimCombatPhase.Battling)
+            {
+                session.Dispose();
+                throw new System.InvalidOperationException("Battle did not enter battling phase.");
+            }
+
+            return session;
+        }
+
         public static SimBattleSession StartedOneHitBattle()
         {
             byte[] manifest = OneHitManifestBytes();

@@ -68,17 +68,17 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void CommandsSameTickSamePlayer_AreOrderedBySequenceAndRejectRetrogradeSequence()
         {
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             int entityId = session.State.Presentation.Entities[0].EntityId;
 
             var later = new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 2,
+                Tick = 1, PlayerId = 0, Sequence = 3,
                 EntityId = entityId, TargetX = 5, TargetY = 2,
             };
             var earlier = new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 1,
+                Tick = 1, PlayerId = 0, Sequence = 2,
                 EntityId = entityId, TargetX = 4, TargetY = 2,
             };
 
@@ -88,49 +88,49 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             TickResult result = session.Tick();
             Assert.That(result.ExecutedCommands.Count, Is.EqualTo(1));
-            Assert.That(((MoveCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(2));
+            Assert.That(((MoveCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(3));
         }
 
         [Test]
         public void Commands_SameTickSamePlayer_AreOrderedBySequence()
         {
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             int entityId = session.State.Presentation.Entities[0].EntityId;
             Assert.That(session.Submit(new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 2,
+                Tick = 1, PlayerId = 0, Sequence = 3,
                 EntityId = entityId, TargetX = 5, TargetY = 2,
             }).Disposition, Is.EqualTo(CommandDisposition.Accepted));
             Assert.That(session.Submit(new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 1,
+                Tick = 1, PlayerId = 0, Sequence = 2,
                 EntityId = entityId, TargetX = 4, TargetY = 2,
             }).Disposition, Is.EqualTo(CommandDisposition.NonMonotonicSequence));
             TickResult result = session.Tick();
             Assert.That(result.ExecutedCommands.Count, Is.EqualTo(1));
-            Assert.That(((MoveCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(2));
+            Assert.That(((MoveCmd)result.ExecutedCommands[0]).Sequence, Is.EqualTo(3));
         }
 
         [Test]
         public void CommandSubmit_LateFutureDuplicate_HasDeterministicDisposition()
         {
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             int entityId = session.State.Presentation.Entities[0].EntityId;
             MoveCmd command = new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 1,
+                Tick = 1, PlayerId = 0, Sequence = 2,
                 EntityId = entityId, TargetX = 5, TargetY = 2,
             };
             Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Accepted));
             Assert.That(session.Submit(command).Disposition, Is.EqualTo(CommandDisposition.Duplicate));
             Assert.That(session.Submit(new MoveCmd
             {
-                Tick = -1, PlayerId = 0, Sequence = 2,
+                Tick = 0, PlayerId = 0, Sequence = 3,
                 EntityId = entityId, TargetX = 5, TargetY = 2,
             }).Disposition, Is.EqualTo(CommandDisposition.LateTick));
             Assert.That(session.Submit(new MoveCmd
             {
-                Tick = 65, PlayerId = 0, Sequence = 3,
+                Tick = 66, PlayerId = 0, Sequence = 4,
                 EntityId = entityId, TargetX = 5, TargetY = 2,
             }).Disposition, Is.EqualTo(CommandDisposition.FutureWindowExceeded));
         }
@@ -179,11 +179,11 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                 Is.EqualTo(CommandDisposition.Accepted));
             Assert.That(deploying.LastChecksum, Is.Not.EqualTo(beforeDeploy));
 
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             EntityPresentationState mover = session.State.Presentation.Entities[0];
             Assert.That(session.Submit(new MoveCmd
             {
-                Tick = 0, PlayerId = mover.OwnerPlayerId, Sequence = 1,
+                Tick = 1, PlayerId = mover.OwnerPlayerId, Sequence = 2,
                 EntityId = mover.EntityId, TargetX = mover.GridX + 1, TargetY = mover.GridY,
             }).Accepted, Is.True);
             TickResult moved = session.Tick();
@@ -192,7 +192,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
 
             Assert.That(session.Submit(new SkillCmd
             {
-                Tick = session.State.NextTick, PlayerId = mover.OwnerPlayerId, Sequence = 2,
+                Tick = session.State.NextTick, PlayerId = mover.OwnerPlayerId, Sequence = 3,
                 CasterId = mover.EntityId, SkillId = 99,
                 TargetX = mover.GridX, TargetY = mover.GridY,
             }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
@@ -201,13 +201,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void MoveCommand_FromForeignPlayer_IsRejectedWithoutStateMutation()
         {
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             int entityId = session.State.Presentation.Entities[0].EntityId;
             ulong before = session.LastChecksum;
 
             CommandSubmitResult submitted = session.Submit(new MoveCmd
             {
-                Tick = 0, PlayerId = 1, Sequence = 1,
+                Tick = 1, PlayerId = 1, Sequence = 1,
                 EntityId = entityId, TargetX = 12, TargetY = 2,
             });
 
@@ -215,7 +215,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             TickResult result = session.Tick();
             Assert.That(result.Checksum, Is.Not.EqualTo(0UL));
 
-            using SimBattleSession baseline = SessionTestDriver.StartedBattle();
+            using SimBattleSession baseline = SessionTestDriver.StartedBattlingBattle();
             baseline.Tick();
             Assert.That(session.State.Presentation.Entities[0].GridX,
                 Is.EqualTo(baseline.State.Presentation.Entities[0].GridX));
@@ -256,13 +256,13 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         [Test]
         public void SkillCommand_UnknownSkillIsRejectedBeforeMutation()
         {
-            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
             EntityPresentationState caster = session.State.Presentation.Entities[0];
             EntityPresentationState target = session.State.Presentation.Entities[1];
 
             CommandSubmitResult rejected = session.Submit(new SkillCmd
             {
-                Tick = 0, PlayerId = caster.OwnerPlayerId, Sequence = 1,
+                Tick = 1, PlayerId = caster.OwnerPlayerId, Sequence = 2,
                 CasterId = caster.EntityId, SkillId = 99,
                 TargetX = target.GridX, TargetY = target.GridY,
             });
