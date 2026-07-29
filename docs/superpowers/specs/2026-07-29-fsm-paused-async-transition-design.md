@@ -27,8 +27,9 @@ is current, this has two unsafe outcomes:
   leaves `_suspendedStates` populated so an obsolete state can be resumed.
 
 `LoginState` and `BattleState` additionally treat `IsActive == false` as if the
-state had exited. A suspended state is inactive but still owns a live operation,
-so both states can discard a valid completion and remain stuck after resume.
+state had exited. A suspended state is inactive but its existing operation
+token remains live, so both states can discard a valid completion and remain
+stuck after resume.
 
 ## Scope
 
@@ -120,32 +121,31 @@ transitions deterministic and prevents replay.
 `Clear` always discards the deferred request. Removing its source also discards
 the request. No deferred request survives FSM teardown or source removal.
 
-### Retained-state lifetime
+### Suspended asynchronous lifetime
 
-`FSMState<T>` exposes a protected retained-state predicate backed by the FSM.
-It is true only while that exact state instance is current or suspended.
-Unlike `IsActive`, it remains true during Pause and becomes false after exit,
-removal, or clear.
+No second state-lifetime API is added. `FSMState<T>.OnSuspend` deliberately
+keeps the base lifetime token alive, while `OnExit` cancels it. Login and
+Battle already have more specific operation tokens with the same ownership:
+they remain live during suspension and are cancelled on exit. Those existing
+tokens distinguish a valid paused completion from an obsolete completion.
 
 - `LaunchState` already routes its late targets through the state helper, so
   the source-aware core behavior defers them without local state.
-- `LoginState` uses cancellation plus the retained-state predicate after its
-  await. A completion from a suspended Login remains valid; a completion from
-  an exited Login remains ignored.
+- `LoginState` relies on its `_loginCts` cancellation after its await rather
+  than `IsActive`. A completion from a suspended Login remains valid; a
+  completion from an exited Login remains ignored.
 - `BattleState` uses its existing lifetime identity and cancellation checks
-  plus the retained-state predicate. A suspended battle can commit its one
-  valid result, while an asynchronous failure requests MainVillage through the
-  deferred source-aware transition path.
+  without `IsActive`. A suspended battle can commit its one valid result,
+  while an asynchronous failure requests MainVillage through the deferred
+  source-aware transition path.
 
 This change does not restart asynchronous work on resume and does not make
 Pause a permitted substitute source for Launch or Login transitions.
 
 ## Return Values and Events
 
-- A state-owned request returns `true` when it executes immediately or is
-  accepted into the deferred slot.
-- It returns `false` for an unregistered target, an invalid source rule, a
-  stale source, or a second request while the slot is occupied.
+- The protected state helper keeps its existing `void` signature. Invalid,
+  stale, and second requests do not change state or replace the retained slot.
 - A public transition returns `false` while any state is suspended.
 - Accepting a deferred request emits no state-change event because the current
   state remains Pause.
@@ -166,8 +166,8 @@ They will prove:
 5. stale and cleared sources cannot execute retained requests;
 6. a controllable Launch pipeline completing during Pause transitions only
    after resume; and
-7. Login and Battle regard a suspended lifetime as retained while continuing
-   to reject completions after exit.
+7. Login and Battle use their existing cancellation identities during Pause
+   while continuing to reject completions after exit.
 
 After focused RED/GREEN evidence, run the complete PlayMode and EditMode suites.
 Every Unity invocation must start only after confirming zero Unity processes,
