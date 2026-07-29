@@ -39,6 +39,12 @@ namespace ZWebGLFrameWork.Core
 
         public static bool HasInstance => _instance != null;
 
+        /// <summary>当前组件是否为基类持有的主实例</summary>
+        protected bool IsPrimaryInstance => ReferenceEquals(_instance, this);
+
+        // TODO(singleton-template-method): 当前修复完成后，可评估由基类统一调用
+        // OnSingletonAwake，避免后续派生类遗漏主实例守卫。
+
         protected virtual void Awake()
         {
             if (_instance != null && _instance != this)

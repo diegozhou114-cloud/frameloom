@@ -79,6 +79,8 @@ namespace ZWebGLFrameWork.FSM
 
         private void OnApplicationPause(bool pauseStatus)
         {
+            if (!IsPrimaryInstance || _fsm == null) return;
+
             if (pauseStatus)
             {
                 // 切后台 → 进入暂停
@@ -105,6 +107,7 @@ namespace ZWebGLFrameWork.FSM
         protected override void Awake()
         {
             base.Awake();
+            if (!IsPrimaryInstance) return;
             InitializeFSM();
         }
 

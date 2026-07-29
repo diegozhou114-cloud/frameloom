@@ -16,6 +16,7 @@ namespace ZWebGLFrameWork.Network
         protected override void Awake()
         {
             base.Awake();
+            if (!IsPrimaryInstance) return;
             Http = new UnityHttpApi();
             Realtime = new RealtimeConnectionController(
                 RealtimeChannelFactoryRegistry.Current ?? throw new InvalidOperationException(

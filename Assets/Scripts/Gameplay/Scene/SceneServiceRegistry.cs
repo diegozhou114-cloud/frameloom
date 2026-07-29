@@ -43,9 +43,8 @@ namespace ZWebGLFrameWork.Gameplay
 
         protected override void Awake()
         {
-            bool duplicate = HasInstance && Instance != this;
             base.Awake();
-            if (duplicate) return;
+            if (!IsPrimaryInstance) return;
 
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;

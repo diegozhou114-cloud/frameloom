@@ -42,6 +42,7 @@ namespace ZWebGLFrameWork.Combat
         protected override void Awake()
         {
             base.Awake();
+            if (!IsPrimaryInstance) return;
             _sessionFactory = new SimBattleSessionFactory();
             _canonicalManifestBytes = FrameworkBattleContent.CanonicalBytes();
             _battleInitFactory = new BattleInitFactory(_canonicalManifestBytes);

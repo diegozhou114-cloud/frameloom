@@ -28,6 +28,7 @@ namespace ZWebGLFrameWork.UI
         protected override void Awake()
         {
             base.Awake();
+            if (!IsPrimaryInstance) return;
             Initialize();
         }
 
