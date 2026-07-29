@@ -45,7 +45,7 @@ namespace ZWebGLFrameWork.ECS
             {
                 id = _nextId++;
                 if (id >= _generations.Length) Array.Resize(ref _generations, _generations.Length * 2);
-                _generations[id] = 1;
+                _generations[id]++;
             }
             var entity = new Entity(id, _generations[id]);
             _entities.Add(entity);
