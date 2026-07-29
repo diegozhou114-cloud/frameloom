@@ -56,10 +56,17 @@ namespace ZWebGLFrameWork.FrameSync
                     }
                     while (!result.EndOfMessage);
 
+                    bool wasAuthenticated = session.IsAuthenticated;
                     ProtocolError error = await RouteCompleteMessageAsync(
                         session, message.ToArray(), cancellationToken)
                         .ConfigureAwait(false);
-                    if (error == ProtocolError.None) continue;
+                    if (error == ProtocolError.None)
+                    {
+                        if (!wasAuthenticated && session.IsAuthenticated)
+                            await SendAuthAcceptedAsync(socket, session,
+                                cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
                     await CloseAsync(socket, error, cancellationToken)
                         .ConfigureAwait(false);
                     return;
@@ -76,6 +83,21 @@ namespace ZWebGLFrameWork.FrameSync
         {
             return socket.CloseAsync((WebSocketCloseStatus)CloseCodeFor(error),
                 error.ToString(), cancellationToken);
+        }
+
+        private static Task SendAuthAcceptedAsync(WebSocket socket,
+            IRealtimeServerSession session, CancellationToken cancellationToken)
+        {
+            RealtimeSessionClaims claims = session.Claims ??
+                throw new InvalidOperationException("Authenticated session has no claims.");
+            byte[] accepted = RealtimeCodec.Encode(new AuthAccepted
+            {
+                SessionId = claims.SessionId,
+                LastAuthorityTick = -1,
+                TimelineRevision = 0
+            });
+            return socket.SendAsync(new ArraySegment<byte>(accepted),
+                WebSocketMessageType.Binary, true, cancellationToken);
         }
 
         private static RealtimeCloseCode CloseCodeFor(ProtocolError error)

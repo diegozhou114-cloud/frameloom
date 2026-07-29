@@ -30,6 +30,23 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task WebSocketIngress_AuthenticatedHelloReceivesAuthAccepted()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            var socket = new ScriptedWebSocket(
+                Binary(Auth(setup.Claims, setup.Ticket), endOfMessage: true), Close());
+
+            await new WebSocketIngress(setup.Router).ProcessAsync(
+                socket, new TestSession(), CancellationToken.None);
+
+            Assert.That(socket.Sent, Has.Count.EqualTo(1));
+            DecodeResult accepted = RealtimeCodec.Decode(socket.Sent[0]);
+            Assert.That(accepted.Error, Is.EqualTo(ProtocolError.None));
+            Assert.That(accepted.Kind, Is.EqualTo(RealtimeMessageKind.AuthAccepted));
+            Assert.That(accepted.AuthAccepted.SessionId, Is.EqualTo(setup.Claims.SessionId));
+        }
+
+        [Test]
         public async Task WebSocketIngress_RejectsTextMessagesWithMalformedCloseCode()
         {
             RouterSetup setup = RouterSetup.Create();
@@ -298,6 +315,7 @@ namespace ZWebGLFrameWork.Server.Tests
             private WebSocketState _state = WebSocketState.Open;
             private WebSocketCloseStatus? _closeStatus;
             private string _closeStatusDescription;
+            public List<byte[]> Sent { get; } = new List<byte[]>();
 
             public override WebSocketCloseStatus? CloseStatus => _closeStatus;
             public override string CloseStatusDescription => _closeStatusDescription;
@@ -337,7 +355,15 @@ namespace ZWebGLFrameWork.Server.Tests
 
             public override Task SendAsync(ArraySegment<byte> buffer,
                 WebSocketMessageType messageType, bool endOfMessage,
-                CancellationToken cancellationToken) => Task.CompletedTask;
+                CancellationToken cancellationToken)
+            {
+                Assert.That(messageType, Is.EqualTo(WebSocketMessageType.Binary));
+                Assert.That(endOfMessage, Is.True);
+                var copy = new byte[buffer.Count];
+                Buffer.BlockCopy(buffer.Array, buffer.Offset, copy, 0, copy.Length);
+                Sent.Add(copy);
+                return Task.CompletedTask;
+            }
         }
 
         private readonly struct ScriptedFrame
