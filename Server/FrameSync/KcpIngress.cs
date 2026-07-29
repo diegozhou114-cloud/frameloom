@@ -44,6 +44,9 @@ namespace ZWebGLFrameWork.FrameSync
             if (session == null) throw new ArgumentNullException(nameof(session));
             if (!TryReadSessionId(packet, out Guid sessionId))
                 return ProtocolError.Truncated;
+            RealtimeSessionClaims? claims = session.Claims;
+            if (claims != null && claims.SessionId != sessionId)
+                return ProtocolError.WrongSession;
             ProtocolError keyError = _keys.TryGetMacKey(sessionId, out byte[]? macKey);
             if (keyError != ProtocolError.None) return keyError;
 

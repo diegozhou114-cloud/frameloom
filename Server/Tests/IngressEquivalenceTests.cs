@@ -162,6 +162,31 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task KcpIngress_AuthenticatedSessionRejectsValidForeignSessionPacket()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            RealtimeSessionClaims foreignClaims = Claims();
+            byte[] ownKey = Enumerable.Repeat((byte)4, 32).ToArray();
+            byte[] foreignKey = Enumerable.Repeat((byte)5, 32).ToArray();
+            var keys = new TestNativeSessionKeyStore();
+            keys.Add(setup.Claims.SessionId, ownKey);
+            keys.Add(foreignClaims.SessionId, foreignKey);
+            var ingress = new KcpIngress(setup.Router, keys);
+            var session = new TestSession();
+
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(session,
+                    AuthenticatedPacketCodec.Encode(setup.Claims.SessionId, 1,
+                        Auth(setup.Claims, setup.Ticket), ownKey),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.None));
+
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(session,
+                    AuthenticatedPacketCodec.Encode(foreignClaims.SessionId, 1,
+                        RealtimeCodec.Encode(Command(setup.Claims)), foreignKey),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.WrongSession));
+            Assert.That(setup.Sink.Accepted, Is.Empty);
+        }
+
+        [Test]
         public async Task KcpIngress_DisconnectPermitsRetainedSessionResume()
         {
             RouterSetup setup = RouterSetup.Create();
