@@ -86,6 +86,16 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public void Encode_RejectsNonNoOpWithEmptyPayload()
+        {
+            CommandEnvelope command = CommandEnvelope.Create(
+                7, 0, 1, 1, Array.Empty<byte>());
+            command.MatchId = "match-1";
+
+            Assert.Throws<ArgumentException>(() => RealtimeCodec.Encode(command));
+        }
+
+        [Test]
         public void AuthenticationMessages_RoundTrip_PreserveSessionAndResumeState()
         {
             Guid sessionId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
@@ -197,7 +207,7 @@ namespace ZWebGLFrameWork.Network.Tests
                 OrderedInputs = new[]
                 {
                     CommandEnvelope.NoOp(7, 0, 10),
-                    CommandEnvelope.Create(7, 1, 11, 1, Array.Empty<byte>())
+                    CommandEnvelope.Create(7, 1, 11, 1, new byte[] { 1 })
                 }
             });
 

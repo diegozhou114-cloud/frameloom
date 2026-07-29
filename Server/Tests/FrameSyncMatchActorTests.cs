@@ -112,6 +112,10 @@ namespace ZWebGLFrameWork.Server.Tests
             input.MessageId = 0;
             Assert.That(fixture.Actor.SubmitInput(0, input),
                 Is.EqualTo(InputAcceptance.InvalidInput));
+            input = fixture.Input(0, 0, 1);
+            input.Payload = Array.Empty<byte>();
+            Assert.That(fixture.Actor.SubmitInput(0, input),
+                Is.EqualTo(InputAcceptance.InvalidInput));
 
             input = fixture.Input(0, 0, 1);
             Assert.That(fixture.Actor.SubmitInput(0, input),

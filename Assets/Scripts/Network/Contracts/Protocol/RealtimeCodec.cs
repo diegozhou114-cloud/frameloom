@@ -410,7 +410,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Protocol
                 command.Payload == null || command.Payload.Length > RealtimeProtocol.MaxMessageBytes)
                 return false;
             if (requireMatchId && string.IsNullOrWhiteSpace(command.MatchId)) return false;
-            return command.MessageId != 0 || command.Payload.Length == 0;
+            return (command.MessageId == 0) == (command.Payload.Length == 0);
         }
 
         private static void WriteCommand(

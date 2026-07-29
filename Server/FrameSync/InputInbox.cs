@@ -51,7 +51,7 @@ namespace ZWebGLFrameWork.FrameSync
                 return InputAcceptance.UnsupportedVersion;
             if (!string.Equals(input.MatchId, _matchId, StringComparison.Ordinal))
                 return InputAcceptance.WrongMatch;
-            if (input.IsNoOp || input.Payload == null ||
+            if (input.IsNoOp || input.Payload == null || input.Payload.Length == 0 ||
                 input.Payload.Length > RealtimeProtocol.MaxMessageBytes)
                 return InputAcceptance.InvalidInput;
             if (input.Sequence >= int.MaxValue)
