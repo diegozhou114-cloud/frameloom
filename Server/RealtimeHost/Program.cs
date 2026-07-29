@@ -13,15 +13,18 @@ public static class Program
         var clock = new SystemRealtimeClock();
         var tickets = new InMemoryRealtimeTicketStore();
         var matches = new FrameSyncMatchRegistry();
+        var authorityFrames = new AuthorityFrameBroadcaster();
         var router = new RealtimeSessionRouter(tickets,
             new SessionRateLimiter(options.MessagesPerSecond, options.Burst), matches, clock);
         var login = new GuestLoginService(tickets, new UnavailableLoginAllocator());
-        using var native = new KcpServerIngressHost(new KcpIngress(router, tickets), tickets);
+        using var native = new KcpServerIngressHost(new KcpIngress(router, tickets),
+            tickets, authorityFrames);
         native.Start(options.NativePort);
 
         WebApplication application = builder.Build();
         RealtimeHostApplication.Configure(application, router, login, clock,
-            new HashSet<string>(options.AllowedOrigins, StringComparer.Ordinal));
+            new HashSet<string>(options.AllowedOrigins, StringComparer.Ordinal),
+            authorityFrames);
         application.Lifetime.ApplicationStopping.Register(matches.Dispose);
         await application.RunAsync().ConfigureAwait(false);
     }
