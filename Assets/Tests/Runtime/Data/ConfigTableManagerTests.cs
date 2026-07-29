@@ -45,8 +45,8 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             var cache = (IDictionary)CacheField.GetValue(null);
             cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] = new[]
             {
-                new BuildingConfig { Id = 1 },
-                new BuildingConfig { Id = 1 },
+                CreateValidBuildingConfig(1),
+                CreateValidBuildingConfig(1),
             };
             ConfigTableManager manager = CreateOwnedObject("ConfigTableManager")
                 .AddComponent<ConfigTableManager>();
@@ -190,7 +190,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             var cache = (IDictionary)CacheField.GetValue(null);
             cache[ResourceArrayCacheKey<BuildingConfig>("Config/Buildings")] = new[]
             {
-                new BuildingConfig { Id = 1, SizeX = 0, SizeY = 1 },
+                CreateValidBuildingConfig(1, sizeX: 0),
             };
             ConfigTableManager manager = CreateOwnedObject("ConfigTableManager")
                 .AddComponent<ConfigTableManager>();
@@ -255,5 +255,19 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
 
         private static string ResourceArrayCacheKey<T>(string path) =>
             $"res_arr:{typeof(T).AssemblyQualifiedName}:{path}";
+
+        private static BuildingConfig CreateValidBuildingConfig(int id, int sizeX = 1)
+        {
+            return new BuildingConfig
+            {
+                Id = id,
+                MaxLevel = 1,
+                SizeX = sizeX,
+                SizeY = 1,
+                BuildCost = new[] { 0 },
+                BuildTime = new[] { 0 },
+                HP = new[] { 100 },
+            };
+        }
     }
 }
