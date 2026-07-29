@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplayValidator", "ReplayVa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Network.ServerTests", "Network.Tests\ZWebGLFrameWork.Network.ServerTests.csproj", "{4C3D5678-8770-4B24-97D3-9A1890214CEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.ECS.ServerTests", "ECS.Tests\ZWebGLFrameWork.ECS.ServerTests.csproj", "{6A113F58-8AE5-478B-9B09-E6C03B17B6E2}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Server.Tests", "Tests\ZWebGLFrameWork.Server.Tests.csproj", "{08DA2B46-1908-42B7-AA78-2A817B36B9F6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{1E598C6A-0CB5-4EED-BF85-4A39672F6739}"
@@ -50,6 +52,10 @@ Global
 		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C3D5678-8770-4B24-97D3-9A1890214CEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A113F58-8AE5-478B-9B09-E6C03B17B6E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A113F58-8AE5-478B-9B09-E6C03B17B6E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A113F58-8AE5-478B-9B09-E6C03B17B6E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A113F58-8AE5-478B-9B09-E6C03B17B6E2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08DA2B46-1908-42B7-AA78-2A817B36B9F6}.Release|Any CPU.ActiveCfg = Release|Any CPU

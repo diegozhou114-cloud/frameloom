@@ -59,6 +59,7 @@ namespace ZWebGLFrameWork.ECS
             // 验证 entity 句柄有效性（ID 范围 + Generation 匹配）
             if (entity.Id < 0 || entity.Id >= _generations.Length) return;
             if (entity.Generation != _generations[entity.Id]) return;
+            if (!_entityIndexMap.ContainsKey(entity.Id)) return;
 
             // 通过 IComponentPool 接口移除所有组件 — 零反射
             foreach (var pool in _componentPools.Values)
