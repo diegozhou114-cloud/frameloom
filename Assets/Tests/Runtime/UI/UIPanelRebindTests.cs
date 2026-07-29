@@ -32,5 +32,66 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             Assert.That(panel.BoundValue, Is.EqualTo("third"));
             Assert.That(panel.CallbackCount, Is.EqualTo(1));
         }
+
+        [UnityTest]
+        public IEnumerator Panel_ReopenWhilePaused_RebindsWithoutBypassingStackOrder()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            RebindProbePanel panel = manager.Open<RebindProbePanel>("first");
+            BlockingPanel blocker = manager.Open<BlockingPanel>();
+            Assert.That(panel.IsPaused, Is.True);
+
+            RebindProbePanel reopened = manager.Open<RebindProbePanel>("updated");
+
+            Assert.That(reopened, Is.SameAs(panel));
+            Assert.That(panel.BoundValue, Is.EqualTo("updated"));
+            Assert.That(panel.IsPaused, Is.True);
+            Assert.That(panel.CanvasGroup.interactable, Is.False);
+            Assert.That(manager.GetTop(UILayer.Normal), Is.SameAs(blocker));
+        }
+
+        [UnityTest]
+        public IEnumerator Panel_ReopenUnderPopupBlocker_PreservesLayerAndSortingOrder()
+        {
+            if (UIManager.HasInstance)
+                Object.DestroyImmediate(UIManager.Instance.gameObject);
+
+            var manager = CreateOwnedObject("UIManager").AddComponent<UIManager>();
+            yield return null;
+
+            RebindProbePanel panel = manager.Open<RebindProbePanel>("first");
+            int sortingOrder = panel.SortingOrder;
+            PopupBlockingPanel blocker = manager.Open<PopupBlockingPanel>();
+            Assert.That(panel.IsPaused, Is.True);
+
+            RebindProbePanel reopened = manager.Open<RebindProbePanel>("updated");
+
+            Assert.That(reopened, Is.SameAs(panel));
+            Assert.That(panel.BoundValue, Is.EqualTo("updated"));
+            Assert.That(panel.IsPaused, Is.True);
+            Assert.That(panel.CanvasGroup.interactable, Is.False);
+            Assert.That(panel.SortingOrder, Is.EqualTo(sortingOrder));
+            Assert.That(manager.GetTop(UILayer.Normal), Is.SameAs(panel));
+            Assert.That(manager.GetTop(UILayer.Popup), Is.SameAs(blocker));
+        }
+
+        private sealed class BlockingPanel : UIBase
+        {
+        }
+
+        private sealed class PopupBlockingPanel : UIBase
+        {
+            protected override void Awake()
+            {
+                _layer = UILayer.Popup;
+                _pauseLowerPanels = true;
+                base.Awake();
+            }
+        }
     }
 }

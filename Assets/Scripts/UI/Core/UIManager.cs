@@ -122,13 +122,10 @@ namespace ZWebGLFrameWork.UI
         {
             var type = typeof(T);
 
-            // 如果已打开且在同一层，恢复并传递新数据
+            // 已打开面板只重绑数据；暂停/恢复由 UIStack 统一管理
             if (_panelCache.TryGetValue(type, out var existing) && existing.IsOpen)
             {
-                if (existing.IsPaused)
-                    existing.DoResume(data);
-                else
-                    existing.DoRebind(data);
+                existing.DoRebind(data);
                 return existing as T;
             }
 
