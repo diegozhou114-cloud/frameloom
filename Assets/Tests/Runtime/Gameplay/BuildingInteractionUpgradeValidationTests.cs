@@ -10,6 +10,13 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
 {
     public sealed class BuildingInteractionUpgradeValidationTests : RuntimeTestBase
     {
+        [SetUp]
+        public void SetUp()
+        {
+            if (DataManager.HasInstance)
+                DataManager.Instance.ResetAll();
+        }
+
         [Test]
         public void UpgradeOperations_WithNegativeCosts_DoNotMutatePlayerOrBuilding()
         {
@@ -49,9 +56,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
         public void InstantUpgrade_TownHallSynchronizesPlayersTownHallLevel()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
             var selection = CreateOwnedObject("SelectionManager").AddComponent<SelectionManager>();
             var interaction = CreateOwnedObject("BuildingInteraction")
                 .AddComponent<BuildingInteraction>();
@@ -83,6 +88,15 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
                 BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null);
             field.SetValue(target, value);
+        }
+
+        private void PreloadConfigTable()
+        {
+            ConfigTableManager config = ConfigTableManager.HasInstance
+                ? ConfigTableManager.Instance
+                : CreateOwnedObject("ConfigTableManager").AddComponent<ConfigTableManager>();
+            config.Clear();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
         }
     }
 }
