@@ -174,6 +174,25 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattlingBattle();
+            session.Tick();
+            SimSnapshot snapshot = session.CaptureSnapshot();
+            var expectedChecksums = new List<ulong>();
+
+            for (int index = 0; index < 3; index++)
+                expectedChecksums.Add(session.Tick().Checksum);
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(snapshot);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(session.State.NextTick, Is.EqualTo(snapshot.CompletedTick + 1));
+            for (int index = 0; index < expectedChecksums.Count; index++)
+                Assert.That(session.Tick().Checksum, Is.EqualTo(expectedChecksums[index]));
+        }
+
+        [Test]
         public void Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
