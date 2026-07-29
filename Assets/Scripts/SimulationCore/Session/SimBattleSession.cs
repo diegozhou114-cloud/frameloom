@@ -524,7 +524,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     !HasWaypointCoordinates(command) ||
                     !HasValidRestoredCommandPayload(command) ||
                     !HasAllocatedEntityReference(command, data.WorldSnapshot.NextId) ||
-                    !HasValidRestoredCommandAuthorization(command))
+                    !HasValidRestoredCommandAuthorization(data, command))
                     return false;
             }
             return true;
@@ -591,8 +591,12 @@ namespace ZWebGLFrameWork.SimulationCore
             return owner.HasValue;
         }
 
-        private bool HasValidRestoredCommandAuthorization(ISimCommand command)
+        private bool HasValidRestoredCommandAuthorization(
+            SessionSnapshotData data, ISimCommand command)
         {
+            if (data.Phase == SimCombatPhase.Deploying &&
+                (command is MoveCmd || command is SkillCmd))
+                return false;
             return command switch
             {
                 DeployCmd deploy => _modeProfile.ManualDeployment && IsAttacker(deploy.PlayerId),

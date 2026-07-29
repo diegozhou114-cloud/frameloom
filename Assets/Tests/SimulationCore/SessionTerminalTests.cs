@@ -542,6 +542,41 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void Snapshot_DeployingPhaseCombatCommandsAreRejectedBeforeLiveMutation()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot baseline = session.CaptureSnapshot();
+            SessionSnapshotData data = SessionSnapshotCodec.Decode(baseline.Payload);
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(entity =>
+                entity.OwnerPlayerId == 0);
+            EntityPresentationState defender = session.State.Presentation.Entities.Single(entity =>
+                entity.OwnerPlayerId == 1);
+            data.LastSequenceByPlayer[0] = 2;
+            data.PendingCommands = new ISimCommand[]
+            {
+                new MoveCmd
+                {
+                    Tick = data.NextTick, PlayerId = 0, Sequence = 1,
+                    EntityId = attacker.EntityId, TargetX = attacker.GridX + 1,
+                    TargetY = attacker.GridY,
+                },
+                new SkillCmd
+                {
+                    Tick = data.NextTick, PlayerId = 0, Sequence = 2,
+                    CasterId = attacker.EntityId, SkillId = 1,
+                    TargetX = defender.GridX, TargetY = defender.GridY,
+                },
+            };
+            SimSnapshot forged = CreateSnapshotWithCalculatedChecksum(session, baseline, data);
+            ulong checksumBefore = session.State.Checksum;
+
+            SnapshotRestoreResult restored = session.RestoreSnapshot(forged);
+
+            Assert.That(restored.Code, Is.EqualTo(SnapshotRestoreCode.CorruptPayload));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksumBefore));
+        }
+
+        [Test]
         public void Snapshot_DuplicatePendingCommandSequence_IsRejectedBeforeLiveMutation()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
