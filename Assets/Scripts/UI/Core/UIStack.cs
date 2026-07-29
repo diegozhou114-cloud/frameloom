@@ -180,6 +180,8 @@ namespace ZWebGLFrameWork.UI
                     panel.DoClose();
                 }
             }
+
+            ResumeLowerLayers(layer);
         }
 
         // ==================== 内部方法 ====================
@@ -208,14 +210,17 @@ namespace ZWebGLFrameWork.UI
                     return; // 仍有上层需要暂停下层，不恢复
             }
 
-            // 没有上层需要暂停了，恢复所有被暂停的
+            // 没有上层需要暂停了，逐层恢复到下一个模态面板为止
             for (int i = (int)currentLayer - 1; i >= (int)UILayer.Background; i--)
             {
                 var layer = (UILayer)i;
                 var stack = _stacks[layer];
                 if (stack.Count > 0)
                 {
-                    stack.Peek().DoResume();
+                    var panel = stack.Peek();
+                    panel.DoResume();
+                    if (panel.PauseLowerPanels)
+                        return;
                 }
             }
         }
