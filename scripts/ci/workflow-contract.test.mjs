@@ -47,6 +47,7 @@ test('CI_ServerProjects_BuildAndTestReleaseWarnAsError', () => {
   const server = workflow.jobs.server;
   assert.ok(server, 'server job missing');
   assert.deepEqual(server.strategy.matrix.os, ['ubuntu-latest', 'windows-latest']);
+  assert.equal(server.env.ZWEB_REPO_ROOT, '${{ github.workspace }}');
   const commands = server.steps.map(step => step.run || '').join('\n');
   assert.match(commands,
     /dotnet restore Server\/ZWebGLFrameWork\.Server\.sln --locked-mode/);

@@ -93,6 +93,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
+      ZWEB_REPO_ROOT: ${{ github.workspace }}
     strategy:
       fail-fast: false
       matrix:
