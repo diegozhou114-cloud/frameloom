@@ -193,6 +193,47 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         }
 
         [Test]
+        public void RollbackReplay_MatchesOriginalChecksumSequence()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            var original = new List<ulong>();
+            SimSnapshot snapshot = null;
+
+            for (int tick = 0; tick < 8; tick++)
+            {
+                original.Add(session.Tick().Checksum);
+                if (tick == 3) snapshot = session.CaptureSnapshot();
+            }
+
+            Assert.That(snapshot, Is.Not.Null);
+            Assert.That(session.RestoreSnapshot(snapshot).Restored, Is.True);
+            Assert.That(session.State.NextTick, Is.EqualTo(snapshot.CompletedTick + 1));
+
+            for (int tick = snapshot.NextTick; tick < original.Count; tick++)
+                Assert.That(session.Tick().Checksum, Is.EqualTo(original[tick]));
+        }
+
+        [Test]
+        public void SessionRestart_MatchesFreshSessionState()
+        {
+            byte[] manifest = SessionTestDriver.ManifestBytes();
+            BattleInit init = SessionTestDriver.BattleInit(42);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(manifest);
+            using ISimBattleSession fresh = new SimBattleSessionFactory().Create(manifest);
+
+            StartResult accepted = session.Start(init);
+            ulong checksum = session.State.Checksum;
+            StartResult rejected = session.Start(init);
+            StartResult freshAccepted = fresh.Start(init);
+
+            Assert.That(accepted.Code, Is.EqualTo(StartCode.Accepted));
+            Assert.That(rejected.Code, Is.EqualTo(StartCode.AlreadyStarted));
+            Assert.That(session.State.Checksum, Is.EqualTo(checksum));
+            Assert.That(freshAccepted.Code, Is.EqualTo(StartCode.Accepted));
+            Assert.That(session.State.Checksum, Is.EqualTo(fresh.State.Checksum));
+        }
+
+        [Test]
         public void Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
