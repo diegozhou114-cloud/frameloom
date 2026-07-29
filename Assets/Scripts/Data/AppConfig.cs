@@ -142,8 +142,11 @@ namespace ZWebGLFrameWork.Data
         /// <summary>将配置应用到 Unity 全局设置</summary>
         public void Apply()
         {
-            _ = HttpsApiBaseUrl;
-            _ = WssRealtimeUrl;
+            if (!_enableOfflineMode)
+            {
+                _ = HttpsApiBaseUrl;
+                _ = WssRealtimeUrl;
+            }
 
             // -------- 平台自适应 --------
             if (_enablePlatformAutoDetect)
