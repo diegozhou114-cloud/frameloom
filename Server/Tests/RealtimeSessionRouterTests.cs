@@ -175,7 +175,7 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
-        public async Task Router_AllowsOneActiveOwner_AndReleasesOnDisconnect()
+        public async Task Router_AllowsOneActiveOwner_AndResumesAfterDisconnect()
         {
             RouterFixture fixture = RouterFixture.Create();
             var second = new TestSession();
@@ -187,8 +187,55 @@ namespace ZWebGLFrameWork.Server.Tests
 
             fixture.Router.Disconnect(fixture.Session);
             Assert.That(await fixture.Router.RouteAsync(
-                    second, fixture.AuthBytes(), CancellationToken.None),
+                    second, fixture.ResumeBytes(), CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
+        }
+
+        [Test]
+        public async Task Router_ResumeRequiresExactRetainedSessionProgress()
+        {
+            RouterFixture fixture = RouterFixture.Create();
+            await fixture.AuthenticateAsync();
+            Assert.That(await fixture.Router.RouteAsync(fixture.Session,
+                    RealtimeCodec.Encode(fixture.Command(0, 7)), CancellationToken.None),
+                Is.EqualTo(ProtocolError.None));
+            fixture.Router.Disconnect(fixture.Session);
+
+            var wrongSequence = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(wrongSequence,
+                    fixture.ResumeBytes(lastAcceptedSequence: 6), CancellationToken.None),
+                Is.EqualTo(ProtocolError.AuthenticationFailed));
+            var wrongToken = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(wrongToken,
+                    fixture.ResumeBytes(resumeToken: new byte[] { 1, 2, 3 }),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.AuthenticationFailed));
+
+            var replacement = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(replacement,
+                    fixture.ResumeBytes(lastAcceptedSequence: 7), CancellationToken.None),
+                Is.EqualTo(ProtocolError.None));
+            Assert.That(replacement.Claims.SessionId, Is.EqualTo(fixture.Claims.SessionId));
+        }
+
+        [Test]
+        public async Task Router_RetainsDisconnectedSessionForExactlyTenSeconds()
+        {
+            RouterFixture fixture = RouterFixture.Create();
+            await fixture.AuthenticateAsync();
+            fixture.Router.Disconnect(fixture.Session);
+
+            fixture.Clock.Milliseconds = 9_999;
+            var withinRetention = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(withinRetention,
+                    fixture.ResumeBytes(), CancellationToken.None),
+                Is.EqualTo(ProtocolError.None));
+
+            fixture.Router.Disconnect(withinRetention);
+            fixture.Clock.Milliseconds = 19_999;
+            var atExpiry = new TestSession();
+            Assert.That(await fixture.Router.RouteAsync(atExpiry,
+                    fixture.ResumeBytes(), CancellationToken.None),
+                Is.EqualTo(ProtocolError.ExpiredTicket));
         }
 
         [Test]
@@ -201,7 +248,7 @@ namespace ZWebGLFrameWork.Server.Tests
             await fixture.AuthenticateAsync();
             fixture.Router.Disconnect(fixture.Session);
             Assert.That(await fixture.Router.RouteAsync(
-                    replacement, fixture.AuthBytes(), CancellationToken.None),
+                    replacement, fixture.ResumeBytes(), CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
 
             fixture.Router.Disconnect(fixture.Session);
@@ -220,7 +267,7 @@ namespace ZWebGLFrameWork.Server.Tests
             await fixture.AuthenticateAsync();
             fixture.Router.Disconnect(fixture.Session);
             Assert.That(await fixture.Router.RouteAsync(
-                    replacement, fixture.AuthBytes(), CancellationToken.None),
+                    replacement, fixture.ResumeBytes(), CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
 
             Assert.That(await fixture.Router.RouteAsync(
@@ -346,6 +393,19 @@ namespace ZWebGLFrameWork.Server.Tests
                     Version = RealtimeProtocol.Version,
                     SessionId = sessionId ?? Claims.SessionId,
                     OpaqueTicket = (byte[])Ticket.Clone()
+                });
+
+            public byte[] ResumeBytes(byte[] resumeToken = null,
+                uint lastAcceptedSequence = 0, int lastAuthorityTick = -1,
+                long timelineRevision = 0) =>
+                RealtimeCodec.Encode(new ResumeHello
+                {
+                    Version = RealtimeProtocol.Version,
+                    SessionId = Claims.SessionId,
+                    ResumeToken = resumeToken ?? Claims.ResumeToken,
+                    LastAcceptedSequence = lastAcceptedSequence,
+                    LastAuthorityTick = lastAuthorityTick,
+                    TimelineRevision = timelineRevision
                 });
 
             public CommandEnvelope Command(int tick, uint sequence) =>

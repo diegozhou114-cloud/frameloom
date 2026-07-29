@@ -162,7 +162,7 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
-        public async Task KcpIngress_DisconnectReleasesAuthenticatedSessionOwnership()
+        public async Task KcpIngress_DisconnectPermitsRetainedSessionResume()
         {
             RouterSetup setup = RouterSetup.Create();
             byte[] macKey = Enumerable.Repeat((byte)5, 32).ToArray();
@@ -181,7 +181,7 @@ namespace ZWebGLFrameWork.Server.Tests
 
             Assert.That(await ingress.RouteAuthenticatedPacketAsync(replacement,
                     AuthenticatedPacketCodec.Encode(setup.Claims.SessionId, 1,
-                        Auth(setup.Claims, setup.Ticket), macKey),
+                        Resume(setup.Claims), macKey),
                     CancellationToken.None), Is.EqualTo(ProtocolError.None));
         }
 
@@ -194,6 +194,17 @@ namespace ZWebGLFrameWork.Server.Tests
                 Version = RealtimeProtocol.Version,
                 SessionId = claims.SessionId,
                 OpaqueTicket = ticket
+            });
+
+        private static byte[] Resume(RealtimeSessionClaims claims) =>
+            RealtimeCodec.Encode(new ResumeHello
+            {
+                Version = RealtimeProtocol.Version,
+                SessionId = claims.SessionId,
+                ResumeToken = claims.ResumeToken,
+                LastAcceptedSequence = 0,
+                LastAuthorityTick = -1,
+                TimelineRevision = 0
             });
 
         private static CommandEnvelope Command(RealtimeSessionClaims claims) =>
