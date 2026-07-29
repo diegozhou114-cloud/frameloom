@@ -5,6 +5,6 @@ namespace ZWebGLFrameWork.FrameSync
 {
     public interface IAuthorityCommandMapper
     {
-        ISimCommand ToSimulation(CommandEnvelope input);
+        ISimCommand? ToSimulation(CommandEnvelope input);
     }
 }

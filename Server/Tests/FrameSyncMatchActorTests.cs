@@ -134,11 +134,15 @@ namespace ZWebGLFrameWork.Server.Tests
             Assert.That(fixture.Actor.SubmitInput(0, input),
                 Is.EqualTo(InputAcceptance.InvalidInput));
             input = fixture.Input(0, 0, 1);
+            input.MessageId = (uint)FrameSyncCommandType.Deploy;
             input.Payload = Array.Empty<byte>();
             Assert.That(fixture.Actor.SubmitInput(0, input),
                 Is.EqualTo(InputAcceptance.InvalidInput));
 
             input = fixture.Input(0, 0, 1);
+            input.MessageId = (uint)FrameSyncCommandType.Deploy;
+            input.Payload = new byte[12];
+            input.Payload[0] = 1;
             Assert.That(fixture.Actor.SubmitInput(0, input),
                 Is.EqualTo(InputAcceptance.Accepted));
             input.Payload[0] = 99;
@@ -148,6 +152,23 @@ namespace ZWebGLFrameWork.Server.Tests
             fixture.Actor.Pump();
             Assert.That(fixture.Broadcaster.Frames.Single()
                 .OrderedInputs[0].Payload[0], Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Inbox_AcceptsFrameworkEndDeploymentAndRejectsUnknownMessageTypes()
+        {
+            MatchActorFixture fixture = MatchActorFixture.Create();
+            CommandEnvelope endDeployment = fixture.Input(0, 0, 1);
+            endDeployment.MessageId = 4;
+            endDeployment.Payload = Array.Empty<byte>();
+
+            Assert.That(fixture.Actor.SubmitInput(0, endDeployment),
+                Is.EqualTo(InputAcceptance.Accepted));
+
+            CommandEnvelope unknown = fixture.Input(0, 1, 1);
+            unknown.MessageId = 99;
+            Assert.That(fixture.Actor.SubmitInput(1, unknown),
+                Is.EqualTo(InputAcceptance.InvalidInput));
         }
 
         [Test]
@@ -340,11 +361,11 @@ namespace ZWebGLFrameWork.Server.Tests
                     Version = RealtimeProtocol.Version,
                     MatchId = "match-1",
                     Tick = tick,
-                    PlayerId = playerId,
-                    Sequence = sequence,
-                    MessageId = 1,
-                    Payload = new byte[] { 1 }
-                };
+                PlayerId = playerId,
+                Sequence = sequence,
+                MessageId = (uint)FrameSyncCommandType.EndDeployment,
+                Payload = Array.Empty<byte>()
+            };
         }
 
         private sealed class ManualClock : IMonotonicClock

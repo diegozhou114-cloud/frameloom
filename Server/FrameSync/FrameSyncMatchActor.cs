@@ -93,7 +93,7 @@ namespace ZWebGLFrameWork.FrameSync
                         foreach (CommandEnvelope envelope in ordered)
                         {
                             if (envelope.IsNoOp) continue;
-                            ISimCommand command = _commandMapper.ToSimulation(envelope);
+                            ISimCommand? command = _commandMapper.ToSimulation(envelope);
                             if (command == null ||
                                 command.Tick != envelope.Tick ||
                                 command.PlayerId != envelope.PlayerId ||

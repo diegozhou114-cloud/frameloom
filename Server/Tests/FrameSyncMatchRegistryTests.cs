@@ -57,8 +57,8 @@ namespace ZWebGLFrameWork.Server.Tests
                 Tick = tick,
                 PlayerId = playerId,
                 Sequence = sequence,
-                MessageId = 1,
-                Payload = new byte[] { 1 }
+                MessageId = (uint)FrameSyncCommandType.EndDeployment,
+                Payload = Array.Empty<byte>()
             };
 
         private sealed class Clock : IMonotonicClock
