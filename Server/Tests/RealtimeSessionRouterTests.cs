@@ -129,6 +129,38 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void TicketStore_IssueCreatesIndependentCredentialsForOneSession()
+        {
+            var store = new InMemoryRealtimeTicketStore();
+
+            IssuedRealtimeCredentials issued = store.Issue("match-1", 0, 100);
+
+            Assert.That(issued.SessionId, Is.Not.EqualTo(Guid.Empty));
+            Assert.That(issued.ExpiresAtUnixSeconds, Is.EqualTo(100 + 15 * 60));
+            Assert.That(issued.OpaqueTicket, Has.Length.EqualTo(32));
+            Assert.That(issued.ResumeToken, Has.Length.EqualTo(32));
+            Assert.That(issued.MacKey, Has.Length.EqualTo(32));
+            Assert.That(store.Validate(issued.OpaqueTicket, 999,
+                    out RealtimeSessionClaims claims), Is.EqualTo(ProtocolError.None));
+            Assert.That(claims.SessionId, Is.EqualTo(issued.SessionId));
+            Assert.That(store.TryGetMacKey(issued.SessionId, out byte[] key),
+                Is.EqualTo(ProtocolError.None));
+            Assert.That(key, Is.EqualTo(issued.MacKey));
+
+            byte[] ticket = issued.OpaqueTicket;
+            byte[] resume = issued.ResumeToken;
+            byte[] mac = issued.MacKey;
+            ticket[0] ^= 1;
+            resume[0] ^= 1;
+            mac[0] ^= 1;
+            Assert.That(store.Validate(issued.OpaqueTicket, 999,
+                    out _), Is.EqualTo(ProtocolError.None));
+            Assert.That(store.TryGetMacKey(issued.SessionId, out key),
+                Is.EqualTo(ProtocolError.None));
+            Assert.That(key, Is.Not.EqualTo(mac));
+        }
+
+        [Test]
         public void RateLimiter_PreservesPartialRefill_IsolatesSessions_AndIgnoresRollback()
         {
             var limiter = new SessionRateLimiter(messagesPerSecond: 10, burst: 1);
