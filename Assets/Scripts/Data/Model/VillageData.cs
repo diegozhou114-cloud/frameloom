@@ -10,7 +10,9 @@ namespace ZWebGLFrameWork.Data
         private readonly Func<int, BuildingConfig> _getBuildingConfig;
 
         public VillageData()
-            : this(typeId => ConfigTableManager.Instance?.GetBuilding(typeId))
+            : this(typeId => ConfigTableManager.HasInstance
+                ? ConfigTableManager.Instance.GetBuilding(typeId)
+                : null)
         {
         }
 

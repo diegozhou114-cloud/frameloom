@@ -14,7 +14,7 @@ namespace ZWebGLFrameWork.Combat.Tests
             byte[] bytes = FrameworkBattleContent.CanonicalBytes();
             BattleParams parameters = CompleteParams();
             parameters.DefenderVillage.AddBuilding(Building("gold", 2, 3, 3));
-            parameters.DefenderVillage.AddBuilding(Building("cannon", 5, 8, 2));
+            parameters.DefenderVillage.AddBuilding(Building("cannon", 5, 12, 2));
 
             BattleInit init = new BattleInitFactory(bytes).Create(parameters);
 
@@ -34,7 +34,7 @@ namespace ZWebGLFrameWork.Combat.Tests
             Assert.That(init.InitialEntities.All(entity =>
                 entity.OwnerPlayerId == 2000 && entity.TeamId == SimTeam.Defender), Is.True);
             InitialEntitySpec cannon = init.InitialEntities.Single(entity => entity.ArchetypeId == 2);
-            Assert.That(cannon.GridX, Is.EqualTo(8));
+            Assert.That(cannon.GridX, Is.EqualTo(12));
             Assert.That(cannon.GridY, Is.EqualTo(2));
         }
 
