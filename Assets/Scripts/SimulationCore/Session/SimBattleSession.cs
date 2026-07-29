@@ -427,6 +427,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         _state.Checksum, _state.Presentation, _state.Result);
                     return new CommandExecutionResult(command, CommandDisposition.Accepted, -1, -1);
                 case MoveCmd move:
+                    if (_state.Phase != SimCombatPhase.Battling)
+                        return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
                     if (!TryFindEntity(move.EntityId, out SimEntity mover) ||
                         !_world.TryGetComponent(mover, out SimMovementComponent movement))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
@@ -445,6 +447,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     return new CommandExecutionResult(command, CommandDisposition.Accepted,
                         mover.Id, mover.Generation);
                 case SkillCmd skill:
+                    if (_state.Phase != SimCombatPhase.Battling)
+                        return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
                     if (!TryFindEntity(skill.CasterId, out SimEntity caster) ||
                         !_world.TryGetComponent(caster, out SimIdentityComponent skillIdentity))
                         return new CommandExecutionResult(command, CommandDisposition.InvalidPayload, -1, -1);
@@ -621,6 +625,8 @@ namespace ZWebGLFrameWork.SimulationCore
                     return IsAttacker(command.PlayerId)
                         ? CommandDisposition.Accepted : CommandDisposition.UnauthorizedEntity;
                 case MoveCmd move:
+                    if (_state.Phase != SimCombatPhase.Battling)
+                        return CommandDisposition.WrongPhase;
                     if (!IsWaypointCoordinate(move.TargetX, move.TargetY) ||
                         !TryFindEntity(move.EntityId, out SimEntity mover) ||
                         !_world.TryGetComponent(mover, out SimMovementComponent _))
@@ -630,6 +636,8 @@ namespace ZWebGLFrameWork.SimulationCore
                         return CommandDisposition.UnauthorizedEntity;
                     return CommandDisposition.Accepted;
                 case SkillCmd skill:
+                    if (_state.Phase != SimCombatPhase.Battling)
+                        return CommandDisposition.WrongPhase;
                     if (skill.SkillId != BasicSkillId ||
                         !IsWaypointCoordinate(skill.TargetX, skill.TargetY) ||
                         !TryFindEntity(skill.CasterId, out SimEntity caster))

@@ -64,14 +64,25 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             using SimBattleSession second = SessionTestDriver.StartedBattle();
             EntityPresentationState entity = first.State.Presentation.Entities[0];
 
-            Assert.That(first.Submit(new MoveCmd
+            Assert.That(first.Submit(new EndDeploymentCmd
             {
                 Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            Assert.That(second.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            first.Tick();
+            second.Tick();
+
+            Assert.That(first.Submit(new MoveCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 2,
                 EntityId = entity.EntityId, TargetX = entity.GridX, TargetY = entity.GridY,
             }).Accepted, Is.True);
             Assert.That(second.Submit(new MoveCmd
             {
-                Tick = 0, PlayerId = 0, Sequence = 2,
+                Tick = 1, PlayerId = 0, Sequence = 3,
                 EntityId = entity.EntityId, TargetX = entity.GridX, TargetY = entity.GridY,
             }).Accepted, Is.True);
 

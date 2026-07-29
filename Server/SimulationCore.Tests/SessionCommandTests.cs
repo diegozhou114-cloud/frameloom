@@ -147,6 +147,46 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void MoveCommand_RejectsDuringManualDeployment()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            EntityPresentationState mover = session.State.Presentation.Entities[0];
+
+            CommandSubmitResult submitted = session.Submit(new MoveCmd
+            {
+                Tick = 0,
+                PlayerId = mover.OwnerPlayerId,
+                Sequence = 1,
+                EntityId = mover.EntityId,
+                TargetX = mover.GridX + 1,
+                TargetY = mover.GridY,
+            });
+
+            Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.WrongPhase));
+        }
+
+        [Test]
+        public void SkillCommand_RejectsDuringManualDeployment()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            EntityPresentationState caster = session.State.Presentation.Entities[0];
+            EntityPresentationState target = session.State.Presentation.Entities[1];
+
+            CommandSubmitResult submitted = session.Submit(new SkillCmd
+            {
+                Tick = 0,
+                PlayerId = caster.OwnerPlayerId,
+                Sequence = 1,
+                CasterId = caster.EntityId,
+                SkillId = 1,
+                TargetX = target.GridX,
+                TargetY = target.GridY,
+            });
+
+            Assert.That(submitted.Disposition, Is.EqualTo(CommandDisposition.WrongPhase));
+        }
+
+        [Test]
         public void InvalidSessionCommand_DotNetHostDoesNotConsumeSequenceOrMutateWorld()
         {
             using SimBattleSession session = SessionTestDriver.StartedBattle();
@@ -260,13 +300,22 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
             }).Disposition, Is.EqualTo(CommandDisposition.UnauthorizedEntity));
 
             Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Deploying));
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 10, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            Assert.That(session.State.Phase, Is.EqualTo(SimCombatPhase.Battling));
             EntityPresentationState defender = session.State.Presentation.Entities.Single(entity =>
                 entity.OwnerPlayerId == 20);
-            Assert.That(session.Submit(new SkillCmd
+            EntityPresentationState attacker = session.State.Presentation.Entities.Single(entity =>
+                entity.OwnerPlayerId == 10);
+            CommandSubmitResult skillSubmitted = session.Submit(new SkillCmd
             {
-                Tick = 0, PlayerId = 20, Sequence = 1, CasterId = defender.EntityId,
-                SkillId = 1, TargetX = 2, TargetY = 2,
-            }).Accepted, Is.True);
+                Tick = 1, PlayerId = 20, Sequence = 1, CasterId = defender.EntityId,
+                SkillId = 1, TargetX = attacker.GridX, TargetY = attacker.GridY,
+            });
+            Assert.That(skillSubmitted.Disposition, Is.EqualTo(CommandDisposition.Accepted));
             Assert.That(session.State.Presentation.Entities.Count, Is.EqualTo(2));
         }
 

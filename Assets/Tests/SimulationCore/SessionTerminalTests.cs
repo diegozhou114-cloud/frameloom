@@ -95,9 +95,14 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             using SimBattleSession session = SessionTestDriver.StartedBattle();
             int entityId = session.State.Presentation.Entities[0].EntityId;
 
-            Assert.That(session.Submit(new MoveCmd
+            Assert.That(session.Submit(new EndDeploymentCmd
             {
                 Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+            session.Tick();
+            Assert.That(session.Submit(new MoveCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 2,
                 EntityId = entityId, TargetX = outsideWaypointRange, TargetY = 2,
             }).Disposition, Is.EqualTo(CommandDisposition.InvalidPayload));
 
