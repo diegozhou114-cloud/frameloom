@@ -35,7 +35,7 @@ namespace ZWebGLFrameWork.ECS
         private readonly Dictionary<Type, IComponentPool> _componentPools = new Dictionary<Type, IComponentPool>();
         private readonly Dictionary<int, int> _entityIndexMap = new Dictionary<int, int>();
 
-        public World(int initialCapacity = 256) { _generations = new int[initialCapacity]; }
+        public World(int initialCapacity = 256) { _generations = new int[initialCapacity == 0 ? 1 : initialCapacity]; }
 
         public Entity CreateEntity()
         {

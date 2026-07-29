@@ -35,5 +35,16 @@ namespace ZWebGLFrameWork.ECS.Tests
             Assert.That(preResetEntity, Is.Not.EqualTo(replacement));
             Assert.That(world.EntityCount, Is.EqualTo(1));
         }
+
+        [Test]
+        public void CreateEntity_AllowsZeroInitialCapacity()
+        {
+            var world = new World(0);
+
+            Entity entity = world.CreateEntity();
+
+            Assert.That(entity.Id, Is.EqualTo(0));
+            Assert.That(world.EntityCount, Is.EqualTo(1));
+        }
     }
 }
