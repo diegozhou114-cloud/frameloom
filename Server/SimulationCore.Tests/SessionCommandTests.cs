@@ -241,6 +241,24 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void SealTick_RejectsCurrentTickInputUntilItAdvances()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+
+            session.SealTick(0);
+
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Disposition, Is.EqualTo(CommandDisposition.LateTick));
+            Assert.That(session.Tick().Code, Is.EqualTo(TickCode.Advanced));
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 1, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+        }
+
+        [Test]
         public void SkillTargeting_UsesEntityTeamInsteadOfAssumingPlayerIdsZeroAndOne()
         {
             byte[] bytes = SessionTestDriver.ManifestBytes();

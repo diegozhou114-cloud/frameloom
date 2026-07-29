@@ -27,6 +27,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private int _deployedCount;
         private SimTerminalOutcome _terminalOutcome;
         private int _terminalFinalTick = -1;
+        private int _sealedTick = -1;
         private bool _disposed;
 
         internal SimBattleSession(SimWorld world, DeterministicContentManifest manifest, ISimLogger logger)
@@ -85,6 +86,8 @@ namespace ZWebGLFrameWork.SimulationCore
                 return new CommandSubmitResult(CommandDisposition.UnknownPlayer);
             if (command.Tick < _state.NextTick)
                 return new CommandSubmitResult(CommandDisposition.LateTick);
+            if (command.Tick == _sealedTick)
+                return new CommandSubmitResult(CommandDisposition.LateTick);
             if (command.Tick > _state.NextTick + 64)
                 return new CommandSubmitResult(CommandDisposition.FutureWindowExceeded);
             CommandDisposition validation = ValidateCommand(command);
@@ -101,6 +104,17 @@ namespace ZWebGLFrameWork.SimulationCore
             _commandBuffer.AddCommand(command);
             RefreshChecksum();
             return new CommandSubmitResult(CommandDisposition.Accepted);
+        }
+
+        internal void SealTick(int tick)
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(SimBattleSession));
+            if (_state.Lifecycle != SessionLifecycle.Running)
+                throw new InvalidOperationException("Only running sessions can seal ticks.");
+            if (tick != _state.NextTick)
+                throw new ArgumentOutOfRangeException(nameof(tick),
+                    "Only the next simulation tick can be sealed.");
+            _sealedTick = tick;
         }
 
         public TickResult Tick()
@@ -166,6 +180,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     completedTick, nextTick, revision, checksum,
                     _state.Presentation, result);
             }
+            _sealedTick = -1;
             return new TickResult(lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
                 completedTick, nextTick, revision,
                 acceptedCommands.ToArray(), outcomes.ToArray(),
