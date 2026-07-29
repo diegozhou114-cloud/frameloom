@@ -132,13 +132,13 @@ namespace ZWebGLFrameWork.UI
             panel.DoClose();
 
             // 恢复同层新栈顶
-            if (stack.Count > 0)
+            if (stack.Count > 0 && !IsBlockedByHigherLayer(layer))
             {
                 stack.Peek().DoResume();
             }
 
-            // 恢复更低层级（如果该层空了）
-            if (stack.Count == 0 && panel.PauseLowerPanels)
+            // 恢复更低层级（仍有模态面板时 ResumeLowerLayers 会保持暂停）
+            if (panel.PauseLowerPanels)
             {
                 ResumeLowerLayers(layer);
             }
@@ -197,6 +197,18 @@ namespace ZWebGLFrameWork.UI
                     stack.Peek().DoPause();
                 }
             }
+        }
+
+        private bool IsBlockedByHigherLayer(UILayer currentLayer)
+        {
+            for (int i = (int)currentLayer + 1; i <= (int)UILayer.Top; i++)
+            {
+                var stack = _stacks[(UILayer)i];
+                if (stack.Count > 0 && stack.Peek().PauseLowerPanels)
+                    return true;
+            }
+
+            return false;
         }
 
         private void ResumeLowerLayers(UILayer currentLayer)
