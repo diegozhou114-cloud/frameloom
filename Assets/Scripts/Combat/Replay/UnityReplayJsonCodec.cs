@@ -20,7 +20,14 @@ namespace ZWebGLFrameWork.Combat
 
             ReplayDto dto = JsonUtility.FromJson<ReplayDto>(json);
             if (dto == null) throw new FormatException("Replay JSON is invalid.");
-            return dto.ToReplay();
+            try
+            {
+                return dto.ToReplay();
+            }
+            catch (ArgumentException exception)
+            {
+                throw new FormatException("Replay JSON contains invalid data.", exception);
+            }
         }
 
         [Serializable]
