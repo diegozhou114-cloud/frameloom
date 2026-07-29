@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>ZWebGLFrameWork.Kcp2kHost</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);SYSLIB0023</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../FrameSync/FrameSyncServer.csproj" />
+    <Compile Include="../../Packages/com.zwebglframework.kcp2k/Runtime/Upstream/**/*.cs" Link="kcp2k/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

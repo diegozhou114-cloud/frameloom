@@ -23,6 +23,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReplayFixtureGenerator", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameSyncServer", "FrameSync\FrameSyncServer.csproj", "{D0D26AA7-78FA-4EB0-AD3C-6C1BB172B03E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Kcp2kHost", "Kcp2kHost\ZWebGLFrameWork.Kcp2kHost.csproj", "{0E28D90D-9C62-48FC-AC52-F5618770CB22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.RealtimeHost", "RealtimeHost\ZWebGLFrameWork.RealtimeHost.csproj", "{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +72,14 @@ Global
 		{D0D26AA7-78FA-4EB0-AD3C-6C1BB172B03E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0D26AA7-78FA-4EB0-AD3C-6C1BB172B03E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0D26AA7-78FA-4EB0-AD3C-6C1BB172B03E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E28D90D-9C62-48FC-AC52-F5618770CB22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E28D90D-9C62-48FC-AC52-F5618770CB22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E28D90D-9C62-48FC-AC52-F5618770CB22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E28D90D-9C62-48FC-AC52-F5618770CB22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59AEE357-A96C-4FE6-9D71-FE120978FE1B} = {1E598C6A-0CB5-4EED-BF85-4A39672F6739}

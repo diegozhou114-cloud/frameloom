@@ -70,8 +70,21 @@
           "ZWebGLFrameWork.SimulationCore": "[1.0.0, )"
         }
       },
+      "zwebglframework.kcp2khost": {
+        "type": "Project",
+        "dependencies": {
+          "ZWebGLFrameWork.FrameSyncServer": "[1.0.0, )"
+        }
+      },
       "zwebglframework.network.contracts": {
         "type": "Project"
+      },
+      "zwebglframework.realtimehost": {
+        "type": "Project",
+        "dependencies": {
+          "ZWebGLFrameWork.FrameSyncServer": "[1.0.0, )",
+          "ZWebGLFrameWork.Kcp2kHost": "[1.0.0, )"
+        }
       },
       "zwebglframework.simulationcore": {
         "type": "Project"

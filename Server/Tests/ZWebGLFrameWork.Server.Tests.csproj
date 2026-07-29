@@ -15,5 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FrameSync\FrameSyncServer.csproj" />
+    <ProjectReference Include="..\Kcp2kHost\ZWebGLFrameWork.Kcp2kHost.csproj" />
+    <ProjectReference Include="..\RealtimeHost\ZWebGLFrameWork.RealtimeHost.csproj" />
   </ItemGroup>
 </Project>

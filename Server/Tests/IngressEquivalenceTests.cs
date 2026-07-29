@@ -144,6 +144,30 @@ namespace ZWebGLFrameWork.Server.Tests
                 Is.EqualTo(ProtocolError.ReplayedPacket));
         }
 
+        [Test]
+        public async Task KcpIngress_DisconnectReleasesAuthenticatedSessionOwnership()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            byte[] macKey = Enumerable.Repeat((byte)5, 32).ToArray();
+            var keys = new TestNativeSessionKeyStore();
+            keys.Add(setup.Claims.SessionId, macKey);
+            var ingress = new KcpIngress(setup.Router, keys);
+            var first = new TestSession();
+            var replacement = new TestSession();
+
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(first,
+                    AuthenticatedPacketCodec.Encode(setup.Claims.SessionId, 1,
+                        Auth(setup.Claims, setup.Ticket), macKey),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.None));
+
+            ingress.Disconnect(first);
+
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(replacement,
+                    AuthenticatedPacketCodec.Encode(setup.Claims.SessionId, 1,
+                        Auth(setup.Claims, setup.Ticket), macKey),
+                    CancellationToken.None), Is.EqualTo(ProtocolError.None));
+        }
+
         private static RealtimeSessionClaims Claims() => new RealtimeSessionClaims(
             Guid.NewGuid(), "match-1", 0, new byte[] { 1, 2, 3 }, 1_000);
 

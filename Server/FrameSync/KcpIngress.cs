@@ -26,6 +26,17 @@ namespace ZWebGLFrameWork.FrameSync
             return _router.RouteAsync(session, completeMessage, cancellationToken);
         }
 
+        public void Disconnect(IRealtimeServerSession session)
+        {
+            if (session == null) throw new ArgumentNullException(nameof(session));
+            RealtimeSessionClaims? claims = session.Claims;
+            if (claims != null)
+            {
+                lock (_replayGate) _replayWindows.Remove(claims.SessionId);
+            }
+            _router.Disconnect(session);
+        }
+
         public async Task<ProtocolError> RouteAuthenticatedPacketAsync(
             IRealtimeServerSession session, byte[] packet,
             CancellationToken cancellationToken)
