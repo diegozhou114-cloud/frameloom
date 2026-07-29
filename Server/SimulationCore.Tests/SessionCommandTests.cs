@@ -48,6 +48,29 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void Start_RejectsNegativeInputDeadlineTicks()
+        {
+            byte[] bytes = SessionTestDriver.ManifestBytes();
+            DeterministicContentManifest manifest = DeterministicContentManifest.Parse(bytes);
+            using ISimBattleSession session = new SimBattleSessionFactory().Create(bytes);
+            var init = new BattleInit(1, 1, "negative-deadline-match",
+                "negative-deadline-session", 42, 20, SimCombatMode.VillageAttack,
+                manifest.ContentHash,
+                new[] { new SimPlayerIdentity(0, "attacker"),
+                    new SimPlayerIdentity(1, "defender") },
+                new[]
+                {
+                    new InitialEntitySpec(10, 2, 2, SimTeam.Attacker, 0),
+                    new InitialEntitySpec(2, 8, 2, SimTeam.Defender, 1),
+                }, -1);
+
+            StartResult result = session.Start(init);
+
+            Assert.That(result.Code, Is.EqualTo(StartCode.InvalidMatch));
+            Assert.That(session.State.Lifecycle, Is.EqualTo(SessionLifecycle.Created));
+        }
+
+        [Test]
         public void Start_RejectsPlayersWithDuplicateAccountIds()
         {
             byte[] bytes = SessionTestDriver.ManifestBytes();

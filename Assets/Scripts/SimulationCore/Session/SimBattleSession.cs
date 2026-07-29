@@ -313,7 +313,8 @@ namespace ZWebGLFrameWork.SimulationCore
             if (init == null) return StartCode.InvalidMatch;
             if (init.ProtocolVersion != 1) return StartCode.UnsupportedProtocol;
             if (init.SchemaVersion != SimComponentSchema.Version) return StartCode.UnsupportedSchema;
-            if (string.IsNullOrEmpty(init.MatchId) || string.IsNullOrEmpty(init.SessionId) || init.TickRate != 20)
+            if (string.IsNullOrEmpty(init.MatchId) || string.IsNullOrEmpty(init.SessionId) ||
+                init.TickRate != 20 || init.InputDeadlineTicks < 0)
                 return StartCode.InvalidMatch;
             if (!init.ContentHash.SequenceEqual(_manifest.ContentHash)) return StartCode.InvalidContent;
             if (!Enum.IsDefined(typeof(SimCombatMode), init.Mode)) return StartCode.InvalidMode;
