@@ -23,6 +23,8 @@ namespace ZWebGLFrameWork.Network.Contracts.Auth
         private const int HeaderBytes = 2 + 16 + 8 + 4;
         private const int TagBytes = 32;
         private const int KeyBytes = 32;
+        private const int MaxRealtimeFrameBytes = RealtimeProtocol.HeaderBytes +
+            RealtimeProtocol.MaxMessageBytes;
 
         public static byte[] Encode(
             Guid sessionId, ulong sequence, byte[] payload, byte[] key)
@@ -30,7 +32,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Auth
             if (sessionId == Guid.Empty)
                 throw new ArgumentException("Session ID is required.", nameof(sessionId));
             if (payload == null) throw new ArgumentNullException(nameof(payload));
-            if (payload.Length < 1 || payload.Length > RealtimeProtocol.MaxMessageBytes)
+            if (payload.Length < 1 || payload.Length > MaxRealtimeFrameBytes)
                 throw new ArgumentOutOfRangeException(nameof(payload));
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (key.Length != KeyBytes)
@@ -75,7 +77,7 @@ namespace ZWebGLFrameWork.Network.Contracts.Auth
             ulong sequence = ReadUInt64(packet, 18);
             uint payloadLengthValue = ReadUInt32(packet, 26);
             if (payloadLengthValue < 1 ||
-                payloadLengthValue > RealtimeProtocol.MaxMessageBytes)
+                payloadLengthValue > MaxRealtimeFrameBytes)
                 return ProtocolError.InvalidLength;
             int payloadLength = (int)payloadLengthValue;
             int tagOffset = HeaderBytes + payloadLength;

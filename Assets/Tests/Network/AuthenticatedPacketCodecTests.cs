@@ -36,7 +36,9 @@ namespace ZWebGLFrameWork.Network.Tests
                 new SequenceReplayWindow(), out _),
                 Is.EqualTo(ProtocolError.Truncated));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
-                AuthenticatedPacketCodec.Encode(session, 10, new byte[65537], key));
+                AuthenticatedPacketCodec.Encode(session, 10,
+                    new byte[RealtimeProtocol.HeaderBytes +
+                        RealtimeProtocol.MaxMessageBytes + 1], key));
 
             byte[] wrongVersion = (byte[])packet.Clone();
             wrongVersion[0] = 2;
@@ -86,20 +88,22 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
-        public void PayloadBoundaries_RejectZeroAcceptMaximumRejectAboveMaximum()
+        public void PayloadBoundaries_RejectZeroAcceptMaximumRealtimeFrameRejectAbove()
         {
             Guid session = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
             byte[] key = Enumerable.Range(1, 32).Select(value => (byte)value).ToArray();
+            int maximumRealtimeFrameBytes = RealtimeProtocol.HeaderBytes +
+                RealtimeProtocol.MaxMessageBytes;
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 AuthenticatedPacketCodec.Encode(session, 1, Array.Empty<byte>(), key));
             byte[] maximum = AuthenticatedPacketCodec.Encode(
-                session, 2, new byte[RealtimeProtocol.MaxMessageBytes], key);
+                session, 2, new byte[maximumRealtimeFrameBytes], key);
             Assert.That(AuthenticatedPacketCodec.TryDecode(
                 maximum, session, key, new SequenceReplayWindow(), out _),
                 Is.EqualTo(ProtocolError.None));
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 AuthenticatedPacketCodec.Encode(
-                    session, 3, new byte[RealtimeProtocol.MaxMessageBytes + 1], key));
+                    session, 3, new byte[maximumRealtimeFrameBytes + 1], key));
         }
 
         [Test]
