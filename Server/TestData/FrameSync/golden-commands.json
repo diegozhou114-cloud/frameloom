@@ -1,0 +1,22 @@
+[
+  {
+    "Tick": 0,
+    "Commands": [
+      {
+        "Type": "EndDeployment",
+        "Tick": 0,
+        "PlayerId": 0,
+        "Sequence": 1,
+        "UnitTypeId": 0,
+        "EntityId": 0,
+        "CasterId": 0,
+        "SkillId": 0,
+        "GridX": 0,
+        "TargetX": 0,
+        "GridY": 0,
+        "TargetY": 0
+      }
+    ],
+    "Checksum": 3364332511197690448
+  }
+]

@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.Kcp2kHost",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZWebGLFrameWork.RealtimeHost", "RealtimeHost\ZWebGLFrameWork.RealtimeHost.csproj", "{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameSyncFixtureGenerator", "Tools\FrameSyncFixtureGenerator\FrameSyncFixtureGenerator.csproj", "{05C8DF1D-F997-419B-8857-BBC09ABA97B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,8 +82,13 @@ Global
 		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E82A8AAF-2830-4DE0-A8BD-D5281AF4C2D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05C8DF1D-F997-419B-8857-BBC09ABA97B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05C8DF1D-F997-419B-8857-BBC09ABA97B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05C8DF1D-F997-419B-8857-BBC09ABA97B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05C8DF1D-F997-419B-8857-BBC09ABA97B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{59AEE357-A96C-4FE6-9D71-FE120978FE1B} = {1E598C6A-0CB5-4EED-BF85-4A39672F6739}
+		{05C8DF1D-F997-419B-8857-BBC09ABA97B1} = {1E598C6A-0CB5-4EED-BF85-4A39672F6739}
 	EndGlobalSection
 EndGlobal
