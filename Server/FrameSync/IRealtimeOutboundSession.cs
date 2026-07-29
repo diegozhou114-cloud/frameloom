@@ -8,4 +8,10 @@ namespace ZWebGLFrameWork.FrameSync
         // Implementations own transport-specific ordering and backpressure.
         bool TryEnqueue(byte[] completeMessage);
     }
+
+    public interface IRealtimeOutboundSessionRegistry
+    {
+        void Register(IRealtimeOutboundSession session);
+        void Unregister(IRealtimeOutboundSession session);
+    }
 }

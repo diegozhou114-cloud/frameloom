@@ -2,7 +2,8 @@ using ZWebGLFrameWork.Network.Contracts.Protocol;
 
 namespace ZWebGLFrameWork.FrameSync
 {
-    public sealed class AuthorityFrameBroadcaster : IFrameBroadcaster
+    public sealed class AuthorityFrameBroadcaster : IFrameBroadcaster,
+        IRealtimeOutboundSessionRegistry
     {
         private readonly object _gate = new object();
         private readonly Dictionary<Guid, IRealtimeOutboundSession> _sessions =

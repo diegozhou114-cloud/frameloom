@@ -7,10 +7,13 @@ namespace ZWebGLFrameWork.FrameSync
     {
         private const int ReceiveBufferBytes = 4096;
         private readonly RealtimeSessionRouter _router;
+        private readonly IRealtimeOutboundSessionRegistry? _outboundSessions;
 
-        public WebSocketIngress(RealtimeSessionRouter router)
+        public WebSocketIngress(RealtimeSessionRouter router,
+            IRealtimeOutboundSessionRegistry? outboundSessions = null)
         {
             _router = router ?? throw new ArgumentNullException(nameof(router));
+            _outboundSessions = outboundSessions;
         }
 
         public Task<ProtocolError> RouteCompleteMessageAsync(
@@ -26,6 +29,7 @@ namespace ZWebGLFrameWork.FrameSync
             if (socket == null) throw new ArgumentNullException(nameof(socket));
             if (session == null) throw new ArgumentNullException(nameof(session));
 
+            IRealtimeOutboundSession? outboundSession = null;
             try
             {
                 var buffer = new byte[ReceiveBufferBytes];
@@ -63,8 +67,16 @@ namespace ZWebGLFrameWork.FrameSync
                     if (error == ProtocolError.None)
                     {
                         if (!wasAuthenticated && session.IsAuthenticated)
+                        {
                             await SendAuthAcceptedAsync(socket, session,
                                 cancellationToken).ConfigureAwait(false);
+                            if (_outboundSessions != null &&
+                                session is IRealtimeOutboundSession candidate)
+                            {
+                                _outboundSessions.Register(candidate);
+                                outboundSession = candidate;
+                            }
+                        }
                         continue;
                     }
                     await CloseAsync(socket, error, cancellationToken)
@@ -74,6 +86,8 @@ namespace ZWebGLFrameWork.FrameSync
             }
             finally
             {
+                if (outboundSession != null)
+                    _outboundSessions!.Unregister(outboundSession);
                 _router.Disconnect(session);
             }
         }

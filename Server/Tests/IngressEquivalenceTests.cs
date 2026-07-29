@@ -47,6 +47,24 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public async Task WebSocketIngress_RegistersAuthenticatedOutboundSessionUntilClose()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            var socket = new ScriptedWebSocket(
+                Binary(Auth(setup.Claims, setup.Ticket), endOfMessage: true), Close());
+            var registry = new RecordingOutboundRegistry();
+            var session = new OutboundTestSession();
+
+            await new WebSocketIngress(setup.Router, registry).ProcessAsync(
+                socket, session, CancellationToken.None);
+
+            Assert.That(registry.Registered, Is.EqualTo(new[] { session }));
+            Assert.That(registry.Unregistered, Is.EqualTo(new[] { session }));
+            Assert.That(session.SessionId, Is.EqualTo(setup.Claims.SessionId));
+            Assert.That(session.MatchId, Is.EqualTo(setup.Claims.MatchId));
+        }
+
+        [Test]
         public async Task WebSocketIngress_RejectsTextMessagesWithMalformedCloseCode()
         {
             RouterSetup setup = RouterSetup.Create();
@@ -311,6 +329,37 @@ namespace ZWebGLFrameWork.Server.Tests
                 if (Claims != null) throw new InvalidOperationException();
                 Claims = claims;
             }
+        }
+
+        private sealed class OutboundTestSession : IRealtimeServerSession,
+            IRealtimeOutboundSession
+        {
+            public bool IsAuthenticated => Claims != null;
+            public RealtimeSessionClaims Claims { get; private set; }
+            public Guid SessionId => Claims?.SessionId ?? Guid.Empty;
+            public string MatchId => Claims?.MatchId ?? string.Empty;
+
+            public void Bind(RealtimeSessionClaims claims)
+            {
+                if (claims == null || Claims != null) throw new InvalidOperationException();
+                Claims = claims;
+            }
+
+            public bool TryEnqueue(byte[] completeMessage) => true;
+        }
+
+        private sealed class RecordingOutboundRegistry :
+            IRealtimeOutboundSessionRegistry
+        {
+            public List<IRealtimeOutboundSession> Registered { get; } =
+                new List<IRealtimeOutboundSession>();
+            public List<IRealtimeOutboundSession> Unregistered { get; } =
+                new List<IRealtimeOutboundSession>();
+
+            public void Register(IRealtimeOutboundSession session) => Registered.Add(session);
+
+            public void Unregister(IRealtimeOutboundSession session) =>
+                Unregistered.Add(session);
         }
 
         private sealed class RecordingSink : IRealtimeMatchSink
