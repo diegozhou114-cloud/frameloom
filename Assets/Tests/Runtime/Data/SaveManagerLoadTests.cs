@@ -9,6 +9,13 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
 {
     public sealed class SaveManagerLoadTests : RuntimeTestBase
     {
+        [SetUp]
+        public void SetUp()
+        {
+            if (DataManager.HasInstance)
+                DataManager.Instance.ResetAll();
+        }
+
         [Test]
         public void LoadToDataManager_UnknownVersionLeavesRuntimeStateUnchanged()
         {
@@ -146,9 +153,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void LoadToDataManager_LevelAboveLoadedConfigLeavesRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
 
             DataManager manager = DataManager.Instance;
             manager.Player.Name.Value = "CurrentPlayer";
@@ -193,9 +198,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void LoadToDataManager_MaxLevelBuildingStillUpgradingLeavesRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
 
             DataManager manager = DataManager.Instance;
             manager.Player.Name.Value = "CurrentPlayer";
@@ -286,9 +289,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void LoadToDataManager_TownHallLevelMismatchLeavesRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
 
             DataManager manager = DataManager.Instance;
             manager.Player.Name.Value = "CurrentPlayer";
@@ -335,9 +336,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void LoadToDataManager_MultipleTownHallsLeaveRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
 
             DataManager manager = DataManager.Instance;
             manager.Player.Name.Value = "CurrentPlayer";
@@ -388,9 +387,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
         public void LoadToDataManager_TownHallLevelAboveConfigLeavesRuntimeStateUnchanged()
         {
             CreateOwnedObject("DataManager").AddComponent<DataManager>();
-            ConfigTableManager config = CreateOwnedObject("ConfigTableManager")
-                .AddComponent<ConfigTableManager>();
-            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
+            PreloadConfigTable();
 
             DataManager manager = DataManager.Instance;
             manager.Player.Name.Value = "CurrentPlayer";
@@ -425,6 +422,15 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
                 File.Delete(path);
                 if (previous != null) File.WriteAllBytes(path, previous);
             }
+        }
+
+        private void PreloadConfigTable()
+        {
+            ConfigTableManager config = ConfigTableManager.HasInstance
+                ? ConfigTableManager.Instance
+                : CreateOwnedObject("ConfigTableManager").AddComponent<ConfigTableManager>();
+            config.Clear();
+            Assert.That(config.PreloadAllAsync().GetAwaiter().GetResult(), Is.True);
         }
     }
 }
