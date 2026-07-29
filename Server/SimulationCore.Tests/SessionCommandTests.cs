@@ -259,6 +259,21 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         }
 
         [Test]
+        public void RestoreSnapshot_ClearsTransientSealedTick()
+        {
+            using SimBattleSession session = SessionTestDriver.StartedBattle();
+            SimSnapshot snapshot = session.CaptureSnapshot();
+            session.SealTick(0);
+
+            Assert.That(session.RestoreSnapshot(snapshot).Code,
+                Is.EqualTo(SnapshotRestoreCode.Restored));
+            Assert.That(session.Submit(new EndDeploymentCmd
+            {
+                Tick = 0, PlayerId = 0, Sequence = 1,
+            }).Accepted, Is.True);
+        }
+
+        [Test]
         public void SkillTargeting_UsesEntityTeamInsteadOfAssumingPlayerIdsZeroAndOne()
         {
             byte[] bytes = SessionTestDriver.ManifestBytes();

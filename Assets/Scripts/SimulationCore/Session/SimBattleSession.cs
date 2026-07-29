@@ -310,6 +310,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     data.CompletedTick, data.NextTick, revision, restoredChecksum,
                     _currentFrame, result);
             }
+            _sealedTick = -1;
             return new SnapshotRestoreResult(SnapshotRestoreCode.Restored, _currentFrame);
         }
 
