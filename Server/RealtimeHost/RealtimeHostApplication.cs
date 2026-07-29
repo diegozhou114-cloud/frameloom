@@ -8,7 +8,8 @@ public static class RealtimeHostApplication
 {
     public static void Configure(WebApplication application,
         RealtimeSessionRouter router, GuestLoginService login,
-        IRealtimeClock clock, ISet<string> allowedOrigins)
+        IRealtimeClock clock, ISet<string> allowedOrigins,
+        IRealtimeOutboundSessionRegistry? outboundSessions = null)
     {
         if (application == null) throw new ArgumentNullException(nameof(application));
         if (router == null) throw new ArgumentNullException(nameof(router));
@@ -37,21 +38,9 @@ public static class RealtimeHostApplication
 
             using WebSocket socket = await context.WebSockets.AcceptWebSocketAsync(
                 RealtimeProtocol.WebSocketSubprotocol).ConfigureAwait(false);
-            await new WebSocketIngress(router).ProcessAsync(socket,
-                new HostWebSocketSession(), context.RequestAborted).ConfigureAwait(false);
+            using var session = new WebSocketOutboundSession(socket);
+            await new WebSocketIngress(router, outboundSessions).ProcessAsync(socket,
+                session, context.RequestAborted).ConfigureAwait(false);
         });
-    }
-
-    private sealed class HostWebSocketSession : IRealtimeServerSession
-    {
-        public bool IsAuthenticated => Claims != null;
-        public RealtimeSessionClaims? Claims { get; private set; }
-
-        public void Bind(RealtimeSessionClaims claims)
-        {
-            if (claims == null || Claims != null)
-                throw new InvalidOperationException("WebSocket session is already bound.");
-            Claims = claims;
-        }
     }
 }
