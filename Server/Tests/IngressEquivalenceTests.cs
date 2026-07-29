@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -11,14 +13,65 @@ namespace ZWebGLFrameWork.Server.Tests
     public sealed class IngressEquivalenceTests
     {
         [Test]
+        public async Task WebSocketIngress_ReassemblesBinaryFragmentsBeforeRouting()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            byte[] auth = Auth(setup.Claims, setup.Ticket);
+            var socket = new ScriptedWebSocket(
+                Binary(auth.Take(3).ToArray(), endOfMessage: false),
+                Binary(auth.Skip(3).ToArray(), endOfMessage: true),
+                Close());
+
+            await new WebSocketIngress(setup.Router).ProcessAsync(
+                socket, new TestSession(), CancellationToken.None);
+
+            Assert.That(socket.CloseStatus, Is.Null);
+        }
+
+        [Test]
+        public async Task WebSocketIngress_RejectsTextMessagesWithMalformedCloseCode()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            var socket = new ScriptedWebSocket(Text(new byte[] { 1 }));
+
+            await new WebSocketIngress(setup.Router).ProcessAsync(
+                socket, new TestSession(), CancellationToken.None);
+
+            Assert.That(socket.CloseStatus, Is.EqualTo((WebSocketCloseStatus)4003));
+        }
+
+        [Test]
+        public async Task WebSocketIngress_RejectsUnauthenticatedFirstMessage()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            byte[] command = RealtimeCodec.Encode(Command(setup.Claims));
+            var socket = new ScriptedWebSocket(Binary(command, endOfMessage: true));
+
+            await new WebSocketIngress(setup.Router).ProcessAsync(
+                socket, new TestSession(), CancellationToken.None);
+
+            Assert.That(socket.CloseStatus, Is.EqualTo((WebSocketCloseStatus)4001));
+        }
+
+        [Test]
+        public async Task WebSocketIngress_RejectsMessagesLargerThanProtocolLimit()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            var socket = new ScriptedWebSocket(OversizeBinaryFrames().ToArray());
+
+            await new WebSocketIngress(setup.Router).ProcessAsync(
+                socket, new TestSession(), CancellationToken.None);
+
+            Assert.That(socket.CloseStatus, Is.EqualTo((WebSocketCloseStatus)4004));
+        }
+
+        [Test]
         public async Task WssAndNativeIngress_RouteTheSameCompleteCommand()
         {
-            var clock = new TestClock();
-            var tickets = new InMemoryRealtimeTicketStore();
-            var sink = new RecordingSink();
-            var router = new RealtimeSessionRouter(
-                tickets, new SessionRateLimiter(64, 128), sink, clock);
-            var wssClaims = Claims();
+            RouterSetup setup = RouterSetup.Create();
+            var tickets = setup.Tickets;
+            var router = setup.Router;
+            var wssClaims = setup.Claims;
             var nativeClaims = Claims();
             byte[] wssTicket = { 1 };
             byte[] nativeTicket = { 2 };
@@ -54,9 +107,9 @@ namespace ZWebGLFrameWork.Server.Tests
                     nativeSession, command, CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
 
-            Assert.That(sink.Accepted, Has.Count.EqualTo(2));
-            Assert.That(RealtimeCodec.Encode(sink.Accepted[0]),
-                Is.EqualTo(RealtimeCodec.Encode(sink.Accepted[1])));
+            Assert.That(setup.Sink.Accepted, Has.Count.EqualTo(2));
+            Assert.That(RealtimeCodec.Encode(setup.Sink.Accepted[0]),
+                Is.EqualTo(RealtimeCodec.Encode(setup.Sink.Accepted[1])));
         }
 
         private static RealtimeSessionClaims Claims() => new RealtimeSessionClaims(
@@ -69,6 +122,68 @@ namespace ZWebGLFrameWork.Server.Tests
                 SessionId = claims.SessionId,
                 OpaqueTicket = ticket
             });
+
+        private static CommandEnvelope Command(RealtimeSessionClaims claims) =>
+            new CommandEnvelope
+            {
+                Version = RealtimeProtocol.Version,
+                MatchId = claims.MatchId,
+                Tick = 0,
+                PlayerId = claims.PlayerId,
+                Sequence = 1,
+                MessageId = 1,
+                Payload = new byte[] { 1 }
+            };
+
+        private static ScriptedFrame Binary(byte[] data, bool endOfMessage) =>
+            new ScriptedFrame(WebSocketMessageType.Binary, data, endOfMessage);
+
+        private static ScriptedFrame Text(byte[] data) =>
+            new ScriptedFrame(WebSocketMessageType.Text, data, true);
+
+        private static ScriptedFrame Close() =>
+            new ScriptedFrame(WebSocketMessageType.Close, Array.Empty<byte>(), true);
+
+        private static IEnumerable<ScriptedFrame> OversizeBinaryFrames()
+        {
+            const int fragmentBytes = 4096;
+            for (int offset = 0; offset < RealtimeProtocol.MaxMessageBytes;
+                 offset += fragmentBytes)
+                yield return Binary(new byte[fragmentBytes], endOfMessage: false);
+            yield return Binary(new byte[] { 1 }, endOfMessage: true);
+        }
+
+        private sealed class RouterSetup
+        {
+            public InMemoryRealtimeTicketStore Tickets { get; }
+            public RecordingSink Sink { get; }
+            public RealtimeSessionRouter Router { get; }
+            public RealtimeSessionClaims Claims { get; }
+            public byte[] Ticket { get; }
+
+            private RouterSetup(InMemoryRealtimeTicketStore tickets,
+                RecordingSink sink, RealtimeSessionRouter router,
+                RealtimeSessionClaims claims, byte[] ticket)
+            {
+                Tickets = tickets;
+                Sink = sink;
+                Router = router;
+                Claims = claims;
+                Ticket = ticket;
+            }
+
+            public static RouterSetup Create()
+            {
+                var tickets = new InMemoryRealtimeTicketStore();
+                var sink = new RecordingSink();
+                var router = new RealtimeSessionRouter(
+                    tickets, new SessionRateLimiter(64, 128), sink, new TestClock());
+                RealtimeSessionClaims claims = Claims();
+                byte[] ticket = { 1 };
+                tickets.Add(ticket, claims);
+                return new RouterSetup(tickets, sink, router, claims, ticket);
+            }
+        }
 
         private sealed class TestClock : IRealtimeClock
         {
@@ -99,6 +214,69 @@ namespace ZWebGLFrameWork.Server.Tests
             {
                 Accepted.Add(command);
                 return Task.FromResult(ProtocolError.None);
+            }
+        }
+
+        private sealed class ScriptedWebSocket : WebSocket
+        {
+            private readonly Queue<ScriptedFrame> _frames;
+            private WebSocketState _state = WebSocketState.Open;
+            private WebSocketCloseStatus? _closeStatus;
+            private string _closeStatusDescription;
+
+            public override WebSocketCloseStatus? CloseStatus => _closeStatus;
+            public override string CloseStatusDescription => _closeStatusDescription;
+            public override WebSocketState State => _state;
+            public override string SubProtocol => RealtimeProtocol.WebSocketSubprotocol;
+
+            public ScriptedWebSocket(params ScriptedFrame[] frames) =>
+                _frames = new Queue<ScriptedFrame>(frames);
+
+            public override void Abort() => _state = WebSocketState.Aborted;
+
+            public override Task CloseAsync(WebSocketCloseStatus closeStatus,
+                string statusDescription, CancellationToken cancellationToken)
+            {
+                _closeStatus = closeStatus;
+                _closeStatusDescription = statusDescription;
+                _state = WebSocketState.Closed;
+                return Task.CompletedTask;
+            }
+
+            public override Task CloseOutputAsync(WebSocketCloseStatus closeStatus,
+                string statusDescription, CancellationToken cancellationToken) =>
+                CloseAsync(closeStatus, statusDescription, cancellationToken);
+
+            public override void Dispose() => _state = WebSocketState.Closed;
+
+            public override Task<WebSocketReceiveResult> ReceiveAsync(
+                ArraySegment<byte> buffer, CancellationToken cancellationToken)
+            {
+                if (_frames.Count == 0)
+                    throw new InvalidOperationException("No scripted frame remains.");
+                ScriptedFrame frame = _frames.Dequeue();
+                Buffer.BlockCopy(frame.Data, 0, buffer.Array, buffer.Offset, frame.Data.Length);
+                return Task.FromResult(new WebSocketReceiveResult(
+                    frame.Data.Length, frame.Type, frame.EndOfMessage));
+            }
+
+            public override Task SendAsync(ArraySegment<byte> buffer,
+                WebSocketMessageType messageType, bool endOfMessage,
+                CancellationToken cancellationToken) => Task.CompletedTask;
+        }
+
+        private readonly struct ScriptedFrame
+        {
+            public WebSocketMessageType Type { get; }
+            public byte[] Data { get; }
+            public bool EndOfMessage { get; }
+
+            public ScriptedFrame(WebSocketMessageType type, byte[] data,
+                bool endOfMessage)
+            {
+                Type = type;
+                Data = data;
+                EndOfMessage = endOfMessage;
             }
         }
     }
