@@ -75,6 +75,18 @@ namespace ZWebGLFrameWork.ECS.Tests
                 world.SetComponent(entity, default(TestComponent)));
         }
 
+        [Test]
+        public void GetComponent_ReportsMissingComponentAfterWorldExpansion()
+        {
+            var world = new World(1);
+            Entity entityWithComponent = world.CreateEntity();
+            world.AddComponent(entityWithComponent, default(TestComponent));
+            Entity entityWithoutComponent = world.CreateEntity();
+
+            Assert.Throws<InvalidOperationException>(() =>
+                world.GetComponent<TestComponent>(entityWithoutComponent).GetHashCode());
+        }
+
         private struct TestComponent : IComponent
         {
         }

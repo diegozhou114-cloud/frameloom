@@ -265,7 +265,10 @@ namespace ZWebGLFrameWork.ECS
 
         public ref T Get(Entity entity)
         {
-            int idx = _sparse[entity.Id];
+            int id = entity.Id;
+            if (id < 0 || id >= _sparse.Length)
+                throw new InvalidOperationException($"Entity {entity} 没有组件 {typeof(T).Name}");
+            int idx = _sparse[id];
             if (idx < 0 || idx >= _count || _denseEntities[idx] != entity)
                 throw new InvalidOperationException($"Entity {entity} 没有组件 {typeof(T).Name}");
             return ref _denseComponents[idx];
