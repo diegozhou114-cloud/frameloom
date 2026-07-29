@@ -415,35 +415,9 @@ namespace ZWebGLFrameWork.Server
 
         private static bool IsValidCommand(SerializableCommand command, int tick)
         {
-            if (command == null || command.Tick != tick ||
-                (command.PlayerId != 0 && command.PlayerId != 1) || command.Sequence < 0 ||
-                command.Sequence == int.MaxValue ||
-                !Enum.TryParse(command.Type, false, out SimCommandType type) ||
-                type == SimCommandType.None)
-                return false;
-            switch (type)
-            {
-                case SimCommandType.Deploy:
-                    return command.UnitTypeId > 0 &&
-                        HasValidWaypoint(command.GridX, command.GridY);
-                case SimCommandType.Move:
-                    return command.EntityId >= 0 &&
-                        HasValidWaypoint(command.TargetX, command.TargetY);
-                case SimCommandType.Skill:
-                    return command.CasterId >= 0 && command.SkillId > 0 &&
-                        HasValidWaypoint(command.TargetX, command.TargetY);
-                case SimCommandType.EndDeployment:
-                    return command.UnitTypeId == 0 && command.EntityId == 0 &&
-                        command.CasterId == 0 && command.SkillId == 0 &&
-                        command.GridX == 0 && command.GridY == 0 &&
-                        command.TargetX == 0 && command.TargetY == 0;
-                default:
-                    return false;
-            }
+            return KnownCommandSchema.Version1.Validate(command, tick) ==
+                ReplayValidationCode.Valid;
         }
-
-        private static bool HasValidWaypoint(int x, int y) =>
-            x >= 0 && x <= ushort.MaxValue && y >= 0 && y <= ushort.MaxValue;
 
         private static InitialEntitySpec[] ConvertInitialEntities(SimEntitySpawnInfo[] layout)
         {
