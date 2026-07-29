@@ -14,6 +14,7 @@
     <Compile Include="../../Assets/Tests/SimulationCore/SessionDeterminismTests.cs" Link="SharedTests/SessionDeterminismTests.cs" />
     <Compile Include="../../Assets/Tests/SimulationCore/ModeBehaviorTests.cs" Link="SharedTests/ModeBehaviorTests.cs" />
     <Compile Include="../../Assets/Tests/SimulationCore/CoreTargetingTests.cs" Link="SharedTests/CoreTargetingTests.cs" />
+    <Compile Include="../../Assets/Tests/SimulationCore/SimSystemGroupTests.cs" Link="SharedTests/SimSystemGroupTests.cs" />
     <Compile Include="../../Assets/Tests/SimulationCore/SessionTerminalTests.cs" Link="SharedTests/SessionTerminalTests.cs" />
     <Compile Include="../../Assets/Tests/SimulationCore/ReplayFixture.cs" Link="SharedTests/ReplayFixture.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
