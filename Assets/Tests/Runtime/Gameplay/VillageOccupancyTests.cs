@@ -64,5 +64,28 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(village.AddBuilding(second), Is.False);
             Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
         }
+
+        [Test]
+        public void Village_AddBuilding_NegativeGridCoordinateIsRejected()
+        {
+            var village = new VillageData(_ => null);
+            BuildingData building = BuildingData.Create(2, -1, 0);
+
+            Assert.That(village.AddBuilding(building), Is.False);
+            Assert.That(village.Buildings, Is.Empty);
+        }
+
+        [Test]
+        public void Village_AddBuilding_OverlappingFootprintIsRejected()
+        {
+            var config = new BuildingConfig { Id = 10, SizeX = 3, SizeY = 2 };
+            var village = new VillageData(id => id == config.Id ? config : null);
+            BuildingData first = BuildingData.Create(10, 5, 7);
+            BuildingData overlapping = BuildingData.Create(10, 7, 8);
+
+            Assert.That(village.AddBuilding(first), Is.True);
+            Assert.That(village.AddBuilding(overlapping), Is.False);
+            Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
+        }
     }
 }

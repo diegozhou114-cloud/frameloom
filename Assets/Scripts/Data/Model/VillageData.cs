@@ -38,6 +38,8 @@ namespace ZWebGLFrameWork.Data
         {
             if (building == null || string.IsNullOrWhiteSpace(building.Id))
                 return false;
+            if (building.GridX.Value < 0 || building.GridY.Value < 0)
+                return false;
 
             if (GetBuilding(building.Id) != null)
             {
@@ -55,6 +57,23 @@ namespace ZWebGLFrameWork.Data
             {
                 Debug.LogWarning($"[VillageData] 建筑已满: {Buildings.Count}/{MaxBuildings.Value}");
                 return false;
+            }
+
+            BuildingConfig config = _getBuildingConfig(building.TypeId);
+            int width = Math.Max(1, config?.SizeX ?? 1);
+            int height = Math.Max(1, config?.SizeY ?? 1);
+            long right = (long)building.GridX.Value + width;
+            long top = (long)building.GridY.Value + height;
+            foreach (BuildingData existing in Buildings)
+            {
+                BuildingConfig existingConfig = _getBuildingConfig(existing.TypeId);
+                int existingWidth = Math.Max(1, existingConfig?.SizeX ?? 1);
+                int existingHeight = Math.Max(1, existingConfig?.SizeY ?? 1);
+                long existingRight = (long)existing.GridX.Value + existingWidth;
+                long existingTop = (long)existing.GridY.Value + existingHeight;
+                if (building.GridX.Value < existingRight && existing.GridX.Value < right &&
+                    building.GridY.Value < existingTop && existing.GridY.Value < top)
+                    return false;
             }
 
             Buildings.Add(building);
