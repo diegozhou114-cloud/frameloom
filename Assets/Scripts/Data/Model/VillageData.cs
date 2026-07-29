@@ -20,6 +20,13 @@ namespace ZWebGLFrameWork.Data
                 ?? throw new ArgumentNullException(nameof(getBuildingConfig));
         }
 
+        public override void Reset()
+        {
+            base.Reset();
+            Name.SetSilent("My Village");
+            MaxBuildings.SetSilent(50);
+        }
+
         /// <summary>村庄名称</summary>
         public Observable<string> Name = new Observable<string>("My Village");
 

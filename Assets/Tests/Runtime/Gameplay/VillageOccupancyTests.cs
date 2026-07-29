@@ -87,5 +87,17 @@ namespace ZWebGLFrameWork.Runtime.Tests.Gameplay
             Assert.That(village.AddBuilding(overlapping), Is.False);
             Assert.That(village.Buildings, Is.EquivalentTo(new[] { first }));
         }
+
+        [Test]
+        public void Village_Reset_RestoresDefaultBuildingCapacity()
+        {
+            var village = new VillageData(_ => null);
+            village.MaxBuildings.Value = 1;
+
+            village.Reset();
+
+            Assert.That(village.MaxBuildings.Value, Is.EqualTo(50));
+            Assert.That(village.AddBuilding(BuildingData.Create(1, 0, 0)), Is.True);
+        }
     }
 }
