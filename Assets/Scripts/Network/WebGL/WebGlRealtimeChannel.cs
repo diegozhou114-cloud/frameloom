@@ -12,6 +12,8 @@ namespace ZWebGLFrameWork.Network.WebGL
         private readonly object _gate = new object();
         private readonly INativeWebSocketClientFactory _clientFactory;
         private readonly Queue<byte[]> _received = new Queue<byte[]>();
+        private const int MaxRealtimeFrameBytes = RealtimeProtocol.HeaderBytes +
+            RealtimeProtocol.MaxMessageBytes;
         private INativeWebSocketClient _client;
         private RealtimeCredentials _credentials;
         private TaskCompletionSource<bool> _authentication;
@@ -76,6 +78,9 @@ namespace ZWebGLFrameWork.Network.WebGL
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (completeMessage == null) throw new ArgumentNullException(nameof(completeMessage));
+            if (completeMessage.Length == 0 ||
+                completeMessage.Length > MaxRealtimeFrameBytes)
+                throw new ArgumentOutOfRangeException(nameof(completeMessage));
             INativeWebSocketClient client;
             lock (_gate)
             {
@@ -195,6 +200,16 @@ namespace ZWebGLFrameWork.Network.WebGL
         private void OnMessage(byte[] message)
         {
             TaskCompletionSource<byte[]> receiver = null; bool fail = false;
+            if (message == null || message.Length == 0 ||
+                message.Length > MaxRealtimeFrameBytes)
+            {
+                lock (_gate)
+                    fail = !_closed && _state == RealtimeChannelState.Connecting;
+                if (fail)
+                    _ = CloseAsync(RealtimeCloseReason.AuthenticationFailed,
+                        CancellationToken.None);
+                return;
+            }
             lock (_gate)
             {
                 if (_closed) return;
