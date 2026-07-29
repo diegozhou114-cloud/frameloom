@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ZWebGLFrameWork.FrameSync;
+using ZWebGLFrameWork.Network.Contracts.Auth;
 using ZWebGLFrameWork.Network.Contracts.Protocol;
 
 namespace ZWebGLFrameWork.Server.Tests
@@ -79,7 +80,10 @@ namespace ZWebGLFrameWork.Server.Tests
             tickets.Add(nativeTicket, nativeClaims);
 
             var wss = new WebSocketIngress(router);
-            var native = new KcpIngress(router);
+            byte[] nativeMacKey = Enumerable.Repeat((byte)7, 32).ToArray();
+            var nativeKeys = new TestNativeSessionKeyStore();
+            nativeKeys.Add(nativeClaims.SessionId, nativeMacKey);
+            var native = new KcpIngress(router, nativeKeys);
             var wssSession = new TestSession();
             var nativeSession = new TestSession();
             byte[] command = RealtimeCodec.Encode(new CommandEnvelope
@@ -96,20 +100,48 @@ namespace ZWebGLFrameWork.Server.Tests
             Assert.That(await wss.RouteCompleteMessageAsync(
                     wssSession, Auth(wssClaims, wssTicket), CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
-            Assert.That(await native.RouteAuthenticatedMessageAsync(
-                    nativeSession, Auth(nativeClaims, nativeTicket), CancellationToken.None),
+            Assert.That(await native.RouteAuthenticatedPacketAsync(
+                    nativeSession, AuthenticatedPacketCodec.Encode(nativeClaims.SessionId,
+                        1, Auth(nativeClaims, nativeTicket), nativeMacKey),
+                    CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
 
             Assert.That(await wss.RouteCompleteMessageAsync(
                     wssSession, command, CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
-            Assert.That(await native.RouteAuthenticatedMessageAsync(
-                    nativeSession, command, CancellationToken.None),
+            Assert.That(await native.RouteAuthenticatedPacketAsync(
+                    nativeSession, AuthenticatedPacketCodec.Encode(nativeClaims.SessionId,
+                        2, command, nativeMacKey), CancellationToken.None),
                 Is.EqualTo(ProtocolError.None));
 
             Assert.That(setup.Sink.Accepted, Has.Count.EqualTo(2));
             Assert.That(RealtimeCodec.Encode(setup.Sink.Accepted[0]),
                 Is.EqualTo(RealtimeCodec.Encode(setup.Sink.Accepted[1])));
+        }
+
+        [Test]
+        public async Task KcpIngress_RejectsForgedAndReplayedAuthenticatedPackets()
+        {
+            RouterSetup setup = RouterSetup.Create();
+            byte[] macKey = Enumerable.Repeat((byte)3, 32).ToArray();
+            var keys = new TestNativeSessionKeyStore();
+            keys.Add(setup.Claims.SessionId, macKey);
+            var ingress = new KcpIngress(setup.Router, keys);
+            var session = new TestSession();
+            byte[] authPacket = AuthenticatedPacketCodec.Encode(setup.Claims.SessionId,
+                4, Auth(setup.Claims, setup.Ticket), macKey);
+
+            byte[] forged = (byte[])authPacket.Clone();
+            forged[^1] ^= 1;
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(
+                    session, forged, CancellationToken.None),
+                Is.EqualTo(ProtocolError.AuthenticationFailed));
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(
+                    session, authPacket, CancellationToken.None),
+                Is.EqualTo(ProtocolError.None));
+            Assert.That(await ingress.RouteAuthenticatedPacketAsync(
+                    session, authPacket, CancellationToken.None),
+                Is.EqualTo(ProtocolError.ReplayedPacket));
         }
 
         private static RealtimeSessionClaims Claims() => new RealtimeSessionClaims(
@@ -214,6 +246,25 @@ namespace ZWebGLFrameWork.Server.Tests
             {
                 Accepted.Add(command);
                 return Task.FromResult(ProtocolError.None);
+            }
+        }
+
+        private sealed class TestNativeSessionKeyStore : INativeSessionKeyStore
+        {
+            private readonly Dictionary<Guid, byte[]> _keys = new Dictionary<Guid, byte[]>();
+
+            public void Add(Guid sessionId, byte[] macKey) =>
+                _keys.Add(sessionId, (byte[])macKey.Clone());
+
+            public ProtocolError TryGetMacKey(Guid sessionId, out byte[] macKey)
+            {
+                if (_keys.TryGetValue(sessionId, out byte[] key))
+                {
+                    macKey = (byte[])key.Clone();
+                    return ProtocolError.None;
+                }
+                macKey = null;
+                return ProtocolError.WrongSession;
             }
         }
 
