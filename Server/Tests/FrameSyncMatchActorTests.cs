@@ -34,6 +34,27 @@ namespace ZWebGLFrameWork.Server.Tests
         }
 
         [Test]
+        public void FrameSyncServer_MissingInputAfterDeadline_InsertsNoOp()
+        {
+            MatchActorFixture fixture = MatchActorFixture.Create();
+            Assert.That(fixture.Actor.SubmitInput(0, fixture.Input(0, 0, 1)),
+                Is.EqualTo(InputAcceptance.Accepted));
+
+            fixture.Clock.Set(299);
+            Assert.That(fixture.Actor.Pump(), Is.Zero);
+            Assert.That(fixture.Session.TickCalls, Is.Zero);
+
+            fixture.Clock.Set(300);
+            Assert.That(fixture.Actor.Pump(), Is.EqualTo(1));
+            AuthorityFrame frame = fixture.Broadcaster.Frames.Single();
+            Assert.That(frame.Tick, Is.Zero);
+            Assert.That(frame.OrderedInputs, Has.Length.EqualTo(2));
+            Assert.That(frame.OrderedInputs[0].IsNoOp, Is.False);
+            Assert.That(frame.OrderedInputs[1].IsNoOp, Is.True);
+            Assert.That(fixture.SealedTicks, Is.EqualTo(new[] { 0 }));
+        }
+
+        [Test]
         public void BothInputs_AdvanceImmediatelyWithoutWaitingForDeadline()
         {
             MatchActorFixture fixture = MatchActorFixture.Create();
