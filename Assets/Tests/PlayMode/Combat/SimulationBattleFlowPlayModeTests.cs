@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -16,6 +17,24 @@ namespace ZWebGLFrameWork.Combat.PlayModeTests
 {
     public sealed class SimulationBattleFlowPlayModeTests
     {
+        [Test]
+        public void BattleState_CompletionPolicy_RequiresCurrentLiveLifetime()
+        {
+            MethodInfo policy = typeof(ZWebGLFrameWork.FSM.BattleState).GetMethod(
+                "CanApplyBattleCompletion",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(policy, Is.Not.Null);
+
+            using (var current = new CancellationTokenSource())
+            using (var replacement = new CancellationTokenSource())
+            {
+                Assert.That(policy.Invoke(null, new object[] { current, current }), Is.True);
+                Assert.That(policy.Invoke(null, new object[] { replacement, current }), Is.False);
+                current.Cancel();
+                Assert.That(policy.Invoke(null, new object[] { current, current }), Is.False);
+            }
+        }
+
         [UnityTest]
         public IEnumerator BattleState_UsesSingleSimulationSession_EndToEnd()
         {

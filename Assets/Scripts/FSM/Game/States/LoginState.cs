@@ -75,7 +75,7 @@ namespace ZWebGLFrameWork.FSM
                 Uri endpoint = new Uri(GameLauncher.Config.HttpsApiBaseUrl);
                 GuestLoginResult result =
                     await NetworkManager.Instance.GuestLoginAsync(endpoint, token);
-                if (token.IsCancellationRequested || !IsActive) return;
+                if (!CanApplyGuestLoginCompletion(token)) return;
                 if (!result.Success)
                 {
                     PublishLoginFailure(result.Error);
@@ -91,10 +91,13 @@ namespace ZWebGLFrameWork.FSM
             }
             catch (Exception exception)
             {
-                if (token.IsCancellationRequested || !IsActive) return;
+                if (!CanApplyGuestLoginCompletion(token)) return;
                 PublishLoginFailure(exception.Message);
             }
         }
+
+        internal static bool CanApplyGuestLoginCompletion(CancellationToken token) =>
+            !token.IsCancellationRequested;
 
         private void OnOfflineLogin()
         {

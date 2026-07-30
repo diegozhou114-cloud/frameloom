@@ -102,8 +102,7 @@ namespace ZWebGLFrameWork.FSM
             try
             {
                 SimBattleResult result = await _combatManager.StartBattleAsync(parameters, lifetime.Token);
-                if (lifetime.IsCancellationRequested || !ReferenceEquals(_battleLifetime, lifetime) ||
-                    !IsActive)
+                if (!CanApplyBattleCompletion(_battleLifetime, lifetime))
                     return;
 
                 BattleRewardCommitStatus status = _rewardService.Commit(_expectedMatchId, result,
@@ -122,10 +121,13 @@ namespace ZWebGLFrameWork.FSM
             catch (Exception exception)
             {
                 Debug.LogException(exception);
-                if (ReferenceEquals(_battleLifetime, lifetime) &&
-                    !lifetime.IsCancellationRequested && IsActive)
+                if (CanApplyBattleCompletion(_battleLifetime, lifetime))
                     ChangeState(GameState.MainVillage);
             }
         }
+
+        internal static bool CanApplyBattleCompletion(
+            CancellationTokenSource current, CancellationTokenSource operation) =>
+            ReferenceEquals(current, operation) && !operation.IsCancellationRequested;
     }
 }

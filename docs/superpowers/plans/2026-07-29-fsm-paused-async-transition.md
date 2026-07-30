@@ -234,7 +234,7 @@ Expected: no output. Then run exactly one editor without `-quit`:
   -batchmode -nographics \
   -projectPath /Users/diegozhou/Documents/unityframework/zweb-master-merge \
   -runTests -testPlatform PlayMode \
-  -testFilter 'ZWebGLFrameWork.Runtime.Tests.FSM;ZWebGLFrameWork.Runtime.Tests.LoginStateTests' \
+  -testFilter 'ZWebGLFrameWork.Runtime.Tests.FSM;ZWebGLFrameWork.Runtime.Tests.LoginStateTests;ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests' \
   -testResults /private/tmp/zweb-fsm-paused-transition-red.xml \
   -logFile /private/tmp/zweb-fsm-paused-transition-red.log
 ```
@@ -500,17 +500,43 @@ force-push and rerun the focused gate before pushing.
 **Files:**
 - Modify: `Assets/Scripts/FSM/Game/States/LoginState.cs`
 - Modify: `Assets/Scripts/FSM/Game/States/BattleState.cs`
+- Modify: `Assets/Tests/Runtime/FSM/LoginStateTests.cs`
+- Modify: `Assets/Tests/PlayMode/Combat/SimulationBattleFlowPlayModeTests.cs`
 
 **Interfaces:**
 - Consumes: Task 1's source-aware state helper, `LoginState._loginCts`, and `BattleState._battleLifetime`.
 - Produces: paused Login and Battle completions that remain valid until their actual state exits.
 
-- [ ] **Step 1: Remove only the incorrect active-frame checks**
+- [ ] **Step 1: Write completion-validity policy tests and retain RED**
+
+Add focused tests for two non-public predicates:
+
+- Login accepts a live operation token and rejects the same token after
+  cancellation.
+- Battle accepts only the matching live lifetime and rejects both replacement
+  and cancelled lifetimes.
+
+Run only these two tests first. Expected RED: both tests compile and fail
+because the named predicates do not exist yet. Missing result XML, compilation
+errors, unrelated failures, or a remaining Unity process are not accepted.
+
+- [ ] **Step 2: Remove only the incorrect active-frame checks**
+
+Add the smallest reusable predicates so the duplicated guards remain readable:
+
+```csharp
+internal static bool CanApplyGuestLoginCompletion(CancellationToken token) =>
+    !token.IsCancellationRequested;
+
+internal static bool CanApplyBattleCompletion(
+    CancellationTokenSource current, CancellationTokenSource operation) =>
+    ReferenceEquals(current, operation) && !operation.IsCancellationRequested;
+```
 
 In `LoginState.OnGuestLogin`, replace both post-await guards with:
 
 ```csharp
-if (token.IsCancellationRequested) return;
+if (!CanApplyGuestLoginCompletion(token)) return;
 ```
 
 The first guard follows `GuestLoginAsync`; the second is inside the general
@@ -520,23 +546,21 @@ and transition targets unchanged.
 In `BattleState.SafeStartBattle`, replace the success guard with:
 
 ```csharp
-if (lifetime.IsCancellationRequested ||
-    !ReferenceEquals(_battleLifetime, lifetime))
+if (!CanApplyBattleCompletion(_battleLifetime, lifetime))
     return;
 ```
 
 Replace the general exception condition with:
 
 ```csharp
-if (ReferenceEquals(_battleLifetime, lifetime) &&
-    !lifetime.IsCancellationRequested)
+if (CanApplyBattleCompletion(_battleLifetime, lifetime))
     ChangeState(GameState.MainVillage);
 ```
 
 Keep reward commit order, UI calls, cancellation ownership, network behavior,
 combat simulation, and target states unchanged.
 
-- [ ] **Step 2: Run the focused FSM regression gate**
+- [ ] **Step 3: Run the focused FSM regression gate**
 
 Confirm zero Unity processes, then run one editor without `-quit`:
 
@@ -550,18 +574,26 @@ Confirm zero Unity processes, then run one editor without `-quit`:
   -logFile /private/tmp/zweb-fsm-paused-transition-focused-green.log
 ```
 
-Expected: all Runtime FSM namespace tests and `LoginStateTests` pass, including
-Launch completion during Pause and existing exit-cancellation coverage.
+Expected: all Runtime FSM namespace, Login, and Battle flow tests pass,
+including Launch completion during Pause and existing exit-cancellation
+coverage.
 Confirm natural exit and zero Unity processes.
 
-- [ ] **Step 3: Review, commit, and push the state integration**
+- [ ] **Step 4: Review, commit, and push the state integration**
 
 ```bash
 codegraph sync
 codegraph explore "LoginState BattleState async completion cancellation and ChangeState flow"
 git diff --check
-git diff -- Assets/Scripts/FSM/Game/States/LoginState.cs Assets/Scripts/FSM/Game/States/BattleState.cs
-git add Assets/Scripts/FSM/Game/States/LoginState.cs Assets/Scripts/FSM/Game/States/BattleState.cs
+git diff -- Assets/Scripts/FSM/Game/States/LoginState.cs \
+  Assets/Scripts/FSM/Game/States/BattleState.cs \
+  Assets/Tests/Runtime/FSM/LoginStateTests.cs \
+  Assets/Tests/PlayMode/Combat/SimulationBattleFlowPlayModeTests.cs
+git add Assets/Scripts/FSM/Game/States/LoginState.cs \
+  Assets/Scripts/FSM/Game/States/BattleState.cs \
+  Assets/Tests/Runtime/FSM/LoginStateTests.cs \
+  Assets/Tests/PlayMode/Combat/SimulationBattleFlowPlayModeTests.cs \
+  docs/superpowers/plans/2026-07-29-fsm-paused-async-transition.md
 git commit -m "fix(client): preserve paused async state completions"
 git fetch gitee master
 git rev-list --left-right --count master...gitee/master
