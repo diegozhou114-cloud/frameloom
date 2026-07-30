@@ -126,6 +126,38 @@ namespace ZWebGLFrameWork.Core.Tests
             Assert.AreEqual("data", received2);
         }
 
+        [Test]
+        public void OneParamSameKeyWithDifferentPayloadTypes_DoNotConflict()
+        {
+            int receivedInt = 0;
+            string receivedString = null;
+            EventBus.Subscribe<int>("test_typed_key", value => receivedInt = value);
+            EventBus.Subscribe<string>("test_typed_key", value => receivedString = value);
+
+            EventBus.Publish("test_typed_key", 42);
+            EventBus.Publish("test_typed_key", "payload");
+
+            Assert.AreEqual(42, receivedInt);
+            Assert.AreEqual("payload", receivedString);
+        }
+
+        [Test]
+        public void TwoParamSameKeyWithDifferentPayloadTypes_DoNotConflict()
+        {
+            int receivedInt = 0;
+            string receivedString = null;
+            EventBus.Subscribe<int, string>("test_typed_pair", (number, text) =>
+                receivedInt = number + text.Length);
+            EventBus.Subscribe<string, int>("test_typed_pair", (text, number) =>
+                receivedString = text + number);
+
+            EventBus.Publish("test_typed_pair", 7, "a");
+            EventBus.Publish("test_typed_pair", "b", 8);
+
+            Assert.AreEqual(8, receivedInt);
+            Assert.AreEqual("b8", receivedString);
+        }
+
         // ==================== ClearAll ====================
 
         [Test]

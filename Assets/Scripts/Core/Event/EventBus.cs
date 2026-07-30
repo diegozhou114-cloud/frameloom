@@ -62,20 +62,74 @@ namespace ZWebGLFrameWork.Core
     internal class DefaultEventBus : IEventBus
     {
         private readonly Dictionary<string, Action> _events0 = new();
-        private readonly Dictionary<string, Delegate> _events1 = new();
-        private readonly Dictionary<string, Delegate> _events2 = new();
+        private readonly Dictionary<(string key, Type type), Delegate> _events1 = new();
+        private readonly Dictionary<(string key, Type firstType, Type secondType), Delegate> _events2 = new();
 
         public void Subscribe(string k, Action h) { lock (_events0) _events0[k] = _events0.TryGetValue(k, out var e) ? e + h : h; }
         public void Unsubscribe(string k, Action h) { lock (_events0) { if (_events0.TryGetValue(k, out var e)) { var r = e - h; if (r == null) _events0.Remove(k); else _events0[k] = r; } } }
         public void Publish(string k) { Action h; lock (_events0) _events0.TryGetValue(k, out h); h?.Invoke(); }
 
-        public void Subscribe<T>(string k, Action<T> h) { lock (_events1) _events1[k] = _events1.TryGetValue(k, out var e) ? Delegate.Combine(e, h) : h; }
-        public void Unsubscribe<T>(string k, Action<T> h) { lock (_events1) { if (_events1.TryGetValue(k, out var e)) { var r = Delegate.Remove(e, h); if (r == null) _events1.Remove(k); else _events1[k] = r; } } }
-        public void Publish<T>(string k, T a) { Delegate d; lock (_events1) _events1.TryGetValue(k, out d); (d as Action<T>)?.Invoke(a); }
+        public void Subscribe<T>(string k, Action<T> h)
+        {
+            var key = GetKey<T>(k);
+            lock (_events1)
+                _events1[key] = _events1.TryGetValue(key, out var e)
+                    ? Delegate.Combine(e, h) : h;
+        }
 
-        public void Subscribe<T1, T2>(string k, Action<T1, T2> h) { lock (_events2) _events2[k] = _events2.TryGetValue(k, out var e) ? Delegate.Combine(e, h) : h; }
-        public void Unsubscribe<T1, T2>(string k, Action<T1, T2> h) { lock (_events2) { if (_events2.TryGetValue(k, out var e)) { var r = Delegate.Remove(e, h); if (r == null) _events2.Remove(k); else _events2[k] = r; } } }
-        public void Publish<T1, T2>(string k, T1 a1, T2 a2) { Delegate d; lock (_events2) _events2.TryGetValue(k, out d); (d as Action<T1, T2>)?.Invoke(a1, a2); }
+        public void Unsubscribe<T>(string k, Action<T> h)
+        {
+            var key = GetKey<T>(k);
+            lock (_events1)
+            {
+                if (!_events1.TryGetValue(key, out var e)) return;
+                var remaining = Delegate.Remove(e, h);
+                if (remaining == null) _events1.Remove(key);
+                else _events1[key] = remaining;
+            }
+        }
+
+        public void Publish<T>(string k, T a)
+        {
+            var key = GetKey<T>(k);
+            Delegate handler;
+            lock (_events1) _events1.TryGetValue(key, out handler);
+            (handler as Action<T>)?.Invoke(a);
+        }
+
+        public void Subscribe<T1, T2>(string k, Action<T1, T2> h)
+        {
+            var key = GetKey<T1, T2>(k);
+            lock (_events2)
+                _events2[key] = _events2.TryGetValue(key, out var e)
+                    ? Delegate.Combine(e, h) : h;
+        }
+
+        public void Unsubscribe<T1, T2>(string k, Action<T1, T2> h)
+        {
+            var key = GetKey<T1, T2>(k);
+            lock (_events2)
+            {
+                if (!_events2.TryGetValue(key, out var e)) return;
+                var remaining = Delegate.Remove(e, h);
+                if (remaining == null) _events2.Remove(key);
+                else _events2[key] = remaining;
+            }
+        }
+
+        public void Publish<T1, T2>(string k, T1 a1, T2 a2)
+        {
+            var key = GetKey<T1, T2>(k);
+            Delegate handler;
+            lock (_events2) _events2.TryGetValue(key, out handler);
+            (handler as Action<T1, T2>)?.Invoke(a1, a2);
+        }
+
+        private static (string key, Type type) GetKey<T>(string key) =>
+            (key, typeof(T));
+
+        private static (string key, Type firstType, Type secondType) GetKey<T1, T2>(
+            string key) => (key, typeof(T1), typeof(T2));
 
         public void ClearAll() { lock (_events0) _events0.Clear(); lock (_events1) _events1.Clear(); lock (_events2) _events2.Clear(); }
         public int TotalEventCount { get { int c = 0; lock (_events0) c += _events0.Count; lock (_events1) c += _events1.Count; lock (_events2) c += _events2.Count; return c; } }
