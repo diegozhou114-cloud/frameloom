@@ -16,12 +16,16 @@ namespace ZWebGLFrameWork.FSM
     /// </summary>
     public class LoginState : FSMState<GameState>
     {
-        private readonly OfflineSaveFlow _offlineSaveFlow =
-            new OfflineSaveFlow(new DefaultOfflineSaveGateway());
+        private readonly OfflineSaveFlow _offlineSaveFlow;
 
-        public LoginState() : base(GameState.Login) { }
+        public LoginState() : this(new OfflineSaveFlow(new DefaultOfflineSaveGateway())) { }
+
+        internal LoginState(OfflineSaveFlow offlineSaveFlow) : base(GameState.Login) =>
+            _offlineSaveFlow = offlineSaveFlow ??
+                throw new ArgumentNullException(nameof(offlineSaveFlow));
 
         private CancellationTokenSource _loginCts;
+        private bool _characterSelectionSubscribed;
 
         public override void OnEnter(object data = null)
         {
@@ -55,7 +59,7 @@ namespace ZWebGLFrameWork.FSM
             _loginCts = null;
             EventBus.Unsubscribe(LoginEvents.GuestLogin, OnGuestLogin);
             EventBus.Unsubscribe(LoginEvents.OfflineLogin, OnOfflineLogin);
-            EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+            UnsubscribeCharacterSelection();
             UIManager.Instance.Close<LoginPanel>();
             UIManager.Instance.Close<CharacterSelectPanel>();
             base.OnExit();
@@ -116,14 +120,14 @@ namespace ZWebGLFrameWork.FSM
             else
             {
                 EventBus.Publish(LoginEvents.LoginError, "本地存档创建或加载失败，请选择其他存档位");
-                EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+                SubscribeCharacterSelection();
                 UIManager.Instance.Open<CharacterSelectPanel>();
             }
         }
 
         private void OnCharacterSelected(int slot)
         {
-            EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+            UnsubscribeCharacterSelection();
             Debug.Log($"[LoginState] 角色已选择 slot={slot}");
             if (_offlineSaveFlow.TryPrepareSlot(slot))
             {
@@ -132,7 +136,21 @@ namespace ZWebGLFrameWork.FSM
             }
 
             EventBus.Publish(LoginEvents.LoginError, "本地存档加载失败，请重试");
+            SubscribeCharacterSelection();
+        }
+
+        private void SubscribeCharacterSelection()
+        {
+            if (_characterSelectionSubscribed) return;
             EventBus.Subscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+            _characterSelectionSubscribed = true;
+        }
+
+        private void UnsubscribeCharacterSelection()
+        {
+            if (!_characterSelectionSubscribed) return;
+            EventBus.Unsubscribe<int>(LoginEvents.CharacterSelected, OnCharacterSelected);
+            _characterSelectionSubscribed = false;
         }
 
         private void PublishLoginFailure(string message)
