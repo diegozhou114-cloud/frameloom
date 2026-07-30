@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using ZWebGLFrameWork.Combat;
 using ZWebGLFrameWork.Core;
@@ -17,10 +18,17 @@ namespace ZWebGLFrameWork.FSM
         private ResourceProducer _resourceProducer;
         private float _autoSaveTimer;
         private AutosaveCoordinator _autosave;
+        private readonly AutosaveCoordinator _injectedAutosave;
         private readonly FrameworkBattleAuthority _battleAuthority =
             new FrameworkBattleAuthority();
 
         public MainVillageState() : base(GameState.MainVillage) { }
+
+        internal MainVillageState(AutosaveCoordinator autosave) : base(GameState.MainVillage)
+        {
+            _injectedAutosave = autosave ?? throw new ArgumentNullException(nameof(autosave));
+            _autosave = _injectedAutosave;
+        }
 
         public override void OnEnter(object data = null)
         {
@@ -48,7 +56,7 @@ namespace ZWebGLFrameWork.FSM
 
             // 自动存档状态初始化
             _autoSaveTimer = 0f;
-            _autosave = new AutosaveCoordinator(
+            _autosave = _injectedAutosave ?? new AutosaveCoordinator(
                 () => SaveDataMapper.Capture(
                     DataManager.Instance.Player,
                     DataManager.Instance.Village),
@@ -68,6 +76,12 @@ namespace ZWebGLFrameWork.FSM
                 if (_autosave?.TrySaveIfChanged() == true)
                     Debug.Log("[MainVillageState] 自动存档");
             }
+        }
+
+        public override void OnSuspend(object data)
+        {
+            _autosave?.FlushPending();
+            base.OnSuspend(data);
         }
 
         public override void OnExit()
