@@ -37,9 +37,12 @@ This repair covers:
 
 - the generic FSM transition request and overlay stack contract;
 - the state helper that submits source-owned transitions;
+- the Game FSM policy that admits Pause as an overlay independently from
+  ordinary state transitions;
 - Launch, Login, and Battle asynchronous completion behavior; and
 - focused PlayMode regression coverage for delayed transitions, request
-  ordering, stale-source rejection, and public transition protection.
+  ordering, stale-source rejection, re-entrant lifecycle callbacks, public
+  transition protection, and overlay-participant removal.
 
 The change does not alter server code, network protocols, combat simulation,
 scene-loading cancellation, UI stack ownership, resource providers, or the
@@ -86,12 +89,28 @@ The application contract supports one overlay at a time. `PushState` returns
 `false` when a state is already suspended. This matches the single global
 Pause use case and avoids inventing scheduling semantics for nested overlays.
 
+Overlay admission is a separate policy from ordinary state transition rules.
+`FSM<T>.OverlayGuard`, when configured, decides whether an overlay can be
+pushed; otherwise `PushState` falls back to `TransitionGuard` for compatibility.
+`GameFSM` configures the overlay guard through `CanPushOverlay`, allowing only
+Launch, Login, MainVillage, or Battle to push Pause. Its ordinary transition
+table remains unchanged.
+
 The public `FSM<T>.ChangeState` remains the synchronous external entry point.
 When an overlay is active, it returns `false` instead of transitioning through
 the overlay. A transition requested by the overlay state is rejected for the
 same reason. Any caller that intentionally wants to leave an overlay must first
 use `PopState`. This prevents both public and state-owned callers from
 orphaning the suspended state.
+
+Push and Pop are atomic overlay lifecycle phases. Public, state-owned, queued,
+and re-entrant requests are rejected while `OnSuspend`, overlay `OnEnter`,
+overlay `OnExit`, source `OnResume`, or the corresponding transition event is
+running. A queued ordinary request is checked again when dequeued, so an
+overlay pushed by an earlier callback cannot be bypassed by stale queued work.
+Accepting a Push also invalidates ordinary requests still waiting from the
+pre-overlay transition phase. They cannot survive a complete re-entrant
+Push/Pop cycle and run ahead of the suspended source's retained request.
 
 ### Deferred request ownership and ordering
 
@@ -114,12 +133,17 @@ single Pause overlay and avoids introducing a general overlay scheduler.
 4. if the retained request belongs to that resumed state, clear the slot and
    submit it through the normal transition path.
 
-The request is revalidated when executed. A rule that is no longer valid is
-rejected normally. Clearing the slot before execution makes re-entrant
-transitions deterministic and prevents replay.
+The matching retained request is reserved and removed from the slot before
+resume callbacks run, but it is not executed until the Pause-to-source event
+has completed. The request is then revalidated through the ordinary queue. A
+rule that is no longer valid is rejected normally. This ordering prevents
+`OnExit`, `OnResume`, and event callbacks from replacing or preempting the
+first accepted request.
 
-`Clear` always discards the deferred request. Removing its source also discards
-the request. No deferred request survives FSM teardown or source removal.
+`Clear` always discards the deferred request. While an overlay is active,
+`RemoveState` refuses to detach either the active overlay or its suspended
+source, preserving a resumable stack and the ownership of any retained
+request. No deferred request survives FSM teardown.
 
 ### Suspended asynchronous lifetime
 
@@ -163,11 +187,20 @@ They will prove:
 3. a public transition cannot bypass an active overlay and the original state
    remains resumable;
 4. an overlay-owned transition and a nested `PushState` are rejected;
-5. stale and cleared sources cannot execute retained requests;
-6. a controllable Launch pipeline completing during Pause transitions only
+5. queued public requests and re-entrant overlay exit, source resume, and
+   resume-event requests cannot bypass the overlay lifecycle or replace the
+   retained request, including when Push and Pop both complete before the
+   ordinary queue resumes;
+6. removing the active overlay or suspended source is rejected;
+7. stale and cleared sources cannot execute retained requests, and `Clear`
+   leaves the deferred slot reusable;
+8. production `GameFSM.CanPushOverlay` admits Pause from all four supported
+   sources, rejects unsupported sources and overlays, and does not weaken the
+   ordinary transition table;
+9. a controllable Launch pipeline completing during Pause transitions only
    after resume; and
-7. Login and Battle use their existing cancellation identities during Pause
-   while continuing to reject completions after exit.
+10. Login and Battle use their existing cancellation identities during Pause
+    while continuing to reject completions after exit.
 
 After focused RED/GREEN evidence, run the complete PlayMode and EditMode suites.
 Every Unity invocation must start only after confirming zero Unity processes,
@@ -181,5 +214,6 @@ must be followed by another zero-process check.
   changing the resumed state.
 - A compilation failure, missing result XML, failed test, unexpected Unity
   process, or unrelated working-tree mutation blocks commit and push.
-- Runtime implementation is committed and pushed to `gitee/master` only after
-  focused and full-suite verification plus code review pass.
+- Each small implementation step is committed and pushed to `gitee/master`
+  after its focused verification and code review pass. Complete PlayMode and
+  EditMode suites run serially after both implementation steps.

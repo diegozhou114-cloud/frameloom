@@ -84,8 +84,7 @@ namespace ZWebGLFrameWork.FSM
             if (pauseStatus)
             {
                 // 切后台 → 进入暂停
-                if (CurrentState == GameState.Launch || CurrentState == GameState.Login
-                    || CurrentState == GameState.MainVillage || CurrentState == GameState.Battle)
+                if (CanPushOverlay(CurrentState, GameState.Pause))
                 {
                     _pauseStartTime = Time.realtimeSinceStartup;
                     _fsm.PushState(GameState.Pause, GamePauseEvent.Background);
@@ -125,6 +124,7 @@ namespace ZWebGLFrameWork.FSM
         {
             _fsm = new FSM<GameState>();
             _fsm.TransitionGuard = CanTransition; // 状态内部 ChangeState 也受转换规则约束
+            _fsm.OverlayGuard = CanPushOverlay;
 
             // 注册所有状态
             _fsm.AddStates(
@@ -187,6 +187,14 @@ namespace ZWebGLFrameWork.FSM
                 return allowedTargets.Contains(to);
             }
             return false;
+        }
+
+        /// <summary>检查覆盖层是否允许压入，不复用普通状态转换表。</summary>
+        public static bool CanPushOverlay(GameState from, GameState overlay)
+        {
+            return overlay == GameState.Pause &&
+                (from == GameState.Launch || from == GameState.Login ||
+                 from == GameState.MainVillage || from == GameState.Battle);
         }
 
         /// <summary>获取当前状态的实例</summary>

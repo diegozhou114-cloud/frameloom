@@ -73,7 +73,7 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>切换到目标状态</summary>
         protected void ChangeState(T targetState, object data = null)
         {
-            Owner?.ChangeState(targetState, data);
+            Owner?.ChangeStateFrom(this, targetState, data);
         }
 
         public override string ToString()

@@ -30,17 +30,21 @@ namespace ZWebGLFrameWork.FSM
         private readonly Dictionary<T, FSMState<T>> _states = new Dictionary<T, FSMState<T>>();
         private readonly Queue<TransitionRequest> _pendingTransitions = new Queue<TransitionRequest>();
         private readonly Stack<FSMState<T>> _suspendedStates = new Stack<FSMState<T>>();
+        private TransitionRequest? _deferredTransition;
         private FSMState<T> _currentState;
         private FSMState<T> _previousState;
         private bool _isTransitioning;
+        private bool _isOverlayTransitioning;
 
         private readonly struct TransitionRequest
         {
+            public FSMState<T> Source { get; }
             public T StateId { get; }
             public object Data { get; }
 
-            public TransitionRequest(T stateId, object data)
+            public TransitionRequest(FSMState<T> source, T stateId, object data)
             {
+                Source = source;
                 StateId = stateId;
                 Data = data;
             }
@@ -48,6 +52,9 @@ namespace ZWebGLFrameWork.FSM
 
         /// <summary>转换验证回调 — 返回 false 阻止切换。由 GameFSM 注入。</summary>
         public Func<T, T, bool> TransitionGuard { get; set; }
+
+        /// <summary>覆盖层准入回调；未设置时沿用普通转换规则。</summary>
+        public Func<T, T, bool> OverlayGuard { get; set; }
 
         /// <summary>当前激活状态</summary>
         public FSMState<T> CurrentState => _currentState;
@@ -93,8 +100,19 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>移除状态</summary>
         public void RemoveState(T stateId)
         {
+            if (_isOverlayTransitioning) return;
+
             if (_states.TryGetValue(stateId, out var state))
             {
+                if (_suspendedStates.Count > 0 &&
+                    (ReferenceEquals(_currentState, state) ||
+                     ReferenceEquals(_suspendedStates.Peek(), state)))
+                    return;
+
+                if (_deferredTransition.HasValue &&
+                    ReferenceEquals(_deferredTransition.Value.Source, state))
+                    _deferredTransition = null;
+
                 if (state == _currentState)
                 {
                     state.OnExit();
@@ -125,22 +143,56 @@ namespace ZWebGLFrameWork.FSM
         /// <returns>true=切换成功, false=状态未注册或已是当前状态</returns>
         public bool ChangeState(T stateId, object data = null)
         {
+            if (_isOverlayTransitioning || _suspendedStates.Count > 0) return false;
+            return QueueTransition(new TransitionRequest(null, stateId, data));
+        }
+
+        internal bool ChangeStateFrom(FSMState<T> source, T stateId, object data = null)
+        {
+            if (_isOverlayTransitioning || source == null ||
+                !ReferenceEquals(source.Owner, this))
+                return false;
+
+            if (ReferenceEquals(_currentState, source))
+            {
+                if (_suspendedStates.Count > 0) return false;
+                return QueueTransition(new TransitionRequest(source, stateId, data));
+            }
+
+            if (_suspendedStates.Count != 1 ||
+                !ReferenceEquals(_suspendedStates.Peek(), source))
+                return false;
+            if (!_states.TryGetValue(stateId, out FSMState<T> target))
+            {
+                Debug.LogError($"FSM: 状态 {stateId} 未注册。请先调用 AddState。");
+                return false;
+            }
+            if (ReferenceEquals(target, source) ||
+                !CanTransitionTo(source.StateId, stateId) ||
+                _deferredTransition.HasValue)
+                return false;
+
+            _deferredTransition = new TransitionRequest(source, stateId, data);
+            return true;
+        }
+
+        private bool QueueTransition(TransitionRequest request)
+        {
             if (_isTransitioning)
             {
-                _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+                _pendingTransitions.Enqueue(request);
                 return true;
             }
 
             bool firstResult = false;
             bool first = true;
-            _pendingTransitions.Enqueue(new TransitionRequest(stateId, data));
+            _pendingTransitions.Enqueue(request);
             _isTransitioning = true;
             try
             {
                 while (_pendingTransitions.Count > 0)
                 {
-                    TransitionRequest request = _pendingTransitions.Dequeue();
-                    bool result = ApplyTransition(request.StateId, request.Data);
+                    bool result = ApplyTransition(_pendingTransitions.Dequeue());
                     if (first)
                     {
                         firstResult = result;
@@ -157,11 +209,16 @@ namespace ZWebGLFrameWork.FSM
             return firstResult;
         }
 
-        private bool ApplyTransition(T stateId, object data)
+        private bool ApplyTransition(TransitionRequest request)
         {
-            if (!_states.TryGetValue(stateId, out var newState))
+            if (_isOverlayTransitioning || _suspendedStates.Count > 0)
+                return false;
+            if (request.Source != null &&
+                !ReferenceEquals(_currentState, request.Source))
+                return false;
+            if (!_states.TryGetValue(request.StateId, out FSMState<T> newState))
             {
-                Debug.LogError($"FSM: 状态 {stateId} 未注册。请先调用 AddState。");
+                Debug.LogError($"FSM: 状态 {request.StateId} 未注册。请先调用 AddState。");
                 return false;
             }
 
@@ -170,7 +227,7 @@ namespace ZWebGLFrameWork.FSM
 
             // 转换规则验证（静默拒绝 — TransitionGuard 失败不抛异常，调用方应预验证）
             bool hasOldState = _currentState != null;
-            if (hasOldState && !CanTransitionTo(_currentState.StateId, stateId))
+            if (hasOldState && !CanTransitionTo(_currentState.StateId, request.StateId))
             {
                 return false;
             }
@@ -188,56 +245,89 @@ namespace ZWebGLFrameWork.FSM
 
             // 进入新状态
             _currentState = newState;
-            newState.OnEnter(data);
+            newState.OnEnter(request.Data);
 
             // 事件通知
             OnStateChanged?.Invoke(new FSMTransition<T>(
                 hasOldState,
                 oldStateId,
-                stateId,
-                data));
+                request.StateId,
+                request.Data));
 
             return true;
         }
 
         public bool PushState(T stateId, object data = null)
         {
-            if (_currentState == null ||
+            if (_isOverlayTransitioning || _suspendedStates.Count > 0 ||
+                _currentState == null ||
                 !_states.TryGetValue(stateId, out FSMState<T> overlay))
                 return false;
-            if (!CanTransitionTo(_currentState.StateId, stateId))
+            bool canPush = OverlayGuard != null
+                ? OverlayGuard(_currentState.StateId, stateId)
+                : CanTransitionTo(_currentState.StateId, stateId);
+            if (!canPush)
                 return false;
 
+            // A successful Push starts a new lifecycle epoch. Older queued
+            // transitions must not survive a complete re-entrant Push/Pop.
+            _pendingTransitions.Clear();
             FSMState<T> suspended = _currentState;
-            suspended.OnSuspend(data);
-            _suspendedStates.Push(suspended);
-            _previousState = suspended;
-            _currentState = overlay;
-            overlay.OnEnter(data);
-            OnStateChanged?.Invoke(new FSMTransition<T>(
-                true,
-                suspended.StateId,
-                overlay.StateId,
-                data));
-            return true;
+            _isOverlayTransitioning = true;
+            try
+            {
+                suspended.OnSuspend(data);
+                _suspendedStates.Push(suspended);
+                _previousState = suspended;
+                _currentState = overlay;
+                overlay.OnEnter(data);
+                OnStateChanged?.Invoke(new FSMTransition<T>(
+                    true,
+                    suspended.StateId,
+                    overlay.StateId,
+                    data));
+                return true;
+            }
+            finally
+            {
+                _isOverlayTransitioning = false;
+            }
         }
 
         public bool PopState(object data = null)
         {
-            if (_currentState == null || _suspendedStates.Count == 0)
+            if (_isOverlayTransitioning || _currentState == null ||
+                _suspendedStates.Count == 0)
                 return false;
 
             FSMState<T> overlay = _currentState;
-            FSMState<T> resumed = _suspendedStates.Pop();
-            overlay.OnExit();
-            _previousState = overlay;
-            _currentState = resumed;
-            resumed.OnResume(data);
-            OnStateChanged?.Invoke(new FSMTransition<T>(
-                true,
-                overlay.StateId,
-                resumed.StateId,
-                data));
+            FSMState<T> resumed = _suspendedStates.Peek();
+            TransitionRequest? deferred = _deferredTransition.HasValue &&
+                ReferenceEquals(_deferredTransition.Value.Source, resumed)
+                ? _deferredTransition
+                : null;
+
+            _isOverlayTransitioning = true;
+            try
+            {
+                _suspendedStates.Pop();
+                if (deferred.HasValue) _deferredTransition = null;
+                overlay.OnExit();
+                _previousState = overlay;
+                _currentState = resumed;
+                resumed.OnResume(data);
+                OnStateChanged?.Invoke(new FSMTransition<T>(
+                    true,
+                    overlay.StateId,
+                    resumed.StateId,
+                    data));
+            }
+            finally
+            {
+                _isOverlayTransitioning = false;
+            }
+
+            if (deferred.HasValue) QueueTransition(deferred.Value);
             return true;
         }
 
@@ -275,7 +365,9 @@ namespace ZWebGLFrameWork.FSM
                 _suspendedStates.Pop().OnExit();
             _previousState = null;
             _pendingTransitions.Clear();
+            _deferredTransition = null;
             _isTransitioning = false;
+            _isOverlayTransitioning = false;
 
             foreach (var kv in _states)
             {

@@ -4,7 +4,7 @@
 
 **Goal:** Preserve valid Launch, Login, and Battle asynchronous completions during a background Pause and execute state transitions only after the application resumes.
 
-**Architecture:** `FSMState<T>` passes its identity to `FSM<T>` when requesting a transition. The FSM immediately processes a current base state, retains the first valid request from the single suspended state, rejects every attempt to transition through the active overlay, and replays the retained request after `PopState`; Login and Battle use their existing cancellation identities instead of treating suspension as exit.
+**Architecture:** `FSMState<T>` passes its identity to `FSM<T>` when requesting a transition. The FSM immediately processes a current base state, retains the first valid request from the single suspended state, makes Push/Pop an atomic overlay lifecycle, and replays the retained request only after the Pause-to-source event. Overlay admission uses a separate guard so GameFSM can admit Pause without weakening its ordinary transition table; Login and Battle use their existing cancellation identities instead of treating suspension as exit.
 
 **Tech Stack:** Unity 2022.3.62f3c1, C#, NUnit, Unity Test Framework PlayMode/EditMode, UniTask, CodeGraph CLI, Git/Gitee.
 
@@ -30,10 +30,11 @@
 - Modify: `Assets/Tests/Runtime/FSM/LaunchCancellationTests.cs`
 - Modify: `Assets/Scripts/FSM/Core/FSMState.cs`
 - Modify: `Assets/Scripts/FSM/Core/FSM.cs`
+- Modify: `Assets/Scripts/FSM/Game/GameFSM.cs`
 
 **Interfaces:**
 - Consumes: `FSM<T>.ChangeState(T, object)`, `PushState(T, object)`, `PopState(object)`, `FSMState<T>.Owner`, and `IBootPipeline.RunAsync(CancellationToken)`.
-- Produces: `internal bool ChangeStateFrom(FSMState<T>, T, object)` while keeping the protected `FSMState<T>.ChangeState(T, object)` signature unchanged.
+- Produces: `internal bool ChangeStateFrom(FSMState<T>, T, object)` and `FSM<T>.OverlayGuard` while keeping the protected `FSMState<T>.ChangeState(T, object)` signature unchanged; `GameFSM.CanPushOverlay` supplies the production Pause policy.
 
 - [ ] **Step 1: Write behavior-first core Pause tests**
 
@@ -153,7 +154,21 @@ Assert.That(fsm.CurrentStateId, Is.EqualTo(StateId.Pause));
 ```
 
 Register `new StateProbe(StateId.MainVillage)` in that test. After `Clear`, also
-assert `fsm.HasCurrentState` is false and `fsm.PopState()` is false.
+assert `fsm.HasCurrentState` is false and `fsm.PopState()` is false. Reuse the
+same FSM after `Clear`, register fresh states, retain another transition, and
+verify it executes after Pop so the test proves the deferred slot was cleared.
+
+Add focused tests proving that:
+
+- overlay `OnExit`, source `OnResume`, and Pause-to-source event callbacks
+  cannot replace or preempt the first retained request;
+- a public transition queued before a callback pushes Pause is invalidated
+  when Push succeeds, including when the same callback completes Pop before
+  the ordinary queue resumes;
+- `RemoveState` cannot detach either participant in an active overlay.
+
+Add a parameterized `GameFSM.CanPushOverlay` policy test covering all four
+supported sources, unsupported Loading/Pause sources, and a non-Pause overlay.
 
 - [ ] **Step 2: Write the real asynchronous Launch regression test**
 
@@ -187,7 +202,10 @@ public System.Collections.IEnumerator
     LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume()
 {
     var pipeline = new CompletingPipeline();
-    var fsm = new FSM<GameState> { TransitionGuard = (_, _) => true };
+    var fsm = new FSM<GameState>();
+    fsm.TransitionGuard = (from, to) =>
+        from == GameState.Launch && to == GameState.Login;
+    fsm.OverlayGuard = GameFSM.CanPushOverlay;
     fsm.AddStates(new LaunchState(pipeline), new LoginProbe(), new PauseProbe());
     Assert.That(fsm.ChangeState(GameState.Launch), Is.True);
     Assert.That(fsm.PushState(GameState.Pause), Is.True);
@@ -226,6 +244,13 @@ can immediately transition the current state. The Launch test must show Login
 became current before `PopState`. A compilation error, missing XML, unrelated
 failure, or remaining Unity process is not accepted RED. Wait for natural exit
 and confirm zero Unity processes again.
+
+Retain a second RED checkpoint for the production overlay policy and re-entrant
+lifecycle cases. These tests must fail before adding `OverlayGuard`, atomic
+Push/Pop protection, apply-time queue validation, and removal protection.
+The completed Push/Pop queue test is a later RED checkpoint: before the queue
+boundary fix, the older public request enters Login and the retained source
+request is rejected as stale.
 
 - [ ] **Step 4: Preserve source identity in the state helper**
 
@@ -267,13 +292,15 @@ Replace public `ChangeState` and move its existing queue loop into
 ```csharp
 public bool ChangeState(T stateId, object data = null)
 {
-    if (_suspendedStates.Count > 0) return false;
+    if (_isOverlayTransitioning || _suspendedStates.Count > 0) return false;
     return QueueTransition(new TransitionRequest(null, stateId, data));
 }
 
 internal bool ChangeStateFrom(FSMState<T> source, T stateId, object data = null)
 {
-    if (source == null || !ReferenceEquals(source.Owner, this)) return false;
+    if (_isOverlayTransitioning || source == null ||
+        !ReferenceEquals(source.Owner, this))
+        return false;
 
     if (ReferenceEquals(_currentState, source))
     {
@@ -337,6 +364,8 @@ Replace `ApplyTransition` with:
 ```csharp
 private bool ApplyTransition(TransitionRequest request)
 {
+    if (_isOverlayTransitioning || _suspendedStates.Count > 0)
+        return false;
     if (request.Source != null &&
         !ReferenceEquals(_currentState, request.Source))
         return false;
@@ -363,36 +392,60 @@ private bool ApplyTransition(TransitionRequest request)
 }
 ```
 
-Make `PushState` reject a second overlay:
+Add a separate overlay policy and make `PushState` reject a second overlay or
+any re-entrant Push/Pop lifecycle call:
 
 ```csharp
-if (_suspendedStates.Count > 0 || _currentState == null ||
+public Func<T, T, bool> OverlayGuard { get; set; }
+
+if (_isOverlayTransitioning || _suspendedStates.Count > 0 ||
+    _currentState == null ||
     !_states.TryGetValue(stateId, out FSMState<T> overlay))
     return false;
+
+bool canPush = OverlayGuard != null
+    ? OverlayGuard(_currentState.StateId, stateId)
+    : CanTransitionTo(_currentState.StateId, stateId);
+if (!canPush) return false;
 ```
 
-At the end of `PopState`, after the existing transition event, add:
+Once Push admission succeeds, clear pending ordinary work from the previous
+transition phase before running `OnSuspend`. This makes the overlay lifecycle
+a queue boundary and prevents an older request from surviving a complete
+re-entrant Push/Pop cycle:
 
 ```csharp
-if (_deferredTransition.HasValue &&
-    ReferenceEquals(_deferredTransition.Value.Source, resumed))
-{
-    TransitionRequest request = _deferredTransition.Value;
-    _deferredTransition = null;
-    QueueTransition(request);
-}
+_pendingTransitions.Clear();
+```
+
+Set `_isOverlayTransitioning` for the complete Push/Pop lifecycle using
+`try/finally`. In `PopState`, reserve and clear the matching deferred request
+before overlay `OnExit`, source `OnResume`, and the Pause-to-source event. After
+the phase ends, submit that reserved request through the ordinary queue:
+
+```csharp
+if (deferred.HasValue) QueueTransition(deferred.Value);
 return true;
 ```
 
-In `RemoveState`, clear the slot before detaching a matching source:
+In `RemoveState`, reject mutation while Push/Pop callbacks run and preserve
+both overlay participants while a state is suspended:
 
 ```csharp
-if (_deferredTransition.HasValue &&
-    ReferenceEquals(_deferredTransition.Value.Source, state))
-    _deferredTransition = null;
+if (_isOverlayTransitioning) return;
+if (_suspendedStates.Count > 0 &&
+    (ReferenceEquals(_currentState, state) ||
+     ReferenceEquals(_suspendedStates.Peek(), state)))
+    return;
 ```
 
-In `Clear`, set `_deferredTransition = null` next to the pending queue reset.
+In `Clear`, reset `_deferredTransition` and `_isOverlayTransitioning` next to
+the pending queue reset.
+
+In `GameFSM.Initialize`, assign `_fsm.OverlayGuard = CanPushOverlay`. Implement
+`public static bool CanPushOverlay(GameState from, GameState overlay)` so only
+Launch, Login, MainVillage, or Battle may push Pause, and use the same helper in
+`OnApplicationPause`. Do not add Pause edges to `_transitionRules`.
 
 - [ ] **Step 6: Run focused GREEN and inspect the exact scope**
 
@@ -408,7 +461,7 @@ After a zero-process check, run the same FSM namespace filter with:
   -logFile /private/tmp/zweb-fsm-paused-transition-core-green.log
 ```
 
-Expected: every Runtime FSM namespace test passes. Confirm natural exit and
+Expected: all 34 focused Runtime FSM test cases pass. Confirm natural exit and
 zero Unity processes. Revert only unrelated Unity-generated rewrites, then run:
 
 ```bash
@@ -418,15 +471,19 @@ git diff --check
 git status --short
 ```
 
-Expected: only the four Task 1 files are changed.
+Expected: only the five Task 1 files and these two approved documents are
+changed.
 
 - [ ] **Step 7: Commit and push the core repair**
 
 ```bash
 git add Assets/Scripts/FSM/Core/FSM.cs \
   Assets/Scripts/FSM/Core/FSMState.cs \
+  Assets/Scripts/FSM/Game/GameFSM.cs \
   Assets/Tests/Runtime/FSM/PauseResumeTests.cs \
-  Assets/Tests/Runtime/FSM/LaunchCancellationTests.cs
+  Assets/Tests/Runtime/FSM/LaunchCancellationTests.cs \
+  docs/superpowers/specs/2026-07-29-fsm-paused-async-transition-design.md \
+  docs/superpowers/plans/2026-07-29-fsm-paused-async-transition.md
 git commit -m "fix(client): defer suspended FSM transitions"
 git fetch gitee master
 git rev-list --left-right --count master...gitee/master
