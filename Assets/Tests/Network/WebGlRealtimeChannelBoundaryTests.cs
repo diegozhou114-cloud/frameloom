@@ -17,7 +17,8 @@ namespace ZWebGLFrameWork.Network.Tests
             new RealtimeCredentials
             {
                 SessionId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
-                OpaqueTicket = new byte[] { 1 }
+                OpaqueTicket = new byte[] { 1 },
+                ExpiresAtUnixSeconds = 4102444800L
             };
 
         [Test]

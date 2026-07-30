@@ -237,6 +237,8 @@ namespace ZWebGLFrameWork.Network.WebGL
             if (endpoint.Transport != RealtimeTransport.WebSocket) throw new ArgumentOutOfRangeException(nameof(endpoint));
             if (!endpoint.Uri.IsAbsoluteUri || endpoint.Uri.Scheme != "wss" || endpoint.Uri.AbsolutePath != RealtimeProtocol.WebSocketPath) throw new ArgumentException("Realtime endpoint must be wss /v1/realtime.", nameof(endpoint));
             if (credentials == null || credentials.SessionId == Guid.Empty || credentials.OpaqueTicket == null || credentials.OpaqueTicket.Length == 0) throw new ArgumentException("Credentials are invalid.", nameof(credentials));
+            if (credentials.ExpiresAtUnixSeconds <= DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                throw new ArgumentException("Credentials are expired.", nameof(credentials));
         }
     }
 }

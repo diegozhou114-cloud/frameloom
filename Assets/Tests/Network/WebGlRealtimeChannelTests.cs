@@ -63,6 +63,28 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task ConnectAsync_RejectsExpiredCredentialsBeforeCreatingClient()
+        {
+            var factory = new FakeNativeWebSocketClientFactory();
+            var channel = new WebGlRealtimeChannel(factory);
+            try
+            {
+                Task connect = channel.ConnectAsync(
+                    Endpoint, TestCredentials.Expired, CancellationToken.None);
+
+                Assert.That(connect.IsFaulted, Is.True);
+                Assert.That(connect.Exception?.InnerException,
+                    Is.TypeOf<ArgumentException>());
+                Assert.That(factory.CreateCount, Is.Zero);
+            }
+            finally
+            {
+                await channel.CloseAsync(RealtimeCloseReason.Normal,
+                    CancellationToken.None);
+            }
+        }
+
+        [Test]
         public async Task ConnectAsync_UsesExactSubprotocolAndAuthHelloThenAcceptsMatchingSession()
         {
             var client = new FakeNativeWebSocketClient();
