@@ -142,10 +142,12 @@ namespace ZWebGLFrameWork.Core
 
         protected override void OnDestroy()
         {
-            if (!_initialized) return;
-            _initialized = false;
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            if (_initialized)
+            {
+                _initialized = false;
+                SceneManager.sceneLoaded -= OnSceneLoaded;
+                SceneManager.sceneUnloaded -= OnSceneUnloaded;
+            }
             base.OnDestroy();
         }
     }

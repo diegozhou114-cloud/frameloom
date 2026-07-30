@@ -115,5 +115,23 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
             Assert.That(pauseCallback, Is.Not.Null);
             Assert.DoesNotThrow(() => pauseCallback.Invoke(duplicate, new object[] { true }));
         }
+
+        [Test]
+        public void SceneLoader_DestroyedBeforeInit_ReleasesSingletonReference()
+        {
+            if (SceneLoader.HasInstance)
+                UnityEngine.Object.DestroyImmediate(SceneLoader.Instance.gameObject);
+
+            SceneLoader loader = CreateOwnedObject("SceneLoader").AddComponent<SceneLoader>();
+            FieldInfo instanceField = typeof(SingletonDontDestroy<SceneLoader>).GetField(
+                "_instance", BindingFlags.Static | BindingFlags.NonPublic);
+
+            Assert.That(instanceField, Is.Not.Null);
+            Assert.That(instanceField.GetValue(null), Is.SameAs(loader));
+
+            UnityEngine.Object.DestroyImmediate(loader.gameObject);
+
+            Assert.That(instanceField.GetValue(null), Is.Null);
+        }
     }
 }
