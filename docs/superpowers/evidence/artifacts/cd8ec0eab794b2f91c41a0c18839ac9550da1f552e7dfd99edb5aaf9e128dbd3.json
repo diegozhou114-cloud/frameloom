@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "b22998515022508a6eabe12e568182e489ec2228",
+  "fixCommits": [
+    "b726fa5163ac4fc7b27368d9af62004557bf7188",
+    "4370805d9757e071345e8d0f7e6a942c7550603d"
+  ],
+  "acceptanceMethod": "DeployMoveSkill_ValidCommandsMutateState_InvalidCommandsDoNot",
+  "testPresentBefore": false,
+  "testPresentAfter": false,
+  "paths": [
+    "Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandBuffer.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandRecorder.cs",
+    "Assets/Scripts/SimulationCore/Command/ISimCommand.cs",
+    "Assets/Scripts/SimulationCore/Command/ReplayFile.cs",
+    "Assets/Scripts/SimulationCore/Command/SimCommands.cs",
+    "Assets/Scripts/SimulationCore/Network/FrameInput.cs",
+    "Assets/Scripts/SimulationCore/Session/SessionResults.cs",
+    "Assets/Scripts/SimulationCore/Session/SimBattleSession.cs",
+    "Assets/Scripts/SimulationCore/Systems/SimDamageSystem.cs",
+    "Assets/Tests/SimulationCore/SessionContractTests.cs",
+    "Server/ReplayValidator/ReplayValidator.cs",
+    "Server/SimulationCore.Tests/ReplayValidatorTests.cs",
+    "Server/SimulationCore.Tests/SessionCommandTests.cs"
+  ],
+  "gitDiffSha256": "0d5cb181ced52ddfd1ec8e9a6ddf04df018f03224873817466fc03b48303fbeb",
+  "reason": "Historical source inspection for b22998515022508a6eabe12e568182e489ec2228..4370805d9757e071345e8d0f7e6a942c7550603d.",
+  "currentAcceptanceRequired": true
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "b22998515022508a6eabe12e568182e489ec2228",
+  "fixCommits": [
+    "b726fa5163ac4fc7b27368d9af62004557bf7188"
+  ],
+  "acceptanceMethod": "Commands_SameTickSamePlayer_AreOrderedBySequence",
+  "testPresentBefore": false,
+  "testPresentAfter": false,
+  "paths": [
+    "Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandBuffer.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandRecorder.cs",
+    "Assets/Scripts/SimulationCore/Command/ISimCommand.cs",
+    "Assets/Scripts/SimulationCore/Command/ReplayFile.cs",
+    "Assets/Scripts/SimulationCore/Command/SimCommands.cs",
+    "Assets/Scripts/SimulationCore/Network/FrameInput.cs",
+    "Assets/Scripts/SimulationCore/Session/SessionResults.cs",
+    "Assets/Scripts/SimulationCore/Session/SimBattleSession.cs",
+    "Assets/Tests/SimulationCore/SessionContractTests.cs"
+  ],
+  "gitDiffSha256": "ddfe35af121058fd973c809ce81392b408f46908cb743563483cca3f8fca8286",
+  "reason": "Historical source inspection for b22998515022508a6eabe12e568182e489ec2228..b726fa5163ac4fc7b27368d9af62004557bf7188.",
+  "currentAcceptanceRequired": true
+}

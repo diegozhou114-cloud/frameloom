@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="14" result="Passed" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.3396747">
+  <test-suite type="TestSuite" id="1000" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="322" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.339675" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1389" name="ZWebGLFrameWork.SimulationCore.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.SimulationCore.Tests.dll" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.316853" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="49426" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1390" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.311706" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1391" name="SimulationCore" fullname="ZWebGLFrameWork.SimulationCore" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.307130" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1392" name="Tests" fullname="ZWebGLFrameWork.SimulationCore.Tests" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.302902" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1293" name="SessionContractTests" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-07-30 15:31:41Z" end-time="2026-07-30 15:31:42Z" duration="0.290362" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1295" name="BattleInit_UsesRequestedDefenderAndSeed" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.BattleInit_UsesRequestedDefenderAndSeed" methodname="BattleInit_UsesRequestedDefenderAndSeed" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="683876347" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.036375" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1299" name="Commands_SameTickSamePlayer_AreOrderedBySequence" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.Commands_SameTickSamePlayer_AreOrderedBySequence" methodname="Commands_SameTickSamePlayer_AreOrderedBySequence" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="2107856875" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.147438" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1298" name="CommandsSameTickSamePlayer_AreOrderedBySequenceAndRejectRetrogradeSequence" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.CommandsSameTickSamePlayer_AreOrderedBySequenceAndRejectRetrogradeSequence" methodname="CommandsSameTickSamePlayer_AreOrderedBySequenceAndRejectRetrogradeSequence" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1289591503" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.004481" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1300" name="CommandSubmit_LateFutureDuplicate_HasDeterministicDisposition" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.CommandSubmit_LateFutureDuplicate_HasDeterministicDisposition" methodname="CommandSubmit_LateFutureDuplicate_HasDeterministicDisposition" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1459403262" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.001889" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1301" name="DeployCommand_RejectsOutOfPhaseDisallowedOrOverLimit" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.DeployCommand_RejectsOutOfPhaseDisallowedOrOverLimit" methodname="DeployCommand_RejectsOutOfPhaseDisallowedOrOverLimit" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="534571312" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.004547" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1306" name="DeployCommand_UnknownArchetypeOrOccupiedCellIsRejectedBeforeMutation" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.DeployCommand_UnknownArchetypeOrOccupiedCellIsRejectedBeforeMutation" methodname="DeployCommand_UnknownArchetypeOrOccupiedCellIsRejectedBeforeMutation" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="502067003" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.003014" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1302" name="DeployMoveSkill_ValidCommandsMutateState_InvalidCommandsDoNot" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.DeployMoveSkill_ValidCommandsMutateState_InvalidCommandsDoNot" methodname="DeployMoveSkill_ValidCommandsMutateState_InvalidCommandsDoNot" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1233127872" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.010668" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1307" name="ExecutedCommands_ContainsOnlyCommandsAcceptedAtExecution" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.ExecutedCommands_ContainsOnlyCommandsAcceptedAtExecution" methodname="ExecutedCommands_ContainsOnlyCommandsAcceptedAtExecution" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1434507906" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.002811" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1303" name="MoveCommand_FromForeignPlayer_IsRejectedWithoutStateMutation" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.MoveCommand_FromForeignPlayer_IsRejectedWithoutStateMutation" methodname="MoveCommand_FromForeignPlayer_IsRejectedWithoutStateMutation" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1147783756" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.003700" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1294" name="SessionContract_UsesTypedLifecycleResultsAndImmutableOutputs" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.SessionContract_UsesTypedLifecycleResultsAndImmutableOutputs" methodname="SessionContract_UsesTypedLifecycleResultsAndImmutableOutputs" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="312398139" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.002596" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1296" name="SessionFactory_StartsCanonicalBattleWithInitialFullFrame" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.SessionFactory_StartsCanonicalBattleWithInitialFullFrame" methodname="SessionFactory_StartsCanonicalBattleWithInitialFullFrame" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="675805553" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.001962" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1297" name="SessionTick_RunsCoreSystemsAndReturnsAdvancedResult" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.SessionTick_RunsCoreSystemsAndReturnsAdvancedResult" methodname="SessionTick_RunsCoreSystemsAndReturnsAdvancedResult" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="2056802485" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.015158" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1305" name="SkillCommand_UnknownSkillIsRejectedBeforeMutation" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.SkillCommand_UnknownSkillIsRejectedBeforeMutation" methodname="SkillCommand_UnknownSkillIsRejectedBeforeMutation" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="1753971464" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.002003" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1304" name="SkillCommand_ValidSkillMutatesTargetHealthDeterministically" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests.SkillCommand_ValidSkillMutatesTargetHealthDeterministically" methodname="SkillCommand_ValidSkillMutatesTargetHealthDeterministically" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionContractTests" runstate="Runnable" seed="598460520" result="Passed" start-time="2026-07-30 15:31:42Z" end-time="2026-07-30 15:31:42Z" duration="0.009947" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

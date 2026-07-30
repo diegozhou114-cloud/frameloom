@@ -945,23 +945,64 @@
       "replacementEvidence": []
     },
     "SIM-012": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/cd8ec0eab794b2f91c41a0c18839ac9550da1f552e7dfd99edb5aaf9e128dbd3.json",
+          "sha256": "cd8ec0eab794b2f91c41a0c18839ac9550da1f552e7dfd99edb5aaf9e128dbd3",
+          "bytes": 1500
+        }
+      ],
+      "fixCommits": [
+        "b726fa5163ac4fc7b27368d9af62004557bf7188",
+        "4370805d9757e071345e8d0f7e6a942c7550603d"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749.xml",
+          "sha256": "1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749",
+          "bytes": 13471
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467.xml",
+          "sha256": "ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
       "replacementEvidence": []
     },
     "SIM-013": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/21f1c42b21d11588bfc2d304aa7b067e37e5fa867a89406871deb66f5754c736.json",
+          "sha256": "21f1c42b21d11588bfc2d304aa7b067e37e5fa867a89406871deb66f5754c736",
+          "bytes": 1209
+        }
+      ],
+      "fixCommits": [
+        "b726fa5163ac4fc7b27368d9af62004557bf7188"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749.xml",
+          "sha256": "1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749",
+          "bytes": 13471
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467.xml",
+          "sha256": "ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
       "replacementEvidence": []
     },
     "SIM-014": {
@@ -1025,13 +1066,33 @@
       "replacementEvidence": []
     },
     "SIM-020": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/2098281b24b9e005e717f4a588a49a52074e35d8db3e4d110a564e43463db984.json",
+          "sha256": "2098281b24b9e005e717f4a588a49a52074e35d8db3e4d110a564e43463db984",
+          "bytes": 1222
+        }
+      ],
+      "fixCommits": [
+        "b726fa5163ac4fc7b27368d9af62004557bf7188"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749.xml",
+          "sha256": "1de3a3d41266ae6813be2b9da92a7152c1b35f23b6f29119c416b7a21f9a5749",
+          "bytes": 13471
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467.xml",
+          "sha256": "ad060e36ee2651857d8a53d6fa7ad4e56903d98c33ef3340a473a4b82ffcb467",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
       "replacementEvidence": []
     },
     "SIM-021": {
