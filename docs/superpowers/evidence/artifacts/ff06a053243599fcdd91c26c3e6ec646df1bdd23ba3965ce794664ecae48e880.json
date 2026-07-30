@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "74dec273736663c3eae75c940fcfeaf2fac018cd",
+  "fixCommits": [
+    "cb016a380a9885a6978ff3097c4e180f27469a20"
+  ],
+  "acceptanceMethod": "EquivalentWorlds_DifferentChunkHistories_SameOrderAndChecksum",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Core/SimEntity.cs",
+    "Assets/Scripts/SimulationCore/Core/SimWorld.cs",
+    "Assets/Tests/SimulationCore/SimWorldDeterminismTests.cs"
+  ],
+  "gitDiffSha256": "70dbf3ebe962f4b621bb4c7a7cc4195684832371daa83ed473218c6272c30c1c",
+  "reason": "Historical source inspection for 74dec273736663c3eae75c940fcfeaf2fac018cd..cb016a380a9885a6978ff3097c4e180f27469a20.",
+  "currentAcceptanceRequired": false
+}
