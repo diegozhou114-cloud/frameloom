@@ -47,14 +47,16 @@ namespace ZWebGLFrameWork.Data
                 if (string.IsNullOrEmpty(language))
                     language = DetectSystemLanguage();
 
-                CurrentLanguage = language;
-                _translations.Clear();
-
                 // 扫描可用语言文件
                 ScanAvailableLanguages();
 
-                // 加载翻译表
-                LoadLanguageFile(language);
+                // 先完整解析候选语言表，成功后再提交运行时状态。
+                if (!TryLoadLanguageFile(language, out string loadedLanguage,
+                        out Dictionary<string, string> translations))
+                    throw new InvalidOperationException("未找到有效的本地化语言表。");
+
+                CurrentLanguage = loadedLanguage;
+                _translations = translations;
 
                 IsReady = true;
                 Debug.Log($"[LocalizationManager] ✅ 初始化完成 — 语言: {CurrentLanguage}, 条目: {_translations.Count}");
@@ -67,35 +69,51 @@ namespace ZWebGLFrameWork.Data
             }
         }
 
-        private void LoadLanguageFile(string language)
+        private static bool TryParseTranslations(TextAsset asset,
+            out Dictionary<string, string> translations)
+        {
+            translations = null;
+            if (asset == null) return false;
+
+            LocalizationData data = JsonUtility.FromJson<LocalizationData>(asset.text);
+            if (data?.entries == null || data.entries.Count == 0) return false;
+
+            var parsed = new Dictionary<string, string>();
+            foreach (LocalizationEntry entry in data.entries)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.key))
+                    return false;
+                parsed[entry.key] = entry.value;
+            }
+
+            translations = parsed;
+            return true;
+        }
+
+        private static bool TryLoadLanguageFile(string language, out string loadedLanguage,
+            out Dictionary<string, string> translations)
         {
             var asset = Resources.Load<TextAsset>($"Config/Languages/{language}");
-            if (asset != null)
+            if (TryParseTranslations(asset, out translations))
             {
-                var data = JsonUtility.FromJson<LocalizationData>(asset.text);
-                if (data?.entries != null)
-                {
-                    foreach (var entry in data.entries)
-                        _translations[entry.key] = entry.value;
-                }
+                loadedLanguage = language;
+                return true;
             }
-            else
+
+            Debug.LogWarning($"[LocalizationManager] 语言文件无效或不存在: {language}，尝试 en-US");
+            asset = Resources.Load<TextAsset>("Config/Languages/en-US");
+            if (TryParseTranslations(asset, out translations))
             {
-                Debug.LogWarning($"[LocalizationManager] 语言文件不存在: {language}，尝试 en-US");
-                asset = Resources.Load<TextAsset>("Config/Languages/en-US");
-                if (asset != null)
-                {
-                    CurrentLanguage = "en-US";
-                    var data = JsonUtility.FromJson<LocalizationData>(asset.text);
-                    if (data?.entries != null)
-                        foreach (var entry in data.entries)
-                            _translations[entry.key] = entry.value;
-                }
-                else
-                {
-                    _translations["test_key"] = "测试文本";
-                }
+                loadedLanguage = "en-US";
+                return true;
             }
+
+            loadedLanguage = "en-US";
+            translations = new Dictionary<string, string>
+            {
+                ["test_key"] = "测试文本",
+            };
+            return true;
         }
 
         // ==================== 公开 API ====================
@@ -131,8 +149,8 @@ namespace ZWebGLFrameWork.Data
         {
             if (CurrentLanguage == language) return;
             _scanned = false;
-            Init(language);
-            OnLanguageChanged?.Invoke(CurrentLanguage);
+            if (Init(language))
+                OnLanguageChanged?.Invoke(CurrentLanguage);
         }
 
         /// <summary>从系统语言自动检测最佳匹配</summary>

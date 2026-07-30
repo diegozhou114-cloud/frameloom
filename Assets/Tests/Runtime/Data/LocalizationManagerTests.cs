@@ -30,5 +30,21 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
 
             Assert.That(manager.SupportedLanguages, Does.Contain("fr-CA"));
         }
+
+        [Test]
+        public void SwitchLanguage_InvalidStructure_FallsBackBeforePublishingLanguageChange()
+        {
+            LocalizationManager manager = CreateOwnedObject("LocalizationManager")
+                .AddComponent<LocalizationManager>();
+            Assert.That(manager.Init("fr-CA"), Is.True);
+            string observedLanguage = null;
+            manager.OnLanguageChanged += language => observedLanguage = language;
+
+            manager.SwitchLanguage("invalid-structure");
+
+            Assert.That(manager.CurrentLanguage, Is.EqualTo("en-US"));
+            Assert.That(manager.Get("login_title"), Is.EqualTo("Welcome"));
+            Assert.That(observedLanguage, Is.EqualTo("en-US"));
+        }
     }
 }
