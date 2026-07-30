@@ -138,6 +138,8 @@ namespace ZWebGLFrameWork.Data
         public int RuntimeFrameRate => _runtimeFrameRate;
         /// <summary>平台自适应后的运行时画质</summary>
         public int RuntimeQualityLevel => _runtimeQualityLevel;
+        /// <summary>平台自适应后的运行时后台省电策略</summary>
+        public bool RuntimeThrottleInBackground => _runtimeThrottleInBackground;
 
         /// <summary>将配置应用到 Unity 全局设置</summary>
         public void Apply()

@@ -92,7 +92,7 @@ namespace ZWebGLFrameWork.FSM
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            if (Config == null || !Config.ThrottleInBackground) return;
+            if (Config == null || !Config.RuntimeThrottleInBackground) return;
 
             if (hasFocus)
             {
