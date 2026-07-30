@@ -59,7 +59,7 @@ namespace ZWebGLFrameWork.Network.Tests
         [Test]
         public void GuestLoginResult_ParsesEveryCredentialField()
         {
-            const string json = "{\"playerId\":\"player-1\",\"sessionId\":\"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\"ticket\":\"AQI=\",\"resumeToken\":\"AwQ=\",\"macKey\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\",\"expiresAtUnixSeconds\":42}";
+            const string json = "{\"playerId\":\"player-1\",\"sessionId\":\"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\"ticket\":\"AQI=\",\"resumeToken\":\"AwQ=\",\"macKey\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\",\"expiresAtUnixSeconds\":4102444800}";
             GuestLoginResult result = GuestLoginResult.Parse(new HttpResponse
             {
                 StatusCode = 200,
@@ -78,7 +78,20 @@ namespace ZWebGLFrameWork.Network.Tests
                 16, 17, 18, 19, 20, 21, 22, 23,
                 24, 25, 26, 27, 28, 29, 30, 31
             }));
-            Assert.That(result.Credentials.ExpiresAtUnixSeconds, Is.EqualTo(42));
+            Assert.That(result.Credentials.ExpiresAtUnixSeconds, Is.EqualTo(4102444800));
+        }
+
+        [Test]
+        public void GuestLoginResult_ExpiredCredentialsAreFailures()
+        {
+            const string json = "{\"playerId\":\"player-1\",\"sessionId\":\"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\",\"ticket\":\"AQI=\",\"resumeToken\":\"AwQ=\",\"macKey\":\"AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=\",\"expiresAtUnixSeconds\":1}";
+            GuestLoginResult result = GuestLoginResult.Parse(new HttpResponse
+            {
+                StatusCode = 200,
+                Body = Encoding.UTF8.GetBytes(json)
+            });
+
+            Assert.That(result.Success, Is.False);
         }
     }
 }

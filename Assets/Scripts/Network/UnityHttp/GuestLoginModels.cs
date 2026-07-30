@@ -43,7 +43,8 @@ namespace ZWebGLFrameWork.Network.UnityHttp
                 GuestLoginDto dto = JsonUtility.FromJson<GuestLoginDto>(json);
                 if (dto == null || string.IsNullOrWhiteSpace(dto.playerId) || string.IsNullOrWhiteSpace(dto.sessionId) ||
                     string.IsNullOrWhiteSpace(dto.ticket) || string.IsNullOrWhiteSpace(dto.resumeToken) ||
-                    string.IsNullOrWhiteSpace(dto.macKey) || dto.expiresAtUnixSeconds <= 0)
+                    string.IsNullOrWhiteSpace(dto.macKey) ||
+                    dto.expiresAtUnixSeconds <= DateTimeOffset.UtcNow.ToUnixTimeSeconds())
                     return Failure();
                 byte[] macKey = Convert.FromBase64String(dto.macKey);
                 byte[] ticket = Convert.FromBase64String(dto.ticket);
