@@ -34,7 +34,7 @@ require_count() {
   local text="$3"
   local expected="$4"
   local actual
-  actual=$(rg -F -- "$text" "$repo_root/$file" | wc -l | tr -d ' ')
+  actual=$( (rg -F -- "$text" "$repo_root/$file" || true) | wc -l | tr -d ' ')
   if [[ "$actual" != "$expected" ]]; then
     printf '[%s] FAIL %s expected %s occurrences of contract, found %s: %s\n' \
       "$issue" "$file" "$expected" "$actual" "$text"
@@ -65,7 +65,9 @@ require_text BUILD-003 Assets/Scripts/Gameplay/Economy/ResourceProducer.cs 'usin
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
 require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
 require_count BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
-  'if (token.IsCancellationRequested || !IsActive) return;' 2
+  'if (!CanApplyGuestLoginCompletion(token)) return;' 2
+require_absent BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
+  '|| !IsActive'
 require_missing RESOURCE-002 Assets/Scripts/FSM/Game/HotUpdateManager.cs
 require_text DATA-005 Assets/Scripts/FSM/Game/BattleRewardService.cs \
   'public sealed class BattleRewardService'
