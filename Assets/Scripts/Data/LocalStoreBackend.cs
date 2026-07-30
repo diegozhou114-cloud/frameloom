@@ -10,6 +10,7 @@ namespace ZWebGLFrameWork.Data
         Success,
         NotFound,
         WriteFailed,
+        LoadFailed,
     }
 
     public readonly struct LocalStoreWriteResult
@@ -60,13 +61,16 @@ namespace ZWebGLFrameWork.Data
                 return data;
             }
 
-            public Dictionary<string, StoreEntry> ToDictionary()
+            public bool TryToDictionary(out Dictionary<string, StoreEntry> result)
             {
                 if (Keys == null || TypeNames == null || JsonValues == null ||
                     Keys.Count != TypeNames.Count || Keys.Count != JsonValues.Count)
-                    return new Dictionary<string, StoreEntry>();
+                {
+                    result = null;
+                    return false;
+                }
 
-                var result = new Dictionary<string, StoreEntry>(Keys.Count);
+                result = new Dictionary<string, StoreEntry>(Keys.Count);
                 for (int index = 0; index < Keys.Count; index++)
                 {
                     if (string.IsNullOrWhiteSpace(Keys[index]) ||
@@ -77,9 +81,12 @@ namespace ZWebGLFrameWork.Data
                         TypeName = TypeNames[index],
                         JsonData = JsonValues[index],
                     }))
-                        return new Dictionary<string, StoreEntry>();
+                    {
+                        result = null;
+                        return false;
+                    }
                 }
-                return result;
+                return true;
             }
         }
 
@@ -87,6 +94,7 @@ namespace ZWebGLFrameWork.Data
         private readonly IAtomicTextWriter _writer;
         private Dictionary<string, StoreEntry> _entries;
         private bool _loaded;
+        private string _loadError;
 
         public LocalStoreBackend(string filePath, IAtomicTextWriter writer)
         {
@@ -109,6 +117,7 @@ namespace ZWebGLFrameWork.Data
         {
             ValidateKey(key);
             EnsureLoaded();
+            if (_loadError != null) return LoadFailure();
             if (value == null) return Remove(key);
 
             bool hadPrevious = _entries.TryGetValue(key, out StoreEntry previous);
@@ -161,6 +170,7 @@ namespace ZWebGLFrameWork.Data
         {
             ValidateKey(key);
             EnsureLoaded();
+            if (_loadError != null) return LoadFailure();
             if (!_entries.TryGetValue(key, out StoreEntry previous))
                 return new LocalStoreWriteResult(LocalStoreWriteCode.NotFound);
             _entries.Remove(key);
@@ -174,6 +184,7 @@ namespace ZWebGLFrameWork.Data
         public LocalStoreWriteResult ClearAll()
         {
             EnsureLoaded();
+            if (_loadError != null) return LoadFailure();
             var previous = new Dictionary<string, StoreEntry>(_entries);
             _entries.Clear();
             FileWriteResult write = Flush();
@@ -187,6 +198,7 @@ namespace ZWebGLFrameWork.Data
         {
             _loaded = false;
             _entries = null;
+            _loadError = null;
             EnsureLoaded();
         }
 
@@ -203,14 +215,22 @@ namespace ZWebGLFrameWork.Data
                 }
                 StoreFileData data = JsonUtility.FromJson<StoreFileData>(
                     File.ReadAllText(_filePath));
-                _entries = data?.ToDictionary() ?? new Dictionary<string, StoreEntry>();
+                if (data == null || !data.TryToDictionary(out _entries))
+                {
+                    _entries = new Dictionary<string, StoreEntry>();
+                    _loadError = "Local store file is invalid.";
+                }
             }
             catch (Exception exception)
             {
                 Debug.LogError($"[LocalStore] Load failed: {exception.Message}");
                 _entries = new Dictionary<string, StoreEntry>();
+                _loadError = exception.Message;
             }
         }
+
+        private LocalStoreWriteResult LoadFailure() =>
+            new LocalStoreWriteResult(LocalStoreWriteCode.LoadFailed, _loadError);
 
         private FileWriteResult Flush()
         {

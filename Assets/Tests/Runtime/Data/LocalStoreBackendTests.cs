@@ -115,5 +115,57 @@ namespace ZWebGLFrameWork.Runtime.Tests.Data
             Assert.That(store.Count, Is.EqualTo(0));
             Assert.That(store.Has("value"), Is.False);
         }
+
+        [Test]
+        public void LocalStore_CorruptStore_RefusesWritesAndPreservesFile()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-preserve-corrupt"), "store.json");
+            string corrupt = "{\"Keys\":[\"first\",\"lost\"],\"TypeNames\":[\"System.Int32\"]," +
+                "\"JsonValues\":[\"{\\\"Value\\\":1}\",\"{\\\"Value\\\":2}\"]}";
+            System.IO.File.WriteAllText(path, corrupt);
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+
+            Assert.That(store.Set("replacement", 3).Code,
+                Is.EqualTo(LocalStoreWriteCode.LoadFailed));
+            Assert.That(store.Remove("first").Code,
+                Is.EqualTo(LocalStoreWriteCode.LoadFailed));
+            Assert.That(store.ClearAll().Code,
+                Is.EqualTo(LocalStoreWriteCode.LoadFailed));
+            Assert.That(System.IO.File.ReadAllText(path), Is.EqualTo(corrupt));
+        }
+
+        [Test]
+        public void LocalStore_ValidEmptyStore_RemainsWritable()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-empty-valid"), "store.json");
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[],\"TypeNames\":[],\"JsonValues\":[]}");
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+
+            Assert.That(store.Set("value", 4).Code, Is.EqualTo(LocalStoreWriteCode.Success));
+            Assert.That(store.Get("value", 0), Is.EqualTo(4));
+        }
+
+        [Test]
+        public void LocalStore_RepairedFile_ReloadRestoresWrites()
+        {
+            string path = System.IO.Path.Combine(
+                CreateTempDirectory("local-store-reload"), "store.json");
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[\"first\",\"lost\"],\"TypeNames\":[\"System.Int32\"]," +
+                "\"JsonValues\":[\"{\\\"Value\\\":1}\",\"{\\\"Value\\\":2}\"]}");
+            var store = new LocalStoreBackend(path, new AtomicFileWriter());
+            Assert.That(store.Set("blocked", 1).Code,
+                Is.EqualTo(LocalStoreWriteCode.LoadFailed));
+
+            System.IO.File.WriteAllText(path,
+                "{\"Keys\":[],\"TypeNames\":[],\"JsonValues\":[]}");
+            store.ReloadFromDisk();
+
+            Assert.That(store.Set("recovered", 2).Code, Is.EqualTo(LocalStoreWriteCode.Success));
+            Assert.That(store.Get("recovered", 0), Is.EqualTo(2));
+        }
     }
 }
