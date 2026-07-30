@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "772e45f00616a7f5e502f96295512a301dd31bd5",
+  "fixCommits": [
+    "bf9c85c0071d66fd908d32e97c37e35eb6c9a2d3"
+  ],
+  "acceptanceMethod": "GameFSM_InitialTransition_EntersLaunchExactlyOnce",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/FSM/Core/FSM.cs",
+    "Assets/Scripts/FSM/Game/GameEvents.cs",
+    "Assets/Scripts/FSM/Game/GameFSM.cs",
+    "Assets/Tests/Runtime/FSM.meta",
+    "Assets/Tests/Runtime/FSM/InitialTransitionTests.cs",
+    "Assets/Tests/Runtime/FSM/InitialTransitionTests.cs.meta"
+  ],
+  "gitDiffSha256": "d1fada1a5b13cc96363f8deee3dded9d63e5638f16e412f72e219537da8d4597",
+  "reason": "Historical source inspection for 772e45f00616a7f5e502f96295512a301dd31bd5..bf9c85c0071d66fd908d32e97c37e35eb6c9a2d3.",
+  "currentAcceptanceRequired": false
+}

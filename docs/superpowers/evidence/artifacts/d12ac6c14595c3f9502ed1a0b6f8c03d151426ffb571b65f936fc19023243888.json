@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "bf9c85c0071d66fd908d32e97c37e35eb6c9a2d3",
+  "fixCommits": [
+    "20f37a5f3d7aabdee56312f6873ee8bba507e7b5"
+  ],
+  "acceptanceMethod": "FSM_OnEnterRedirect_EmitsOnlyOrderedCommittedTransitions",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/FSM/Core/FSM.cs",
+    "Assets/Tests/Runtime/FSM/ReentrantTransitionTests.cs",
+    "Assets/Tests/Runtime/FSM/ReentrantTransitionTests.cs.meta"
+  ],
+  "gitDiffSha256": "c76235ebe267a6338c1dd299f3000fa2d91e480962caa6ea566e17e2d3ea742b",
+  "reason": "Historical source inspection for bf9c85c0071d66fd908d32e97c37e35eb6c9a2d3..20f37a5f3d7aabdee56312f6873ee8bba507e7b5.",
+  "currentAcceptanceRequired": false
+}

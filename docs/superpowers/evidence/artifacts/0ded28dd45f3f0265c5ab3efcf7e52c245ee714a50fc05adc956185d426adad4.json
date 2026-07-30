@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "4d51c57a26eb85ef3a4d5e9bf5215ebaebf42857",
+  "fixCommits": [
+    "11b886cc7924f950cd8794db3e63b293e848b5ed"
+  ],
+  "acceptanceMethod": "SaveManager_FirstWriteAndFailedReplace_AreAtomic",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/AtomicFileWriter.cs",
+    "Assets/Scripts/Data/AtomicFileWriter.cs.meta",
+    "Assets/Scripts/Data/SaveManager.cs",
+    "Assets/Tests/Runtime/Data.meta",
+    "Assets/Tests/Runtime/Data/AtomicFileWriterTests.cs",
+    "Assets/Tests/Runtime/Data/AtomicFileWriterTests.cs.meta"
+  ],
+  "gitDiffSha256": "2782bf278c584a8307ed325bc76ed075599c6e5b67f20da84aa8d0ab6d1f2101",
+  "reason": "Historical source inspection for 4d51c57a26eb85ef3a4d5e9bf5215ebaebf42857..11b886cc7924f950cd8794db3e63b293e848b5ed.",
+  "currentAcceptanceRequired": false
+}

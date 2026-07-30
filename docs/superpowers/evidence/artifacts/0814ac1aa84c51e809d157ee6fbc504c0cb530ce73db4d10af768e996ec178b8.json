@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "42f5442b20e45b0b5518a30165da3cd79ac34068",
+  "fixCommits": [
+    "23b787fd0c3ee13481f118e4c7561293bcd6636f"
+  ],
+  "acceptanceMethod": "GameFSM_PauseResume_PreservesBattleContext",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/FSM/Core/FSM.cs",
+    "Assets/Scripts/FSM/Core/FSMState.cs",
+    "Assets/Scripts/FSM/Game/GameFSM.cs",
+    "Assets/Tests/Runtime/FSM/PauseResumeTests.cs",
+    "Assets/Tests/Runtime/FSM/PauseResumeTests.cs.meta"
+  ],
+  "gitDiffSha256": "c20cff1e51165e917a08de604e06c5a4f14ce4eec4c55a551cc13c6d7b427fe0",
+  "reason": "Historical source inspection for 42f5442b20e45b0b5518a30165da3cd79ac34068..23b787fd0c3ee13481f118e4c7561293bcd6636f.",
+  "currentAcceptanceRequired": false
+}

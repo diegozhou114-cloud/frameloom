@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "23b787fd0c3ee13481f118e4c7561293bcd6636f",
+  "fixCommits": [
+    "f071438ffc23a608ab892f9d2289d3acf1892749"
+  ],
+  "acceptanceMethod": "LaunchState_Exit_CancelsPipelineAndPreventsLateTransition",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/FSM/Game/HotUpdateManager.cs",
+    "Assets/Scripts/FSM/Game/IBootPipeline.cs",
+    "Assets/Scripts/FSM/Game/IBootPipeline.cs.meta",
+    "Assets/Scripts/FSM/Game/States/LaunchState.cs",
+    "Assets/Tests/Runtime/FSM/LaunchCancellationTests.cs",
+    "Assets/Tests/Runtime/FSM/LaunchCancellationTests.cs.meta"
+  ],
+  "gitDiffSha256": "8a704d9480d6117ad74f98fd6290f5769f54f14c314d54436349f9147106fd56",
+  "reason": "Historical source inspection for 23b787fd0c3ee13481f118e4c7561293bcd6636f..f071438ffc23a608ab892f9d2289d3acf1892749.",
+  "currentAcceptanceRequired": false
+}

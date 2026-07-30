@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "6f61c54227158e2531f692e5de946a3fff56c853",
+  "fixCommits": [
+    "4a404730639705349aea4f4f52303aa32f9df74e"
+  ],
+  "acceptanceMethod": "UIManager_Initialize_CreatesSingleEventSystem",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/UI/Core/UIBase.cs",
+    "Assets/Scripts/UI/Core/UIManager.cs",
+    "Assets/Tests/Runtime/UI.meta",
+    "Assets/Tests/Runtime/UI/UIEventSystemTests.cs",
+    "Assets/Tests/Runtime/UI/UIEventSystemTests.cs.meta"
+  ],
+  "gitDiffSha256": "94c4864c43f46d43fa091bafea55db5d109178df9d9df6502ee28a6fb5900d8d",
+  "reason": "Historical source inspection for 6f61c54227158e2531f692e5de946a3fff56c853..4a404730639705349aea4f4f52303aa32f9df74e.",
+  "currentAcceptanceRequired": false
+}
