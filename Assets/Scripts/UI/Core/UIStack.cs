@@ -75,6 +75,15 @@ namespace ZWebGLFrameWork.UI
         /// <summary>将面板推入其所在层级的栈顶，自动处理暂停/恢复</summary>
         public bool Push(UIBase panel)
         {
+            if (!TryPush(panel)) return false;
+
+            ApplyPushEffects(panel);
+            return true;
+        }
+
+        /// <summary>将面板结构性地加入栈，不触发生命周期回调。</summary>
+        internal bool TryPush(UIBase panel)
+        {
             if (panel == null) return false;
 
             var layer = panel.Layer;
@@ -86,27 +95,43 @@ namespace ZWebGLFrameWork.UI
                 return false;
             }
 
-            // 暂停同层旧栈顶
-            if (stack.Count > 0)
-            {
-                var previous = stack.Peek();
-                previous.DoPause();
-            }
+            stack.Push(panel);
+            return true;
+        }
+
+        /// <summary>在面板打开后应用同层和下层的暂停效果。</summary>
+        internal void ApplyPushEffects(UIBase panel)
+        {
+            if (panel == null || !Contains(panel)) return;
+
+            var layer = panel.Layer;
+            var previous = FindBelow(_stacks[layer], panel);
+            previous?.DoPause();
+
+            if (!Contains(panel)) return;
 
             // 暂停更低层级的面板（如果当前面板需要）
             if (panel.PauseLowerPanels)
             {
-                PauseLowerLayers(layer);
+                PauseLowerLayers(layer, panel);
             }
-
-            stack.Push(panel);
-            return true;
         }
 
         // ==================== Pop（关闭） ====================
 
         /// <summary>关闭指定面板并从栈中移除，自动恢复</summary>
         public void Pop(UIBase panel)
+        {
+            Remove(panel, forceInactiveAfterClose: false);
+        }
+
+        /// <summary>回滚失败的打开，保证关闭后的可见性和暂停状态恢复。</summary>
+        internal void Rollback(UIBase panel)
+        {
+            Remove(panel, forceInactiveAfterClose: true);
+        }
+
+        private void Remove(UIBase panel, bool forceInactiveAfterClose)
         {
             if (panel == null) return;
 
@@ -119,23 +144,43 @@ namespace ZWebGLFrameWork.UI
             if (stack.Peek() != panel)
             {
                 RemoveFromMiddle(stack, panel);
-                panel.DoClose();
-                // 恢复被中间面板阻挡的下层
-                if (panel.PauseLowerPanels)
+                try
                 {
-                    ResumeLowerLayers(layer);
+                    panel.DoClose();
+                }
+                finally
+                {
+                    CompleteRemoval(panel, layer, stack, wasTop: false, forceInactiveAfterClose);
                 }
                 return;
             }
 
             // 正常关闭栈顶
             stack.Pop();
-            panel.DoClose();
+            try
+            {
+                panel.DoClose();
+            }
+            finally
+            {
+                CompleteRemoval(panel, layer, stack, wasTop: true, forceInactiveAfterClose);
+            }
+        }
+
+        private void CompleteRemoval(UIBase panel, UILayer layer, Stack<UIBase> stack, bool wasTop,
+            bool forceInactiveAfterClose)
+        {
+            if (forceInactiveAfterClose && !panel.IsOpen)
+                panel.gameObject.SetActive(false);
 
             // 恢复同层新栈顶
-            if (stack.Count > 0 && !IsBlockedByHigherLayer(layer))
+            if (wasTop && stack.Count > 0 && !IsBlockedByHigherLayer(layer))
             {
                 stack.Peek().DoResume();
+            }
+            else if (!wasTop && stack.Count > 1)
+            {
+                FindBelow(stack, stack.Peek())?.DoPause();
             }
 
             // 恢复更低层级（仍有模态面板时 ResumeLowerLayers 会保持暂停）
@@ -187,10 +232,12 @@ namespace ZWebGLFrameWork.UI
 
         // ==================== 内部方法 ====================
 
-        private void PauseLowerLayers(UILayer currentLayer)
+        private void PauseLowerLayers(UILayer currentLayer, UIBase owner)
         {
             for (int i = (int)currentLayer - 1; i >= (int)UILayer.Background; i--)
             {
+                if (owner != null && !Contains(owner)) return;
+
                 var layer = (UILayer)i;
                 var stack = _stacks[layer];
                 if (stack.Count > 0)
@@ -198,6 +245,18 @@ namespace ZWebGLFrameWork.UI
                     stack.Peek().DoPause();
                 }
             }
+        }
+
+        private static UIBase FindBelow(Stack<UIBase> stack, UIBase panel)
+        {
+            bool found = false;
+            foreach (UIBase current in stack)
+            {
+                if (found) return current;
+                if (current == panel) found = true;
+            }
+
+            return null;
         }
 
         private bool IsBlockedByHigherLayer(UILayer currentLayer)

@@ -148,28 +148,33 @@ namespace ZWebGLFrameWork.UI
 
             // 在 OnOpen 之前建立缓存和栈所有权，确保同步重入复用同一实例。
             _panelCache[type] = panel;
-            if (!_stack.Push(panel))
+            if (!_stack.TryPush(panel))
                 return null;
 
             // 分配 sortingOrder
-            panel.SortingOrder = UIDefine.GetLayerSortingOrder(layer) + _layerPanelCounts[layer];
-            _layerPanelCounts[layer]++;
+            int sortingIndex = _layerPanelCounts[layer];
+            panel.SortingOrder = UIDefine.GetLayerSortingOrder(layer) + sortingIndex;
+            _layerPanelCounts[layer] = sortingIndex + 1;
 
             try
             {
                 panel.DoOpen(data);
+                _stack.ApplyPushEffects(panel);
                 return panel;
             }
             catch
             {
                 try
                 {
-                    _stack.Pop(panel);
+                    _stack.Rollback(panel);
                 }
                 catch (Exception rollbackException)
                 {
                     Debug.LogException(rollbackException);
                 }
+
+                if (_layerPanelCounts[layer] == sortingIndex + 1)
+                    _layerPanelCounts[layer] = sortingIndex;
                 throw;
             }
         }
