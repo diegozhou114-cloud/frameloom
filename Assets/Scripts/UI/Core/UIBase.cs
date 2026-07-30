@@ -39,6 +39,7 @@ namespace ZWebGLFrameWork.UI
 
         private UIAnimation _animation;
         private bool _hierarchyBuilt;
+        private int _lifecycleVersion;
 
         /// <summary>打开时传入的数据</summary>
         public object OpenData { get; private set; }
@@ -80,19 +81,27 @@ namespace ZWebGLFrameWork.UI
         {
             if (IsOpen) return;
 
+            int openVersion = ++_lifecycleVersion;
             OpenData = data;
             gameObject.SetActive(true);
             IsOpen = true;
             IsPaused = false;
+            CanvasGroup.interactable = true;
 
             if (_animation != null)
             {
-                _animation.PlayOpen(() => OnOpen(data));
+                _animation.PlayOpen(() => CompleteOpen(openVersion, data));
             }
             else
             {
-                OnOpen(data);
+                CompleteOpen(openVersion, data);
             }
+        }
+
+        private void CompleteOpen(int openVersion, object data)
+        {
+            if (_lifecycleVersion != openVersion || !IsOpen) return;
+            OnOpen(data);
         }
 
         /// <summary>面板暂停时调用（被上层面板遮挡）</summary>
@@ -141,24 +150,30 @@ namespace ZWebGLFrameWork.UI
         {
             if (!IsOpen) return;
 
+            int closeVersion = ++_lifecycleVersion;
             IsOpen = false;
             IsPaused = false;
 
             if (_animation != null)
             {
                 _animation.PlayClose(() =>
-                {
-                    OnClose();
-                    gameObject.SetActive(false);
-                    OpenData = null;
-                });
+                    CompleteClose(closeVersion));
             }
             else
             {
-                OnClose();
-                gameObject.SetActive(false);
-                OpenData = null;
+                CompleteClose(closeVersion);
             }
+        }
+
+        private void CompleteClose(int closeVersion)
+        {
+            if (_lifecycleVersion != closeVersion) return;
+
+            OnClose();
+            if (_lifecycleVersion != closeVersion || IsOpen) return;
+
+            gameObject.SetActive(false);
+            OpenData = null;
         }
 
         // ==================== 子类重写 ====================

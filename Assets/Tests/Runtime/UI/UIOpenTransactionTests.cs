@@ -18,6 +18,10 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             "_stack", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo LayerPanelCountsField = typeof(UIManager).GetField(
             "_layerPanelCounts", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo PanelCacheField = typeof(UIManager).GetField(
+            "_panelCache", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo AnimationField = typeof(UIBase).GetField(
+            "_animation", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly MethodInfo DoOpenMethod = typeof(UIBase).GetMethod(
             "DoOpen", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -37,6 +41,56 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             Assert.That(manager.GetTop(UILayer.Normal), Is.Null);
             Assert.That(GetStack(manager).Count(UILayer.Normal), Is.Zero);
             Assert.That(Object.FindObjectsOfType<SelfClosingPanel>(true), Has.Length.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator Close_WhenOnCloseReopensSamePanel_PreservesLatestLifecycle()
+        {
+            UIManager manager = CreateManager();
+            yield return null;
+
+            ReopeningOnClosePanel panel = manager.Open<ReopeningOnClosePanel>("initial");
+
+            manager.Close(panel);
+
+            Assert.That(panel.OpenCount, Is.EqualTo(2));
+            Assert.That(panel.CloseCount, Is.EqualTo(1));
+            Assert.That(panel.IsOpen, Is.True);
+            Assert.That(panel.gameObject.activeSelf, Is.True);
+            Assert.That(panel.CanvasGroup.interactable, Is.True);
+            Assert.That(panel.OpenData, Is.EqualTo("reopened"));
+            Assert.That(manager.Get<ReopeningOnClosePanel>(), Is.SameAs(panel));
+            Assert.That(manager.GetTop(UILayer.Normal), Is.SameAs(panel));
+            Assert.That(GetStack(manager).Count(UILayer.Normal), Is.EqualTo(1));
+            Assert.That(CountOccurrences(GetStack(manager), panel), Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator Close_WhenAnimatedOnCloseReopensSamePanel_PreservesLatestLifecycle()
+        {
+            UIManager manager = CreateManager();
+            yield return null;
+
+            AnimatedReopeningOnClosePanel panel = CreateOwnedObject("AnimatedReopeningPanel")
+                .AddComponent<AnimatedReopeningOnClosePanel>();
+            UIAnimation animation = panel.gameObject.AddComponent<UIAnimation>();
+            ConfigureCloseAnimation(panel, animation);
+            GetPanelCache(manager)[typeof(AnimatedReopeningOnClosePanel)] = panel;
+
+            manager.Open<AnimatedReopeningOnClosePanel>("initial");
+            manager.Close(panel);
+            yield return null;
+            yield return null;
+
+            Assert.That(panel.OpenCount, Is.EqualTo(2));
+            Assert.That(panel.CloseCount, Is.EqualTo(1));
+            Assert.That(panel.IsOpen, Is.True);
+            Assert.That(panel.gameObject.activeSelf, Is.True);
+            Assert.That(panel.CanvasGroup.interactable, Is.True);
+            Assert.That(panel.OpenData, Is.EqualTo("reopened"));
+            Assert.That(manager.Get<AnimatedReopeningOnClosePanel>(), Is.SameAs(panel));
+            Assert.That(manager.GetTop(UILayer.Normal), Is.SameAs(panel));
+            Assert.That(GetStack(manager).Count(UILayer.Normal), Is.EqualTo(1));
         }
 
         [UnityTest]
@@ -275,6 +329,20 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             return counts[layer];
         }
 
+        private static Dictionary<Type, UIBase> GetPanelCache(UIManager manager) =>
+            (Dictionary<Type, UIBase>)PanelCacheField.GetValue(manager);
+
+        private static void ConfigureCloseAnimation(UIBase panel, UIAnimation animation)
+        {
+            AnimationField.SetValue(panel, animation);
+            typeof(UIAnimation).GetField("_openType", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(animation, UIAnimationType.None);
+            typeof(UIAnimation).GetField("_closeType", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(animation, UIAnimationType.Fade);
+            typeof(UIAnimation).GetField("_closeDuration", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(animation, 0f);
+        }
+
         private static int CountOccurrences(UIStack stack, UIBase target)
         {
             int count = 0;
@@ -288,6 +356,34 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
         private sealed class SelfClosingPanel : UIBase
         {
             protected override void OnOpen(object data) => Close();
+        }
+
+        private sealed class ReopeningOnClosePanel : UIBase
+        {
+            public int OpenCount { get; private set; }
+            public int CloseCount { get; private set; }
+
+            protected override void OnOpen(object data) => OpenCount++;
+
+            protected override void OnClose()
+            {
+                CloseCount++;
+                UIManager.Instance.Open<ReopeningOnClosePanel>("reopened");
+            }
+        }
+
+        private sealed class AnimatedReopeningOnClosePanel : UIBase
+        {
+            public int OpenCount { get; private set; }
+            public int CloseCount { get; private set; }
+
+            protected override void OnOpen(object data) => OpenCount++;
+
+            protected override void OnClose()
+            {
+                CloseCount++;
+                UIManager.Instance.Open<AnimatedReopeningOnClosePanel>("reopened");
+            }
         }
 
         private sealed class SameTypeReentrantPanel : UIBase
