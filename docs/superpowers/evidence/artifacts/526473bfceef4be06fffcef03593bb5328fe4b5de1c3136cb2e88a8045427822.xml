@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="13" result="Passed" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.4142635">
+  <test-suite type="TestSuite" id="1000" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="322" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.414264" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1389" name="ZWebGLFrameWork.SimulationCore.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.SimulationCore.Tests.dll" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.390456" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="47029" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1390" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.384698" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1391" name="SimulationCore" fullname="ZWebGLFrameWork.SimulationCore" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.380289" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1392" name="Tests" fullname="ZWebGLFrameWork.SimulationCore.Tests" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.375664" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1308" name="SessionDeterminismTests" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.363762" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1312" name="AcceptedSequenceState_ChangesChecksumAfterCommandsDrain" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.AcceptedSequenceState_ChangesChecksumAfterCommandsDrain" methodname="AcceptedSequenceState_ChangesChecksumAfterCommandsDrain" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1421615133" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.213535" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1313" name="Checksum_ChangesForPathPhaseAllocatorAndPendingEventDifferences" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Checksum_ChangesForPathPhaseAllocatorAndPendingEventDifferences" methodname="Checksum_ChangesForPathPhaseAllocatorAndPendingEventDifferences" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1496940649" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.015968" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1310" name="Checksum_ChangesForTickPhaseAllocatorAndPendingEventDifferences" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Checksum_ChangesForTickPhaseAllocatorAndPendingEventDifferences" methodname="Checksum_ChangesForTickPhaseAllocatorAndPendingEventDifferences" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1191659245" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.003508" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1309" name="DifferentSeed_ChangesSeededInitialStateChecksum" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.DifferentSeed_ChangesSeededInitialStateChecksum" methodname="DifferentSeed_ChangesSeededInitialStateChecksum" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="2129427846" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.001259" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1311" name="PendingCommands_DifferentTotalOrderChangesSessionChecksum" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.PendingCommands_DifferentTotalOrderChangesSessionChecksum" methodname="PendingCommands_DifferentTotalOrderChangesSessionChecksum" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="2038269264" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.004191" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1316" name="Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence" methodname="Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1374140533" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.050675" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1317" name="RollbackReplay_MatchesOriginalChecksumSequence" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.RollbackReplay_MatchesOriginalChecksumSequence" methodname="RollbackReplay_MatchesOriginalChecksumSequence" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1518948636" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.008672" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1318" name="SessionRestart_MatchesFreshSessionState" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.SessionRestart_MatchesFreshSessionState" methodname="SessionRestart_MatchesFreshSessionState" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="453575011" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.002657" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1315" name="Snapshot_CaptureAndRestoreRecoversChecksumAndNextTick" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Snapshot_CaptureAndRestoreRecoversChecksumAndNextTick" methodname="Snapshot_CaptureAndRestoreRecoversChecksumAndNextTick" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1375811516" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.004854" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1319" name="Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically" methodname="Snapshot_ForeignOrCorruptEnvelopeIsRejectedAtomically" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="391416317" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.002421" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1320" name="Snapshot_PathMutationAndSystemClock_AreIsolatedAndRestored" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Snapshot_PathMutationAndSystemClock_AreIsolatedAndRestored" methodname="Snapshot_PathMutationAndSystemClock_AreIsolatedAndRestored" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1055597702" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.005920" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1314" name="Snapshot_PathMutationIsIsolatedFromCapturedState" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.Snapshot_PathMutationIsIsolatedFromCapturedState" methodname="Snapshot_PathMutationIsIsolatedFromCapturedState" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1700901396" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.002193" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1321" name="SnapshotRestore_ForeignSchemaCorruptOrStale_IsRejectedAtomically" fullname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests.SnapshotRestore_ForeignSchemaCorruptOrStale_IsRejectedAtomically" methodname="SnapshotRestore_ForeignSchemaCorruptOrStale_IsRejectedAtomically" classname="ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests" runstate="Runnable" seed="1520894104" result="Passed" start-time="2026-07-30 15:05:04Z" end-time="2026-07-30 15:05:04Z" duration="0.003593" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
