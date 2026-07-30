@@ -1,9 +1,12 @@
 using System.Reflection;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.FSM;
+using ZWebGLFrameWork.Gameplay;
 
 namespace ZWebGLFrameWork.Runtime.Tests.FSM
 {
@@ -11,6 +14,8 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
     {
         private static readonly MethodInfo FocusMethod = typeof(GameLauncher).GetMethod(
             "OnApplicationFocus", BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly MethodInfo StartMethod = typeof(GameLauncher).GetMethod(
+            "Start", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly PropertyInfo ConfigProperty = typeof(GameLauncher).GetProperty(
             "Config", BindingFlags.Static | BindingFlags.Public);
         private static readonly PropertyInfo ReadyProperty = typeof(GameLauncher).GetProperty(
@@ -29,6 +34,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
         {
             _targetFrameRate = Application.targetFrameRate;
             Assert.That(FocusMethod, Is.Not.Null);
+            Assert.That(StartMethod, Is.Not.Null);
             Assert.That(ConfigProperty, Is.Not.Null);
             Assert.That(ReadyProperty, Is.Not.Null);
             Assert.That(InstanceField, Is.Not.Null);
@@ -94,6 +100,29 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             Assert.That(baseType.GetGenericTypeDefinition(),
                 Is.EqualTo(typeof(SingletonDontDestroy<>)));
             Assert.That(baseType.GetGenericArguments(), Is.EqualTo(new[] { typeof(GameLauncher) }));
+        }
+
+        [UnityTest]
+        public IEnumerator DuplicateLauncher_DoesNotReplacePrimaryOrRunStartup()
+        {
+            GameLauncher primary = CreateLauncher(CreateConfig(autoDetect: false, sourceThrottle: true));
+            SetReady(true);
+            GameObject duplicateObject = new GameObject("DuplicateGameLauncher");
+            GameLauncher duplicate = duplicateObject.AddComponent<GameLauncher>();
+
+            StartMethod.Invoke(duplicate, null);
+
+            Assert.That(Object.FindObjectsOfType<VillageRuntimeBootstrap>(), Is.Empty);
+            Assert.That(InstanceField.GetValue(null), Is.SameAs(primary));
+            Assert.That(GameLauncher.Config, Is.SameAs(_config));
+            Assert.That(GameLauncher.IsReady, Is.True);
+
+            primary.enabled = false;
+            yield return null;
+
+            Assert.That(duplicate == null, Is.True);
+            Assert.That(InstanceField.GetValue(null), Is.SameAs(primary));
+            Assert.That(GameLauncher.Config, Is.SameAs(_config));
         }
 
         private GameLauncher CreateLauncher(AppConfig config)
