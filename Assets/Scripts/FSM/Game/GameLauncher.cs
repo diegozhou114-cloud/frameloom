@@ -23,6 +23,14 @@ namespace ZWebGLFrameWork.FSM
         /// <summary>GameLauncher 是否已就绪</summary>
         public static bool IsReady { get; private set; }
 
+        /// <summary>
+        /// 返回已存在的启动器；首次创建仍只能发生在 Launcher 场景。
+        /// </summary>
+        public new static GameLauncher Instance =>
+            SingletonDontDestroy<GameLauncher>.HasInstance
+                ? SingletonDontDestroy<GameLauncher>.Instance
+                : EnsureCreatedForActiveScene();
+
         [Header("配置路径")]
         [Tooltip("AppConfig 在 Resources 下的相对路径（不含扩展名）")]
         [SerializeField] private string _configPath = "Config/AppConfig";

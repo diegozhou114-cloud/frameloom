@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
@@ -38,16 +39,16 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             Assert.That(ConfigProperty, Is.Not.Null);
             Assert.That(ReadyProperty, Is.Not.Null);
             Assert.That(InstanceField, Is.Not.Null);
+            ClearLauncherState();
         }
 
         [TearDown]
         public void TearDown()
         {
             Application.targetFrameRate = _targetFrameRate;
-            SetConfig(null);
-            InstanceField.SetValue(null, null);
             if (_launcherObject != null)
                 Object.DestroyImmediate(_launcherObject);
+            ClearLauncherState();
             if (_config != null)
                 Object.DestroyImmediate(_config);
         }
@@ -103,6 +104,35 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
         }
 
         [UnityTest]
+        public IEnumerator Instance_WhenAbsentOutsideLauncherScene_DoesNotCreateLauncher()
+        {
+            Scene originalScene = SceneManager.GetActiveScene();
+            Scene isolatedScene = SceneManager.CreateScene("GameLauncherNonLauncherTest");
+            SceneManager.SetActiveScene(isolatedScene);
+
+            System.Exception exception = null;
+            GameLauncher createdLauncher = null;
+            try
+            {
+                createdLauncher = GameLauncher.Instance;
+            }
+            catch (System.Exception caught)
+            {
+                exception = caught;
+            }
+
+            if (createdLauncher != null)
+                Object.DestroyImmediate(createdLauncher.gameObject);
+
+            SceneManager.SetActiveScene(originalScene);
+            yield return SceneManager.UnloadSceneAsync(isolatedScene);
+
+            Assert.That(SingletonDontDestroy<GameLauncher>.HasInstance, Is.False);
+            Assert.That(exception, Is.TypeOf<System.InvalidOperationException>());
+            Assert.That(Object.FindObjectsOfType<GameLauncher>(), Is.Empty);
+        }
+
+        [UnityTest]
         public IEnumerator DuplicateLauncher_DoesNotReplacePrimaryOrRunStartup()
         {
             GameLauncher primary = CreateLauncher(CreateConfig(autoDetect: false, sourceThrottle: true));
@@ -123,6 +153,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             Assert.That(duplicate == null, Is.True);
             Assert.That(InstanceField.GetValue(null), Is.SameAs(primary));
             Assert.That(GameLauncher.Config, Is.SameAs(_config));
+            Assert.That(GameLauncher.IsReady, Is.True);
         }
 
         private GameLauncher CreateLauncher(AppConfig config)
@@ -150,6 +181,16 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
 
         private static void SetReady(bool ready) =>
             ReadyProperty.GetSetMethod(nonPublic: true).Invoke(null, new object[] { ready });
+
+        private static void ClearLauncherState()
+        {
+            foreach (GameLauncher launcher in Object.FindObjectsOfType<GameLauncher>())
+                Object.DestroyImmediate(launcher.gameObject);
+
+            SetConfig(null);
+            SetReady(false);
+            InstanceField.SetValue(null, null);
+        }
 
         private static void SetField(AppConfig config, string name, object value)
         {
