@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "9d997576bc51faeb83d6bf53d9e8aa94af223e94",
+  "fixCommits": [
+    "47cbe35a8a141a05634c8a4927227c67c76946da"
+  ],
+  "acceptanceMethod": "ResourceManager_SetProvider_InvalidatesOldProviderCache",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Core/Resource/ResourceManager.cs",
+    "Assets/Tests/Runtime/Core.meta",
+    "Assets/Tests/Runtime/Core/ResourceManagerProviderTests.cs",
+    "Assets/Tests/Runtime/Core/ResourceManagerProviderTests.cs.meta"
+  ],
+  "gitDiffSha256": "5fd1af0d71d3e4c19c5d13797445d7f2a034c9f7a454163e2e6cc54b6849e8e7",
+  "reason": "Historical source inspection for 9d997576bc51faeb83d6bf53d9e8aa94af223e94..47cbe35a8a141a05634c8a4927227c67c76946da.",
+  "currentAcceptanceRequired": false
+}

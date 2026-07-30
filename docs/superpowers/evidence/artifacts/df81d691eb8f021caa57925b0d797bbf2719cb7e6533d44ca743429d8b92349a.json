@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "b82acbcb4292b8ea47372b89048bd4f95cba4879",
+  "fixCommits": [
+    "9e012e3a526aa851d6fecc46b353562498199905"
+  ],
+  "acceptanceMethod": "Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Core/TickSnapshot.cs",
+    "Assets/Scripts/SimulationCore/Orchestrator/SimOrchestrator.cs",
+    "Assets/Tests/SimulationCore/ModeBehaviorTests.cs",
+    "Assets/Tests/SimulationCore/SimReplayRoundTripTests.cs"
+  ],
+  "gitDiffSha256": "72fb89318ce523b936f392eb7d8a6d18403ae89b4b49cdd442641b223f171cca",
+  "reason": "Historical source inspection for b82acbcb4292b8ea47372b89048bd4f95cba4879..9e012e3a526aa851d6fecc46b353562498199905.",
+  "currentAcceptanceRequired": false
+}

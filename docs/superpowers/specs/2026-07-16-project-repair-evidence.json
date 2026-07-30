@@ -2,109 +2,1126 @@
   "schemaVersion": 1,
   "register": "docs/superpowers/specs/2026-07-16-project-repair-issue-register.md",
   "baselineCommit": "4a6738302ade966ae7a5eae1abc51487b29402ca",
-  "allowedStatuses": ["Open", "InProgress", "Closed"],
-  "closureModes": ["Fixed", "RemovedByReplacement"],
+  "allowedStatuses": [
+    "Open",
+    "InProgress",
+    "Closed"
+  ],
+  "closureModes": [
+    "Fixed",
+    "RemovedByReplacement"
+  ],
   "issues": {
-    "ASSET-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "ASSET-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BOOT-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BOOT-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BOOT-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BOOT-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BOOT-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BUILD-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BUILD-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BUILD-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "BUILD-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CI-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CI-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CI-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CI-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CI-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "COMBAT-008": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CORE-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "CORE-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "DATA-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "FSM-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "FSM-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "GAME-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "GAME-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "GAME-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "GAME-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "GAME-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-008": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-009": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-010": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-011": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-012": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-013": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "NET-014": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "REPLAY-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SCENE-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SCENE-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SERVER-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SERVER-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SERVER-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-008": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-009": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-010": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-011": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-012": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-013": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-014": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-015": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-016": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-017": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-018": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-019": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-020": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-021": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "SIM-022": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-005": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-006": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-007": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-008": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "TEST-009": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "UI-001": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "UI-002": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "UI-003": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]},
-    "UI-004": {"status":"Open","redEvidence":[],"fixCommits":[],"greenEvidence":[],"gateEvidence":[],"closureMode":null,"closedAt":null,"replacementEvidence":[]}
+    "ASSET-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "ASSET-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BOOT-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BOOT-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BOOT-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BOOT-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BOOT-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BUILD-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BUILD-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BUILD-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "BUILD-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CI-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CI-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CI-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CI-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CI-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "COMBAT-008": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "CORE-001": {
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/437681547e77ccbcba4b363e9a99520831ffe082fb68dec38a96de90e3009c48.json",
+          "sha256": "437681547e77ccbcba4b363e9a99520831ffe082fb68dec38a96de90e3009c48",
+          "bytes": 833
+        }
+      ],
+      "fixCommits": [
+        "47cbe35a8a141a05634c8a4927227c67c76946da"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977.xml",
+          "sha256": "4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977",
+          "bytes": 15256
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc.xml",
+          "sha256": "89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc",
+          "bytes": 185024
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
+      "replacementEvidence": []
+    },
+    "CORE-002": {
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/43512fed9eb2ae01c579348bc46325a8bf6e5d18fb326686013169364ed362e6.json",
+          "sha256": "43512fed9eb2ae01c579348bc46325a8bf6e5d18fb326686013169364ed362e6",
+          "bytes": 819
+        }
+      ],
+      "fixCommits": [
+        "772e45f00616a7f5e502f96295512a301dd31bd5"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977.xml",
+          "sha256": "4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977",
+          "bytes": 15256
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc.xml",
+          "sha256": "89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc",
+          "bytes": 185024
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
+      "replacementEvidence": []
+    },
+    "DATA-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "DATA-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "FSM-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "FSM-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "GAME-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "GAME-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "GAME-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "GAME-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "GAME-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-008": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-009": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-010": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-011": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-012": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-013": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "NET-014": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "REPLAY-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SCENE-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SCENE-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SERVER-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SERVER-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SERVER-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-005": {
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/d74f5a40ceff7abbdcfd22b0c229768f520e4ddd847be5b8e0c93b67a8fe22c2.json",
+          "sha256": "d74f5a40ceff7abbdcfd22b0c229768f520e4ddd847be5b8e0c93b67a8fe22c2",
+          "bytes": 769
+        }
+      ],
+      "fixCommits": [
+        "cb016a380a9885a6978ff3097c4e180f27469a20"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/adb1a23965bf5d845b59fcd469893e4f01fe05787ebae2d7f1816de3ad6ce5c7.xml",
+          "sha256": "adb1a23965bf5d845b59fcd469893e4f01fe05787ebae2d7f1816de3ad6ce5c7",
+          "bytes": 10017
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be.xml",
+          "sha256": "f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
+      "replacementEvidence": []
+    },
+    "SIM-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-008": {
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/1467ff83ae448dc938b634dc10241e02fde5d809be843130326064a5c308355a.json",
+          "sha256": "1467ff83ae448dc938b634dc10241e02fde5d809be843130326064a5c308355a",
+          "bytes": 1340
+        }
+      ],
+      "fixCommits": [
+        "9308bfacc9d6db8565f1764f90a3037c2f756eec",
+        "f5691ddb8c41516162bc6ae48781639b719ca88c"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/5821df95fbd2314ae0556c6268e88b9bad734bd19ed2bcbbbc2c9d855b9dac80.xml",
+          "sha256": "5821df95fbd2314ae0556c6268e88b9bad734bd19ed2bcbbbc2c9d855b9dac80",
+          "bytes": 12745
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be.xml",
+          "sha256": "f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
+      "replacementEvidence": []
+    },
+    "SIM-009": {
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/df81d691eb8f021caa57925b0d797bbf2719cb7e6533d44ca743429d8b92349a.json",
+          "sha256": "df81d691eb8f021caa57925b0d797bbf2719cb7e6533d44ca743429d8b92349a",
+          "bytes": 860
+        }
+      ],
+      "fixCommits": [
+        "9e012e3a526aa851d6fecc46b353562498199905"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/5821df95fbd2314ae0556c6268e88b9bad734bd19ed2bcbbbc2c9d855b9dac80.xml",
+          "sha256": "5821df95fbd2314ae0556c6268e88b9bad734bd19ed2bcbbbc2c9d855b9dac80",
+          "bytes": 12745
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be.xml",
+          "sha256": "f38174645b9dc157b60d676dd9eade78a0a3794567343de6cbab42de9c4888be",
+          "bytes": 262046
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-30",
+      "replacementEvidence": []
+    },
+    "SIM-010": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-011": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-012": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-013": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-014": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-015": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-016": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-017": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-018": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-019": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-020": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-021": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "SIM-022": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-005": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-006": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-007": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-008": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "TEST-009": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "UI-001": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "UI-002": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "UI-003": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    },
+    "UI-004": {
+      "status": "Open",
+      "redEvidence": [],
+      "fixCommits": [],
+      "greenEvidence": [],
+      "gateEvidence": [],
+      "closureMode": null,
+      "closedAt": null,
+      "replacementEvidence": []
+    }
   }
 }

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "47cbe35a8a141a05634c8a4927227c67c76946da",
+  "fixCommits": [
+    "772e45f00616a7f5e502f96295512a301dd31bd5"
+  ],
+  "acceptanceMethod": "AssetBundleProvider_LoadAndUnload_UsesDependenciesAndBundleIdentity",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Core/Resource/AssetBundleProvider.cs",
+    "Assets/Tests/Runtime/Core/AssetBundleProviderContractTests.cs",
+    "Assets/Tests/Runtime/Core/AssetBundleProviderContractTests.cs.meta"
+  ],
+  "gitDiffSha256": "c8ea46cf98f375561ef18f35135ae6df6e3d4d80206b312d18aead433709e5a5",
+  "reason": "Historical source inspection for 47cbe35a8a141a05634c8a4927227c67c76946da..772e45f00616a7f5e502f96295512a301dd31bd5.",
+  "currentAcceptanceRequired": false
+}

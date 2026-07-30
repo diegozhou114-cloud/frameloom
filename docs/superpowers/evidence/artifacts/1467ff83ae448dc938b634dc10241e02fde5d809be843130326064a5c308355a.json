@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "557240dad35c0920a359c009602c397f024d2bda",
+  "fixCommits": [
+    "9308bfacc9d6db8565f1764f90a3037c2f756eec",
+    "f5691ddb8c41516162bc6ae48781639b719ca88c"
+  ],
+  "acceptanceMethod": "Snapshot_PathMutationAndSystemClock_AreIsolatedAndRestored",
+  "testPresentBefore": false,
+  "testPresentAfter": false,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Command/CommandBuffer.cs",
+    "Assets/Scripts/SimulationCore/Core/DeterministicBinary.cs",
+    "Assets/Scripts/SimulationCore/Core/SessionSnapshotCodec.cs",
+    "Assets/Scripts/SimulationCore/Core/SessionSnapshotCodec.cs.meta",
+    "Assets/Scripts/SimulationCore/Core/SimChunk.cs",
+    "Assets/Scripts/SimulationCore/Core/SimWorld.cs",
+    "Assets/Scripts/SimulationCore/Core/TickSnapshot.cs",
+    "Assets/Scripts/SimulationCore/Session/SimBattleSession.cs",
+    "Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs",
+    "Assets/Scripts/SimulationCore/Systems/SimDeathSystem.cs",
+    "Assets/Tests/SimulationCore/SessionDeterminismTests.cs"
+  ],
+  "gitDiffSha256": "8720f067ae46005d8a8741f07bb7748e67160d0094607bc5829ceaa72aedd77c",
+  "reason": "Historical source inspection for 557240dad35c0920a359c009602c397f024d2bda..f5691ddb8c41516162bc6ae48781639b719ca88c.",
+  "currentAcceptanceRequired": true
+}
