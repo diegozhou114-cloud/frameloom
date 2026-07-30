@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "60a0a194f0c21ceb2665a680084005742fb06f88",
+  "fixCommits": [
+    "4d51c57a26eb85ef3a4d5e9bf5215ebaebf42857"
+  ],
+  "acceptanceMethod": "LoadingState_Exit_CancelsUnderlyingSceneLoad",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Core/Scene/SceneLoadResult.cs",
+    "Assets/Scripts/Core/Scene/SceneLoadResult.cs.meta",
+    "Assets/Scripts/Core/Scene/SceneLoadRunner.cs",
+    "Assets/Scripts/Core/Scene/SceneLoadRunner.cs.meta",
+    "Assets/Scripts/Core/Scene/SceneLoader.cs",
+    "Assets/Scripts/FSM/Game/States/LoadingState.cs",
+    "Assets/Tests/Runtime/FSM/SceneLoadingTests.cs",
+    "Assets/Tests/Runtime/FSM/SceneLoadingTests.cs.meta"
+  ],
+  "gitDiffSha256": "79893d6d623901a19e58d9e7df1b08e875742ad9df56fec14a05f161500fc7c0",
+  "reason": "Historical source inspection for 60a0a194f0c21ceb2665a680084005742fb06f88..4d51c57a26eb85ef3a4d5e9bf5215ebaebf42857.",
+  "currentAcceptanceRequired": false
+}
