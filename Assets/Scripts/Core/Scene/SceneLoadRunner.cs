@@ -22,11 +22,12 @@ namespace ZWebGLFrameWork.Core
             while (true)
             {
                 if (token.IsCancellationRequested)
-                    return new SceneLoadResult(SceneLoadStatus.Cancelled);
+                    return TerminalResult(operation, SceneLoadStatus.Cancelled);
                 elapsed += elapsedStep();
                 if (elapsed > timeoutSeconds)
                 {
-                    return new SceneLoadResult(
+                    return TerminalResult(
+                        operation,
                         SceneLoadStatus.Timeout,
                         "Scene load timed out");
                 }
@@ -39,7 +40,7 @@ namespace ZWebGLFrameWork.Core
                 }
 
                 if (token.IsCancellationRequested)
-                    return new SceneLoadResult(SceneLoadStatus.Cancelled);
+                    return TerminalResult(operation, SceneLoadStatus.Cancelled);
                 if (!operation.AllowSceneActivation)
                     operation.AllowSceneActivation = true;
                 if (operation.IsDone)
@@ -49,6 +50,16 @@ namespace ZWebGLFrameWork.Core
 
             reportProgress?.Invoke(1f);
             return new SceneLoadResult(SceneLoadStatus.Succeeded);
+        }
+
+        private static SceneLoadResult TerminalResult(
+            ISceneLoadOperation operation,
+            SceneLoadStatus status,
+            string error = null)
+        {
+            if (!operation.AllowSceneActivation)
+                operation.AllowSceneActivation = true;
+            return new SceneLoadResult(status, error);
         }
     }
 }

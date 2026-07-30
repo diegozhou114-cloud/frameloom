@@ -79,7 +79,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
         }
 
         [UnityTest]
-        public System.Collections.IEnumerator SceneLoadRunner_CancelBeforeActivation_DoesNotActivate()
+        public System.Collections.IEnumerator SceneLoadRunner_CancelBeforeActivation_ReleasesActivation()
         {
             var operation = new ControlledOperation { Progress = 0.9f, IsDone = false };
             using var cancelled = new CancellationTokenSource();
@@ -89,7 +89,36 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
 
             yield return task.ToCoroutine(result =>
                 Assert.That(result.Status, Is.EqualTo(SceneLoadStatus.Cancelled)));
-            Assert.That(operation.AllowSceneActivation, Is.False);
+            Assert.That(operation.AllowSceneActivation, Is.True);
+        }
+
+        [UnityTest]
+        public System.Collections.IEnumerator SceneLoadRunner_CancelBeforeLoadingCompletes_ReleasesActivation()
+        {
+            var operation = new ControlledOperation { Progress = 0.5f, IsDone = false };
+            using var cancelled = new CancellationTokenSource();
+            cancelled.Cancel();
+            UniTask<SceneLoadResult> task = SceneLoadRunner.RunAsync(
+                operation, 2f, cancelled.Token, () => 0.1f);
+
+            yield return task.ToCoroutine(result =>
+                Assert.That(result.Status, Is.EqualTo(SceneLoadStatus.Cancelled)));
+            Assert.That(operation.AllowSceneActivation, Is.True);
+        }
+
+        [UnityTest]
+        public System.Collections.IEnumerator SceneLoadRunner_TimeoutBeforeActivation_ReleasesActivation()
+        {
+            var operation = new ControlledOperation { Progress = 0.5f, IsDone = false };
+            using var cleanup = new CancellationTokenSource();
+            UniTask<SceneLoadResult> task = SceneLoadRunner.RunAsync(
+                operation, 1f, cleanup.Token, () => 0.6f);
+
+            yield return null;
+            yield return null;
+            yield return task.ToCoroutine(result =>
+                Assert.That(result.Status, Is.EqualTo(SceneLoadStatus.Timeout)));
+            Assert.That(operation.AllowSceneActivation, Is.True);
         }
 
         [UnityTest]
