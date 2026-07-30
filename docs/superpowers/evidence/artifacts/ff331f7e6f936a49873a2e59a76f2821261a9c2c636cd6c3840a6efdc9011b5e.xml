@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.3581244">
+  <test-suite type="TestSuite" id="1000" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="322" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.358124" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1389" name="ZWebGLFrameWork.SimulationCore.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.SimulationCore.Tests.dll" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.336528" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="50415" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1390" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.332820" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1391" name="SimulationCore" fullname="ZWebGLFrameWork.SimulationCore" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.329630" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1392" name="Tests" fullname="ZWebGLFrameWork.SimulationCore.Tests" runstate="Runnable" testcasecount="174" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.326187" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1283" name="ReplaySessionRoundTripTests" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.315197" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1284" name="Recorder_RecordsExactlyTheCommandsExecutedThisTick" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.Recorder_RecordsExactlyTheCommandsExecutedThisTick" methodname="Recorder_RecordsExactlyTheCommandsExecutedThisTick" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="1747331644" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.181827" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1285" name="ReplayExportParseValidate_RoundTripsExecutedCommands" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.ReplayExportParseValidate_RoundTripsExecutedCommands" methodname="ReplayExportParseValidate_RoundTripsExecutedCommands" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="1446898936" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.065412" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1292" name="UnityAndValidator_SameBattleInitAndCommands_SameTickResults" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityAndValidator_SameBattleInitAndCommands_SameTickResults" methodname="UnityAndValidator_SameBattleInitAndCommands_SameTickResults" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="449064841" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.003007" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1291" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.024734" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1286" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;InitialLayout\&quot;:[null]}&quot;)" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;InitialLayout\&quot;:[null]}&quot;)" methodname="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="839395918" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.015411" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1287" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;BattleInit\&quot;:{\&quot;Players\&quot;:[null]}}&quot;)" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;BattleInit\&quot;:{\&quot;Players\&quot;:[null]}}&quot;)" methodname="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="343203407" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.000757" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1288" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;BattleInit\&quot;:{\&quot;InitialEntities\&quot;:[null]}}&quot;)" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;BattleInit\&quot;:{\&quot;InitialEntities\&quot;:[null]}}&quot;)" methodname="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="193706938" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.000134" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1289" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;Records\&quot;:[null]}&quot;)" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;Records\&quot;:[null]}&quot;)" methodname="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="1119491023" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.000093" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1290" name="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;Records\&quot;:[{\&quot;Commands\&quot;:[null]}]}&quot;)" fullname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests.UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException(&quot;{\&quot;Records\&quot;:[{\&quot;Commands\&quot;:[null]}]}&quot;)" methodname="UnityReplayJsonCodec_NullArrayEntry_ThrowsFormatException" classname="ZWebGLFrameWork.SimulationCore.Tests.ReplaySessionRoundTripTests" runstate="Runnable" seed="306188033" result="Passed" start-time="2026-07-30 15:36:18Z" end-time="2026-07-30 15:36:18Z" duration="0.000157" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
