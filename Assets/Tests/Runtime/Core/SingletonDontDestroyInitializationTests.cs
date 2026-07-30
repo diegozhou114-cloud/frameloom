@@ -133,5 +133,39 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
 
             Assert.That(instanceField.GetValue(null), Is.Null);
         }
+
+        [Test]
+        public void SceneLoader_DestroyedAfterInit_UnsubscribesSceneEvents()
+        {
+            if (SceneLoader.HasInstance)
+                UnityEngine.Object.DestroyImmediate(SceneLoader.Instance.gameObject);
+
+            SceneLoader loader = CreateOwnedObject("InitializedSceneLoader")
+                .AddComponent<SceneLoader>();
+            Assert.That(loader.Init(), Is.True);
+            Assert.That(HasSceneManagerHandler("sceneLoaded", loader), Is.True);
+            Assert.That(HasSceneManagerHandler("sceneUnloaded", loader), Is.True);
+
+            UnityEngine.Object.DestroyImmediate(loader.gameObject);
+
+            Assert.That(HasSceneManagerHandler("sceneLoaded", loader), Is.False);
+            Assert.That(HasSceneManagerHandler("sceneUnloaded", loader), Is.False);
+        }
+
+        private static bool HasSceneManagerHandler(string eventName, object target)
+        {
+            FieldInfo eventField = typeof(UnityEngine.SceneManagement.SceneManager).GetField(
+                eventName, BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.That(eventField, Is.Not.Null);
+
+            Delegate handlers = eventField.GetValue(null) as Delegate;
+            if (handlers == null) return false;
+            foreach (Delegate handler in handlers.GetInvocationList())
+            {
+                if (ReferenceEquals(handler.Target, target)) return true;
+            }
+
+            return false;
+        }
     }
 }
