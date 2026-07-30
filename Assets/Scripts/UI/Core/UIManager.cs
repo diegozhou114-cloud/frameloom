@@ -146,16 +146,32 @@ namespace ZWebGLFrameWork.UI
                 panelRect.offsetMax = Vector2.zero;
             }
 
+            // 在 OnOpen 之前建立缓存和栈所有权，确保同步重入复用同一实例。
+            _panelCache[type] = panel;
+            if (!_stack.Push(panel))
+                return null;
+
             // 分配 sortingOrder
             panel.SortingOrder = UIDefine.GetLayerSortingOrder(layer) + _layerPanelCounts[layer];
             _layerPanelCounts[layer]++;
 
-            // 打开
-            panel.DoOpen(data);
-            _stack.Push(panel);
-            _panelCache[type] = panel;
-
-            return panel;
+            try
+            {
+                panel.DoOpen(data);
+                return panel;
+            }
+            catch
+            {
+                try
+                {
+                    _stack.Pop(panel);
+                }
+                catch (Exception rollbackException)
+                {
+                    Debug.LogException(rollbackException);
+                }
+                throw;
+            }
         }
 
         // ==================== 关闭面板 ====================

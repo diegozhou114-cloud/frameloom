@@ -73,9 +73,9 @@ namespace ZWebGLFrameWork.UI
         // ==================== Push（打开） ====================
 
         /// <summary>将面板推入其所在层级的栈顶，自动处理暂停/恢复</summary>
-        public void Push(UIBase panel)
+        public bool Push(UIBase panel)
         {
-            if (panel == null) return;
+            if (panel == null) return false;
 
             var layer = panel.Layer;
             var stack = _stacks[layer];
@@ -83,7 +83,7 @@ namespace ZWebGLFrameWork.UI
             if (stack.Count >= MaxStackDepth)
             {
                 Debug.LogError($"[UIStack] 层级 {layer} 栈深度已达上限 {MaxStackDepth}，Push 被拒绝: {panel.name}");
-                return;
+                return false;
             }
 
             // 暂停同层旧栈顶
@@ -100,6 +100,7 @@ namespace ZWebGLFrameWork.UI
             }
 
             stack.Push(panel);
+            return true;
         }
 
         // ==================== Pop（关闭） ====================
@@ -112,7 +113,7 @@ namespace ZWebGLFrameWork.UI
             var layer = panel.Layer;
             var stack = _stacks[layer];
 
-            if (stack.Count == 0) return;
+            if (!stack.Contains(panel)) return;
 
             // 如果关闭的不是栈顶，需要重建栈（中间面板关闭）
             if (stack.Peek() != panel)
