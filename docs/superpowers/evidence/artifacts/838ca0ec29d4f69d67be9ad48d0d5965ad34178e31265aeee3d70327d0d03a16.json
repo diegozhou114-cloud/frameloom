@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "bf4a95d3137399e81179fee0dd93071d398259ca",
+  "fixCommits": [
+    "0700cabf80073aa5652774daf75a7af7f412957a"
+  ],
+  "acceptanceMethod": "Presentation_RendersBetweenTicks_AndResyncsAfterRollbackWithoutLeaks",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Combat/Presentation/PresentationInterpolator.cs",
+    "Assets/Scripts/Combat/Presentation/PresentationInterpolator.cs.meta",
+    "Assets/Scripts/Combat/Presentation/SessionPresentationBridge.cs",
+    "Assets/Scripts/Combat/Tests/SessionPresentationBridgeTests.cs"
+  ],
+  "gitDiffSha256": "637e3234b10e0697d3359c537ac1d97f99025aabbf1ddd2c6d3fccc299f82a9a",
+  "reason": "Historical source inspection for bf4a95d3137399e81179fee0dd93071d398259ca..0700cabf80073aa5652774daf75a7af7f412957a.",
+  "currentAcceptanceRequired": false
+}

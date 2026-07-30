@@ -1,0 +1,5 @@
+[BuildScenes_LauncherIsEnabledSceneZero] PASS launcher-entry
+[BuildScenes_LauncherIsEnabledSceneZero] PASS enabled-settings-source
+[BuildScenes_LauncherIsEnabledSceneZero] PASS no-global-scene-scan
+[BuildScenes_LauncherIsEnabledSceneZero] PASS no-default-scene-fallback
+[BuildScenes_LauncherIsEnabledSceneZero] PASS count=4

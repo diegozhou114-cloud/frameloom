@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "feda533ebc9e97c47a09e878f21959d2835c3460",
+  "fixCommits": [
+    "bf4a95d3137399e81179fee0dd93071d398259ca"
+  ],
+  "acceptanceMethod": "PresentationFrames_ProvideInitialDeltaAndRollbackRevisionWithoutWorldAccess",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Combat/Presentation.meta",
+    "Assets/Scripts/Combat/Presentation/IEntityViewFactory.cs",
+    "Assets/Scripts/Combat/Presentation/IEntityViewFactory.cs.meta",
+    "Assets/Scripts/Combat/Presentation/SessionPresentationBridge.cs",
+    "Assets/Scripts/Combat/Presentation/SessionPresentationBridge.cs.meta",
+    "Assets/Scripts/Combat/Tests/SessionPresentationBridgeTests.cs",
+    "Assets/Scripts/Combat/Tests/SessionPresentationBridgeTests.cs.meta",
+    "Assets/Scripts/Combat/Tests/ZWebGLFrameWork.Combat.Tests.asmdef",
+    "Assets/Scripts/SimulationCore/Session/SimBattleSession.cs",
+    "Assets/Tests/SimulationCore/PresentationFrameTests.cs",
+    "Assets/Tests/SimulationCore/PresentationFrameTests.cs.meta",
+    "Assets/Tests/SimulationCore/SessionContractTests.cs",
+    "Assets/Tests/SimulationCore/SessionTerminalTests.cs",
+    "Server/SimulationCore.Tests/SessionCommandTests.cs"
+  ],
+  "gitDiffSha256": "c07aaf19b5e1946666ca8d1af91282e5fea3619b1048dc80228df7a1fe29240b",
+  "reason": "Historical source inspection for feda533ebc9e97c47a09e878f21959d2835c3460..bf4a95d3137399e81179fee0dd93071d398259ca.",
+  "currentAcceptanceRequired": false
+}
