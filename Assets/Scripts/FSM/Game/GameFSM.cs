@@ -103,10 +103,8 @@ namespace ZWebGLFrameWork.FSM
 
         private bool _initialized;
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
             InitializeFSM();
         }
 

@@ -71,11 +71,8 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== Unity 生命周期 ====================
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
-
             LoadAndApplyConfig();
             VerifyConfigApplied();
         }

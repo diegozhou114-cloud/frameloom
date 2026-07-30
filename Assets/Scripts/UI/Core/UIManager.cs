@@ -25,10 +25,8 @@ namespace ZWebGLFrameWork.UI
         private readonly Dictionary<Type, UIBase> _panelCache = new Dictionary<Type, UIBase>();
         private GameObject _ownedEventSystem;
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
             Initialize();
         }
 

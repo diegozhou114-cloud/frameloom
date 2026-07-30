@@ -41,11 +41,8 @@ namespace ZWebGLFrameWork.Gameplay
         public SceneServices Current { get; private set; }
         public event Action<SceneServices> Changed;
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
-
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
             Scene active = SceneManager.GetActiveScene();

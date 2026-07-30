@@ -42,10 +42,7 @@ namespace ZWebGLFrameWork.Core
         /// <summary>当前组件是否为基类持有的主实例</summary>
         protected bool IsPrimaryInstance => ReferenceEquals(_instance, this);
 
-        // TODO(singleton-template-method): 当前修复完成后，可评估由基类统一调用
-        // OnSingletonAwake，避免后续派生类遗漏主实例守卫。
-
-        protected virtual void Awake()
+        protected void Awake()
         {
             if (_instance != null && _instance != this)
             {
@@ -55,7 +52,11 @@ namespace ZWebGLFrameWork.Core
 
             _instance = this as T;
             DontDestroyOnLoad(gameObject);
+            OnSingletonAwake();
         }
+
+        /// <summary>仅在当前组件成为主实例后调用的初始化钩子</summary>
+        protected virtual void OnSingletonAwake() { }
 
         protected virtual void OnDestroy()
         {

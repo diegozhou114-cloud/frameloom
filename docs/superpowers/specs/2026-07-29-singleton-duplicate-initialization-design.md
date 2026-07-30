@@ -1,7 +1,7 @@
 # Singleton Duplicate Initialization Design
 
 **Date:** 2026-07-29
-**Status:** Approach A approved; awaiting written-spec review
+**Status:** Approach B implemented on 2026-07-30.
 
 ## Goal
 
@@ -13,39 +13,44 @@ must have no initialization side effects.
 ## Scope
 
 This change covers the singleton base contract and every current production
-class that overrides its `Awake` method:
+class that previously overrode its `Awake` method:
 
 - `DataManager`;
 - `UIManager`;
 - `GameFSM`;
+- `GameLauncher`;
 - `NetworkManager`;
 - `CombatManager`; and
 - `SceneServiceRegistry`.
 
-Other `SingletonDontDestroy<T>` subclasses inherit the base `Awake` directly
-and therefore require no mechanical edits. The change does not alter ordinary
+Other `SingletonDontDestroy<T>` subclasses already inherit the base `Awake`
+directly and therefore require no mechanical edits. The change does not alter ordinary
 `Singleton<T>`, gameplay behavior, FSM transition rules, network protocols,
 server code, or resource-provider selection.
 
-## Selected Design: Explicit Primary-Instance Guard
+## Implemented Design: Base-Controlled Template Method
 
-`SingletonDontDestroy<T>` exposes a protected, read-only primary-instance
-predicate backed by its existing `_instance` field. Its `Awake` continues to:
+`SingletonDontDestroy<T>.Awake` is now a non-virtual Unity lifecycle entry.
+It continues to:
 
 1. schedule a duplicate GameObject for destruction and return; or
-2. assign the first instance and call `DontDestroyOnLoad`.
+2. assign the first instance, call `DontDestroyOnLoad`, and invoke
+   `OnSingletonAwake`.
 
-Each overriding `Awake` calls `base.Awake()` first and then returns immediately
-when the predicate is false. Only the primary instance may continue with its
-manager-specific initialization.
+Only the primary instance reaches the protected virtual `OnSingletonAwake`
+hook. The seven former `Awake` overrides now implement that hook, so their
+existing initialization code is unchanged while the base class owns duplicate
+rejection and ordering.
 
-The predicate does not call `Instance`, search the scene, create an object, or
-introduce a dependency between managers. It reports only whether the current
-component is the instance already owned by its generic base class.
+C# prevents a subclass from overriding this base `Awake`. A PlayMode
+architecture test additionally scans the production assembly and fails if any
+`SingletonDontDestroy<T>` descendant declares its own `Awake`, including a
+method that would hide rather than override the base entry. This makes a future
+lifecycle bypass a test failure rather than a silent runtime regression.
 
-`SceneServiceRegistry` replaces its local pre-base duplicate calculation with
-the same post-base guard. This removes the only hand-written variation and
-makes all six lifecycle entries follow one readable convention.
+`IsPrimaryInstance` remains available for non-initialization callbacks. In
+particular, `GameLauncher.Start`, `GameFSM.OnApplicationPause`, and primary-only
+destruction cleanup retain their existing guards and timing.
 
 ## Resulting Behavior
 
@@ -59,27 +64,17 @@ makes all six lifecycle entries follow one readable convention.
 - Duplicate GameObjects remain subject to Unity's normal delayed `Destroy`;
   they are inert during that delay.
 
-## Deferred Option B
-
-TODO: After the current repair series is complete, consider replacing the
-explicit derived guards with a base-controlled template method such as
-`OnSingletonAwake`. That optimization would make omission impossible for new
-subclasses, but it is deliberately excluded now because it changes the
-lifecycle shape of every subclass and requires a broader migration and review.
-
-The implementation will also leave a concise TODO beside the base lifecycle
-contract so this follow-up remains discoverable from production code.
-
 ## Tests and Verification
 
 Tests are written before production changes and must first reproduce the bug.
 The focused PlayMode coverage will prove:
 
-1. a test singleton identifies only its first component as primary and does
-   not run duplicate derived initialization;
+1. a test singleton runs `OnSingletonAwake` only for its first component and
+   does not initialize a duplicate;
 2. creating a duplicate `DataManager` publishes `DataReady` only once; and
 3. creating a duplicate `UIManager` does not add a second
-   `BuildingInfoController` or UI layer hierarchy.
+   `BuildingInfoController` or UI layer hierarchy; and
+4. no production `SingletonDontDestroy<T>` descendant declares `Awake`.
 
 After the focused RED/GREEN run, verification includes the complete PlayMode
 and EditMode suites. Every Unity batch invocation follows the project rule:
@@ -89,10 +84,10 @@ processes before starting the next invocation.
 
 ## Failure Handling
 
-- A false predicate on the first instance is a contract failure and must be
-  caught by the focused base test.
-- Any duplicate initialization event or created UI dependency fails the
-  focused manager tests.
+- A base lifecycle entry that Unity does not invoke would leave the test probe
+  uninitialized and fail the focused base test.
+- Any duplicate initialization event, created UI dependency, or direct
+  production `Awake` declaration fails the focused PlayMode suite.
 - A compilation failure, test failure, unexpected Unity process, or incomplete
   result file blocks commit and push.
 - The implementation change is committed and pushed to `gitee/master` only

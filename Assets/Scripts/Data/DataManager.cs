@@ -21,10 +21,8 @@ namespace ZWebGLFrameWork.Data
         /// <summary>数据是否已初始化</summary>
         public bool IsReady { get; private set; }
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
             Initialize();
         }
 

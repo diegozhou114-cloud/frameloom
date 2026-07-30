@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,10 +26,8 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
                 InitializationCount = 0;
             }
 
-            protected override void Awake()
+            protected override void OnSingletonAwake()
             {
-                base.Awake();
-                if (!IsPrimaryInstance) return;
                 WasInitialized = true;
                 InitializationCount++;
             }
@@ -114,6 +113,58 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
             Assert.That(GameFSM.Instance, Is.SameAs(primary));
             Assert.That(pauseCallback, Is.Not.Null);
             Assert.DoesNotThrow(() => pauseCallback.Invoke(duplicate, new object[] { true }));
+        }
+
+        [Test]
+        public void ProductionDontDestroySingletons_DoNotDeclareAwake()
+        {
+            foreach (Type type in ProductionTypes())
+            {
+                if (!InheritsDontDestroySingleton(type))
+                    continue;
+
+                for (Type candidate = type; candidate != null;
+                     candidate = candidate.BaseType)
+                {
+                    if (candidate.IsGenericType && candidate.GetGenericTypeDefinition() ==
+                        typeof(SingletonDontDestroy<>))
+                        break;
+
+                    MethodInfo awake = candidate.GetMethod("Awake", BindingFlags.Instance |
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                    Assert.That(awake, Is.Null,
+                        candidate.FullName + " must use OnSingletonAwake");
+                }
+            }
+        }
+
+        private static IEnumerable<Type> ProductionTypes()
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                string name = assembly.GetName().Name;
+                if (string.IsNullOrEmpty(name) ||
+                    !name.StartsWith("ZWebGLFrameWork.", StringComparison.Ordinal) ||
+                    name.EndsWith(".Tests", StringComparison.Ordinal) ||
+                    name.EndsWith(".Editor", StringComparison.Ordinal))
+                    continue;
+
+                foreach (Type type in assembly.GetTypes())
+                    yield return type;
+            }
+        }
+
+        private static bool InheritsDontDestroySingleton(Type type)
+        {
+            for (Type candidate = type.BaseType; candidate != null;
+                 candidate = candidate.BaseType)
+            {
+                if (candidate.IsGenericType &&
+                    candidate.GetGenericTypeDefinition() == typeof(SingletonDontDestroy<>))
+                    return true;
+            }
+
+            return false;
         }
 
         [Test]

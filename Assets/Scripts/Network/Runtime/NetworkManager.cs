@@ -13,10 +13,8 @@ namespace ZWebGLFrameWork.Network
         public IHttpApi Http { get; private set; }
         public RealtimeConnectionController Realtime { get; private set; }
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
             Http = new UnityHttpApi();
             Realtime = new RealtimeConnectionController(
                 RealtimeChannelFactoryRegistry.Current ?? throw new InvalidOperationException(

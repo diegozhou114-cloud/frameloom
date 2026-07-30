@@ -39,10 +39,8 @@ namespace ZWebGLFrameWork.Combat
         public int CurrentWave => _modeProfile == null
             ? 0 : _modeProfile.WaveTicks.Count(tick => tick <= CompletedTick);
 
-        protected override void Awake()
+        protected override void OnSingletonAwake()
         {
-            base.Awake();
-            if (!IsPrimaryInstance) return;
             _sessionFactory = new SimBattleSessionFactory();
             _canonicalManifestBytes = FrameworkBattleContent.CanonicalBytes();
             _battleInitFactory = new BattleInitFactory(_canonicalManifestBytes);
