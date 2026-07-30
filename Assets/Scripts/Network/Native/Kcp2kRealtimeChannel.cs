@@ -316,7 +316,12 @@ namespace ZWebGLFrameWork.Network.Native
                     if (accepted.Error != ProtocolError.None ||
                         accepted.Kind != RealtimeMessageKind.AuthAccepted ||
                         accepted.AuthAccepted.SessionId != _credentials.SessionId)
+                    {
+                        _connectCompletion.TrySetException(new InvalidOperationException(
+                            "Invalid authenticated KCP handshake."));
+                        _pumpCancellation?.Cancel();
                         return;
+                    }
                     _authenticatedEndpoint = _pendingEndpoint;
                     _state = RealtimeChannelState.Connected;
                     _connectCompletion.TrySetResult(true);

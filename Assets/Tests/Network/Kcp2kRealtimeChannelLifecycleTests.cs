@@ -62,6 +62,27 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
+        public async Task WrongSessionAuthenticatedAcceptance_FailsConnectAndStopsPump()
+        {
+            var client = new ControlledKcp2kClient(TestCredentials.Valid)
+            {
+                AcceptedSessionId = Guid.NewGuid()
+            };
+            using var channel = CreateChannel(client);
+
+            Task connect = channel.ConnectAsync(
+                Endpoint, TestCredentials.Valid, CancellationToken.None);
+
+            Assert.That(
+                await Task.WhenAny(connect, Task.Delay(TimeSpan.FromSeconds(1))),
+                Is.SameAs(connect));
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await connect);
+            Assert.That(channel.State, Is.EqualTo(RealtimeChannelState.Disconnected));
+            Assert.That(client.DisposeCount, Is.EqualTo(1));
+            AssertTicksStop(client);
+        }
+
+        [Test]
         public async Task RemoteDisconnect_StopsPumpAndWakesPendingReceiver()
         {
             var client = new ControlledKcp2kClient(TestCredentials.Valid);
@@ -206,6 +227,7 @@ namespace ZWebGLFrameWork.Network.Tests
         private int _tickCount;
 
         public Exception ConnectException { get; set; }
+        public Guid? AcceptedSessionId { get; set; }
         public int DisposeCount => Volatile.Read(ref _disposeCount);
         public int TickCount => Volatile.Read(ref _tickCount);
 
@@ -230,7 +252,7 @@ namespace ZWebGLFrameWork.Network.Tests
             if (Interlocked.Exchange(ref _accepted, 1) != 0) return;
             byte[] accepted = RealtimeCodec.Encode(new AuthAccepted
             {
-                SessionId = _credentials.SessionId,
+                SessionId = AcceptedSessionId ?? _credentials.SessionId,
                 LastAuthorityTick = -1,
                 TimelineRevision = 0
             });
