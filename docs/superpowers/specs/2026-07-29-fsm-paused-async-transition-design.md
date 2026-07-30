@@ -190,10 +190,13 @@ transition is treated as an uncommitted transaction:
 3. call the previous state's `OnEnter` with the data captured before its
    `OnExit`, rebuilding its complete active lifetime.
 
-The original `OnEnter` exception is rethrown. Any re-entrant requests queued by
-the failed transition are discarded by the outer transition pump, so a failed
-entry cannot commit a later target. Event callbacks run only after the new
-state entry succeeds and are therefore outside this rollback boundary.
+When compensation succeeds, the original `OnEnter` exception is rethrown. If
+the failed target's cleanup or the previous state's rebuild also throws, that
+compensation exception propagates after the references have been restored.
+Any re-entrant requests queued by the failed transition are discarded by the
+outer transition pump, so a failed entry cannot commit a later target. Event
+callbacks run only after the new state entry succeeds and are therefore outside
+this rollback boundary.
 
 ## Tests and Verification
 
