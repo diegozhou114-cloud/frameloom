@@ -1,6 +1,7 @@
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.FSM;
 
@@ -12,7 +13,9 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             "OnApplicationFocus", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly PropertyInfo ConfigProperty = typeof(GameLauncher).GetProperty(
             "Config", BindingFlags.Static | BindingFlags.Public);
-        private static readonly FieldInfo InstanceField = typeof(GameLauncher).GetField(
+        private static readonly PropertyInfo ReadyProperty = typeof(GameLauncher).GetProperty(
+            "IsReady", BindingFlags.Static | BindingFlags.Public);
+        private static readonly FieldInfo InstanceField = typeof(SingletonDontDestroy<GameLauncher>).GetField(
             "_instance", BindingFlags.Static | BindingFlags.NonPublic);
         private readonly object[] _unfocused = { false };
         private readonly object[] _focused = { true };
@@ -27,6 +30,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             _targetFrameRate = Application.targetFrameRate;
             Assert.That(FocusMethod, Is.Not.Null);
             Assert.That(ConfigProperty, Is.Not.Null);
+            Assert.That(ReadyProperty, Is.Not.Null);
             Assert.That(InstanceField, Is.Not.Null);
         }
 
@@ -66,6 +70,32 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
             Assert.That(Application.targetFrameRate, Is.EqualTo(_config.RuntimeFrameRate));
         }
 
+        [Test]
+        public void OnDestroy_WhenCurrentLauncherIsDestroyed_ClearsStaticState()
+        {
+            GameLauncher launcher = CreateLauncher(CreateConfig(autoDetect: false, sourceThrottle: true));
+            SetReady(true);
+
+            Object.DestroyImmediate(launcher.gameObject);
+            _launcherObject = null;
+
+            Assert.That(InstanceField.GetValue(null), Is.Null);
+            Assert.That(GameLauncher.Config, Is.Null);
+            Assert.That(GameLauncher.IsReady, Is.False);
+        }
+
+        [Test]
+        public void GameLauncher_UsesSharedDontDestroySingletonBase()
+        {
+            System.Type baseType = typeof(GameLauncher).BaseType;
+
+            Assert.That(baseType, Is.Not.Null);
+            Assert.That(baseType.IsGenericType, Is.True);
+            Assert.That(baseType.GetGenericTypeDefinition(),
+                Is.EqualTo(typeof(SingletonDontDestroy<>)));
+            Assert.That(baseType.GetGenericArguments(), Is.EqualTo(new[] { typeof(GameLauncher) }));
+        }
+
         private GameLauncher CreateLauncher(AppConfig config)
         {
             _config = config;
@@ -88,6 +118,9 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
 
         private static void SetConfig(AppConfig config) =>
             ConfigProperty.GetSetMethod(nonPublic: true).Invoke(null, new object[] { config });
+
+        private static void SetReady(bool ready) =>
+            ReadyProperty.GetSetMethod(nonPublic: true).Invoke(null, new object[] { ready });
 
         private static void SetField(AppConfig config, string name, object value)
         {

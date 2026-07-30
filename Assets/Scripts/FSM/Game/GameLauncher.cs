@@ -15,7 +15,7 @@ namespace ZWebGLFrameWork.FSM
     /// 4. 处理失焦/恢复时的帧率切换（省电模式）
     /// </summary>
     [DisallowMultipleComponent]
-    public class GameLauncher : MonoBehaviour
+    public class GameLauncher : SingletonDontDestroy<GameLauncher>
     {
         /// <summary>已加载的应用配置（全局访问入口）</summary>
         public static AppConfig Config { get; private set; }
@@ -28,8 +28,6 @@ namespace ZWebGLFrameWork.FSM
         [SerializeField] private string _configPath = "Config/AppConfig";
 
         private AppConfig _config;
-        private static GameLauncher _instance;
-
         // ==================== 自动创建 ====================
 
         /// <summary>
@@ -65,16 +63,10 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== Unity 生命周期 ====================
 
-        private void Awake()
+        protected override void Awake()
         {
-            // 防止重复实例（场景中手动放置 + 自动创建并发保护）
-            if (_instance != null && _instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
+            base.Awake();
+            if (!IsPrimaryInstance) return;
 
             LoadAndApplyConfig();
             VerifyConfigApplied();
@@ -82,12 +74,23 @@ namespace ZWebGLFrameWork.FSM
 
         private void Start()
         {
+            if (!IsPrimaryInstance) return;
             VillageRuntimeBootstrap.EnsureCreated();
             // 触发 GameFSM 实例化：SingletonDontDestroy 在首次访问 Instance 时自动创建，
             // 其 Awake 中注册所有状态，Start 中触发 Launch 状态
             var fsm = GameFSM.Instance;
             IsReady = true;
             Debug.Log($"[GameLauncher] GameFSM 已就绪 → 当前状态: {fsm.CurrentState}");
+        }
+
+        protected override void OnDestroy()
+        {
+            if (IsPrimaryInstance)
+            {
+                Config = null;
+                IsReady = false;
+            }
+            base.OnDestroy();
         }
 
         private void OnApplicationFocus(bool hasFocus)
