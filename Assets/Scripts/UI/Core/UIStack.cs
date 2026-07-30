@@ -122,16 +122,22 @@ namespace ZWebGLFrameWork.UI
         /// <summary>关闭指定面板并从栈中移除，自动恢复</summary>
         public void Pop(UIBase panel)
         {
-            Remove(panel, forceInactiveAfterClose: false);
+            Remove(panel, forceInactiveAfterClose: false, closeImmediately: false);
+        }
+
+        /// <summary>立即关闭指定面板，用于终止性 UI 清理。</summary>
+        internal void PopImmediately(UIBase panel)
+        {
+            Remove(panel, forceInactiveAfterClose: false, closeImmediately: true);
         }
 
         /// <summary>回滚失败的打开，保证关闭后的可见性和暂停状态恢复。</summary>
         internal void Rollback(UIBase panel)
         {
-            Remove(panel, forceInactiveAfterClose: true);
+            Remove(panel, forceInactiveAfterClose: true, closeImmediately: false);
         }
 
-        private void Remove(UIBase panel, bool forceInactiveAfterClose)
+        private void Remove(UIBase panel, bool forceInactiveAfterClose, bool closeImmediately)
         {
             if (panel == null) return;
 
@@ -146,7 +152,7 @@ namespace ZWebGLFrameWork.UI
                 RemoveFromMiddle(stack, panel);
                 try
                 {
-                    panel.DoClose();
+                    ClosePanel(panel, closeImmediately);
                 }
                 finally
                 {
@@ -159,12 +165,18 @@ namespace ZWebGLFrameWork.UI
             stack.Pop();
             try
             {
-                panel.DoClose();
+                ClosePanel(panel, closeImmediately);
             }
             finally
             {
                 CompleteRemoval(panel, layer, stack, wasTop: true, forceInactiveAfterClose);
             }
+        }
+
+        private static void ClosePanel(UIBase panel, bool closeImmediately)
+        {
+            if (closeImmediately) panel.DoCloseImmediately();
+            else panel.DoClose();
         }
 
         private void CompleteRemoval(UIBase panel, UILayer layer, Stack<UIBase> stack, bool wasTop,
@@ -211,6 +223,13 @@ namespace ZWebGLFrameWork.UI
                     panel.DoClose();
                 }
             }
+        }
+
+        /// <summary>丢弃全部栈所有权，不触发生命周期回调。</summary>
+        internal void DiscardAll()
+        {
+            foreach (Stack<UIBase> stack in _stacks.Values)
+                stack.Clear();
         }
 
         /// <summary>关闭指定层级及以上的所有面板</summary>

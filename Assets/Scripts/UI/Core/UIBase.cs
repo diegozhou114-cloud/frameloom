@@ -165,6 +165,18 @@ namespace ZWebGLFrameWork.UI
             }
         }
 
+        /// <summary>立即完成关闭生命周期，用于终止性 UI 清理。</summary>
+        internal void DoCloseImmediately()
+        {
+            if (!IsOpen) return;
+
+            int closeVersion = ++_lifecycleVersion;
+            IsOpen = false;
+            IsPaused = false;
+            _animation?.Stop();
+            CompleteClose(closeVersion);
+        }
+
         private void CompleteClose(int closeVersion)
         {
             if (_lifecycleVersion != closeVersion) return;

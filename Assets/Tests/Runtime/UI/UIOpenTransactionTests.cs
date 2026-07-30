@@ -94,6 +94,63 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
         }
 
         [UnityTest]
+        public IEnumerator CloseAll_WhenOnCloseOpensPanel_RejectsReentryAndCleansCache()
+        {
+            UIManager manager = CreateManager();
+            yield return null;
+
+            CloseAllReentrantPanel panel = manager.Open<CloseAllReentrantPanel>();
+
+            Assert.DoesNotThrow(() => manager.CloseAll());
+
+            Assert.That(panel.CloseCount, Is.EqualTo(1));
+            Assert.That(panel.IsOpen, Is.False);
+            Assert.That(panel.gameObject.activeSelf, Is.False);
+            Assert.That(manager.Get<CloseAllReentrantPanel>(), Is.Null);
+            Assert.That(manager.Get<CloseAllOpenedPanel>(), Is.Null);
+            Assert.That(Object.FindObjectsOfType<CloseAllOpenedPanel>(true), Is.Empty);
+            Assert.That(GetStack(manager).Count(UILayer.Normal), Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator CloseAll_WhenPanelCloseThrows_DiscardsRemainingStackOwnership()
+        {
+            UIManager manager = CreateManager();
+            yield return null;
+
+            manager.Open<ThrowingCloseAllPanel>();
+            manager.Open<CloseAllStablePanel>();
+
+            Assert.Throws<InvalidOperationException>(() => manager.CloseAll());
+            yield return null;
+
+            Assert.That(manager.Get<ThrowingCloseAllPanel>(), Is.Null);
+            Assert.That(manager.Get<CloseAllStablePanel>(), Is.Null);
+            Assert.That(GetStack(manager).Count(UILayer.Normal), Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator CloseAll_WhenPanelHasCloseAnimation_CompletesCloseLifecycleImmediately()
+        {
+            UIManager manager = CreateManager();
+            yield return null;
+
+            CloseAllAnimatedPanel panel = CreateOwnedObject("CloseAllAnimatedPanel")
+                .AddComponent<CloseAllAnimatedPanel>();
+            UIAnimation animation = panel.gameObject.AddComponent<UIAnimation>();
+            ConfigureCloseAnimation(panel, animation, 10f);
+            GetPanelCache(manager)[typeof(CloseAllAnimatedPanel)] = panel;
+
+            manager.Open<CloseAllAnimatedPanel>();
+            manager.CloseAll();
+
+            Assert.That(panel.CloseCount, Is.EqualTo(1));
+            Assert.That(panel.IsOpen, Is.False);
+            Assert.That(manager.Get<CloseAllAnimatedPanel>(), Is.Null);
+            Assert.That(GetStack(manager).Count(UILayer.Normal), Is.Zero);
+        }
+
+        [UnityTest]
         public IEnumerator Open_WhenSameTypeReenters_RebindsOneOwnedInstance()
         {
             UIManager manager = CreateManager();
@@ -332,7 +389,8 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
         private static Dictionary<Type, UIBase> GetPanelCache(UIManager manager) =>
             (Dictionary<Type, UIBase>)PanelCacheField.GetValue(manager);
 
-        private static void ConfigureCloseAnimation(UIBase panel, UIAnimation animation)
+        private static void ConfigureCloseAnimation(
+            UIBase panel, UIAnimation animation, float closeDuration = 0f)
         {
             AnimationField.SetValue(panel, animation);
             typeof(UIAnimation).GetField("_openType", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -340,7 +398,7 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
             typeof(UIAnimation).GetField("_closeType", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(animation, UIAnimationType.Fade);
             typeof(UIAnimation).GetField("_closeDuration", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(animation, 0f);
+                .SetValue(animation, closeDuration);
         }
 
         private static int CountOccurrences(UIStack stack, UIBase target)
@@ -384,6 +442,38 @@ namespace ZWebGLFrameWork.Runtime.Tests.UI
                 CloseCount++;
                 UIManager.Instance.Open<AnimatedReopeningOnClosePanel>("reopened");
             }
+        }
+
+        private sealed class CloseAllReentrantPanel : UIBase
+        {
+            public int CloseCount { get; private set; }
+
+            protected override void OnClose()
+            {
+                CloseCount++;
+                UIManager.Instance.Open<CloseAllOpenedPanel>();
+            }
+        }
+
+        private sealed class CloseAllOpenedPanel : UIBase
+        {
+        }
+
+        private sealed class ThrowingCloseAllPanel : UIBase
+        {
+            protected override void OnClose() =>
+                throw new InvalidOperationException("close all failed");
+        }
+
+        private sealed class CloseAllStablePanel : UIBase
+        {
+        }
+
+        private sealed class CloseAllAnimatedPanel : UIBase
+        {
+            public int CloseCount { get; private set; }
+
+            protected override void OnClose() => CloseCount++;
         }
 
         private sealed class SameTypeReentrantPanel : UIBase

@@ -24,6 +24,7 @@ namespace ZWebGLFrameWork.UI
         private readonly Dictionary<UILayer, int> _layerPanelCounts = new Dictionary<UILayer, int>();
         private readonly Dictionary<Type, UIBase> _panelCache = new Dictionary<Type, UIBase>();
         private GameObject _ownedEventSystem;
+        private bool _isClosingAll;
 
         protected override void OnSingletonAwake()
         {
@@ -119,6 +120,8 @@ namespace ZWebGLFrameWork.UI
         /// <returns>面板实例</returns>
         public T Open<T>(object data = null) where T : UIBase
         {
+            if (_isClosingAll) return null;
+
             var type = typeof(T);
 
             // 已打开面板只重绑数据；暂停/恢复由 UIStack 统一管理
@@ -215,19 +218,32 @@ namespace ZWebGLFrameWork.UI
         /// <summary>关闭所有面板</summary>
         public void CloseAll()
         {
-            // 先通过 UIStack 正常关闭（触发 DoClose 生命周期）
-            foreach (var kv in _panelCache)
+            if (_isClosingAll) return;
+
+            _isClosingAll = true;
+            try
             {
-                if (kv.Value != null && kv.Value.IsOpen)
-                    _stack.Pop(kv.Value);
+                // 先通过 UIStack 正常关闭（触发 DoClose 生命周期）
+                foreach (var kv in _panelCache)
+                {
+                    if (kv.Value != null && kv.Value.IsOpen)
+                        _stack.PopImmediately(kv.Value);
+                }
             }
-            // 然后销毁所有缓存的面板 GameObject
-            foreach (var kv in _panelCache)
+            finally
             {
-                if (kv.Value != null)
-                    Destroy(kv.Value.gameObject);
+                _stack.DiscardAll();
+                // 然后销毁所有缓存的面板 GameObject
+                foreach (var kv in _panelCache)
+                {
+                    if (kv.Value != null)
+                        Destroy(kv.Value.gameObject);
+                }
+                _panelCache.Clear();
+                foreach (UILayer layer in Enum.GetValues(typeof(UILayer)))
+                    _layerPanelCounts[layer] = 0;
+                _isClosingAll = false;
             }
-            _panelCache.Clear();
         }
 
         // ==================== 获取面板 ====================
