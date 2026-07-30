@@ -176,6 +176,25 @@ Pause a permitted substitute source for Launch or Login transitions.
 - Resume emits the existing Pause-to-source event, followed by the normal
   source-to-target event only when the deferred request executes successfully.
 
+### Transition entry failure (Approach B)
+
+Normal transitions keep the new state as the current state while `OnEnter`
+runs. This is required because an entering state may submit a re-entrant
+transition through the existing queue. If that `OnEnter` throws, the
+transition is treated as an uncommitted transaction:
+
+1. call `OnExit` on the failed target so its partially-created lifetime and
+   subscriptions are released;
+2. restore the previous current and previous-state references without
+   publishing `OnStateChanged`; and
+3. call the previous state's `OnEnter` with the data captured before its
+   `OnExit`, rebuilding its complete active lifetime.
+
+The original `OnEnter` exception is rethrown. Any re-entrant requests queued by
+the failed transition are discarded by the outer transition pump, so a failed
+entry cannot commit a later target. Event callbacks run only after the new
+state entry succeeds and are therefore outside this rollback boundary.
+
 ## Tests and Verification
 
 Focused tests must be written and observed failing before production edits.
@@ -200,7 +219,9 @@ They will prove:
 9. a controllable Launch pipeline completing during Pause transitions only
    after resume; and
 10. Login and Battle use their existing cancellation identities during Pause
-    while continuing to reject completions after exit.
+    while continuing to reject completions after exit; and
+11. a failed `OnEnter` cleans up the target, restores the previous state and
+    its entry data, preserves the original exception, and emits no event.
 
 After focused RED/GREEN evidence, run the complete PlayMode and EditMode suites.
 Every Unity invocation must start only after confirming zero Unity processes,

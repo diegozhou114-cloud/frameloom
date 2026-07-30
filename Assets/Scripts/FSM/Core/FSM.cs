@@ -234,18 +234,41 @@ namespace ZWebGLFrameWork.FSM
 
             // 退出旧状态
             var oldState = _currentState;
+            var oldStateEnterData = oldState?.EnterData;
             if (oldState != null)
             {
                 oldState.OnExit();
             }
 
             // 记录
+            var previousState = _previousState;
             _previousState = oldState;
             var oldStateId = oldState != null ? oldState.StateId : default;
 
             // 进入新状态
             _currentState = newState;
-            newState.OnEnter(request.Data);
+            try
+            {
+                newState.OnEnter(request.Data);
+            }
+            catch
+            {
+                // OnEnter is part of the transition transaction. Clean up the
+                // failed state and rebuild the previous state's full lifetime.
+                try
+                {
+                    newState.OnExit();
+                }
+                finally
+                {
+                    _currentState = oldState;
+                    _previousState = previousState;
+                    if (oldState != null)
+                        oldState.OnEnter(oldStateEnterData);
+                }
+
+                throw;
+            }
 
             // 事件通知
             OnStateChanged?.Invoke(new FSMTransition<T>(
