@@ -115,5 +115,19 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
 
             Assert.That(warning, Is.Not.Null);
         }
+
+        [Test]
+        public void LaunchState_BusinessContentUpdatePolicy_OnlyStopsForFailure()
+        {
+            MethodInfo policy = typeof(LaunchState).GetMethod("CanContinueAfterBusinessUpdate",
+                BindingFlags.Static | BindingFlags.NonPublic);
+
+            Assert.That((bool)policy.Invoke(null, new object[]
+                { BusinessContentUpdateResult.NotConfigured() }), Is.True);
+            Assert.That((bool)policy.Invoke(null, new object[]
+                { BusinessContentUpdateResult.NoUpdate() }), Is.True);
+            Assert.That((bool)policy.Invoke(null, new object[]
+                { BusinessContentUpdateResult.Failed("unavailable") }), Is.False);
+        }
     }
 }

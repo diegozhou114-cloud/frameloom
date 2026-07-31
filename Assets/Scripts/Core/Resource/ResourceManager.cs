@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ namespace ZWebGLFrameWork.Core
     {
         private IResourceProvider _frameworkProvider;
         private IResourceProvider _businessProvider;
+        private IBusinessContentUpdater _businessContentUpdater;
 
         /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
@@ -35,6 +37,7 @@ namespace ZWebGLFrameWork.Core
             {
                 _frameworkProvider ??= new ResourcesProvider();
                 _businessProvider ??= new ResourcesProvider();
+                _businessContentUpdater ??= new UnconfiguredBusinessContentUpdater();
 
                 IsReady = true;
                 Debug.Log("[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider");
@@ -65,6 +68,32 @@ namespace ZWebGLFrameWork.Core
 
             previousProvider?.UnloadUnused();
             IsReady = true;
+        }
+
+        /// <summary>配置业务内容更新器。更新器无法访问框架资源加载器。</summary>
+        public void SetBusinessContentUpdater(IBusinessContentUpdater updater)
+        {
+            _businessContentUpdater = updater ?? throw new ArgumentNullException(nameof(updater));
+        }
+
+        /// <summary>准备业务内容；仅成功结果可以替换业务资源加载器。</summary>
+        public async UniTask<BusinessContentUpdateResult> PrepareBusinessContentAsync(
+            CancellationToken token)
+        {
+            IBusinessContentUpdater updater = _businessContentUpdater ??=
+                new UnconfiguredBusinessContentUpdater();
+            BusinessContentUpdateResult result = await updater.PrepareAsync(token);
+            if (result == null)
+                return BusinessContentUpdateResult.Failed("业务内容更新器未返回结果。");
+
+            if (result.Status != BusinessContentUpdateStatus.Updated)
+                return result;
+
+            if (result.BusinessProvider == null)
+                return BusinessContentUpdateResult.Failed("业务内容更新成功但未提供资源加载器。");
+
+            SetBusinessProvider(result.BusinessProvider);
+            return result;
         }
 
         // ==================== 公开 API ====================

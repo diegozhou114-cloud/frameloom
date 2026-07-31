@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using System.Reflection;
+using System.Threading;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Runtime.Tests.Support;
@@ -47,6 +48,19 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
             public T Load<T>(string path) where T : Object => null;
             public void Unload(string path) { }
             public void UnloadUnused() { }
+        }
+
+        private sealed class FakeBusinessUpdater : IBusinessContentUpdater
+        {
+            private readonly BusinessContentUpdateResult _result;
+
+            public FakeBusinessUpdater(BusinessContentUpdateResult result)
+            {
+                _result = result;
+            }
+
+            public UniTask<BusinessContentUpdateResult> PrepareAsync(CancellationToken token) =>
+                UniTask.FromResult(_result);
         }
 
         [Test]
@@ -137,6 +151,45 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
             PropertyInfo frameworkProvider = typeof(ResourceManager).GetProperty("FrameworkProvider",
                 BindingFlags.Instance | BindingFlags.Public);
             Assert.That(frameworkProvider?.CanWrite, Is.False);
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task
+            ResourceManager_DefaultBusinessUpdaterReportsNotConfigured()
+        {
+            var manager = CreateOwnedObject("ResourceManager").AddComponent<ResourceManager>();
+            Assert.That(manager.Init(), Is.True);
+
+            BusinessContentUpdateResult result =
+                await manager.PrepareBusinessContentAsync(CancellationToken.None);
+
+            Assert.That(result.Status, Is.EqualTo(BusinessContentUpdateStatus.NotConfigured));
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task
+            ResourceManager_UpdatedBusinessContentInstallsOnlyBusinessProvider()
+        {
+            var manager = CreateOwnedObject("ResourceManager").AddComponent<ResourceManager>();
+            var businessAsset = ScriptableObject.CreateInstance<AssetMarker>();
+            try
+            {
+                Assert.That(manager.Init(), Is.True);
+                manager.SetBusinessContentUpdater(new FakeBusinessUpdater(
+                    BusinessContentUpdateResult.Updated(new FakeProvider(businessAsset))));
+
+                BusinessContentUpdateResult result =
+                    await manager.PrepareBusinessContentAsync(CancellationToken.None);
+
+                Assert.That(result.Status, Is.EqualTo(BusinessContentUpdateStatus.Updated));
+                Assert.That(await manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "content/item"),
+                    Is.SameAs(businessAsset));
+                Assert.That(manager.FrameworkProvider, Is.TypeOf<ResourcesProvider>());
+            }
+            finally
+            {
+                Object.DestroyImmediate(businessAsset);
+            }
         }
     }
 }

@@ -137,21 +137,34 @@ namespace ZWebGLFrameWork.FSM
         }
 
         // ─── 管线步骤 ⑤：热更新检查 ───
-        private UniTask<bool> HandleHotUpdate(
+        private async UniTask<bool> HandleHotUpdate(
             AppConfig cfg, float progress, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             BootProfiler.BeginPhase("Phase2_HotUpdate");
             if (cfg.EnableHotUpdate)
             {
-                // TODO(YooAsset): Resource updates and package delivery are deferred until the
-                // formal project content pipeline is defined. Preserve the serialized switch,
-                // but never invoke the legacy download implementation from startup.
-                Debug.LogWarning("[LaunchState] TODO(YooAsset): 热更新与资源分包尚未接入，跳过旧下载流程。");
+                BusinessContentUpdateResult result =
+                    await ResourceManager.Instance.PrepareBusinessContentAsync(token);
+                if (!CanContinueAfterBusinessUpdate(result))
+                {
+                    PublishError("BusinessHotUpdate", result.Message, true);
+                    return false;
+                }
+
+                if (result.Status == BusinessContentUpdateStatus.NotConfigured)
+                {
+                    Debug.LogWarning("[LaunchState] TODO(YooAsset) TODO(Huatuo): 业务热更未接入，使用本地业务内容。");
+                }
             }
             else Debug.Log("[LaunchState] ⏭ 热更已关闭");
 
-            return UniTask.FromResult(true);
+            return true;
+        }
+
+        private static bool CanContinueAfterBusinessUpdate(BusinessContentUpdateResult result)
+        {
+            return result.Status != BusinessContentUpdateStatus.Failed;
         }
 
         // ─── 管线步骤 ⑥~⑦：数据预加载与场景跳转 ───
