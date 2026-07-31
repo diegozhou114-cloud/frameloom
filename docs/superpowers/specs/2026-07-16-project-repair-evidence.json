@@ -363,14 +363,51 @@
       "replacementEvidence": []
     },
     "BUILD-004": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
-      "replacementEvidence": []
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/133abaf7ed354a2dfde69d7fd37124e73e0bbdbdf6a7c9dc952f8277b933c762.json",
+          "sha256": "133abaf7ed354a2dfde69d7fd37124e73e0bbdbdf6a7c9dc952f8277b933c762",
+          "bytes": 1150
+        }
+      ],
+      "fixCommits": [
+        "1706ea6830fa8812e6edca198de7392b8821c32f",
+        "10c4f83c191e8ca1e3f1eb950822e92b04f36402"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0.xml",
+          "sha256": "75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0",
+          "bytes": 4100
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/7deecc5e4c2727ec6940ab9d6d39345057939e33ab3809f6fb7bdac297d9c083.xml",
+          "sha256": "7deecc5e4c2727ec6940ab9d6d39345057939e33ab3809f6fb7bdac297d9c083",
+          "bytes": 3814
+        },
+        {
+          "path": "docs/superpowers/evidence/artifacts/75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0.xml",
+          "sha256": "75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0",
+          "bytes": 4100
+        }
+      ],
+      "closureMode": "RemovedByReplacement",
+      "closedAt": "2026-07-31",
+      "replacementEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/7deecc5e4c2727ec6940ab9d6d39345057939e33ab3809f6fb7bdac297d9c083.xml",
+          "sha256": "7deecc5e4c2727ec6940ab9d6d39345057939e33ab3809f6fb7bdac297d9c083",
+          "bytes": 3814
+        },
+        {
+          "path": "docs/superpowers/evidence/artifacts/75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0.xml",
+          "sha256": "75855ad699a15dc3e268a5ab3e98c3b5b0efbfaa6a1364f4c241b7d14c76c8e0",
+          "bytes": 4100
+        }
+      ]
     },
     "CI-001": {
       "status": "Open",

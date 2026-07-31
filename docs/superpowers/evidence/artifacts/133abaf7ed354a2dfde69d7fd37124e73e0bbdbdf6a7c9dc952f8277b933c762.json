@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "b44a975375ad35f9984e25ba7eb99110e27180b1",
+  "fixCommits": [
+    "1706ea6830fa8812e6edca198de7392b8821c32f"
+  ],
+  "acceptanceMethod": "CombatAssembly_CombatBootstrap_Compiles",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Editor/AutoFixProcessor.cs",
+    "Assets/Scripts/Combat/Core/CombatBootstrap.cs",
+    "Assets/Scripts/Gameplay/Economy/ResourceProducer.cs",
+    "Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs",
+    "Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs",
+    "Assets/Tests/Editor.meta",
+    "Assets/Tests/Editor/CompilationBaselineTests.cs",
+    "Assets/Tests/Editor/CompilationBaselineTests.cs.meta",
+    "Assets/Tests/Editor/ZWebGLFrameWork.Editor.Tests.asmdef",
+    "Assets/Tests/Editor/ZWebGLFrameWork.Editor.Tests.asmdef.meta"
+  ],
+  "gitDiffSha256": "eaf42171a60e5fa78b28bcb8bc0d54c54f72234e8f758997a6d34f4dfe4f47ad",
+  "reason": "Historical source inspection for b44a975375ad35f9984e25ba7eb99110e27180b1..1706ea6830fa8812e6edca198de7392b8821c32f.",
+  "currentAcceptanceRequired": false
+}

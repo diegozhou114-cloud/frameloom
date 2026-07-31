@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.3607887">
+  <test-suite type="TestSuite" id="1250" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.360789" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1025" name="ZWebGLFrameWork.Combat.PlayModeTests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Combat.PlayModeTests.dll" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.342813" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23454" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1026" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.340700" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1027" name="Combat" fullname="ZWebGLFrameWork.Combat" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.340321" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1028" name="PlayModeTests" fullname="ZWebGLFrameWork.Combat.PlayModeTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.339953" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1014" name="SimulationBattleFlowPlayModeTests" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.336566" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1016" name="BattleState_UsesSingleSimulationSession_EndToEnd" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.BattleState_UsesSingleSimulationSession_EndToEnd" methodname="BattleState_UsesSingleSimulationSession_EndToEnd" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1911654450" result="Passed" start-time="2026-07-31 07:31:23Z" end-time="2026-07-31 07:31:23Z" duration="0.306363" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FrameworkBattleContent] Using framework fallback battle content.
+Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

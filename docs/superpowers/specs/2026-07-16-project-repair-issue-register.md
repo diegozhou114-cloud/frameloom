@@ -19,7 +19,7 @@
 | BUILD-001 | P0 | `Assets/Editor/AutoFixProcessor.cs:82,108,132-143` 的 `FindUsingInsertPosition` 方法签名丢失，留下类级裸代码块。 | 恢复合法方法并通过 Editor 程序集编译。 | `EditorAssembly_AutoFixProcessor_Compiles` | G1 |
 | BUILD-002 | P0 | `Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs:12` 与 `SimAttackSystem.cs:14` 使用无参数类型的 `ref` lambda，C# 语法无效。 | 使用与 `ForEachEntities` 委托完全一致的显式参数类型。 | `SimulationSystems_RefDelegates_Compile` | G1 |
 | BUILD-003 | P0 | `Assets/Scripts/Gameplay/Economy/ResourceProducer.cs:63,69,75` 使用 `Math.Min` 但未导入 `System`。 | Gameplay 程序集编译通过。 | `GameplayAssembly_ResourceProducer_Compiles` | G1 |
-| BUILD-004 | P0 | `Assets/Scripts/Combat/Core/CombatBootstrap.cs:17` 使用 `Debug` 但未导入 `UnityEngine`。 | Combat 程序集编译通过。 | `CombatAssembly_CombatBootstrap_Compiles` | G1 |
+| BUILD-004 | P0 | 原 `Assets/Scripts/Combat/Core/CombatBootstrap.cs:17` 使用 `Debug` 但未导入 `UnityEngine`；该 Legacy 实现已由单一 Simulation Session 路径替代并删除。 | Legacy Combat 源码/开关不存在，`CombatManager` 仅经 `ISimBattleSession` 完成战斗。 | `LegacyCombat_SourceAndToggleAreAbsent`; `BattleState_UsesSingleSimulationSession_EndToEnd` | G1/G2/G5 |
 | ASSET-001 | P1 | 已跟踪 Assets 中存在大量缺失 `.meta` 的文件/目录，并有 `Assets/Scripts/Core/Async.meta` 孤儿。 | 固定编辑器导入后所有资产/目录有稳定 GUID、零孤儿，Git 保持干净。 | `RepositoryMetaAudit_HasNoMissingOrOrphanedMeta` | G0/G5 |
 | ASSET-002 | P0 | 仓库没有单位 Prefab 或 `Config/ViewConfig.asset`，`PoolPrewarmer` 与表现桥无法解析生产资源键。 | 所有必需单位/View 资源存在且 BuildValidator 缺失时直接失败。 | `RequiredRuntimeAssets_AllProductionKeysResolve` | G0/G2/G5 |
 | SCENE-001 | P0 | `ProjectSettings/EditorBuildSettings.asset:7` 场景列表为空；BuildScript 又扫描所有场景而非启用顺序。 | `Launcher.unity` 为启用的 scene 0，构建严格使用启用列表。 | `BuildScenes_LauncherIsEnabledSceneZero` | G0/G5 |
