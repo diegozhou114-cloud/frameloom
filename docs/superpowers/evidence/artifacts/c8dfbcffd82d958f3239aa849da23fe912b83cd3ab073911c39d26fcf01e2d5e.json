@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "7f80e89438cda8fa19eea153b9d43bc220e6943d",
+  "fixCommits": [
+    "9f68c91019855e63d1f8c80ffc6e381df7c0b48f"
+  ],
+  "acceptanceMethod": "UnityAndValidator_SameBattleInitAndCommands_SameTickResults",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandRecorder.cs",
+    "Assets/Scripts/SimulationCore/Command/ReplayFile.cs",
+    "Assets/Scripts/SimulationCore/Command/ReplayPlayback.cs",
+    "Assets/Scripts/SimulationCore/Command/ReplayPlayback.cs.meta",
+    "Assets/Tests/SimulationCore/ReplayFixture.cs",
+    "Assets/Tests/SimulationCore/ReplayFixture.cs.meta",
+    "Assets/Tests/SimulationCore/ReplaySessionRoundTripTests.cs",
+    "Assets/Tests/SimulationCore/ReplaySessionRoundTripTests.cs.meta",
+    "Server/ReplayValidator/ReplayValidator.cs",
+    "Server/ReplayValidator/ServerReplayJsonCodec.cs",
+    "Server/ReplayValidator/StrictJsonDocument.cs",
+    "Server/SimulationCore.Tests/ReplayRoundTripTests.cs",
+    "Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj"
+  ],
+  "gitDiffSha256": "8a87bfe54ff8f0c03aab3304ad1f9aa88cf5ad128b6c220f6a76abebe0961e3e",
+  "reason": "Historical source inspection for 7f80e89438cda8fa19eea153b9d43bc220e6943d..9f68c91019855e63d1f8c80ffc6e381df7c0b48f.",
+  "currentAcceptanceRequired": false
+}

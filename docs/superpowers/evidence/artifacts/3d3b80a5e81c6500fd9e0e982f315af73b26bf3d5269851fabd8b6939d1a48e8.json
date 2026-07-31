@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "ad4ea26181d6ccd103270d086758237d84237b74",
+  "fixCommits": [
+    "4ab793b2f81be5c76550a373cfd15f273d2e3bb2"
+  ],
+  "acceptanceMethod": "SnapshotRestore_ForeignSchemaCorruptOrStale_IsRejectedAtomically",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Tests/SimulationCore/SessionDeterminismTests.cs"
+  ],
+  "gitDiffSha256": "b9884f35bc1111630611ec477a9e08f0578898451fac7a9df9d1706249a796fc",
+  "reason": "Historical source inspection for ad4ea26181d6ccd103270d086758237d84237b74..4ab793b2f81be5c76550a373cfd15f273d2e3bb2.",
+  "currentAcceptanceRequired": false
+}
