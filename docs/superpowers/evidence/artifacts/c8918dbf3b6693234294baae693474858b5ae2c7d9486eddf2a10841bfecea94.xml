@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Failed(Child)" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.1709106">
+  <test-suite type="TestSuite" id="1244" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="180" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.170911" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1233" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="164" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.154975" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="81534" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1234" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="164" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.152264" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1235" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="164" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.151208" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1236" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="164" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.150323" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1242" name="Data" fullname="ZWebGLFrameWork.Runtime.Tests.Data" runstate="Runnable" testcasecount="53" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.147762" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1211" name="SaveValidationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.142568" total="5" passed="0" failed="5" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1216" name="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" methodname="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="181429852" result="Failed" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.088217" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: property Count equal to 4
+  But was:  0
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically () [0x00062] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveValidationTests.cs:130
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1213" name="InvalidBuilding_LeavesPlayerAndVillageUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.InvalidBuilding_LeavesPlayerAndVillageUnchanged" methodname="InvalidBuilding_LeavesPlayerAndVillageUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="637198266" result="Failed" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.011303" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: False
+  But was:  True
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.InvalidBuilding_LeavesPlayerAndVillageUnchanged () [0x00099] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveValidationTests.cs:60
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1214" name="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" methodname="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="419396232" result="Failed" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.002759" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: False
+  But was:  True
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap () [0x00179] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveValidationTests.cs:89
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1212" name="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" methodname="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="1131788948" result="Failed" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.002675" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: False
+  But was:  True
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged () [0x00091] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveValidationTests.cs:32
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1215" name="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" methodname="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="540868281" result="Failed" start-time="2026-07-31 02:46:03Z" end-time="2026-07-31 02:46:03Z" duration="0.006571" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: 1
+  But was:  0
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible () [0x00077] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveValidationTests.cs:113
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

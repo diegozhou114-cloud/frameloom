@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.3586984">
+  <test-suite type="TestSuite" id="1250" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.358698" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1239" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.342502" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="97244" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1240" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.339831" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1241" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.338780" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1242" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.337921" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1248" name="Data" fullname="ZWebGLFrameWork.Runtime.Tests.Data" runstate="Runnable" testcasecount="58" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.335604" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1211" name="SaveRuntimeRebindTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.330512" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1212" name="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" methodname="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="854943230" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.176907" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1213" name="MainVillageState_ModelReplacement_RebindsResourceProducer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_RebindsResourceProducer" methodname="MainVillageState_ModelReplacement_RebindsResourceProducer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="1438851068" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.044057" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[GameFSM] 退出主城状态
+]]></output>
+                </test-case>
+                <test-case id="1214" name="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_ResetsAutosaveBaseline" methodname="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="1097201341" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.009034" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[GameFSM] 退出主城状态
+]]></output>
+                </test-case>
+                <test-case id="1215" name="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" methodname="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="705899406" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.056030" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1216" name="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.VillageRenderer_ModelReplacement_UnsubscribesOldVillage" methodname="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="675875892" result="Passed" start-time="2026-07-31 05:31:40Z" end-time="2026-07-31 05:31:40Z" duration="0.011903" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

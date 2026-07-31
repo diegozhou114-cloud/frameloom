@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.1964443">
+  <test-suite type="TestSuite" id="1244" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="180" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.196444" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1233" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="164" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.180945" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="82154" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1234" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="164" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.178327" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1235" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="164" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.177202" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1236" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="164" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.176287" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1242" name="Data" fullname="ZWebGLFrameWork.Runtime.Tests.Data" runstate="Runnable" testcasecount="53" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.173837" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1211" name="SaveValidationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.170080" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1216" name="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" methodname="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="145336653" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.118474" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1213" name="InvalidBuilding_LeavesPlayerAndVillageUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.InvalidBuilding_LeavesPlayerAndVillageUnchanged" methodname="InvalidBuilding_LeavesPlayerAndVillageUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="608254910" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.008809" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1214" name="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" methodname="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="1575060099" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.004065" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1212" name="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" methodname="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="310059180" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.003093" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1215" name="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" methodname="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="511508527" result="Passed" start-time="2026-07-31 02:52:51Z" end-time="2026-07-31 02:52:51Z" duration="0.005780" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

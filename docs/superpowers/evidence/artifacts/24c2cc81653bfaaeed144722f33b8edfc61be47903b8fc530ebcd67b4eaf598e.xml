@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Failed(Child)" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.3732732">
+  <test-suite type="TestSuite" id="1250" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="185" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.373273" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1239" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="169" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.357208" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="97143" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1240" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="169" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.354837" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1241" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="169" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.353822" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1242" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="169" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.352972" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1248" name="Data" fullname="ZWebGLFrameWork.Runtime.Tests.Data" runstate="Runnable" testcasecount="58" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.350556" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1211" name="SaveRuntimeRebindTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.346386" total="5" passed="3" failed="2" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1212" name="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" methodname="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="734294647" result="Passed" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:16Z" duration="0.169990" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1213" name="MainVillageState_ModelReplacement_RebindsResourceProducer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_RebindsResourceProducer" methodname="MainVillageState_ModelReplacement_RebindsResourceProducer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="1679508845" result="Passed" start-time="2026-07-31 05:30:16Z" end-time="2026-07-31 05:30:17Z" duration="0.043355" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[GameFSM] 退出主城状态
+]]></output>
+                </test-case>
+                <test-case id="1214" name="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_ResetsAutosaveBaseline" methodname="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="738320494" result="Failed" start-time="2026-07-31 05:30:17Z" end-time="2026-07-31 05:30:17Z" duration="0.026836" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: False
+  But was:  True
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_ResetsAutosaveBaseline () [0x00088] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveRuntimeRebindTests.cs:75
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+]]></output>
+                </test-case>
+                <test-case id="1215" name="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" methodname="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="1686739349" result="Failed" start-time="2026-07-31 05:30:17Z" end-time="2026-07-31 05:30:17Z" duration="0.062357" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: None
+  But was:  Building
+]]></message>
+                    <stack-trace><![CDATA[at ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests+<ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel>d__3.MoveNext () [0x000fe] in /Users/diegozhou/Documents/unityframework/zweb-master-merge/Assets/Tests/Runtime/Data/SaveRuntimeRebindTests.cs:100
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@1.4.6/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:44
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1216" name="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.VillageRenderer_ModelReplacement_UnsubscribesOldVillage" methodname="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="1943194840" result="Passed" start-time="2026-07-31 05:30:17Z" end-time="2026-07-31 05:30:17Z" duration="0.012416" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
