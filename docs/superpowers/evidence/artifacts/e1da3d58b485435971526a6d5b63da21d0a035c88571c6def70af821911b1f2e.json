@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "c6ce0ccccf15bdacbc2843991960731a8b8cb6ef",
+  "fixCommits": [
+    "fc5765bda5e9ba96d1ce7bc46ae0ea2e0138cc7c"
+  ],
+  "acceptanceMethod": "WebGlHttpApi_RejectsInsecureHttpEndpoint",
+  "testPresentBefore": false,
+  "testPresentAfter": false,
+  "paths": [
+    ".gitattributes",
+    "Assets/Scripts/Network/UnityHttp.meta",
+    "Assets/Scripts/Network/UnityHttp/GuestLoginModels.cs",
+    "Assets/Scripts/Network/UnityHttp/GuestLoginModels.cs.meta",
+    "Assets/Scripts/Network/UnityHttp/UnityHttpApi.cs",
+    "Assets/Scripts/Network/UnityHttp/UnityHttpApi.cs.meta",
+    "Assets/Scripts/Network/UnityHttp/ZWebGLFrameWork.Network.UnityHttp.asmdef",
+    "Assets/Scripts/Network/UnityHttp/ZWebGLFrameWork.Network.UnityHttp.asmdef.meta",
+    "Assets/Tests/Network/UnityHttpApiTests.cs",
+    "Assets/Tests/Network/UnityHttpApiTests.cs.meta",
+    "Assets/Tests/Network/ZWebGLFrameWork.Network.Tests.asmdef"
+  ],
+  "gitDiffSha256": "717eebeb205426c3403db7ca8e250a70efbd9c30406b74cd9a707ceb21735e21",
+  "reason": "Historical source inspection for c6ce0ccccf15bdacbc2843991960731a8b8cb6ef..fc5765bda5e9ba96d1ce7bc46ae0ea2e0138cc7c.",
+  "currentAcceptanceRequired": true
+}
