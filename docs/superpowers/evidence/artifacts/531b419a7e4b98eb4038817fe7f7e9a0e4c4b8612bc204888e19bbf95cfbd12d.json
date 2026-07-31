@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "566a68c060c943be190f9a735781df939dd9bf20",
+  "fixCommits": [
+    "e1d6341fea800722da54073b012f20e8a88f730c"
+  ],
+  "acceptanceMethod": "ResourceProducer_AddRemoveUpgrade_RecalculatesAndStopUnsubscribes",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Gameplay/Economy/ResourceProducer.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerLifecycleTests.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerLifecycleTests.cs.meta"
+  ],
+  "gitDiffSha256": "edf78a4cb49117766cb776cb1675c5aa2cac14b26a2253ce646995657982566b",
+  "reason": "Historical source inspection for 566a68c060c943be190f9a735781df939dd9bf20..e1d6341fea800722da54073b012f20e8a88f730c.",
+  "currentAcceptanceRequired": false
+}
