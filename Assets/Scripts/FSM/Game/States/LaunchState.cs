@@ -93,8 +93,8 @@ namespace ZWebGLFrameWork.FSM
 
             // ─── ② 资源管理器 ───
             PublishProgress("资源管理器...", 0.10f);
-            if (!ResourceManager.Instance.Init(
-                CreateResourceProvider(cfg.ResourceProvider)))
+            WarnOnUnsupportedResourceProvider(cfg.ResourceProvider);
+            if (!ResourceManager.Instance.Init())
                 PublishError("ResourceManager", "资源管理器初始化失败，将使用默认 Resources 模式");
 
             // ─── ③ 场景加载器 ───
@@ -205,11 +205,10 @@ namespace ZWebGLFrameWork.FSM
 
         // ==================== 辅助方法 ====================
 
-        private static IResourceProvider CreateResourceProvider(ResourceProviderType type)
+        private static void WarnOnUnsupportedResourceProvider(ResourceProviderType type)
         {
             if (type != ResourceProviderType.Resources)
                 Debug.LogWarning($"[LaunchState] {type} is reserved for TODO(YooAsset); using ResourcesProvider.");
-            return new ResourcesProvider();
         }
 
         private static void PublishProgress(string phase, float progress, string hint = "")

@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -105,13 +106,14 @@ namespace ZWebGLFrameWork.Runtime.Tests.FSM
         public void LaunchState_LegacyResourceProviderSelection_FallsBackToResources(
             ResourceProviderType configuredProvider)
         {
-            MethodInfo factory = typeof(LaunchState).GetMethod("CreateResourceProvider",
+            MethodInfo warning = typeof(LaunchState).GetMethod("WarnOnUnsupportedResourceProvider",
                 BindingFlags.Static | BindingFlags.NonPublic);
 
-            IResourceProvider provider = (IResourceProvider)factory.Invoke(
-                null, new object[] { configuredProvider });
+            LogAssert.Expect(UnityEngine.LogType.Warning,
+                new Regex($"{configuredProvider} is reserved for TODO\\(YooAsset\\)"));
+            warning.Invoke(null, new object[] { configuredProvider });
 
-            Assert.That(provider, Is.TypeOf<ResourcesProvider>());
+            Assert.That(warning, Is.Not.Null);
         }
     }
 }

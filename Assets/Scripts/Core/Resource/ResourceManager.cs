@@ -7,25 +7,21 @@ namespace ZWebGLFrameWork.Core
 {
     /// <summary>
     /// 资源管理器 — 跨场景单例，统一资源加载入口。
-    /// 支持运行时切换 Provider，内置 LRU 缓存。
-    /// 
-    /// 用法：
-    ///   ResourceManager.SetProvider(new ResourcesProvider());
-    ///   var prefab = await ResourceManager.LoadAsync<GameObject>("UI/Panels/Main");
+    /// 框架资源固定本地加载，业务资源可由后续内容更新系统替换。
     /// </summary>
     public class ResourceManager : SingletonDontDestroy<ResourceManager>
     {
-        private IResourceProvider _provider;
+        private IResourceProvider _frameworkProvider;
+        private IResourceProvider _businessProvider;
 
         /// <summary>是否已初始化</summary>
         public bool IsReady { get; private set; }
 
-        /// <summary>当前资源加载器</summary>
-        public IResourceProvider Provider
-        {
-            get => _provider ??= new ResourcesProvider();
-            set => SetProvider(value);
-        }
+        /// <summary>固定的框架资源加载器。没有公开替换入口。</summary>
+        public IResourceProvider FrameworkProvider => _frameworkProvider ??= new ResourcesProvider();
+
+        /// <summary>当前业务资源加载器。</summary>
+        public IResourceProvider BusinessProvider => _businessProvider ??= new ResourcesProvider();
 
         /// <summary>
         /// 初始化资源管理器。
@@ -33,17 +29,15 @@ namespace ZWebGLFrameWork.Core
         /// TODO(YooAsset): 正式项目接入资源更新与分包管理时，使用 YooAsset Provider 替换当前加载策略；
         /// 目前不构建或加载 AssetBundle。
         /// </summary>
-        public bool Init(IResourceProvider customProvider = null)
+        public bool Init()
         {
             try
             {
-                if (customProvider != null && !ReferenceEquals(_provider, customProvider))
-                    SetProvider(customProvider);
-                else
-                    _provider ??= new ResourcesProvider();
+                _frameworkProvider ??= new ResourcesProvider();
+                _businessProvider ??= new ResourcesProvider();
 
                 IsReady = true;
-                Debug.Log($"[ResourceManager] ✅ 初始化完成 — Provider: {_provider.GetType().Name}");
+                Debug.Log("[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider");
                 return true;
             }
             catch (System.Exception ex)
@@ -53,8 +47,8 @@ namespace ZWebGLFrameWork.Core
             }
         }
 
-        /// <summary>切换加载器（自动清理旧缓存）</summary>
-        public void SetProvider(IResourceProvider newProvider)
+        /// <summary>替换业务资源加载器（自动清理业务缓存）。</summary>
+        public void SetBusinessProvider(IResourceProvider newProvider)
         {
             if (newProvider == null)
                 throw new ArgumentNullException(nameof(newProvider));
@@ -62,10 +56,11 @@ namespace ZWebGLFrameWork.Core
             IResourceProvider previousProvider;
             lock (_cacheLock)
             {
-                _cache.Clear();
-                _providerVersion++;
-                previousProvider = _provider;
-                _provider = newProvider;
+                if (ReferenceEquals(_businessProvider, newProvider)) return;
+                _businessCache.Clear();
+                _businessProviderVersion++;
+                previousProvider = _businessProvider;
+                _businessProvider = newProvider;
             }
 
             previousProvider?.UnloadUnused();
@@ -75,41 +70,53 @@ namespace ZWebGLFrameWork.Core
         // ==================== 公开 API ====================
 
         /// <summary>异步加载资源（带缓存）</summary>
-        public async UniTask<T> LoadAsync<T>(string path) where T : UnityEngine.Object
+        public UniTask<T> LoadAsync<T>(string path) where T : UnityEngine.Object =>
+            LoadAsync<T>(ResourceLayer.Framework, path);
+
+        /// <summary>按资源层级异步加载资源（带独立缓存）。</summary>
+        public async UniTask<T> LoadAsync<T>(ResourceLayer layer, string path)
+            where T : UnityEngine.Object
         {
-            if (TryGetCache<T>(path, out var cached))
+            if (TryGetCache<T>(layer, path, out var cached))
                 return cached;
 
-            IResourceProvider provider = Provider;
-            int providerVersion = _providerVersion;
+            IResourceProvider provider = GetProvider(layer);
+            int providerVersion = GetProviderVersion(layer);
             var asset = await provider.LoadAsync<T>(path);
             if (asset != null)
-                SetCacheIfCurrent(path, asset, provider, providerVersion);
+                SetCacheIfCurrent(layer, path, asset, provider, providerVersion);
             return asset;
         }
 
         /// <summary>同步加载资源（仅 Resources 模式）</summary>
-        public T Load<T>(string path) where T : UnityEngine.Object
+        public T Load<T>(string path) where T : UnityEngine.Object =>
+            Load<T>(ResourceLayer.Framework, path);
+
+        /// <summary>按资源层级同步加载资源。</summary>
+        public T Load<T>(ResourceLayer layer, string path) where T : UnityEngine.Object
         {
-            if (TryGetCache<T>(path, out var cached))
+            if (TryGetCache<T>(layer, path, out var cached))
                 return cached;
 
-            IResourceProvider provider = Provider;
-            int providerVersion = _providerVersion;
+            IResourceProvider provider = GetProvider(layer);
+            int providerVersion = GetProviderVersion(layer);
             var asset = provider.Load<T>(path);
             if (asset != null)
-                SetCacheIfCurrent(path, asset, provider, providerVersion);
+                SetCacheIfCurrent(layer, path, asset, provider, providerVersion);
             return asset;
         }
 
         /// <summary>卸载指定路径的资源</summary>
-        public void Unload(string path)
+        public void Unload(string path) => Unload(ResourceLayer.Framework, path);
+
+        /// <summary>卸载指定层级中指定路径的资源。</summary>
+        public void Unload(ResourceLayer layer, string path)
         {
             lock (_cacheLock)
             {
-                _cache.Remove(path);
+                GetCache(layer).Remove(path);
             }
-            Provider.Unload(path);
+            GetProvider(layer).Unload(path);
         }
 
         /// <summary>清空所有缓存并卸载未使用资源</summary>
@@ -117,44 +124,60 @@ namespace ZWebGLFrameWork.Core
         {
             lock (_cacheLock)
             {
-                _cache.Clear();
+                _frameworkCache.Clear();
+                _businessCache.Clear();
             }
-            Provider.UnloadUnused();
+            FrameworkProvider.UnloadUnused();
+            if (!ReferenceEquals(FrameworkProvider, BusinessProvider))
+                BusinessProvider.UnloadUnused();
         }
 
         // ==================== 缓存 ====================
 
-        private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _cache = new();
+        private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _frameworkCache = new();
+        private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _businessCache = new();
         private readonly object _cacheLock = new object();
-        private int _providerVersion;
+        private int _businessProviderVersion;
 
-        private bool TryGetCache<T>(string key, out T asset) where T : UnityEngine.Object
+        private bool TryGetCache<T>(ResourceLayer layer, string key, out T asset)
+            where T : UnityEngine.Object
         {
             lock (_cacheLock)
             {
-                if (_cache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var obj))
+                Dictionary<string, WeakReference<UnityEngine.Object>> cache = GetCache(layer);
+                if (cache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var obj))
                 {
                     if (obj is T t)
                     {
                         asset = t;
                         return true;
                     }
-                    _cache.Remove(key); // 类型不匹配，移除
+                    cache.Remove(key); // 类型不匹配，移除
                 }
                 asset = null;
                 return false;
             }
         }
 
-        private void SetCacheIfCurrent<T>(string key, T asset, IResourceProvider provider,
+        private void SetCacheIfCurrent<T>(ResourceLayer layer, string key, T asset, IResourceProvider provider,
             int providerVersion) where T : UnityEngine.Object
         {
             lock (_cacheLock)
             {
-                if (!ReferenceEquals(_provider, provider) || _providerVersion != providerVersion)
+                if (!ReferenceEquals(GetProvider(layer), provider) ||
+                    GetProviderVersion(layer) != providerVersion)
                     return;
-                _cache[key] = new WeakReference<UnityEngine.Object>(asset);
+                GetCache(layer)[key] = new WeakReference<UnityEngine.Object>(asset);
             }
         }
+
+        private IResourceProvider GetProvider(ResourceLayer layer) =>
+            layer == ResourceLayer.Framework ? FrameworkProvider : BusinessProvider;
+
+        private int GetProviderVersion(ResourceLayer layer) =>
+            layer == ResourceLayer.Business ? _businessProviderVersion : 0;
+
+        private Dictionary<string, WeakReference<UnityEngine.Object>> GetCache(ResourceLayer layer) =>
+            layer == ResourceLayer.Framework ? _frameworkCache : _businessCache;
     }
 }

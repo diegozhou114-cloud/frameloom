@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
+using System.Reflection;
 using UnityEngine;
 using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Runtime.Tests.Support;
@@ -49,63 +50,57 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
         }
 
         [Test]
-        public async System.Threading.Tasks.Task ResourceManager_SetProvider_InvalidatesOldProviderCache()
+        public async System.Threading.Tasks.Task ResourceManager_BusinessLoadsUseBusinessProvider()
         {
             var manager = CreateOwnedObject("ResourceManager").AddComponent<ResourceManager>();
-            var firstAsset = ScriptableObject.CreateInstance<AssetMarker>();
-            var secondAsset = ScriptableObject.CreateInstance<AssetMarker>();
+            var businessAsset = ScriptableObject.CreateInstance<AssetMarker>();
             try
             {
-                var firstProvider = new FakeProvider(firstAsset);
-                var secondProvider = new FakeProvider(secondAsset);
+                Assert.That(manager.Init(), Is.True);
+                manager.SetBusinessProvider(new FakeProvider(businessAsset));
 
-                Assert.That(manager.Init(firstProvider), Is.True);
-                Assert.That(await manager.LoadAsync<AssetMarker>("shared/key"),
-                    Is.SameAs(firstAsset));
-
-                manager.SetProvider(secondProvider);
-
-                Assert.That(firstProvider.UnloadUnusedCalled, Is.True);
-                Assert.That(await manager.LoadAsync<AssetMarker>("shared/key"),
-                    Is.SameAs(secondAsset));
+                Assert.That(await manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "shared/key"),
+                    Is.SameAs(businessAsset));
             }
             finally
             {
-                Object.DestroyImmediate(firstAsset);
-                Object.DestroyImmediate(secondAsset);
+                Object.DestroyImmediate(businessAsset);
             }
         }
 
         [Test]
-        public async System.Threading.Tasks.Task ResourceManager_InitWithNewProvider_InvalidatesOldProviderCache()
+        public async System.Threading.Tasks.Task ResourceManager_BusinessProviderSwapKeepsFrameworkProvider()
         {
             var manager = CreateOwnedObject("ResourceManager").AddComponent<ResourceManager>();
-            var firstAsset = ScriptableObject.CreateInstance<AssetMarker>();
-            var secondAsset = ScriptableObject.CreateInstance<AssetMarker>();
+            var firstBusinessAsset = ScriptableObject.CreateInstance<AssetMarker>();
+            var secondBusinessAsset = ScriptableObject.CreateInstance<AssetMarker>();
             try
             {
-                var firstProvider = new FakeProvider(firstAsset);
-                var secondProvider = new FakeProvider(secondAsset);
-                Assert.That(manager.Init(firstProvider), Is.True);
-                Assert.That(await manager.LoadAsync<AssetMarker>("shared/key"),
-                    Is.SameAs(firstAsset));
+                Assert.That(manager.Init(), Is.True);
+                IResourceProvider frameworkProvider = manager.FrameworkProvider;
+                var firstProvider = new FakeProvider(firstBusinessAsset);
+                var secondProvider = new FakeProvider(secondBusinessAsset);
+                manager.SetBusinessProvider(firstProvider);
+                Assert.That(await manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "shared/key"),
+                    Is.SameAs(firstBusinessAsset));
 
-                Assert.That(manager.Init(secondProvider), Is.True);
+                manager.SetBusinessProvider(secondProvider);
 
                 Assert.That(firstProvider.UnloadUnusedCalled, Is.True);
-                Assert.That(await manager.LoadAsync<AssetMarker>("shared/key"),
-                    Is.SameAs(secondAsset));
+                Assert.That(manager.FrameworkProvider, Is.SameAs(frameworkProvider));
+                Assert.That(await manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "shared/key"),
+                    Is.SameAs(secondBusinessAsset));
             }
             finally
             {
-                Object.DestroyImmediate(firstAsset);
-                Object.DestroyImmediate(secondAsset);
+                Object.DestroyImmediate(firstBusinessAsset);
+                Object.DestroyImmediate(secondBusinessAsset);
             }
         }
 
         [Test]
         public async System.Threading.Tasks.Task
-            ResourceManager_SetProvider_DoesNotCacheAnInFlightOldProviderResult()
+            ResourceManager_BusinessProviderSwap_DoesNotCacheAnInFlightOldProviderResult()
         {
             var manager = CreateOwnedObject("ResourceManager").AddComponent<ResourceManager>();
             var firstAsset = ScriptableObject.CreateInstance<AssetMarker>();
@@ -114,14 +109,16 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
             {
                 var firstProvider = new DelayedProvider();
                 var secondProvider = new FakeProvider(secondAsset);
-                Assert.That(manager.Init(firstProvider), Is.True);
+                Assert.That(manager.Init(), Is.True);
+                manager.SetBusinessProvider(firstProvider);
 
-                UniTask<AssetMarker> pending = manager.LoadAsync<AssetMarker>("shared/key");
-                manager.SetProvider(secondProvider);
+                UniTask<AssetMarker> pending =
+                    manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "shared/key");
+                manager.SetBusinessProvider(secondProvider);
                 firstProvider.Complete(firstAsset);
 
                 Assert.That(await pending, Is.SameAs(firstAsset));
-                Assert.That(await manager.LoadAsync<AssetMarker>("shared/key"),
+                Assert.That(await manager.LoadAsync<AssetMarker>(ResourceLayer.Business, "shared/key"),
                     Is.SameAs(secondAsset));
             }
             finally
@@ -129,6 +126,17 @@ namespace ZWebGLFrameWork.Runtime.Tests.Core
                 Object.DestroyImmediate(firstAsset);
                 Object.DestroyImmediate(secondAsset);
             }
+        }
+
+        [Test]
+        public void ResourceManager_FrameworkProviderCannotBeReplacedThroughPublicApi()
+        {
+            Assert.That(typeof(ResourceManager).GetMethod("SetFrameworkProvider",
+                BindingFlags.Instance | BindingFlags.Public), Is.Null);
+
+            PropertyInfo frameworkProvider = typeof(ResourceManager).GetProperty("FrameworkProvider",
+                BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(frameworkProvider?.CanWrite, Is.False);
         }
     }
 }
