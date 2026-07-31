@@ -553,20 +553,20 @@
       ],
       "greenEvidence": [
         {
-          "path": "docs/superpowers/evidence/artifacts/4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977.xml",
-          "sha256": "4df734a18610050596fbf5652a07938e892508c67495c64ee58527d280d6d977",
-          "bytes": 15256
+          "path": "docs/superpowers/evidence/artifacts/b1d137b88dc1c8f8b2c3560a9af3ce3860ac8f8f05d118a361ac45ba69f6f629.xml",
+          "sha256": "b1d137b88dc1c8f8b2c3560a9af3ce3860ac8f8f05d118a361ac45ba69f6f629",
+          "bytes": 4386
         }
       ],
       "gateEvidence": [
         {
-          "path": "docs/superpowers/evidence/artifacts/89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc.xml",
-          "sha256": "89a5b186f811374d83a5046fff3accfaaf365a952baff3205aee495493cddccc",
-          "bytes": 185024
+          "path": "docs/superpowers/evidence/artifacts/b1d137b88dc1c8f8b2c3560a9af3ce3860ac8f8f05d118a361ac45ba69f6f629.xml",
+          "sha256": "b1d137b88dc1c8f8b2c3560a9af3ce3860ac8f8f05d118a361ac45ba69f6f629",
+          "bytes": 4386
         }
       ],
       "closureMode": "Fixed",
-      "closedAt": "2026-07-30",
+      "closedAt": "2026-07-31",
       "replacementEvidence": []
     },
     "CORE-002": {
