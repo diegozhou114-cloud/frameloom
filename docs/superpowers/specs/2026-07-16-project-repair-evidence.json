@@ -1482,14 +1482,46 @@
       "replacementEvidence": []
     },
     "NET-008": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
-      "replacementEvidence": []
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/4001ed43256b24c4e3bd8020705d5218f7c3c86750e0552205ad562e15345eb0.json",
+          "sha256": "4001ed43256b24c4e3bd8020705d5218f7c3c86750e0552205ad562e15345eb0",
+          "bytes": 5354
+        },
+        {
+          "path": "docs/superpowers/evidence/artifacts/07fe019bac09331cd32140e80c9d216ddc3e9183cbb4a1e7d70e44104040c5f2.json",
+          "sha256": "07fe019bac09331cd32140e80c9d216ddc3e9183cbb4a1e7d70e44104040c5f2",
+          "bytes": 3272
+        }
+      ],
+      "fixCommits": [
+        "e6e21b79db471197a403a05ea3a428cb6ac4fe90",
+        "e2461b568721adea643e7e8e1420f8889dcff819"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/0fd792894f7ee834f47f5ce8daf8dba72e0a08cc254d36c8801480b481fd374e.xml",
+          "sha256": "0fd792894f7ee834f47f5ce8daf8dba72e0a08cc254d36c8801480b481fd374e",
+          "bytes": 3806
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/a784037a1ea5d9431ef26051d15c50bcf0d109dccccb0993ef37923e896eca9e.xml",
+          "sha256": "a784037a1ea5d9431ef26051d15c50bcf0d109dccccb0993ef37923e896eca9e",
+          "bytes": 262029
+        }
+      ],
+      "closureMode": "RemovedByReplacement",
+      "closedAt": "2026-07-31",
+      "replacementEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/0fd792894f7ee834f47f5ce8daf8dba72e0a08cc254d36c8801480b481fd374e.xml",
+          "sha256": "0fd792894f7ee834f47f5ce8daf8dba72e0a08cc254d36c8801480b481fd374e",
+          "bytes": 3806
+        }
+      ]
     },
     "NET-009": {
       "status": "Open",
