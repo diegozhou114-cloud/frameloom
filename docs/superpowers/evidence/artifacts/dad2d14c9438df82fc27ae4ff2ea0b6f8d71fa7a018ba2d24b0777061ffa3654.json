@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "e1d6341fea800722da54073b012f20e8a88f730c",
+  "fixCommits": [
+    "dbc6d3b8656dd6b2c93f1221351e7aa413618f4b"
+  ],
+  "acceptanceMethod": "ResourceProducer_DarkElixirDrill_ProducesDarkElixirOnly",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Resources/Config/Buildings.json",
+    "Assets/Scripts/Data/Config/BuildingConfig.cs",
+    "Assets/Scripts/Gameplay/Economy/ResourceProducer.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerLifecycleTests.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerTypeTests.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerTypeTests.cs.meta"
+  ],
+  "gitDiffSha256": "1464ce67597dcd45c357ea99d1a7828f94af1b780a78048f729d31e9add65aac",
+  "reason": "Historical source inspection for e1d6341fea800722da54073b012f20e8a88f730c..dbc6d3b8656dd6b2c93f1221351e7aa413618f4b.",
+  "currentAcceptanceRequired": false
+}
