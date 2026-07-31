@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "d9528a2c0d66f2a0f3f72a6ba17fc5cfcc1a503a",
+  "fixCommits": [
+    "e2c24e7d14184a2b3e9d4106e296204f77a62023"
+  ],
+  "acceptanceMethod": "BattleState_UsesSingleSimulationSession_EndToEnd",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Combat/BattleParams.cs",
+    "Assets/Scripts/Combat/CombatManager.cs",
+    "Assets/Scripts/Combat/Presentation/UnityEntityViewFactory.cs",
+    "Assets/Scripts/Combat/Presentation/UnityEntityViewFactory.cs.meta",
+    "Assets/Scripts/Combat/Properties/AssemblyInfo.cs",
+    "Assets/Scripts/Combat/SimulationSyncBridge.cs",
+    "Assets/Scripts/FSM/Game/States/BattleState.cs",
+    "Assets/Scripts/FSM/Game/States/MainVillageState.cs",
+    "Assets/Scripts/FSM/ZWebGLFrameWork.FSM.asmdef",
+    "Assets/Scripts/UI/Panels/BattleHUD.cs",
+    "Assets/Scripts/UI/Panels/DeployPanel.cs",
+    "Assets/Scripts/UI/Panels/ResultPanel.cs",
+    "Assets/Scripts/UI/ZWebGLFrameWork.UI.asmdef",
+    "Assets/Tests/Editor/SimulationArchitectureTests.cs",
+    "Assets/Tests/Editor/SimulationArchitectureTests.cs.meta",
+    "Assets/Tests/PlayMode.meta",
+    "Assets/Tests/PlayMode/Combat.meta",
+    "Assets/Tests/PlayMode/Combat/SimulationBattleFlowPlayModeTests.cs",
+    "Assets/Tests/PlayMode/Combat/SimulationBattleFlowPlayModeTests.cs.meta",
+    "Assets/Tests/PlayMode/Combat/ZWebGLFrameWork.Combat.PlayModeTests.asmdef",
+    "Assets/Tests/PlayMode/Combat/ZWebGLFrameWork.Combat.PlayModeTests.asmdef.meta"
+  ],
+  "gitDiffSha256": "002a3b6e57497af30e87e0b5ac1c316645c089c3cfffab3a030fb1bcaf66938d",
+  "reason": "Historical source inspection for d9528a2c0d66f2a0f3f72a6ba17fc5cfcc1a503a..e2c24e7d14184a2b3e9d4106e296204f77a62023.",
+  "currentAcceptanceRequired": false
+}
