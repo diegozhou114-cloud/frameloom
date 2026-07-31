@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "57d27124f84dd518ce4a98d44cf687ca4a2b6bf7",
+  "fixCommits": [
+    "aec5d4032149dedeac4cb7d35acfa924c30a41ac"
+  ],
+  "acceptanceMethod": "TcpClient_DisconnectDuringConnect_DiscardsLateSocket",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Network/Runtime.meta",
+    "Assets/Scripts/Network/Runtime/IRealtimeChannelFactory.cs",
+    "Assets/Scripts/Network/Runtime/IRealtimeChannelFactory.cs.meta",
+    "Assets/Scripts/Network/Runtime/RealtimeChannelFactoryRegistry.cs",
+    "Assets/Scripts/Network/Runtime/RealtimeChannelFactoryRegistry.cs.meta",
+    "Assets/Scripts/Network/Runtime/RealtimeConnectionController.cs",
+    "Assets/Scripts/Network/Runtime/RealtimeConnectionController.cs.meta",
+    "Assets/Scripts/Network/Runtime/ZWebGLFrameWork.Network.Runtime.asmdef",
+    "Assets/Scripts/Network/Runtime/ZWebGLFrameWork.Network.Runtime.asmdef.meta",
+    "Assets/Tests/Network/RealtimeConnectionControllerTests.cs",
+    "Assets/Tests/Network/RealtimeConnectionControllerTests.cs.meta",
+    "Assets/Tests/Network/ZWebGLFrameWork.Network.Tests.asmdef",
+    "Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj"
+  ],
+  "gitDiffSha256": "b5c67f810b194bb7a0c045da100c3352b127aba66aa2bdbf23d22e7a40168953",
+  "reason": "Historical source inspection for 57d27124f84dd518ce4a98d44cf687ca4a2b6bf7..aec5d4032149dedeac4cb7d35acfa924c30a41ac.",
+  "currentAcceptanceRequired": false
+}
