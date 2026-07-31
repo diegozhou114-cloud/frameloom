@@ -1,0 +1,1748 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="185" result="Passed" total="185" passed="185" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:57:01Z" duration="2.6736416">
+  <test-suite type="TestSuite" id="1250" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:57:01Z" duration="2.673642" total="185" passed="185" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1008" name="Assembly-CSharp.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/Assembly-CSharp.dll" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.102278" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2526" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1009" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.100471" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1010" name="ECS" fullname="ZWebGLFrameWork.ECS" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.100205" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1011" name="Tests" fullname="ZWebGLFrameWork.ECS.Tests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.099979" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1001" name="WorldLifecycleTests" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.097549" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1005" name="ComponentQueries_ReturnFalseForInvalidAndDestroyedEntities" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.ComponentQueries_ReturnFalseForInvalidAndDestroyedEntities" methodname="ComponentQueries_ReturnFalseForInvalidAndDestroyedEntities" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="2056320475" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:58Z" duration="0.033668" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1006" name="ComponentWrites_RejectDestroyedEntities" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.ComponentWrites_RejectDestroyedEntities" methodname="ComponentWrites_RejectDestroyedEntities" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="1639797241" result="Passed" start-time="2026-07-31 05:56:58Z" end-time="2026-07-31 05:56:59Z" duration="0.015780" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1004" name="CreateEntity_AllowsZeroInitialCapacity" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.CreateEntity_AllowsZeroInitialCapacity" methodname="CreateEntity_AllowsZeroInitialCapacity" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="1599994035" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.007348" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1002" name="DestroyEntity_Twice_DoesNotCreateSimultaneousEntitiesWithTheSameId" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.DestroyEntity_Twice_DoesNotCreateSimultaneousEntitiesWithTheSameId" methodname="DestroyEntity_Twice_DoesNotCreateSimultaneousEntitiesWithTheSameId" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="132999827" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.006283" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1007" name="GetComponent_ReportsMissingComponentAfterWorldExpansion" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.GetComponent_ReportsMissingComponentAfterWorldExpansion" methodname="GetComponent_ReportsMissingComponentAfterWorldExpansion" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="798650984" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.002572" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1003" name="Reset_DoesNotAllowAPreResetEntityToDestroyItsReplacement" fullname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests.Reset_DoesNotAllowAPreResetEntityToDestroyItsReplacement" methodname="Reset_DoesNotAllowAPreResetEntityToDestroyItsReplacement" classname="ZWebGLFrameWork.ECS.Tests.WorldLifecycleTests" runstate="Runnable" seed="1419176733" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.004741" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1025" name="ZWebGLFrameWork.Combat.PlayModeTests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Combat.PlayModeTests.dll" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.930319" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2526" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1026" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.929336" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1027" name="Combat" fullname="ZWebGLFrameWork.Combat" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.928877" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1028" name="PlayModeTests" fullname="ZWebGLFrameWork.Combat.PlayModeTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.928723" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1014" name="SimulationBattleFlowPlayModeTests" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.928451" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1015" name="BattleState_CompletionPolicy_RequiresCurrentLiveLifetime" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.BattleState_CompletionPolicy_RequiresCurrentLiveLifetime" methodname="BattleState_CompletionPolicy_RequiresCurrentLiveLifetime" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1454648229" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.004350" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1017" name="BattleState_ExitBeforeStartCompletes_CancelsLateStart" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.BattleState_ExitBeforeStartCompletes_CancelsLateStart" methodname="BattleState_ExitBeforeStartCompletes_CancelsLateStart" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1376671782" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.257898" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[FrameworkBattleContent] Using framework fallback battle content.
+[GameFSM] 进入战斗状态
+[SaveManager] 保存成功: slot=0, path=/Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/save_0.json
+[BattleState] 阶段变更: Deploying
+[BattleState] 阶段变更: Idle
+[GameFSM] 退出战斗状态
+]]></output>
+              </test-case>
+              <test-case id="1016" name="BattleState_UsesSingleSimulationSession_EndToEnd" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.BattleState_UsesSingleSimulationSession_EndToEnd" methodname="BattleState_UsesSingleSimulationSession_EndToEnd" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1946408984" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.275670" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1018" name="CompletedBattle_ReentrantReplacementDoesNotCommitStaleResult" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.CompletedBattle_ReentrantReplacementDoesNotCommitStaleResult" methodname="CompletedBattle_ReentrantReplacementDoesNotCommitStaleResult" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="2145565672" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.253420" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1021" name="InitialPhase_ReentrantReplacementKeepsReplacementCompletion" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.InitialPhase_ReentrantReplacementKeepsReplacementCompletion" methodname="InitialPhase_ReentrantReplacementKeepsReplacementCompletion" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="677921067" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.014219" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1022" name="InitialPhase_ReentrantReplacementThenThrowKeepsCanceledCompletion" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.InitialPhase_ReentrantReplacementThenThrowKeepsCanceledCompletion" methodname="InitialPhase_ReentrantReplacementThenThrowKeepsCanceledCompletion" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="286374843" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.004673" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1024" name="StartBattle_WhenInitialPresentationThrows_CleansOwnedSessionAndViews" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.StartBattle_WhenInitialPresentationThrows_CleansOwnedSessionAndViews" methodname="StartBattle_WhenInitialPresentationThrows_CleansOwnedSessionAndViews" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1485142911" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.005620" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1023" name="StartBattle_WhenSessionStartThrows_DisposesCandidateAndLeavesNoActiveSession" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.StartBattle_WhenSessionStartThrows_DisposesCandidateAndLeavesNoActiveSession" methodname="StartBattle_WhenSessionStartThrows_DisposesCandidateAndLeavesNoActiveSession" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1553065552" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.003062" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1019" name="TickPresentation_ReentrantReplacementKeepsReplacementState" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.TickPresentation_ReentrantReplacementKeepsReplacementState" methodname="TickPresentation_ReentrantReplacementKeepsReplacementState" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="885217366" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.053530" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1020" name="TickPresentation_ReentrantReplacementThenThrowKeepsReplacement" fullname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests.TickPresentation_ReentrantReplacementThenThrowKeepsReplacement" methodname="TickPresentation_ReentrantReplacementThenThrowKeepsReplacement" classname="ZWebGLFrameWork.Combat.PlayModeTests.SimulationBattleFlowPlayModeTests" runstate="Runnable" seed="1551743188" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.053210" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1239" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:01Z" duration="1.627036" total="169" passed="169" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2526" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1240" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:01Z" duration="1.626870" total="169" passed="169" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1241" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:01Z" duration="1.626739" total="169" passed="169" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1242" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:01Z" duration="1.626573" total="169" passed="169" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1249" name="Core" fullname="ZWebGLFrameWork.Runtime.Tests.Core" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:00Z" duration="0.112438" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1223" name="AssetBundleProviderContractTests" fullname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests" classname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.022841" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1224" name="AssetBundleProvider_LoadAndUnload_UsesDependenciesAndBundleIdentity" fullname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests.AssetBundleProvider_LoadAndUnload_UsesDependenciesAndBundleIdentity" methodname="AssetBundleProvider_LoadAndUnload_UsesDependenciesAndBundleIdentity" classname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests" runstate="Runnable" seed="366288885" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.016210" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1226" name="SharedDependency_UnloadsOnlyAfterEveryOwnerReleases" fullname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests.SharedDependency_UnloadsOnlyAfterEveryOwnerReleases" methodname="SharedDependency_UnloadsOnlyAfterEveryOwnerReleases" classname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests" runstate="Runnable" seed="1256730111" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.005086" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1225" name="Unload_ConvertsAssetPathToBundleIdentity" fullname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests.Unload_ConvertsAssetPathToBundleIdentity" methodname="Unload_ConvertsAssetPathToBundleIdentity" classname="ZWebGLFrameWork.Runtime.Tests.Core.AssetBundleProviderContractTests" runstate="Runnable" seed="303681523" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:56:59Z" duration="0.000255" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1227" name="ResourceManagerProviderTests" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:00Z" duration="0.042675" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1229" name="ResourceManager_InitWithNewProvider_InvalidatesOldProviderCache" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_InitWithNewProvider_InvalidatesOldProviderCache" methodname="ResourceManager_InitWithNewProvider_InvalidatesOldProviderCache" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="1001362278" result="Passed" start-time="2026-07-31 05:56:59Z" end-time="2026-07-31 05:57:00Z" duration="0.022333" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Provider: FakeProvider
+[ResourceManager] ✅ 初始化完成 — Provider: FakeProvider
+]]></output>
+                </test-case>
+                <test-case id="1230" name="ResourceManager_SetProvider_DoesNotCacheAnInFlightOldProviderResult" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_SetProvider_DoesNotCacheAnInFlightOldProviderResult" methodname="ResourceManager_SetProvider_DoesNotCacheAnInFlightOldProviderResult" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="1422018348" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.013117" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Provider: DelayedProvider
+]]></output>
+                </test-case>
+                <test-case id="1228" name="ResourceManager_SetProvider_InvalidatesOldProviderCache" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_SetProvider_InvalidatesOldProviderCache" methodname="ResourceManager_SetProvider_InvalidatesOldProviderCache" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="953119954" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004657" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Provider: FakeProvider
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1231" name="SingletonDontDestroyInitializationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.046274" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1233" name="DuplicateDataManager_DoesNotInitializeOrPublishDataReady" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.DuplicateDataManager_DoesNotInitializeOrPublishDataReady" methodname="DuplicateDataManager_DoesNotInitializeOrPublishDataReady" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="979002594" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002100" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1235" name="DuplicateGameFSM_PauseCallbackBeforeDestroy_DoesNotThrow" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.DuplicateGameFSM_PauseCallbackBeforeDestroy_DoesNotThrow" methodname="DuplicateGameFSM_PauseCallbackBeforeDestroy_DoesNotThrow" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="1721962819" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.016269" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1232" name="DuplicateSingleton_OnlyPrimaryInitializes" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.DuplicateSingleton_OnlyPrimaryInitializes" methodname="DuplicateSingleton_OnlyPrimaryInitializes" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="106783460" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003850" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1234" name="DuplicateUIManager_DoesNotCreateUIRuntimeObjects" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.DuplicateUIManager_DoesNotCreateUIRuntimeObjects" methodname="DuplicateUIManager_DoesNotCreateUIRuntimeObjects" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="912090326" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.013145" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1236" name="ProductionDontDestroySingletons_DoNotDeclareAwake" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.ProductionDontDestroySingletons_DoNotDeclareAwake" methodname="ProductionDontDestroySingletons_DoNotDeclareAwake" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="1995491152" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003752" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1238" name="SceneLoader_DestroyedAfterInit_UnsubscribesSceneEvents" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.SceneLoader_DestroyedAfterInit_UnsubscribesSceneEvents" methodname="SceneLoader_DestroyedAfterInit_UnsubscribesSceneEvents" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="221981095" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005255" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SceneLoader] ✅ 初始化完成
+]]></output>
+                </test-case>
+                <test-case id="1237" name="SceneLoader_DestroyedBeforeInit_ReleasesSingletonReference" fullname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests.SceneLoader_DestroyedBeforeInit_ReleasesSingletonReference" methodname="SceneLoader_DestroyedBeforeInit_ReleasesSingletonReference" classname="ZWebGLFrameWork.Runtime.Tests.Core.SingletonDontDestroyInitializationTests" runstate="Runnable" seed="898833082" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000828" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1248" name="Data" fullname="ZWebGLFrameWork.Runtime.Tests.Data" runstate="Runnable" testcasecount="58" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.501905" total="58" passed="58" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1153" name="AppConfigTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.012469" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1154" name="Apply_OfflineModeWithEmptyOnlineEndpoints_DoesNotThrow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests.Apply_OfflineModeWithEmptyOnlineEndpoints_DoesNotThrow" methodname="Apply_OfflineModeWithEmptyOnlineEndpoints_DoesNotThrow" classname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests" runstate="Runnable" seed="2934570" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005272" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 配置已应用 — 帧率:0, VSync:0, 后台:True, 画质:1, 后台省电:False
+]]></output>
+                </test-case>
+                <test-case id="1155" name="Apply_OnlineModeWithEmptyOnlineEndpoints_Throws" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests.Apply_OnlineModeWithEmptyOnlineEndpoints_Throws" methodname="Apply_OnlineModeWithEmptyOnlineEndpoints_Throws" classname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests" runstate="Runnable" seed="1926238768" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002435" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1156" name="Apply_OnlineModeWithInvalidWssEndpoint_Throws" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests.Apply_OnlineModeWithInvalidWssEndpoint_Throws" methodname="Apply_OnlineModeWithInvalidWssEndpoint_Throws" classname="ZWebGLFrameWork.Runtime.Tests.Data.AppConfigTests" runstate="Runnable" seed="836054736" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003627" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1157" name="AtomicFileWriterTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.017603" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1159" name="ConcurrentWrites_UseSeparateTemporaryFiles" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests.ConcurrentWrites_UseSeparateTemporaryFiles" methodname="ConcurrentWrites_UseSeparateTemporaryFiles" classname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests" runstate="Runnable" seed="697986346" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002071" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1158" name="SaveManager_FirstWriteAndFailedReplace_AreAtomic" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests.SaveManager_FirstWriteAndFailedReplace_AreAtomic" methodname="SaveManager_FirstWriteAndFailedReplace_AreAtomic" classname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests" runstate="Runnable" seed="1767001427" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.012181" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 保存成功: slot=1005, path=/Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/save_1005.json
+]]></output>
+                </test-case>
+                <test-case id="1160" name="SaveManager_NullData_DoesNotOverwriteExistingSave" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests.SaveManager_NullData_DoesNotOverwriteExistingSave" methodname="SaveManager_NullData_DoesNotOverwriteExistingSave" classname="ZWebGLFrameWork.Runtime.Tests.Data.AtomicFileWriterTests" runstate="Runnable" seed="342439552" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002827" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 保存成功: slot=1006, path=/Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/save_1006.json
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1161" name="AutosaveCoordinatorTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.006402" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1162" name="MainVillageAutosave_AllPersistentChangesTrigger" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests.MainVillageAutosave_AllPersistentChangesTrigger" methodname="MainVillageAutosave_AllPersistentChangesTrigger" classname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests" runstate="Runnable" seed="2024920492" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003676" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1163" name="MainVillageAutosave_FailureDoesNotAdvanceBaseline" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests.MainVillageAutosave_FailureDoesNotAdvanceBaseline" methodname="MainVillageAutosave_FailureDoesNotAdvanceBaseline" classname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests" runstate="Runnable" seed="1608045018" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001166" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1164" name="MainVillageExit_SavesPendingChanges" fullname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests.MainVillageExit_SavesPendingChanges" methodname="MainVillageExit_SavesPendingChanges" classname="ZWebGLFrameWork.Runtime.Tests.Data.AutosaveCoordinatorTests" runstate="Runnable" seed="583013828" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000820" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1165" name="BattleRewardServiceTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.018661" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1167" name="BattleResult_DuplicateInvalidOrRejected_DoesNotReward" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests.BattleResult_DuplicateInvalidOrRejected_DoesNotReward" methodname="BattleResult_DuplicateInvalidOrRejected_DoesNotReward" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" seed="2109339178" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010187" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1168" name="BattleResult_NearCap_Clamps" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests.BattleResult_NearCap_Clamps" methodname="BattleResult_NearCap_Clamps" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" seed="1996742493" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001257" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1169" name="BattleResult_ReturnWaitsForSave" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests.BattleResult_ReturnWaitsForSave" methodname="BattleResult_ReturnWaitsForSave" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" seed="300854165" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003442" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1170" name="BattleResult_SaveException_RollsBackAndCanRetry" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests.BattleResult_SaveException_RollsBackAndCanRetry" methodname="BattleResult_SaveException_RollsBackAndCanRetry" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" seed="553304268" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001908" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1166" name="BattleResult_ValidCompletion_AppliesAndSavesRewardsOnce" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests.BattleResult_ValidCompletion_AppliesAndSavesRewardsOnce" methodname="BattleResult_ValidCompletion_AppliesAndSavesRewardsOnce" classname="ZWebGLFrameWork.Runtime.Tests.Data.BattleRewardServiceTests" runstate="Runnable" seed="158428631" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001134" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1171" name="BuildingSaveRoundTripTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BuildingSaveRoundTripTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.BuildingSaveRoundTripTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003673" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1172" name="SaveGame_BuildingRoundTrip_PreservesCompleteState" fullname="ZWebGLFrameWork.Runtime.Tests.Data.BuildingSaveRoundTripTests.SaveGame_BuildingRoundTrip_PreservesCompleteState" methodname="SaveGame_BuildingRoundTrip_PreservesCompleteState" classname="ZWebGLFrameWork.Runtime.Tests.Data.BuildingSaveRoundTripTests" runstate="Runnable" seed="1633266614" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003253" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1173" name="ConfigTableManagerTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.109795" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1184" name="ConfigLoader_RemoveCache_RemovesEveryTypeCachedAtThePath" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.ConfigLoader_RemoveCache_RemovesEveryTypeCachedAtThePath" methodname="ConfigLoader_RemoveCache_RemovesEveryTypeCachedAtThePath" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="1207784001" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.017986" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1183" name="ConfigLoader_SameResourcePathWithDifferentTypes_DoesNotReuseIncompatibleCache" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.ConfigLoader_SameResourcePathWithDifferentTypes_DoesNotReuseIncompatibleCache" methodname="ConfigLoader_SameResourcePathWithDifferentTypes_DoesNotReuseIncompatibleCache" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="24065740" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007044" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1175" name="PreloadAllAsync_DuplicateId_ReturnsFalseWithoutDiscardingAConfigRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_DuplicateId_ReturnsFalseWithoutDiscardingAConfigRow" methodname="PreloadAllAsync_DuplicateId_ReturnsFalseWithoutDiscardingAConfigRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="1376597893" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.022383" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 is duplicated
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1180" name="PreloadAllAsync_IncompleteBuildingLevelArrays_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_IncompleteBuildingLevelArrays_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_IncompleteBuildingLevelArrays_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="908138573" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008851" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 has incomplete level arrays
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1181" name="PreloadAllAsync_NonPositiveBuildingFootprint_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_NonPositiveBuildingFootprint_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_NonPositiveBuildingFootprint_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="995013222" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007613" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 has an invalid footprint
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1179" name="PreloadAllAsync_NonPositiveBuildingMaxLevel_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_NonPositiveBuildingMaxLevel_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_NonPositiveBuildingMaxLevel_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="14964788" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007272" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 has an invalid MaxLevel
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1176" name="PreloadAllAsync_NonPositiveId_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_NonPositiveId_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_NonPositiveId_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="984825378" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007259" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=0 must be positive
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1182" name="PreloadAllAsync_NonPositiveUnitRequiredTownHall_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_NonPositiveUnitRequiredTownHall_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_NonPositiveUnitRequiredTownHall_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="356867719" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008023" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] UnitConfig Id=1 has an invalid RequiredTownHall
+[ConfigTableManager] ❌ 兵种配置表加载失败或为空
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1174" name="PreloadAllAsync_NullRow_ReturnsFalseWithoutThrowing" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_NullRow_ReturnsFalseWithoutThrowing" methodname="PreloadAllAsync_NullRow_ReturnsFalseWithoutThrowing" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="364094054" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007400" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig contains a null configuration item
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1178" name="PreloadAllAsync_ResourceBuildingWithoutProducerType_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_ResourceBuildingWithoutProducerType_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_ResourceBuildingWithoutProducerType_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="1453771167" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007287" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 has an invalid ResourceType
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+                <test-case id="1177" name="PreloadAllAsync_UnknownBuildingResourceType_ReturnsFalseWithoutPublishingTheRow" fullname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests.PreloadAllAsync_UnknownBuildingResourceType_ReturnsFalseWithoutPublishingTheRow" methodname="PreloadAllAsync_UnknownBuildingResourceType_ReturnsFalseWithoutPublishingTheRow" classname="ZWebGLFrameWork.Runtime.Tests.Data.ConfigTableManagerTests" runstate="Runnable" seed="1071411339" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007064" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] BuildingConfig Id=1 has an invalid ResourceType
+[ConfigTableManager] ❌ 建筑配置表加载失败或为空
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=False)
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1185" name="LocalizationManagerTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.029146" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1187" name="Init_DiscoveredLanguage_RegistersItAsSupported" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests.Init_DiscoveredLanguage_RegistersItAsSupported" methodname="Init_DiscoveredLanguage_RegistersItAsSupported" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests" runstate="Runnable" seed="765301369" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.009970" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[LocalizationManager] 可用语言: en-US, fr-CA, invalid-structure
+[LocalizationManager] ✅ 初始化完成 — 语言: fr-CA, 条目: 3
+]]></output>
+                </test-case>
+                <test-case id="1188" name="SwitchLanguage_InvalidStructure_FallsBackBeforePublishingLanguageChange" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests.SwitchLanguage_InvalidStructure_FallsBackBeforePublishingLanguageChange" methodname="SwitchLanguage_InvalidStructure_FallsBackBeforePublishingLanguageChange" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests" runstate="Runnable" seed="96754930" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008404" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[LocalizationManager] 可用语言: en-US, fr-CA, invalid-structure
+[LocalizationManager] ✅ 初始化完成 — 语言: fr-CA, 条目: 3
+[LocalizationManager] 可用语言: en-US, fr-CA, invalid-structure
+[LocalizationManager] 语言文件无效或不存在: invalid-structure，尝试 en-US
+[LocalizationManager] ✅ 初始化完成 — 语言: en-US, 条目: 3
+]]></output>
+                </test-case>
+                <test-case id="1186" name="SwitchLanguage_MissingLanguage_PublishesLoadedFallbackLanguage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests.SwitchLanguage_MissingLanguage_PublishesLoadedFallbackLanguage" methodname="SwitchLanguage_MissingLanguage_PublishesLoadedFallbackLanguage" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalizationManagerTests" runstate="Runnable" seed="1944938964" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.006339" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[LocalizationManager] 可用语言: en-US, fr-CA, invalid-structure
+[LocalizationManager] 语言文件无效或不存在: missing-test-language，尝试 en-US
+[LocalizationManager] ✅ 初始化完成 — 语言: en-US, 条目: 3
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1189" name="LocalStoreBackendTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.067574" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1195" name="LocalStore_CorruptStore_RefusesWritesAndPreservesFile" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_CorruptStore_RefusesWritesAndPreservesFile" methodname="LocalStore_CorruptStore_RefusesWritesAndPreservesFile" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="762333269" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.017576" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1192" name="LocalStore_DuplicateSerializedKeys_RejectsTheEntireStore" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_DuplicateSerializedKeys_RejectsTheEntireStore" methodname="LocalStore_DuplicateSerializedKeys_RejectsTheEntireStore" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="1947313541" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007344" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1193" name="LocalStore_EmptySerializedKey_RejectsTheEntireStore" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_EmptySerializedKey_RejectsTheEntireStore" methodname="LocalStore_EmptySerializedKey_RejectsTheEntireStore" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="806911682" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005618" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1194" name="LocalStore_EmptySerializedPayload_RejectsTheEntireStore" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_EmptySerializedPayload_RejectsTheEntireStore" methodname="LocalStore_EmptySerializedPayload_RejectsTheEntireStore" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="1618859811" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005467" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1190" name="LocalStore_FirstWriteFailureAndSupportedTypes_AreObservableAndAtomic" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_FirstWriteFailureAndSupportedTypes_AreObservableAndAtomic" methodname="LocalStore_FirstWriteFailureAndSupportedTypes_AreObservableAndAtomic" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="1828336759" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.016688" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1191" name="LocalStore_MismatchedSerializedColumns_RejectsTheEntireStore" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_MismatchedSerializedColumns_RejectsTheEntireStore" methodname="LocalStore_MismatchedSerializedColumns_RejectsTheEntireStore" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="712245851" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005631" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1197" name="LocalStore_RepairedFile_ReloadRestoresWrites" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_RepairedFile_ReloadRestoresWrites" methodname="LocalStore_RepairedFile_ReloadRestoresWrites" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="1219893153" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002674" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1196" name="LocalStore_ValidEmptyStore_RemainsWritable" fullname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests.LocalStore_ValidEmptyStore_RemainsWritable" methodname="LocalStore_ValidEmptyStore_RemainsWritable" classname="ZWebGLFrameWork.Runtime.Tests.Data.LocalStoreBackendTests" runstate="Runnable" seed="242471151" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001384" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1198" name="OfflineSaveFlowTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001157" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1199" name="OfflineLogin_DefaultSaveCreationFailure_DoesNotEnterVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests.OfflineLogin_DefaultSaveCreationFailure_DoesNotEnterVillage" methodname="OfflineLogin_DefaultSaveCreationFailure_DoesNotEnterVillage" classname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests" runstate="Runnable" seed="606505296" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000439" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1200" name="OfflineLogin_LoadFailure_DoesNotEnterVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests.OfflineLogin_LoadFailure_DoesNotEnterVillage" methodname="OfflineLogin_LoadFailure_DoesNotEnterVillage" classname="ZWebGLFrameWork.Runtime.Tests.Data.OfflineSaveFlowTests" runstate="Runnable" seed="1889476468" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000270" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1201" name="SaveManagerLoadTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.053807" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1203" name="LoadToDataManager_InvalidBuildingTimingLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_InvalidBuildingTimingLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_InvalidBuildingTimingLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1306461327" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.012900" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 存档无效: 建筑数据无效
+]]></output>
+                </test-case>
+                <test-case id="1205" name="LoadToDataManager_LevelAboveLoadedConfigLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_LevelAboveLoadedConfigLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_LevelAboveLoadedConfigLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1947730616" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008344" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[SaveManager] 存档无效: 建筑等级超出配置范围
+]]></output>
+                </test-case>
+                <test-case id="1206" name="LoadToDataManager_MaxLevelBuildingStillUpgradingLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_MaxLevelBuildingStillUpgradingLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_MaxLevelBuildingStillUpgradingLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1914357780" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005551" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[SaveManager] 存档无效: 满级建筑不能处于升级状态
+]]></output>
+                </test-case>
+                <test-case id="1207" name="LoadToDataManager_MissingTownHallLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_MissingTownHallLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_MissingTownHallLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1292209347" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003454" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 存档无效: 村庄缺少大本营
+]]></output>
+                </test-case>
+                <test-case id="1209" name="LoadToDataManager_MultipleTownHallsLeaveRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_MultipleTownHallsLeaveRuntimeStateUnchanged" methodname="LoadToDataManager_MultipleTownHallsLeaveRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="733938860" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005355" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[SaveManager] 存档无效: 村庄包含多个大本营
+]]></output>
+                </test-case>
+                <test-case id="1204" name="LoadToDataManager_OverlappingBuildingOriginsLeaveRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_OverlappingBuildingOriginsLeaveRuntimeStateUnchanged" methodname="LoadToDataManager_OverlappingBuildingOriginsLeaveRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1028943112" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003540" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 存档无效: 建筑位置重叠
+]]></output>
+                </test-case>
+                <test-case id="1210" name="LoadToDataManager_TownHallLevelAboveConfigLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_TownHallLevelAboveConfigLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_TownHallLevelAboveConfigLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1683164629" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004831" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[SaveManager] 存档无效: 玩家大本营等级超出配置范围
+]]></output>
+                </test-case>
+                <test-case id="1208" name="LoadToDataManager_TownHallLevelMismatchLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_TownHallLevelMismatchLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_TownHallLevelMismatchLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="355284593" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005888" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[SaveManager] 存档无效: 玩家大本营等级与建筑等级不一致
+]]></output>
+                </test-case>
+                <test-case id="1202" name="LoadToDataManager_UnknownVersionLeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests.LoadToDataManager_UnknownVersionLeavesRuntimeStateUnchanged" methodname="LoadToDataManager_UnknownVersionLeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveManagerLoadTests" runstate="Runnable" seed="1366915516" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002851" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[SaveManager] 存档无效: 存档版本不匹配
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1211" name="SaveRuntimeRebindTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.144604" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1212" name="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" methodname="MainVillageHud_ModelReplacement_RefreshesAndUnsubscribesOldPlayer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="649938563" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.083182" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1213" name="MainVillageState_ModelReplacement_RebindsResourceProducer" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_RebindsResourceProducer" methodname="MainVillageState_ModelReplacement_RebindsResourceProducer" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="2130997746" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.021000" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[GameFSM] 退出主城状态
+]]></output>
+                </test-case>
+                <test-case id="1214" name="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.MainVillageState_ModelReplacement_ResetsAutosaveBaseline" methodname="MainVillageState_ModelReplacement_ResetsAutosaveBaseline" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="556254236" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005588" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+[GameFSM] 退出主城状态
+]]></output>
+                </test-case>
+                <test-case id="1215" name="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" methodname="ModelReplacement_MissingSelectedBuilding_ClearsSelectionAndClosesPanel" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="404245351" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.024536" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1216" name="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests.VillageRenderer_ModelReplacement_UnsubscribesOldVillage" methodname="VillageRenderer_ModelReplacement_UnsubscribesOldVillage" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveRuntimeRebindTests" runstate="Runnable" seed="952803998" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008783" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1217" name="SaveValidationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.036036" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1222" name="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" methodname="DefaultV2AndLegacyV1Saves_NormalizeThenValidateDeterministically" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="194528398" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.024165" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1219" name="InvalidBuilding_LeavesPlayerAndVillageUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.InvalidBuilding_LeavesPlayerAndVillageUnchanged" methodname="InvalidBuilding_LeavesPlayerAndVillageUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="1841533123" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003596" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1220" name="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" methodname="MalformedRowsRangesTimestampsAndFootprints_AreRejectedBeforeModelSwap" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="1990858370" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003927" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1218" name="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" methodname="SaveGame_UnknownOrInvalidSchema_LeavesRuntimeStateUnchanged" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="1737450903" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001654" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1221" name="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" fullname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests.ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" methodname="ValidatedState_ModelSwapPublishesOnlyAfterBothModelsAreVisible" classname="ZWebGLFrameWork.Runtime.Tests.Data.SaveValidationTests" runstate="Runnable" seed="204588367" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001942" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1247" name="FSM" fullname="ZWebGLFrameWork.Runtime.Tests.FSM" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.183483" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1097" name="GameLauncherBackgroundThrottleTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.023915" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1103" name="DuplicateLauncher_DoesNotReplacePrimaryOrRunStartup" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.DuplicateLauncher_DoesNotReplacePrimaryOrRunStartup" methodname="DuplicateLauncher_DoesNotReplacePrimaryOrRunStartup" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="1822486608" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.011642" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 配置已应用 — 帧率:0, VSync:0, 后台:True, 画质:1, 后台省电:True
+[AppConfig] 配置已应用 — 帧率:60, VSync:0, 后台:True, 画质:1, 后台省电:False
+
+══════════════════════════════════════════
+         AppConfig 运行时验证  [✅ 策划配置]
+──────────────────────────────────────────
+  ⓪ 平台自适应       : 平台自适应未启用（使用原始配置值）
+  ① 目标帧率         : 60  (Config原始:60)
+  ② 垂直同步         : 0  ← Config: 0
+  ③ 允许后台运行     : True  ← Config: True
+  ④ 画质等级         : 1  (Config原始:1)
+  ⑤ 日志最低等级     : Verbose  ← Config: Verbose
+  ⑥ 加载模式         : Sequential  （LaunchState 读取）
+  ⑦ 后台省电         : False  → 10 FPS  （OnApplicationFocus 读取）
+  ⑧ WebGL 内存       : 256 MB  （构建时生效）
+  ⑨ WebGL 异常模式   : ExplicitlyThrown  （构建时生效）
+  ⑩ 配置来源         : Resources/.asset
+══════════════════════════════════════════
+]]></output>
+                </test-case>
+                <test-case id="1101" name="GameLauncher_UsesSharedDontDestroySingletonBase" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.GameLauncher_UsesSharedDontDestroySingletonBase" methodname="GameLauncher_UsesSharedDontDestroySingletonBase" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="882387806" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001253" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1102" name="Instance_WhenAbsentOutsideLauncherScene_DoesNotCreateLauncher" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.Instance_WhenAbsentOutsideLauncherScene_DoesNotCreateLauncher" methodname="Instance_WhenAbsentOutsideLauncherScene_DoesNotCreateLauncher" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="1852770973" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003705" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1098" name="OnApplicationFocus_WhenRuntimeOverrideDisablesThrottle_KeepsRuntimeFrameRate" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.OnApplicationFocus_WhenRuntimeOverrideDisablesThrottle_KeepsRuntimeFrameRate" methodname="OnApplicationFocus_WhenRuntimeOverrideDisablesThrottle_KeepsRuntimeFrameRate" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="1019290543" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002458" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 平台自适应 → 桌面端：帧率60, 中画质, 后台省电关闭
+[AppConfig] 配置已应用 — 帧率:60(平台自适应，原始值:0), VSync:0, 后台:True, 画质:1, 后台省电:False
+[AppConfig] 配置已应用 — 帧率:60, VSync:0, 后台:True, 画质:1, 后台省电:False
+
+══════════════════════════════════════════
+         AppConfig 运行时验证  [✅ 策划配置]
+──────────────────────────────────────────
+  ⓪ 平台自适应       : 平台自适应未启用（使用原始配置值）
+  ① 目标帧率         : 60  (Config原始:60)
+  ② 垂直同步         : 0  ← Config: 0
+  ③ 允许后台运行     : True  ← Config: True
+  ④ 画质等级         : 1  (Config原始:1)
+  ⑤ 日志最低等级     : Verbose  ← Config: Verbose
+  ⑥ 加载模式         : Sequential  （LaunchState 读取）
+  ⑦ 后台省电         : False  → 10 FPS  （OnApplicationFocus 读取）
+  ⑧ WebGL 内存       : 256 MB  （构建时生效）
+  ⑨ WebGL 异常模式   : ExplicitlyThrown  （构建时生效）
+  ⑩ 配置来源         : Resources/.asset
+══════════════════════════════════════════
+]]></output>
+                </test-case>
+                <test-case id="1099" name="OnApplicationFocus_WhenRuntimeThrottleEnabled_AppliesBackgroundThenRuntimeFrameRate" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.OnApplicationFocus_WhenRuntimeThrottleEnabled_AppliesBackgroundThenRuntimeFrameRate" methodname="OnApplicationFocus_WhenRuntimeThrottleEnabled_AppliesBackgroundThenRuntimeFrameRate" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="285494083" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002220" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 配置已应用 — 帧率:0, VSync:0, 后台:True, 画质:1, 后台省电:True
+[AppConfig] 配置已应用 — 帧率:60, VSync:0, 后台:True, 画质:1, 后台省电:False
+
+══════════════════════════════════════════
+         AppConfig 运行时验证  [✅ 策划配置]
+──────────────────────────────────────────
+  ⓪ 平台自适应       : 平台自适应未启用（使用原始配置值）
+  ① 目标帧率         : 60  (Config原始:60)
+  ② 垂直同步         : 0  ← Config: 0
+  ③ 允许后台运行     : True  ← Config: True
+  ④ 画质等级         : 1  (Config原始:1)
+  ⑤ 日志最低等级     : Verbose  ← Config: Verbose
+  ⑥ 加载模式         : Sequential  （LaunchState 读取）
+  ⑦ 后台省电         : False  → 10 FPS  （OnApplicationFocus 读取）
+  ⑧ WebGL 内存       : 256 MB  （构建时生效）
+  ⑨ WebGL 异常模式   : ExplicitlyThrown  （构建时生效）
+  ⑩ 配置来源         : Resources/.asset
+══════════════════════════════════════════
+[GameLauncher] 降低帧率: 11
+[GameLauncher] 恢复帧率: 0
+]]></output>
+                </test-case>
+                <test-case id="1100" name="OnDestroy_WhenCurrentLauncherIsDestroyed_ClearsStaticState" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests.OnDestroy_WhenCurrentLauncherIsDestroyed_ClearsStaticState" methodname="OnDestroy_WhenCurrentLauncherIsDestroyed_ClearsStaticState" classname="ZWebGLFrameWork.Runtime.Tests.FSM.GameLauncherBackgroundThrottleTests" runstate="Runnable" seed="1779257916" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001438" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 配置已应用 — 帧率:0, VSync:0, 后台:True, 画质:1, 后台省电:True
+[AppConfig] 配置已应用 — 帧率:60, VSync:0, 后台:True, 画质:1, 后台省电:False
+
+══════════════════════════════════════════
+         AppConfig 运行时验证  [✅ 策划配置]
+──────────────────────────────────────────
+  ⓪ 平台自适应       : 平台自适应未启用（使用原始配置值）
+  ① 目标帧率         : 60  (Config原始:60)
+  ② 垂直同步         : 0  ← Config: 0
+  ③ 允许后台运行     : True  ← Config: True
+  ④ 画质等级         : 1  (Config原始:1)
+  ⑤ 日志最低等级     : Verbose  ← Config: Verbose
+  ⑥ 加载模式         : Sequential  （LaunchState 读取）
+  ⑦ 后台省电         : False  → 10 FPS  （OnApplicationFocus 读取）
+  ⑧ WebGL 内存       : 256 MB  （构建时生效）
+  ⑨ WebGL 异常模式   : ExplicitlyThrown  （构建时生效）
+  ⑩ 配置来源         : Resources/.asset
+══════════════════════════════════════════
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1104" name="InitialTransitionTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.InitialTransitionTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.InitialTransitionTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.009363" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1105" name="GameFSM_InitialTransition_EntersLaunchExactlyOnce" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.InitialTransitionTests.GameFSM_InitialTransition_EntersLaunchExactlyOnce" methodname="GameFSM_InitialTransition_EntersLaunchExactlyOnce" classname="ZWebGLFrameWork.Runtime.Tests.FSM.InitialTransitionTests" runstate="Runnable" seed="537049181" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008966" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1106" name="LaunchCancellationTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.040257" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1107" name="LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" methodname="LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="707172703" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.019287" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入启动状态
+[GameFSM] 退出启动状态
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1111" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002773" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1109" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources(AssetBundle)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources(AssetBundle)" methodname="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1139503800" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001176" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[[LaunchState] AssetBundle is reserved for TODO(YooAsset); using ResourcesProvider.
+]]></output>
+                  </test-case>
+                  <test-case id="1110" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources(Addressables)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources(Addressables)" methodname="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="2130957745" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000423" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[[LaunchState] Addressables is reserved for TODO(YooAsset); using ResourcesProvider.
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1108" name="LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" methodname="LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1343090989" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.017351" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入启动状态
+[GameFSM] 退出启动状态
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1112" name="MainVillageBattleEligibilityTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003287" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1113" name="HasSupportedDefender_OnlyUnsupportedBuildings_ReturnsFalse" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests.HasSupportedDefender_OnlyUnsupportedBuildings_ReturnsFalse" methodname="HasSupportedDefender_OnlyUnsupportedBuildings_ReturnsFalse" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests" runstate="Runnable" seed="1095291654" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001888" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1114" name="HasSupportedDefender_TownHallOrCannon_ReturnsTrue" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests.HasSupportedDefender_TownHallOrCannon_ReturnsTrue" methodname="HasSupportedDefender_TownHallOrCannon_ReturnsTrue" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageBattleEligibilityTests" runstate="Runnable" seed="22603021" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000756" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1115" name="MainVillageSuspendTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001978" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties>
+                  <property name="Category" value="MainVillageSuspend" />
+                </properties>
+                <test-case id="1116" name="Suspend_FlushesPendingPersistentChangesAndDeactivatesState" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests.Suspend_FlushesPendingPersistentChangesAndDeactivatesState" methodname="Suspend_FlushesPendingPersistentChangesAndDeactivatesState" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests" runstate="Runnable" seed="1663677939" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000839" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1117" name="Suspend_WithoutPersistentChanges_DoesNotSave" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests.Suspend_WithoutPersistentChanges_DoesNotSave" methodname="Suspend_WithoutPersistentChanges_DoesNotSave" classname="ZWebGLFrameWork.Runtime.Tests.FSM.MainVillageSuspendTests" runstate="Runnable" seed="1292671523" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000603" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1118" name="PauseResumeTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" testcasecount="19" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.039215" total="19" passed="19" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1122" name="ActiveOverlay_RejectsBypassAndNestedPush" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.ActiveOverlay_RejectsBypassAndNestedPush" methodname="ActiveOverlay_RejectsBypassAndNestedPush" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1038968073" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010118" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1123" name="ActiveOverlay_RemoveStateKeepsParticipantsRegistered" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.ActiveOverlay_RemoveStateKeepsParticipantsRegistered" methodname="ActiveOverlay_RemoveStateKeepsParticipantsRegistered" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="2113170629" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002358" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1138" name="Clear_ExitsCurrentAndSuspendedStates" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.Clear_ExitsCurrentAndSuspendedStates" methodname="Clear_ExitsCurrentAndSuspendedStates" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1149381984" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004815" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1124" name="ExitedSource_CannotMoveTheCurrentState" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.ExitedSource_CannotMoveTheCurrentState" methodname="ExitedSource_CannotMoveTheCurrentState" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="2065221051" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000694" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1137" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001775" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1130" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Launch,Pause,True)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Launch,Pause,True)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1791287158" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000794" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1131" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Login,Pause,True)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Login,Pause,True)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="767790989" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000085" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1132" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(MainVillage,Pause,True)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(MainVillage,Pause,True)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1657140733" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000058" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1133" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Battle,Pause,True)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Battle,Pause,True)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1190062536" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000053" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1134" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Loading,Pause,False)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Loading,Pause,False)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="395920998" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000054" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1135" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Pause,Pause,False)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Pause,Pause,False)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="565612561" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000053" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1136" name="GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Launch,Login,False)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_OverlayPolicy_MatchesSupportedPauseSources(Launch,Login,False)" methodname="GameFSM_OverlayPolicy_MatchesSupportedPauseSources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="912460717" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000048" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1119" name="GameFSM_PauseResume_PreservesBattleContext" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.GameFSM_PauseResume_PreservesBattleContext" methodname="GameFSM_PauseResume_PreservesBattleContext" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1276896865" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001457" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1125" name="OverlayExitTransition_CannotEscapePopLifecycle" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.OverlayExitTransition_CannotEscapePopLifecycle" methodname="OverlayExitTransition_CannotEscapePopLifecycle" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="2025856998" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001131" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1128" name="QueuedPublicTransition_CannotBypassOverlayCreatedBeforeDequeue" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.QueuedPublicTransition_CannotBypassOverlayCreatedBeforeDequeue" methodname="QueuedPublicTransition_CannotBypassOverlayCreatedBeforeDequeue" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="825110574" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003556" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1129" name="QueuedPublicTransition_CannotSurviveCompletedOverlayLifecycle" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.QueuedPublicTransition_CannotSurviveCompletedOverlayLifecycle" methodname="QueuedPublicTransition_CannotSurviveCompletedOverlayLifecycle" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1124885815" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002564" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1127" name="ResumeEventTransition_CannotReplaceEarlierDeferredRequest" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.ResumeEventTransition_CannotReplaceEarlierDeferredRequest" methodname="ResumeEventTransition_CannotReplaceEarlierDeferredRequest" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="768511636" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001471" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1126" name="ResumeTransition_CannotReplaceEarlierDeferredRequest" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.ResumeTransition_CannotReplaceEarlierDeferredRequest" methodname="ResumeTransition_CannotReplaceEarlierDeferredRequest" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="372406701" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001266" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1121" name="SuspendedSource_FirstValidTransitionWins" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.SuspendedSource_FirstValidTransitionWins" methodname="SuspendedSource_FirstValidTransitionWins" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="725260081" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001095" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1120" name="SuspendedSource_TransitionExecutesAfterResumeWithOriginalData" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests.SuspendedSource_TransitionExecutesAfterResumeWithOriginalData" methodname="SuspendedSource_TransitionExecutesAfterResumeWithOriginalData" classname="ZWebGLFrameWork.Runtime.Tests.FSM.PauseResumeTests" runstate="Runnable" seed="1001774352" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005837" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1139" name="ReentrantTransitionTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.013907" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1141" name="FSM_OnEnterFailure_RestoresPreviousActiveStateWithoutCommit" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests.FSM_OnEnterFailure_RestoresPreviousActiveStateWithoutCommit" methodname="FSM_OnEnterFailure_RestoresPreviousActiveStateWithoutCommit" classname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests" runstate="Runnable" seed="1074778287" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010769" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1140" name="FSM_OnEnterRedirect_EmitsOnlyOrderedCommittedTransitions" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests.FSM_OnEnterRedirect_EmitsOnlyOrderedCommittedTransitions" methodname="FSM_OnEnterRedirect_EmitsOnlyOrderedCommittedTransitions" classname="ZWebGLFrameWork.Runtime.Tests.FSM.ReentrantTransitionTests" runstate="Runnable" seed="923808138" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002490" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1142" name="SceneLoadingTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.040593" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1145" name="LoadingState_DoesNotCompleteBeforeActivation" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.LoadingState_DoesNotCompleteBeforeActivation" methodname="LoadingState_DoesNotCompleteBeforeActivation" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1007753610" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.013786" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1150" name="LoadingState_Exit_CancelsUnderlyingSceneLoad" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.LoadingState_Exit_CancelsUnderlyingSceneLoad" methodname="LoadingState_Exit_CancelsUnderlyingSceneLoad" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="600190764" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010285" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入加载状态
+[GameFSM] 加载协程已取消
+[GameFSM] 退出加载状态
+]]></output>
+                </test-case>
+                <test-case id="1143" name="LoadingState_MissingScene_PublishesFailureOnly" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.LoadingState_MissingScene_PublishesFailureOnly" methodname="LoadingState_MissingScene_PublishesFailureOnly" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1632578192" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004452" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入加载状态
+[LoadingState] ❌ 场景加载失败: test-scene (NotFound)
+[GameFSM] 退出加载状态
+]]></output>
+                </test-case>
+                <test-case id="1144" name="LoadingState_SceneTimeout_PublishesFailureOnly" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.LoadingState_SceneTimeout_PublishesFailureOnly" methodname="LoadingState_SceneTimeout_PublishesFailureOnly" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1266663182" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001504" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入加载状态
+[LoadingState] ❌ 场景加载失败: test-scene (Timeout)
+[GameFSM] 退出加载状态
+]]></output>
+                </test-case>
+                <test-case id="1149" name="SceneLoadRunner_ActivationPhaseTimesOut" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.SceneLoadRunner_ActivationPhaseTimesOut" methodname="SceneLoadRunner_ActivationPhaseTimesOut" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1003413304" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003192" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1146" name="SceneLoadRunner_CancelBeforeActivation_ReleasesActivation" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.SceneLoadRunner_CancelBeforeActivation_ReleasesActivation" methodname="SceneLoadRunner_CancelBeforeActivation_ReleasesActivation" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="618030130" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002141" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1147" name="SceneLoadRunner_CancelBeforeLoadingCompletes_ReleasesActivation" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.SceneLoadRunner_CancelBeforeLoadingCompletes_ReleasesActivation" methodname="SceneLoadRunner_CancelBeforeLoadingCompletes_ReleasesActivation" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1254342527" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001699" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1148" name="SceneLoadRunner_TimeoutBeforeActivation_ReleasesActivation" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests.SceneLoadRunner_TimeoutBeforeActivation_ReleasesActivation" methodname="SceneLoadRunner_TimeoutBeforeActivation_ReleasesActivation" classname="ZWebGLFrameWork.Runtime.Tests.FSM.SceneLoadingTests" runstate="Runnable" seed="1909586261" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002335" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1151" name="StateLifetimeTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.StateLifetimeTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.StateLifetimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010264" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1152" name="StateLifetime_ExitCancelsTokenAndReentryRenewsIt" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.StateLifetimeTests.StateLifetime_ExitCancelsTokenAndReentryRenewsIt" methodname="StateLifetime_ExitCancelsTokenAndReentryRenewsIt" classname="ZWebGLFrameWork.Runtime.Tests.FSM.StateLifetimeTests" runstate="Runnable" seed="1987441257" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.009907" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1246" name="Gameplay" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.089521" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1076" name="BuildingInteractionUpgradeValidationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.011854" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1078" name="InstantUpgrade_TownHallSynchronizesPlayersTownHallLevel" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests.InstantUpgrade_TownHallSynchronizesPlayersTownHallLevel" methodname="InstantUpgrade_TownHallSynchronizesPlayersTownHallLevel" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests" runstate="Runnable" seed="1619526010" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.008214" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+[BuildingInteraction] 建筑升级开始: e02d007b, cost=(1000g, 0e), duration=300s
+[BuildingInteraction] 建筑升级完成: e02d007b, level=2
+]]></output>
+                </test-case>
+                <test-case id="1077" name="UpgradeOperations_WithNegativeCosts_DoNotMutatePlayerOrBuilding" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests.UpgradeOperations_WithNegativeCosts_DoNotMutatePlayerOrBuilding" methodname="UpgradeOperations_WithNegativeCosts_DoNotMutatePlayerOrBuilding" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.BuildingInteractionUpgradeValidationTests" runstate="Runnable" seed="804087518" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003129" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[BuildingInteraction] 升级消耗或时长不能为负数
+[BuildingInteraction] 宝石消耗不能为负数
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1079" name="ResourceProducerLifecycleTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.007620" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1080" name="ResourceProducer_AddRemoveUpgrade_RecalculatesAndStopUnsubscribes" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests.ResourceProducer_AddRemoveUpgrade_RecalculatesAndStopUnsubscribes" methodname="ResourceProducer_AddRemoveUpgrade_RecalculatesAndStopUnsubscribes" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests" runstate="Runnable" seed="1843865081" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.005340" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceProducer] 启动: 金币 +0.5/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+]]></output>
+                </test-case>
+                <test-case id="1081" name="ResourceProducer_ClearBuildings_UnsubscribesRemovedBuildings" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests.ResourceProducer_ClearBuildings_UnsubscribesRemovedBuildings" methodname="ResourceProducer_ClearBuildings_UnsubscribesRemovedBuildings" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerLifecycleTests" runstate="Runnable" seed="569292990" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001864" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceProducer] 启动: 金币 +0.5/s, 圣水 +0.0/s, 暗黑重油 +0.0/s
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1082" name="ResourceProducerSaturationTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerSaturationTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerSaturationTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004495" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1083" name="ResourceProducer_NearCap_SaturatesWithoutOverflow" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerSaturationTests.ResourceProducer_NearCap_SaturatesWithoutOverflow" methodname="ResourceProducer_NearCap_SaturatesWithoutOverflow" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerSaturationTests" runstate="Runnable" seed="1771120930" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.004128" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceProducer] 启动: 金币 +5.0/s, 圣水 +5.0/s, 暗黑重油 +5.0/s
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1084" name="ResourceProducerTypeTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerTypeTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerTypeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001916" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1085" name="ResourceProducer_DarkElixirDrill_ProducesDarkElixirOnly" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerTypeTests.ResourceProducer_DarkElixirDrill_ProducesDarkElixirOnly" methodname="ResourceProducer_DarkElixirDrill_ProducesDarkElixirOnly" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.ResourceProducerTypeTests" runstate="Runnable" seed="986421227" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001579" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceProducer] 启动: 金币 +0.0/s, 圣水 +0.0/s, 暗黑重油 +0.5/s
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1086" name="SceneServiceRebindingTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.SceneServiceRebindingTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.SceneServiceRebindingTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.050113" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1087" name="SceneChange_AllGameplayServices_RebindAndReleaseOldScene" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.SceneServiceRebindingTests.SceneChange_AllGameplayServices_RebindAndReleaseOldScene" methodname="SceneChange_AllGameplayServices_RebindAndReleaseOldScene" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.SceneServiceRebindingTests" runstate="Runnable" seed="965199313" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.049583" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1088" name="VillageOccupancyTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.012976" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1092" name="Village_AddBuilding_DuplicateIdIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_DuplicateIdIsRejected" methodname="Village_AddBuilding_DuplicateIdIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="544365917" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.003844" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[VillageData] 建筑 Id 已存在: shared-id
+]]></output>
+                </test-case>
+                <test-case id="1091" name="Village_AddBuilding_EmptyIdIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_EmptyIdIsRejected" methodname="Village_AddBuilding_EmptyIdIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="410204600" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000756" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1094" name="Village_AddBuilding_NegativeGridCoordinateIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_NegativeGridCoordinateIsRejected" methodname="Village_AddBuilding_NegativeGridCoordinateIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1482223357" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000540" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1090" name="Village_AddBuilding_NullBuildingIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_NullBuildingIsRejected" methodname="Village_AddBuilding_NullBuildingIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1310377465" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000911" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1095" name="Village_AddBuilding_OverlappingFootprintIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_OverlappingFootprintIsRejected" methodname="Village_AddBuilding_OverlappingFootprintIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="966113055" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.000934" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1093" name="Village_AddBuilding_SecondTownHallIsRejected" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_AddBuilding_SecondTownHallIsRejected" methodname="Village_AddBuilding_SecondTownHallIsRejected" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1457551307" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001566" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[VillageData] 村庄只能包含一个大本营
+]]></output>
+                </test-case>
+                <test-case id="1096" name="Village_Reset_RestoresDefaultBuildingCapacity" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.Village_Reset_RestoresDefaultBuildingCapacity" methodname="Village_Reset_RestoresDefaultBuildingCapacity" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1872679200" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002462" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1089" name="VillageOccupancy_MultiCellFootprintBlocksEveryCell" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.VillageOccupancy_MultiCellFootprintBlocksEveryCell" methodname="VillageOccupancy_MultiCellFootprintBlocksEveryCell" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1750032716" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001161" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="1029" name="LoginStateTests" fullname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests" classname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.010219" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1030" name="CharacterSelectionSubscription_IsIdempotent" fullname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests.CharacterSelectionSubscription_IsIdempotent" methodname="CharacterSelectionSubscription_IsIdempotent" classname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests" runstate="Runnable" seed="1568104940" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.006250" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[LoginState] 角色已选择 slot=0
+]]></output>
+              </test-case>
+              <test-case id="1031" name="GuestLoginCallback_AfterStateExit_IsIgnored" fullname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests.GuestLoginCallback_AfterStateExit_IsIgnored" methodname="GuestLoginCallback_AfterStateExit_IsIgnored" classname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests" runstate="Runnable" seed="1718716214" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.002130" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1032" name="GuestLoginCompletionPolicy_AcceptsLiveTokenAndRejectsCancellation" fullname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests.GuestLoginCompletionPolicy_AcceptsLiveTokenAndRejectsCancellation" methodname="GuestLoginCompletionPolicy_AcceptsLiveTokenAndRejectsCancellation" classname="ZWebGLFrameWork.Runtime.Tests.LoginStateTests" runstate="Runnable" seed="1397634375" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:00Z" duration="0.001281" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestSuite" id="1245" name="Scenes" fullname="ZWebGLFrameWork.Runtime.Tests.Scenes" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:01Z" duration="0.568941" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1074" name="LauncherVillageCompositionTests" fullname="ZWebGLFrameWork.Runtime.Tests.Scenes.LauncherVillageCompositionTests" classname="ZWebGLFrameWork.Runtime.Tests.Scenes.LauncherVillageCompositionTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:01Z" duration="0.568760" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1075" name="LauncherPlayMode_EntersInteractiveVillage" fullname="ZWebGLFrameWork.Runtime.Tests.Scenes.LauncherVillageCompositionTests.LauncherPlayMode_EntersInteractiveVillage" methodname="LauncherPlayMode_EntersInteractiveVillage" classname="ZWebGLFrameWork.Runtime.Tests.Scenes.LauncherVillageCompositionTests" runstate="Runnable" seed="1956547471" result="Passed" start-time="2026-07-31 05:57:00Z" end-time="2026-07-31 05:57:01Z" duration="0.568288" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[AppConfig] 配置已应用 — 帧率:60, VSync:0, 后台:True, 画质:1, 后台省电:False
+
+══════════════════════════════════════════
+         AppConfig 运行时验证  [✅ 策划配置]
+──────────────────────────────────────────
+  ⓪ 平台自适应       : 平台自适应未启用（使用原始配置值）
+  ① 目标帧率         : 60  (Config原始:60)
+  ② 垂直同步         : 0  ← Config: 0
+  ③ 允许后台运行     : True  ← Config: True
+  ④ 画质等级         : 1  (Config原始:1)
+  ⑤ 日志最低等级     : Verbose  ← Config: Verbose
+  ⑥ 加载模式         : Sequential  （LaunchState 读取）
+  ⑦ 后台省电         : False  → 10 FPS  （OnApplicationFocus 读取）
+  ⑧ WebGL 内存       : 256 MB  （构建时生效）
+  ⑨ WebGL 异常模式   : ExplicitlyThrown  （构建时生效）
+  ⑩ 配置来源         : Resources/.asset
+══════════════════════════════════════════
+[GameLauncher] GameFSM 已就绪 → 当前状态: Launch
+[GameFSM] 进入启动状态
+[BootProfiler] ▶ Phase0_Bootstrap
+[ResourceManager] ✅ 初始化完成 — Provider: ResourcesProvider
+[SceneLoader] ✅ 初始化完成
+[AudioManager] ✅ 初始化完成
+[LaunchState] ⏭ 本地化已关闭
+[LaunchState] ⏭ SDK 已关闭
+[BootProfiler] ✓ Phase1_EngineInit: 8ms
+[BootProfiler] ▶ Phase2_HotUpdate
+[LaunchState] ⏭ 热更已关闭
+[BootProfiler] ✓ Phase2_HotUpdate: 1ms
+[BootProfiler] ▶ Phase3_DataPreload
+[GameFSM] <none> → Launch
+[PoolPrewarmer] ✅ Barbarian ×2 (池中:2)
+[PoolPrewarmer] ✅ Archer ×2 (池中:2)
+[PoolPrewarmer] ✅ Giant ×2 (池中:2)
+[PoolPrewarmer] ✅ Wall Breaker ×2 (池中:2)
+[PoolPrewarmer] ✅ Balloon ×2 (池中:2)
+[PoolPrewarmer] ✅ Wizard ×2 (池中:2)
+[PoolPrewarmer] ✅ Healer ×2 (池中:2)
+[PoolPrewarmer] ✅ Dragon ×2 (池中:2)
+[PoolPrewarmer] ✅ P.E.K.K.A ×2 (池中:2)
+[PoolPrewarmer] ✅ Goblin ×2 (池中:2)
+[PoolPrewarmer] 预热完成: 10/10 种单位
+[BootProfiler] ✓ Phase3_DataPreload: 302ms
+[BootProfiler] ✓ Phase4_Transition: 501ms
+=== 启动耗时报告 ===
+  Phase1_EngineInit: 8ms
+  Phase2_HotUpdate: 1ms
+  Phase3_DataPreload: 302ms
+  Phase4_Transition: 501ms
+  总计: 812ms
+
+[LaunchState] ✅ 初始化完成 → Login
+[GameFSM] 退出启动状态
+[GameFSM] 进入登录状态
+[LoginState] 🔌 离线模式 — 使用本地存档
+[SaveManager] 保存成功: slot=4, path=/Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/save_4.json
+[GameInitializer] ✅ 默认存档已创建 slot=4: Villager Lv.1
+[SaveManager] 数据写入 DataManager: slot=4
+[GameFSM] Launch → Login
+[GameFSM] 进入主城状态
+[ResourceProducer] 启动: 金币 +0.5/s, 圣水 +0.5/s, 暗黑重油 +0.0/s
+[GameFSM] Login → MainVillage
+[SceneLoader] 场景已卸载: Launcher
+[SaveManager] 删除存档: slot=4
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1244" name="Support" fullname="ZWebGLFrameWork.Runtime.Tests.Support" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.000728" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1072" name="RuntimeAssemblySmokeTests" fullname="ZWebGLFrameWork.Runtime.Tests.Support.RuntimeAssemblySmokeTests" classname="ZWebGLFrameWork.Runtime.Tests.Support.RuntimeAssemblySmokeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.000536" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1073" name="RuntimePlayModeAssembly_IsDiscoverable" fullname="ZWebGLFrameWork.Runtime.Tests.Support.RuntimeAssemblySmokeTests.RuntimePlayModeAssembly_IsDiscoverable" methodname="RuntimePlayModeAssembly_IsDiscoverable" classname="ZWebGLFrameWork.Runtime.Tests.Support.RuntimeAssemblySmokeTests" runstate="Runnable" seed="2137489950" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.000191" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1243" name="UI" fullname="ZWebGLFrameWork.Runtime.Tests.UI" runstate="Runnable" testcasecount="33" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.158778" total="33" passed="33" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1033" name="BuildingInfoPanelLifecycleTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.BuildingInfoPanelLifecycleTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.BuildingInfoPanelLifecycleTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002287" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1034" name="BuildingInfoPanel_Awake_InitializesUIBase" fullname="ZWebGLFrameWork.Runtime.Tests.UI.BuildingInfoPanelLifecycleTests.BuildingInfoPanel_Awake_InitializesUIBase" methodname="BuildingInfoPanel_Awake_InitializesUIBase" classname="ZWebGLFrameWork.Runtime.Tests.UI.BuildingInfoPanelLifecycleTests" runstate="Runnable" seed="653204833" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.001804" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1035" name="DeployPanelAvailabilityTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.DeployPanelAvailabilityTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.DeployPanelAvailabilityTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.017838" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1036" name="OnOpen_OnlyIncludesUnitsUnlockedByPlayersTownHallLevel" fullname="ZWebGLFrameWork.Runtime.Tests.UI.DeployPanelAvailabilityTests.OnOpen_OnlyIncludesUnitsUnlockedByPlayersTownHallLevel" methodname="OnOpen_OnlyIncludesUnitsUnlockedByPlayersTownHallLevel" classname="ZWebGLFrameWork.Runtime.Tests.UI.DeployPanelAvailabilityTests" runstate="Runnable" seed="151588247" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.017332" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ConfigTableManager] 开始预加载配置表...
+[ConfigTableManager] ✅ 建筑配置表: 10 条
+[ConfigTableManager] ✅ 兵种配置表: 10 条
+[ConfigTableManager] ✅ 关卡配置表: 5 条
+[ConfigTableManager] 预加载完成 (Ready=True)
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1037" name="UICloseLayerTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.026131" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1038" name="UIManager_CloseLayer_DoesNotLeakOrDuplicateCachedPanel" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseLayer_DoesNotLeakOrDuplicateCachedPanel" methodname="UIManager_CloseLayer_DoesNotLeakOrDuplicateCachedPanel" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="332812865" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.004435" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1040" name="UIManager_CloseLayer_KeepsPanelsBelowRemainingModalPaused" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseLayer_KeepsPanelsBelowRemainingModalPaused" methodname="UIManager_CloseLayer_KeepsPanelsBelowRemainingModalPaused" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="131721219" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003948" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1039" name="UIManager_CloseLayer_ResumesLowerPanelPausedByClosedTopPanel" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseLayer_ResumesLowerPanelPausedByClosedTopPanel" methodname="UIManager_CloseLayer_ResumesLowerPanelPausedByClosedTopPanel" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="44254763" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.001874" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1045" name="UIManager_CloseMiddleModal_KeepsLowerLayersPausedByRemainingModal" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseMiddleModal_KeepsLowerLayersPausedByRemainingModal" methodname="UIManager_CloseMiddleModal_KeepsLowerLayersPausedByRemainingModal" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="1311340394" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003494" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1043" name="UIManager_CloseMiddleModal_ResumesLowerLayersUnderNonModalTop" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseMiddleModal_ResumesLowerLayersUnderNonModalTop" methodname="UIManager_CloseMiddleModal_ResumesLowerLayersUnderNonModalTop" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="1357318370" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002265" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1044" name="UIManager_CloseMiddleModalUnderHigherModal_KeepsPanelsPaused" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseMiddleModalUnderHigherModal_KeepsPanelsPaused" methodname="UIManager_CloseMiddleModalUnderHigherModal_KeepsPanelsPaused" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="499004758" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002299" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1041" name="UIManager_CloseModalTop_ResumesLowerLayersWhenRevealedPanelIsNonModal" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseModalTop_ResumesLowerLayersWhenRevealedPanelIsNonModal" methodname="UIManager_CloseModalTop_ResumesLowerLayersWhenRevealedPanelIsNonModal" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="1742968841" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002402" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1042" name="UIManager_CloseModalUnderHigherModal_KeepsRevealedPanelsPaused" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseModalUnderHigherModal_KeepsRevealedPanelsPaused" methodname="UIManager_CloseModalUnderHigherModal_KeepsRevealedPanelsPaused" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="184678759" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002099" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1046" name="UIManager_CloseTop_StopsBelowLayerContainingPausedModal" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests.UIManager_CloseTop_StopsBelowLayerContainingPausedModal" methodname="UIManager_CloseTop_StopsBelowLayerContainingPausedModal" classname="ZWebGLFrameWork.Runtime.Tests.UI.UICloseLayerTests" runstate="Runnable" seed="873176276" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002087" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1047" name="UIEventSystemTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.027677" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1050" name="LauncherButton_PointerClick_InvokesAction" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests.LauncherButton_PointerClick_InvokesAction" methodname="LauncherButton_PointerClick_InvokesAction" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests" runstate="Runnable" seed="1968223594" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.023242" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1048" name="UIManager_Initialize_CreatesSingleEventSystem" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests.UIManager_Initialize_CreatesSingleEventSystem" methodname="UIManager_Initialize_CreatesSingleEventSystem" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests" runstate="Runnable" seed="6351362" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002025" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1049" name="UIManager_WithExistingEventSystem_DoesNotDuplicate" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests.UIManager_WithExistingEventSystem_DoesNotDuplicate" methodname="UIManager_WithExistingEventSystem_DoesNotDuplicate" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIEventSystemTests" runstate="Runnable" seed="479728702" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.001783" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1051" name="UIOpenTransactionTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.076990" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1054" name="Close_WhenAnimatedOnCloseReopensSamePanel_PreservesLatestLifecycle" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Close_WhenAnimatedOnCloseReopensSamePanel_PreservesLatestLifecycle" methodname="Close_WhenAnimatedOnCloseReopensSamePanel_PreservesLatestLifecycle" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="1720487135" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.007714" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1053" name="Close_WhenOnCloseReopensSamePanel_PreservesLatestLifecycle" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Close_WhenOnCloseReopensSamePanel_PreservesLatestLifecycle" methodname="Close_WhenOnCloseReopensSamePanel_PreservesLatestLifecycle" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="91622004" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003348" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1055" name="CloseAll_WhenOnCloseOpensPanel_RejectsReentryAndCleansCache" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.CloseAll_WhenOnCloseOpensPanel_RejectsReentryAndCleansCache" methodname="CloseAll_WhenOnCloseOpensPanel_RejectsReentryAndCleansCache" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="2140547068" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.005708" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1056" name="CloseAll_WhenPanelCloseThrows_DiscardsRemainingStackOwnership" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.CloseAll_WhenPanelCloseThrows_DiscardsRemainingStackOwnership" methodname="CloseAll_WhenPanelCloseThrows_DiscardsRemainingStackOwnership" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="186473658" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002671" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1057" name="CloseAll_WhenPanelHasCloseAnimation_CompletesCloseLifecycleImmediately" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.CloseAll_WhenPanelHasCloseAnimation_CompletesCloseLifecycleImmediately" methodname="CloseAll_WhenPanelHasCloseAnimation_CompletesCloseLifecycleImmediately" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="2067024138" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002512" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1065" name="Open_WhenLatestSortingReservationFails_ReusesThatOrder" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenLatestSortingReservationFails_ReusesThatOrder" methodname="Open_WhenLatestSortingReservationFails_ReusesThatOrder" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="1623456942" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003019" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1062" name="Open_WhenLayerIsAtCapacity_RejectsWithoutOpeningOrChangingState" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenLayerIsAtCapacity_RejectsWithoutOpeningOrChangingState" methodname="Open_WhenLayerIsAtCapacity_RejectsWithoutOpeningOrChangingState" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="647038241" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.011749" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[UIStack] 层级 Normal 栈深度已达上限 50，Push 被拒绝: CapacityRejectedPanel
+]]></output>
+                </test-case>
+                <test-case id="1066" name="Open_WhenNestedPanelAllocatesAfterFailingPanel_DoesNotReclaimNestedOrder" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenNestedPanelAllocatesAfterFailingPanel_DoesNotReclaimNestedOrder" methodname="Open_WhenNestedPanelAllocatesAfterFailingPanel_DoesNotReclaimNestedOrder" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="575552512" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003248" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1064" name="Open_WhenOnOpenAndRollbackOnCloseThrow_ClosesAndRestoresBeforeRethrow" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenOnOpenAndRollbackOnCloseThrow_ClosesAndRestoresBeforeRethrow" methodname="Open_WhenOnOpenAndRollbackOnCloseThrow_ClosesAndRestoresBeforeRethrow" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="641861220" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.014998" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[InvalidOperationException: rollback close failed
+ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests+ThrowingOpenAndClosePanel.OnClose () (at Assets/Tests/Runtime/UI/UIOpenTransactionTests.cs:583)
+ZWebGLFrameWork.UI.UIBase.CompleteClose (System.Int32 closeVersion) (at Assets/Scripts/UI/Core/UIBase.cs:184)
+ZWebGLFrameWork.UI.UIBase.DoClose () (at Assets/Scripts/UI/Core/UIBase.cs:164)
+ZWebGLFrameWork.UI.UIStack.ClosePanel (ZWebGLFrameWork.UI.UIBase panel, System.Boolean closeImmediately) (at Assets/Scripts/UI/Core/UIStack.cs:179)
+ZWebGLFrameWork.UI.UIStack.Remove (ZWebGLFrameWork.UI.UIBase panel, System.Boolean forceInactiveAfterClose, System.Boolean closeImmediately) (at Assets/Scripts/UI/Core/UIStack.cs:168)
+ZWebGLFrameWork.UI.UIStack.Rollback (ZWebGLFrameWork.UI.UIBase panel) (at Assets/Scripts/UI/Core/UIStack.cs:137)
+ZWebGLFrameWork.UI.UIManager.Open[T] (System.Object data) (at Assets/Scripts/UI/Core/UIManager.cs:170)
+UnityEngine.Debug:LogException(Exception)
+ZWebGLFrameWork.UI.UIManager:Open(Object) (at Assets/Scripts/UI/Core/UIManager.cs:174)
+ZWebGLFrameWork.Runtime.Tests.UI.<>c__DisplayClass17_0:<Open_WhenOnOpenAndRollbackOnCloseThrow_ClosesAndRestoresBeforeRethrow>b__0() (at Assets/Tests/Runtime/UI/UIOpenTransactionTests.cs:306)
+NUnit.Framework.Assert:Throws(IResolveConstraint, TestDelegate, String, Object[])
+NUnit.Framework.Assert:Throws(Type, TestDelegate, String, Object[])
+NUnit.Framework.Assert:Throws(TestDelegate, String, Object[])
+NUnit.Framework.Assert:Throws(TestDelegate)
+ZWebGLFrameWork.Runtime.Tests.UI.<Open_WhenOnOpenAndRollbackOnCloseThrow_ClosesAndRestoresBeforeRethrow>d__17:MoveNext() (at Assets/Tests/Runtime/UI/UIOpenTransactionTests.cs:305)
+UnityEngine.SetupCoroutine:InvokeMoveNext(IEnumerator, IntPtr) (at /Volumes/jenkins1/sharedspace/ra_2022.3/Runtime/Export/Scripting/Coroutines.cs:17)
+
+]]></output>
+                </test-case>
+                <test-case id="1059" name="Open_WhenOnOpenOpensAnotherPanel_KeepsNestedPanelOnTop" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenOnOpenOpensAnotherPanel_KeepsNestedPanelOnTop" methodname="Open_WhenOnOpenOpensAnotherPanel_KeepsNestedPanelOnTop" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="1497111042" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003111" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1063" name="Open_WhenOnOpenThrows_RollsBackAndResumesPreviousPanel" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenOnOpenThrows_RollsBackAndResumesPreviousPanel" methodname="Open_WhenOnOpenThrows_RollsBackAndResumesPreviousPanel" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="508237007" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003205" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1052" name="Open_WhenPanelClosesItself_KeepsItClosedAndUnowned" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenPanelClosesItself_KeepsItClosedAndUnowned" methodname="Open_WhenPanelClosesItself_KeepsItClosedAndUnowned" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="1916241519" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003052" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1061" name="Open_WhenPreviousOnPauseOpensAnotherPanel_KeepsNestedPanelOnTop" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenPreviousOnPauseOpensAnotherPanel_KeepsNestedPanelOnTop" methodname="Open_WhenPreviousOnPauseOpensAnotherPanel_KeepsNestedPanelOnTop" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="884052875" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002877" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1060" name="Open_WhenPreviousOnPauseReentersSameType_RebindsOneAdmission" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenPreviousOnPauseReentersSameType_RebindsOneAdmission" methodname="Open_WhenPreviousOnPauseReentersSameType_RebindsOneAdmission" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="2071816565" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.003036" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1058" name="Open_WhenSameTypeReenters_RebindsOneOwnedInstance" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Open_WhenSameTypeReenters_RebindsOneOwnedInstance" methodname="Open_WhenSameTypeReenters_RebindsOneOwnedInstance" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="3744639" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002602" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1067" name="Pop_WhenExactPanelIsNotOwned_DoesNothing" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests.Pop_WhenExactPanelIsNotOwned_DoesNothing" methodname="Pop_WhenExactPanelIsNotOwned_DoesNothing" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIOpenTransactionTests" runstate="Runnable" seed="575024607" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002108" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1068" name="UIPanelRebindTests" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.007287" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1069" name="Panel_Reopen_ReusesHierarchyAndRebindsData" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests.Panel_Reopen_ReusesHierarchyAndRebindsData" methodname="Panel_Reopen_ReusesHierarchyAndRebindsData" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests" runstate="Runnable" seed="2105554794" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002259" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1071" name="Panel_ReopenUnderPopupBlocker_PreservesLayerAndSortingOrder" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests.Panel_ReopenUnderPopupBlocker_PreservesLayerAndSortingOrder" methodname="Panel_ReopenUnderPopupBlocker_PreservesLayerAndSortingOrder" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests" runstate="Runnable" seed="1307958969" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.002474" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1070" name="Panel_ReopenWhilePaused_RebindsWithoutBypassingStackOrder" fullname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests.Panel_ReopenWhilePaused_RebindsWithoutBypassingStackOrder" methodname="Panel_ReopenWhilePaused_RebindsWithoutBypassingStackOrder" classname="ZWebGLFrameWork.Runtime.Tests.UI.UIPanelRebindTests" runstate="Runnable" seed="823312958" result="Passed" start-time="2026-07-31 05:57:01Z" end-time="2026-07-31 05:57:01Z" duration="0.001969" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

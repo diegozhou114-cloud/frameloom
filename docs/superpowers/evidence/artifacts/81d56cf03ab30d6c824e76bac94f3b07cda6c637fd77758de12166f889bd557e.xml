@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.0885168">
+  <test-suite type="TestSuite" id="1250" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="185" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.088517" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1239" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.072176" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1268" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1240" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.068642" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1241" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.066650" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1242" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.064921" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1246" name="Gameplay" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.062253" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1088" name="VillageOccupancyTests" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.058758" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1089" name="VillageOccupancy_MultiCellFootprintBlocksEveryCell" fullname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests.VillageOccupancy_MultiCellFootprintBlocksEveryCell" methodname="VillageOccupancy_MultiCellFootprintBlocksEveryCell" classname="ZWebGLFrameWork.Runtime.Tests.Gameplay.VillageOccupancyTests" runstate="Runnable" seed="1459225410" result="Passed" start-time="2026-07-31 05:52:17Z" end-time="2026-07-31 05:52:17Z" duration="0.034252" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

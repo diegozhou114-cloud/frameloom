@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "c4cec05858bd90206ff5fde6b4b6d1782126115d",
+  "fixCommits": [
+    "566a68c060c943be190f9a735781df939dd9bf20"
+  ],
+  "acceptanceMethod": "VillageOccupancy_MultiCellFootprintBlocksEveryCell",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/Model/VillageData.cs",
+    "Assets/Tests/Runtime/Gameplay.meta",
+    "Assets/Tests/Runtime/Gameplay/VillageOccupancyTests.cs",
+    "Assets/Tests/Runtime/Gameplay/VillageOccupancyTests.cs.meta"
+  ],
+  "gitDiffSha256": "80b601b050bf6db2b8c52d6d9dba03c355a1c7fb0e2f1f2edb3296f18d9f98b3",
+  "reason": "Historical source inspection for c4cec05858bd90206ff5fde6b4b6d1782126115d..566a68c060c943be190f9a735781df939dd9bf20.",
+  "currentAcceptanceRequired": false
+}
