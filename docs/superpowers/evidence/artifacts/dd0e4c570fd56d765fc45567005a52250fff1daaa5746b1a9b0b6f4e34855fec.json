@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "86da4a2d7ea0919430a5c6745838c4d7ac176de0",
+  "fixCommits": [
+    "b0e0ef87cff9abe8face22bd3e60c53ab628ba12"
+  ],
+  "acceptanceMethod": "BattlePathfinding_DiagonalBesideSingleWall_IsRejected",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Tests/SimulationCore/CoreTargetingTests.cs",
+    "Assets/Tests/SimulationCore/ModeBehaviorTests.cs",
+    "Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj"
+  ],
+  "gitDiffSha256": "333534906c7cbe0d26da657fdd4bdfa2b388a8071a85046e7b76d6d60da0b2c3",
+  "reason": "Historical source inspection for 86da4a2d7ea0919430a5c6745838c4d7ac176de0..b0e0ef87cff9abe8face22bd3e60c53ab628ba12.",
+  "currentAcceptanceRequired": false
+}

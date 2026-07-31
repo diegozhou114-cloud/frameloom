@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "26571ee9ce9dedd1fb91950eafa933cd8268c666",
+  "fixCommits": [
+    "fb6d7622499aeab95d1fe828dfa349b17eedb332"
+  ],
+  "acceptanceMethod": "BattleInit_UsesRequestedDefenderAndSeed",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Command/CommandExecutionResult.cs",
+    "Assets/Scripts/SimulationCore/Command/CommandExecutionResult.cs.meta",
+    "Assets/Scripts/SimulationCore/Presentation.meta",
+    "Assets/Scripts/SimulationCore/Presentation/PresentationFrame.cs",
+    "Assets/Scripts/SimulationCore/Presentation/PresentationFrame.cs.meta",
+    "Assets/Scripts/SimulationCore/Session.meta",
+    "Assets/Scripts/SimulationCore/Session/BattleInit.cs",
+    "Assets/Scripts/SimulationCore/Session/BattleInit.cs.meta",
+    "Assets/Scripts/SimulationCore/Session/ISimBattleSession.cs",
+    "Assets/Scripts/SimulationCore/Session/ISimBattleSession.cs.meta",
+    "Assets/Scripts/SimulationCore/Session/SessionResults.cs",
+    "Assets/Scripts/SimulationCore/Session/SessionResults.cs.meta",
+    "Assets/Scripts/SimulationCore/Session/SimSnapshot.cs",
+    "Assets/Scripts/SimulationCore/Session/SimSnapshot.cs.meta",
+    "Assets/Scripts/SimulationCore/Session/TickResult.cs",
+    "Assets/Scripts/SimulationCore/Session/TickResult.cs.meta",
+    "Assets/Tests/SimulationCore/SessionContractTests.cs",
+    "Assets/Tests/SimulationCore/SessionContractTests.cs.meta"
+  ],
+  "gitDiffSha256": "f9951bc4bac3de925ef18e6ee356d408326a00d5f10e53d070eea8598747625a",
+  "reason": "Historical source inspection for 26571ee9ce9dedd1fb91950eafa933cd8268c666..fb6d7622499aeab95d1fe828dfa349b17eedb332.",
+  "currentAcceptanceRequired": false
+}

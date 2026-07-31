@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "4ab793b2f81be5c76550a373cfd15f273d2e3bb2",
+  "fixCommits": [
+    "4c69c0a0f13b08565c3a924114c5ce5b732eedc5"
+  ],
+  "acceptanceMethod": "DeployCommand_RejectsOutOfPhaseDisallowedOrOverLimit",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Tests/SimulationCore/SessionContractTests.cs",
+    "Assets/Tests/SimulationCore/SimReplayRoundTripTests.cs"
+  ],
+  "gitDiffSha256": "c0bf23b1420520a274ce9dd0082192cc9ca199f21d30430e4eb37aec9fa15a0d",
+  "reason": "Historical source inspection for 4ab793b2f81be5c76550a373cfd15f273d2e3bb2..4c69c0a0f13b08565c3a924114c5ce5b732eedc5.",
+  "currentAcceptanceRequired": false
+}
