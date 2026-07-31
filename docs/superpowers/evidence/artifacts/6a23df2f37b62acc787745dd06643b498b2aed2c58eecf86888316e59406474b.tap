@@ -1,0 +1,14 @@
+✔ Workflow_AllUnityActionsUsePinnedProjectVersion (0.418834ms)
+✔ Workflow_TriggersCoverAllGateInputs (0.071167ms)
+✔ all mutating jobs end with an exact clean-tree gate (0.084291ms)
+✔ CI_ServerProjects_BuildAndTestReleaseWarnAsError (0.330875ms)
+✔ CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts (0.094166ms)
+✔ build smoke gates require trusted HTTPS and structured Windows exit (0.15ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.4895

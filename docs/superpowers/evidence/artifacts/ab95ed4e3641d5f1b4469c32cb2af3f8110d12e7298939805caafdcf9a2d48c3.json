@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "193945b60e4ed52e7f6516a6673d0b907ea86578",
+  "fixCommits": [
+    "1457ff3fb26f3760398f659fce266d8d506d16c8"
+  ],
+  "acceptanceMethod": "CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    ".github/workflows/ci.yml",
+    "Assets/Editor/BuildReportJsonWriter.cs",
+    "Assets/Editor/BuildReportJsonWriter.cs.meta",
+    "Assets/Editor/BuildScript.cs",
+    "Assets/Tests/Editor/BuildReportJsonWriterTests.cs",
+    "Assets/Tests/Editor/BuildReportJsonWriterTests.cs.meta",
+    "scripts/ci/validate-build-summary.mjs",
+    "scripts/ci/validate-build-summary.test.mjs",
+    "scripts/ci/workflow-contract.test.mjs"
+  ],
+  "gitDiffSha256": "0e1212707902bef2768cb383da5c1ba134efc755912ce9427f6e8d66027b8844",
+  "reason": "Historical source inspection for 193945b60e4ed52e7f6516a6673d0b907ea86578..1457ff3fb26f3760398f659fce266d8d506d16c8.",
+  "currentAcceptanceRequired": false
+}

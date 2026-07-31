@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "700421f57a9eba4be4f4cca19efb33b3dddb3864",
+  "fixCommits": [
+    "dd3309127fb082824596801068424f3b228ab124"
+  ],
+  "acceptanceMethod": "CI_ServerProjects_BuildAndTestReleaseWarnAsError",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    ".github/workflows/ci.yml",
+    "scripts/ci/test_validate_trx.py",
+    "scripts/ci/validate-trx.py",
+    "scripts/ci/validate_trx.py",
+    "scripts/ci/workflow-contract.test.mjs"
+  ],
+  "gitDiffSha256": "1066d2b93fd7833ddd4fc32140d1b84b52afd6ec703b6845e05c91a70e9d4200",
+  "reason": "Historical source inspection for 700421f57a9eba4be4f4cca19efb33b3dddb3864..dd3309127fb082824596801068424f3b228ab124.",
+  "currentAcceptanceRequired": false
+}
