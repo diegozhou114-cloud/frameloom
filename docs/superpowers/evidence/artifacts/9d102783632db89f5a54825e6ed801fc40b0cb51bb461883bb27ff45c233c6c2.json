@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "20e2a8305f1e377661dc4bac37a8c12abc767ea4",
+  "fixCommits": [
+    "d329a94ce17dcf3d8d46421891a82c26cd1eb966"
+  ],
+  "acceptanceMethod": "RollbackReplay_MatchesOriginalChecksumSequence",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Tests/SimulationCore/SessionDeterminismTests.cs"
+  ],
+  "gitDiffSha256": "ce3b0732ea6f1b1bc7c43deb145228c2be22dd34a9b8106787463cd00e391a43",
+  "reason": "Historical source inspection for 20e2a8305f1e377661dc4bac37a8c12abc767ea4..d329a94ce17dcf3d8d46421891a82c26cd1eb966.",
+  "currentAcceptanceRequired": false
+}

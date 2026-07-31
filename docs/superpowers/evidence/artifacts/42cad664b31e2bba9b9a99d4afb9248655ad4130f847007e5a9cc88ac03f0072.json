@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "a5cb6758536ed86bb6c64eaec80de134bed35212",
+  "fixCommits": [
+    "38106550af52ec627e85ff411852bb0759bb41e4"
+  ],
+  "acceptanceMethod": "SupportedModes_MatchApprovedBehaviorMatrix",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Content/DeterministicContentManifest.cs",
+    "Assets/Scripts/SimulationCore/Modes.meta",
+    "Assets/Scripts/SimulationCore/Modes/SimModeRules.cs",
+    "Assets/Scripts/SimulationCore/Modes/SimModeRules.cs.meta",
+    "Assets/Scripts/SimulationCore/Session/TickResult.cs",
+    "Assets/Tests/SimulationCore/ModeBehaviorTests.cs",
+    "Assets/Tests/SimulationCore/ModeBehaviorTests.cs.meta",
+    "Assets/Tests/SimulationCore/SessionTestDriver.cs",
+    "Server/SimulationCore.Tests/ModeBehaviorGoldenTests.cs",
+    "Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj"
+  ],
+  "gitDiffSha256": "4d9d5333e90d004bf081494ea356e1f50d09141d2ddbcb02e078716cb560e5a6",
+  "reason": "Historical source inspection for a5cb6758536ed86bb6c64eaec80de134bed35212..38106550af52ec627e85ff411852bb0759bb41e4.",
+  "currentAcceptanceRequired": false
+}

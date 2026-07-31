@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "4c69c0a0f13b08565c3a924114c5ce5b732eedc5",
+  "fixCommits": [
+    "86da4a2d7ea0919430a5c6745838c4d7ac176de0"
+  ],
+  "acceptanceMethod": "BattleSession_AttackDamageDeathResult_EndToEnd",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Session/SimBattleSession.cs",
+    "Assets/Tests/SimulationCore/SessionTerminalTests.cs"
+  ],
+  "gitDiffSha256": "4451883e8c2ba928cff6e075a5c88d5fdffa4b172f27fb888a511067e396ce90",
+  "reason": "Historical source inspection for 4c69c0a0f13b08565c3a924114c5ce5b732eedc5..86da4a2d7ea0919430a5c6745838c4d7ac176de0.",
+  "currentAcceptanceRequired": false
+}

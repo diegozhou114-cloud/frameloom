@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "a6ea479ff72b3af33d1f06aa24fb6e24bd459673",
+  "fixCommits": [
+    "b5cfee513d6c6e9316e2a6176b2be4e58347eae2"
+  ],
+  "acceptanceMethod": "BenchmarkFixture_CreatesDeclaredEntityCount",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Editor/SimulationBenchmark.cs",
+    "Assets/Editor/SimulationBenchmark.cs.meta",
+    "Assets/Editor/ZWebGLFrameWork.Editor.asmdef",
+    "Assets/Tests/SimulationCore/AuthorityReconciliationFixture.cs",
+    "Assets/Tests/SimulationCore/AuthorityReconciliationFixture.cs.meta",
+    "Assets/Tests/SimulationCore/SimBattleDeterminismTests.cs",
+    "Assets/Tests/SimulationCore/SimReplayRoundTripTests.cs",
+    "Assets/Tests/SimulationCore/SimWorldTests.cs",
+    "Assets/Tests/SimulationCore/SimulationBenchmarkFixtureTests.cs",
+    "Assets/Tests/SimulationCore/SimulationBenchmarkFixtureTests.cs.meta"
+  ],
+  "gitDiffSha256": "402ca60885a03e8eea91bb7e133d42936a569560b32dabe2e3cd0b055f27053f",
+  "reason": "Historical source inspection for a6ea479ff72b3af33d1f06aa24fb6e24bd459673..b5cfee513d6c6e9316e2a6176b2be4e58347eae2.",
+  "currentAcceptanceRequired": false
+}

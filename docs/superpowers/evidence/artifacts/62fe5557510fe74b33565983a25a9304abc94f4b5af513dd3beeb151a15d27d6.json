@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "000764d5a3d92bf68d49f5858ac9c293e547bbd2",
+  "fixCommits": [
+    "37ed423cbcf3832c96457108b120cf82ebae698a"
+  ],
+  "acceptanceMethod": "AuditRegister_ClosedIssuesHaveExecutedEvidence",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "docs/superpowers/evidence/artifacts/.gitkeep",
+    "scripts/audit/evidence-ledger.mjs",
+    "scripts/audit/evidence-ledger.test.mjs"
+  ],
+  "gitDiffSha256": "bac05cc510fc06c4bd45443c8e7ac2835ec1d0b07116525478579dea59074e87",
+  "reason": "Historical source inspection for 000764d5a3d92bf68d49f5858ac9c293e547bbd2..37ed423cbcf3832c96457108b120cf82ebae698a.",
+  "currentAcceptanceRequired": false
+}
