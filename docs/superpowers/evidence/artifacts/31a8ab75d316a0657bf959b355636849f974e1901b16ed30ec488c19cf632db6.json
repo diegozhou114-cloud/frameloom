@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "37ed423cbcf3832c96457108b120cf82ebae698a",
+  "fixCommits": [
+    "c5dffc5f1a1f261d6fb71b7ecc858c283e08c857"
+  ],
+  "acceptanceMethod": "test_PlayModeGate_RequiresExpectedNonZeroTestCount",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "ci/required-tests.json",
+    "scripts/ci/test_validate_unity_results.py",
+    "scripts/ci/validate-unity-results.py",
+    "scripts/ci/validate_unity_results.py"
+  ],
+  "gitDiffSha256": "becd2fc181cfab8675b4f1d58fb5f4ceb62e57f049f5780bcb62075a42830744",
+  "reason": "Historical source inspection for 37ed423cbcf3832c96457108b120cf82ebae698a..c5dffc5f1a1f261d6fb71b7ecc858c283e08c857.",
+  "currentAcceptanceRequired": false
+}

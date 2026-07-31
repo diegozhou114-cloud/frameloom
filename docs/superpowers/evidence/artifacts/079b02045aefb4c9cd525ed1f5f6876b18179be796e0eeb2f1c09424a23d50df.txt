@@ -1,0 +1,10 @@
+test_PlayModeGate_RequiresExpectedNonZeroTestCount (test_validate_unity_results.UnityResultValidationTests.test_PlayModeGate_RequiresExpectedNonZeroTestCount) ... ok
+test_accepts_gameci_dll_path_as_assembly_name (test_validate_unity_results.UnityResultValidationTests.test_accepts_gameci_dll_path_as_assembly_name) ... ok
+test_accepts_nonzero_named_pass (test_validate_unity_results.UnityResultValidationTests.test_accepts_nonzero_named_pass) ... ok
+test_rejects_missing_required_name (test_validate_unity_results.UnityResultValidationTests.test_rejects_missing_required_name) ... ok
+test_rejects_skipped_or_inconclusive (test_validate_unity_results.UnityResultValidationTests.test_rejects_skipped_or_inconclusive) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.003s
+
+OK
