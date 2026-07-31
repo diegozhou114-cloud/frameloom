@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "a8087676ae40155cc61b0fc3aa3a9046aa416614",
+  "fixCommits": [
+    "c4cec05858bd90206ff5fde6b4b6d1782126115d"
+  ],
+  "acceptanceMethod": "UIManager_CloseLayer_DoesNotLeakOrDuplicateCachedPanel",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/UI/Core/UIManager.cs",
+    "Assets/Tests/Runtime/UI/UICloseLayerTests.cs",
+    "Assets/Tests/Runtime/UI/UICloseLayerTests.cs.meta"
+  ],
+  "gitDiffSha256": "1d59c2b76421e2fbe9ab5f0dd169db78616775122a445d50e27fab633d3b9f3a",
+  "reason": "Historical source inspection for a8087676ae40155cc61b0fc3aa3a9046aa416614..c4cec05858bd90206ff5fde6b4b6d1782126115d.",
+  "currentAcceptanceRequired": false
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "11b886cc7924f950cd8794db3e63b293e848b5ed",
+  "fixCommits": [
+    "45577c652ed535206fd4aabda5a0553f48c1f8f2"
+  ],
+  "acceptanceMethod": "SaveGame_BuildingRoundTrip_PreservesCompleteState",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/GameInitializer.cs",
+    "Assets/Scripts/Data/PlayerSaveData.cs",
+    "Assets/Scripts/Data/SaveDataMapper.cs",
+    "Assets/Scripts/Data/SaveDataMapper.cs.meta",
+    "Assets/Scripts/Data/SaveManager.cs",
+    "Assets/Tests/Runtime/Data/BuildingSaveRoundTripTests.cs",
+    "Assets/Tests/Runtime/Data/BuildingSaveRoundTripTests.cs.meta"
+  ],
+  "gitDiffSha256": "2a038d081f5d13654cc4754aab9dfd339d812a4ee5f6ff7c7a02d4fbe047eabf",
+  "reason": "Historical source inspection for 11b886cc7924f950cd8794db3e63b293e848b5ed..45577c652ed535206fd4aabda5a0553f48c1f8f2.",
+  "currentAcceptanceRequired": false
+}

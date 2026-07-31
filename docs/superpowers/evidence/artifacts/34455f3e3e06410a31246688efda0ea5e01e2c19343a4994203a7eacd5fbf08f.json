@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "45577c652ed535206fd4aabda5a0553f48c1f8f2",
+  "fixCommits": [
+    "a3c16434564cbc3cf7c5eca4f6e7214eb31c117e"
+  ],
+  "acceptanceMethod": "MainVillageAutosave_AllPersistentChangesTrigger",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/AutosaveCoordinator.cs",
+    "Assets/Scripts/Data/AutosaveCoordinator.cs.meta",
+    "Assets/Scripts/FSM/Game/States/MainVillageState.cs",
+    "Assets/Tests/Runtime/Data/AutosaveCoordinatorTests.cs",
+    "Assets/Tests/Runtime/Data/AutosaveCoordinatorTests.cs.meta"
+  ],
+  "gitDiffSha256": "5045e6eb566e393fb89077a44b2e278ad1fb882453ac5f10faa38be4c48ab260",
+  "reason": "Historical source inspection for 45577c652ed535206fd4aabda5a0553f48c1f8f2..a3c16434564cbc3cf7c5eca4f6e7214eb31c117e.",
+  "currentAcceptanceRequired": false
+}

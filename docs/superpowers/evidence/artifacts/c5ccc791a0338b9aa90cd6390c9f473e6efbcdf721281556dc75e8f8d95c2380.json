@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "4a404730639705349aea4f4f52303aa32f9df74e",
+  "fixCommits": [
+    "d996547ccfda5238ac4d1c8c7a295e452c2a8fb0"
+  ],
+  "acceptanceMethod": "Panel_Reopen_ReusesHierarchyAndRebindsData",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/UI/Core/UIBase.cs",
+    "Assets/Scripts/UI/Core/UIManager.cs",
+    "Assets/Scripts/UI/Panels/BattleHUD.cs",
+    "Assets/Scripts/UI/Panels/BuildingInfoPanel.cs",
+    "Assets/Scripts/UI/Panels/CharacterSelectPanel.cs",
+    "Assets/Scripts/UI/Panels/DeployPanel.cs",
+    "Assets/Scripts/UI/Panels/ErrorPanel.cs",
+    "Assets/Scripts/UI/Panels/ForceUpdatePanel.cs",
+    "Assets/Scripts/UI/Panels/LoadingPanel.cs",
+    "Assets/Scripts/UI/Panels/LoginPanel.cs",
+    "Assets/Scripts/UI/Panels/MainVillageHUD.cs",
+    "Assets/Scripts/UI/Panels/ResultPanel.cs",
+    "Assets/Scripts/UI/Panels/ToastPanel.cs",
+    "Assets/Tests/Runtime/UI/RebindProbePanel.cs",
+    "Assets/Tests/Runtime/UI/RebindProbePanel.cs.meta",
+    "Assets/Tests/Runtime/UI/UIPanelRebindTests.cs",
+    "Assets/Tests/Runtime/UI/UIPanelRebindTests.cs.meta"
+  ],
+  "gitDiffSha256": "a33dfca5d75a9bc9ecb5b892e0210dcf0aad124ccec66c4055edcdd8bcfcb8ad",
+  "reason": "Historical source inspection for 4a404730639705349aea4f4f52303aa32f9df74e..d996547ccfda5238ac4d1c8c7a295e452c2a8fb0.",
+  "currentAcceptanceRequired": false
+}

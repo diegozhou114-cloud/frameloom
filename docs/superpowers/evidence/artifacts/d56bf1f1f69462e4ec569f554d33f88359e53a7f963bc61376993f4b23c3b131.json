@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "a3c16434564cbc3cf7c5eca4f6e7214eb31c117e",
+  "fixCommits": [
+    "5b52ad737af337f378f60e813903fdb1819f4c05"
+  ],
+  "acceptanceMethod": "OfflineLogin_DefaultSaveCreationFailure_DoesNotEnterVillage",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/GameInitializer.cs",
+    "Assets/Scripts/Data/OfflineSaveFlow.cs",
+    "Assets/Scripts/Data/OfflineSaveFlow.cs.meta",
+    "Assets/Scripts/FSM/Game/States/LaunchState.cs",
+    "Assets/Scripts/FSM/Game/States/LoginState.cs",
+    "Assets/Scripts/UI/Panels/CharacterSelectPanel.cs",
+    "Assets/Tests/Runtime/Data/OfflineSaveFlowTests.cs",
+    "Assets/Tests/Runtime/Data/OfflineSaveFlowTests.cs.meta"
+  ],
+  "gitDiffSha256": "ae2aa3710f4b640ab5d09871fcb760fc78b1022307933727b9f7b88b5ccbf78d",
+  "reason": "Historical source inspection for a3c16434564cbc3cf7c5eca4f6e7214eb31c117e..5b52ad737af337f378f60e813903fdb1819f4c05.",
+  "currentAcceptanceRequired": false
+}

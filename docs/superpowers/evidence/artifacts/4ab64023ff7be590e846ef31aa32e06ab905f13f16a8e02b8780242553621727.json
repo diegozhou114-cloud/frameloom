@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "d996547ccfda5238ac4d1c8c7a295e452c2a8fb0",
+  "fixCommits": [
+    "a8087676ae40155cc61b0fc3aa3a9046aa416614"
+  ],
+  "acceptanceMethod": "BuildingInfoPanel_Awake_InitializesUIBase",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/UI/Panels/BuildingInfoPanel.cs",
+    "Assets/Tests/Runtime/UI/BuildingInfoPanelLifecycleTests.cs",
+    "Assets/Tests/Runtime/UI/BuildingInfoPanelLifecycleTests.cs.meta"
+  ],
+  "gitDiffSha256": "a259239d2bc3dd5087c6947dae3f040ed91acfdeeda9200275fbf8f6869080d1",
+  "reason": "Historical source inspection for d996547ccfda5238ac4d1c8c7a295e452c2a8fb0..a8087676ae40155cc61b0fc3aa3a9046aa416614.",
+  "currentAcceptanceRequired": false
+}

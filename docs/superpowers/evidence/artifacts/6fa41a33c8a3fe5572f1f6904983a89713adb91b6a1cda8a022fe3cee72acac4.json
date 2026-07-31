@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "5b52ad737af337f378f60e813903fdb1819f4c05",
+  "fixCommits": [
+    "6f61c54227158e2531f692e5de946a3fff56c853"
+  ],
+  "acceptanceMethod": "LocalStore_FirstWriteFailureAndSupportedTypes_AreObservableAndAtomic",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Data/LocalStore.cs",
+    "Assets/Scripts/Data/LocalStoreBackend.cs",
+    "Assets/Scripts/Data/LocalStoreBackend.cs.meta",
+    "Assets/Tests/Runtime/Data/LocalStoreBackendTests.cs",
+    "Assets/Tests/Runtime/Data/LocalStoreBackendTests.cs.meta"
+  ],
+  "gitDiffSha256": "8fd8e803c65444ce220953b3deb21771868cb82227596ed26ea8b231c1a57362",
+  "reason": "Historical source inspection for 5b52ad737af337f378f60e813903fdb1819f4c05..6f61c54227158e2531f692e5de946a3fff56c853.",
+  "currentAcceptanceRequired": false
+}
