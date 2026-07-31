@@ -1099,13 +1099,33 @@
       "replacementEvidence": []
     },
     "GAME-005": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/0f5d52e3ac2319da8c3cc16ae6c17be318ce42fd935b178a0f0dfc3549e8267b.json",
+          "sha256": "0f5d52e3ac2319da8c3cc16ae6c17be318ce42fd935b178a0f0dfc3549e8267b",
+          "bytes": 807
+        }
+      ],
+      "fixCommits": [
+        "8c5b752c38f19dd5b05d67bf8cd9286bb739718a"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/ebb3a8c4be2b7ef622ff8eb895a37a8cd87858b35782c8450732202341456268.xml",
+          "sha256": "ebb3a8c4be2b7ef622ff8eb895a37a8cd87858b35782c8450732202341456268",
+          "bytes": 194214
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/ebb3a8c4be2b7ef622ff8eb895a37a8cd87858b35782c8450732202341456268.xml",
+          "sha256": "ebb3a8c4be2b7ef622ff8eb895a37a8cd87858b35782c8450732202341456268",
+          "bytes": 194214
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-31",
       "replacementEvidence": []
     },
     "NET-001": {

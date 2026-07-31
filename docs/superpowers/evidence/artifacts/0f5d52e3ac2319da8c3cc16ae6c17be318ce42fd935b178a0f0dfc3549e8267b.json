@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "98c680939d57a931f71ca11a9e715a239aa97909",
+  "fixCommits": [
+    "8c5b752c38f19dd5b05d67bf8cd9286bb739718a"
+  ],
+  "acceptanceMethod": "ResourceProducer_NearCap_SaturatesWithoutOverflow",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Gameplay/Economy/ResourceProducer.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerSaturationTests.cs",
+    "Assets/Tests/Runtime/Gameplay/ResourceProducerSaturationTests.cs.meta"
+  ],
+  "gitDiffSha256": "a2a8182c71103fe8f0cb097ee2cedd0c7c83bd430f7df5a068a20db76de7d50b",
+  "reason": "Historical source inspection for 98c680939d57a931f71ca11a9e715a239aa97909..8c5b752c38f19dd5b05d67bf8cd9286bb739718a.",
+  "currentAcceptanceRequired": false
+}
