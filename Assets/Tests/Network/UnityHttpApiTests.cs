@@ -23,7 +23,7 @@ namespace ZWebGLFrameWork.Network.Tests
         }
 
         [Test]
-        public void ValidateOnlineUri_RejectsNonHttpsAndAcceptsAbsoluteHttps()
+        public void WebGlHttpApi_RejectsInsecureHttpEndpoint()
         {
             Assert.Throws<NetworkPolicyException>(() =>
                 UnityHttpApi.ValidateOnlineUri(new Uri("http://game.example/v1/login")));
