@@ -1,0 +1,23 @@
+{
+  "name": "ZWebGLFrameWork.ECS.Tests",
+  "rootNamespace": "ZWebGLFrameWork.ECS.Tests",
+  "references": [
+    "ZWebGLFrameWork.ECS"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
