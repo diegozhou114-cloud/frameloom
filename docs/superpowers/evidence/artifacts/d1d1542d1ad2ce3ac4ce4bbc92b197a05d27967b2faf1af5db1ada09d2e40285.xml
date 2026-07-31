@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.7205421">
+  <test-suite type="TestSuite" id="1000" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="328" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.720542" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1201" name="ZWebGLFrameWork.Network.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Network.Tests.dll" runstate="Runnable" testcasecount="78" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.705155" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="61529" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1202" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="78" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.703391" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1203" name="Network" fullname="ZWebGLFrameWork.Network" runstate="Runnable" testcasecount="78" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.702958" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1204" name="Tests" fullname="ZWebGLFrameWork.Network.Tests" runstate="Runnable" testcasecount="78" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.702516" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1118" name="Kcp2kImpairmentTests" fullname="ZWebGLFrameWork.Network.Tests.Kcp2kImpairmentTests" classname="ZWebGLFrameWork.Network.Tests.Kcp2kImpairmentTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.697423" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1120" name="NativeKcp_GappedAck_DoesNotDropMissingSegment" fullname="ZWebGLFrameWork.Network.Tests.Kcp2kImpairmentTests.NativeKcp_GappedAck_DoesNotDropMissingSegment" methodname="NativeKcp_GappedAck_DoesNotDropMissingSegment" classname="ZWebGLFrameWork.Network.Tests.Kcp2kImpairmentTests" runstate="Runnable" seed="1273004965" result="Passed" start-time="2026-07-31 08:49:34Z" end-time="2026-07-31 08:49:34Z" duration="0.656518" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
