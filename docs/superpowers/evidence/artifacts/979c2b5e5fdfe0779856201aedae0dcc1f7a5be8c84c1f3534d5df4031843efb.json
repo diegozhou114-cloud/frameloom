@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "76c7d9a151cde637a9af0ac14293c3ec57b8393e",
+  "fixCommits": [
+    "5562a927c935d42b07e33402fc6d47133b1eb33e"
+  ],
+  "acceptanceMethod": "MessageDispatcher_UIntIdAndBackpressure_ArePreserved",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Network/Contracts.meta",
+    "Assets/Scripts/Network/Contracts/Dispatch.meta",
+    "Assets/Scripts/Network/Contracts/Dispatch/BoundedMessagePump.cs",
+    "Assets/Scripts/Network/Contracts/Dispatch/BoundedMessagePump.cs.meta",
+    "Assets/Scripts/Network/Contracts/Protocol.meta",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeCodec.cs",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeCodec.cs.meta",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeModels.cs",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeModels.cs.meta",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeProtocol.cs",
+    "Assets/Scripts/Network/Contracts/Protocol/RealtimeProtocol.cs.meta",
+    "Assets/Scripts/Network/Contracts/Transport.meta",
+    "Assets/Scripts/Network/Contracts/Transport/IHttpApi.cs",
+    "Assets/Scripts/Network/Contracts/Transport/IHttpApi.cs.meta",
+    "Assets/Scripts/Network/Contracts/Transport/IRealtimeChannel.cs",
+    "Assets/Scripts/Network/Contracts/Transport/IRealtimeChannel.cs.meta",
+    "Assets/Scripts/Network/Contracts/ZWebGLFrameWork.Network.Contracts.asmdef",
+    "Assets/Scripts/Network/Contracts/ZWebGLFrameWork.Network.Contracts.asmdef.meta",
+    "Assets/Tests/Network.meta",
+    "Assets/Tests/Network/BoundedMessagePumpTests.cs",
+    "Assets/Tests/Network/BoundedMessagePumpTests.cs.meta",
+    "Assets/Tests/Network/RealtimeCodecTests.cs",
+    "Assets/Tests/Network/RealtimeCodecTests.cs.meta",
+    "Assets/Tests/Network/ZWebGLFrameWork.Network.Tests.asmdef",
+    "Assets/Tests/Network/ZWebGLFrameWork.Network.Tests.asmdef.meta",
+    "Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj"
+  ],
+  "gitDiffSha256": "9638be8e6d97f437164b5a40780190d517cb68e1016d2953f2a95482762dbbc1",
+  "reason": "Historical source inspection for 76c7d9a151cde637a9af0ac14293c3ec57b8393e..5562a927c935d42b07e33402fc6d47133b1eb33e.",
+  "currentAcceptanceRequired": false
+}

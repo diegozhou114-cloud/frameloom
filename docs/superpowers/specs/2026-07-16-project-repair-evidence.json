@@ -1606,14 +1606,46 @@
       "replacementEvidence": []
     },
     "NET-014": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
-      "replacementEvidence": []
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/979c2b5e5fdfe0779856201aedae0dcc1f7a5be8c84c1f3534d5df4031843efb.json",
+          "sha256": "979c2b5e5fdfe0779856201aedae0dcc1f7a5be8c84c1f3534d5df4031843efb",
+          "bytes": 2276
+        },
+        {
+          "path": "docs/superpowers/evidence/artifacts/e09fd447a3d879d62121dfb782bb8205fa4709c47a1cc1a39cb71443c572888c.json",
+          "sha256": "e09fd447a3d879d62121dfb782bb8205fa4709c47a1cc1a39cb71443c572888c",
+          "bytes": 3286
+        }
+      ],
+      "fixCommits": [
+        "5562a927c935d42b07e33402fc6d47133b1eb33e",
+        "e2461b568721adea643e7e8e1420f8889dcff819"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/d854422365c952f9bb1bf59237b768b48ce1e3d4bfece969bc202626c2713c04.xml",
+          "sha256": "d854422365c952f9bb1bf59237b768b48ce1e3d4bfece969bc202626c2713c04",
+          "bytes": 3863
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/a784037a1ea5d9431ef26051d15c50bcf0d109dccccb0993ef37923e896eca9e.xml",
+          "sha256": "a784037a1ea5d9431ef26051d15c50bcf0d109dccccb0993ef37923e896eca9e",
+          "bytes": 262029
+        }
+      ],
+      "closureMode": "RemovedByReplacement",
+      "closedAt": "2026-07-31",
+      "replacementEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/d854422365c952f9bb1bf59237b768b48ce1e3d4bfece969bc202626c2713c04.xml",
+          "sha256": "d854422365c952f9bb1bf59237b768b48ce1e3d4bfece969bc202626c2713c04",
+          "bytes": 3863
+        }
+      ]
     },
     "REPLAY-001": {
       "status": "Open",
