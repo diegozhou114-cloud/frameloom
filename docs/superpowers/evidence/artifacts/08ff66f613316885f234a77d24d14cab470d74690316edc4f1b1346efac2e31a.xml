@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.1048664">
+  <test-suite type="TestSuite" id="1000" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="322" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.104866" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1094" name="ZWebGLFrameWork.Editor.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Editor.Tests.dll" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.078534" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="18365" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1095" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.076891" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1096" name="Editor" fullname="ZWebGLFrameWork.Editor" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.076379" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1097" name="Tests" fullname="ZWebGLFrameWork.Editor.Tests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.075794" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1076" name="CompilationBaselineTests" fullname="ZWebGLFrameWork.Editor.Tests.CompilationBaselineTests" classname="ZWebGLFrameWork.Editor.Tests.CompilationBaselineTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.068605" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1077" name="EditorAssembly_AutoFixProcessor_Compiles" fullname="ZWebGLFrameWork.Editor.Tests.CompilationBaselineTests.EditorAssembly_AutoFixProcessor_Compiles" methodname="EditorAssembly_AutoFixProcessor_Compiles" classname="ZWebGLFrameWork.Editor.Tests.CompilationBaselineTests" runstate="Runnable" seed="574196422" result="Passed" start-time="2026-07-31 07:20:14Z" end-time="2026-07-31 07:20:14Z" duration="0.031631" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
