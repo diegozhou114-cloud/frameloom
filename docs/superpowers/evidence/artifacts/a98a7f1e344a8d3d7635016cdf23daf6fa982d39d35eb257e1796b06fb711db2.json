@@ -1,0 +1,98 @@
+{
+    "schemaVersion": 1,
+    "editorVersion": "2022.3.62f3c1",
+    "target": "WebGL",
+    "enabledScenes": [
+        "Assets/Scence/Launcher.unity"
+    ],
+    "artifacts": [
+        {
+            "path": "builds/WebGL/Build/WebGL.data.gz",
+            "bytes": 2401089,
+            "sha256": "9d63ba05e14ee8d1164e16d8ee74a902b95f9bfe397e44c76dab5be19bfa8a13"
+        },
+        {
+            "path": "builds/WebGL/Build/WebGL.framework.js.gz",
+            "bytes": 83323,
+            "sha256": "e3e4a06d87fc9f34e2307b78902dc7300ccc56fc76079fddf8a849f9772d8e31"
+        },
+        {
+            "path": "builds/WebGL/Build/WebGL.loader.js",
+            "bytes": 20680,
+            "sha256": "95d413ec942c6764ee89174a13da7a4c7f80567f6a4fb43992a6e8273c3b93d2"
+        },
+        {
+            "path": "builds/WebGL/Build/WebGL.wasm.gz",
+            "bytes": 11651691,
+            "sha256": "25ee53aedf0e1987e2232cc8202ee01b6347a52105e2af2951ebb1a1bfd2da47"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/MemoryProfiler.png",
+            "bytes": 665,
+            "sha256": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/favicon.ico",
+            "bytes": 2305,
+            "sha256": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/fullscreen-button.png",
+            "bytes": 175,
+            "sha256": "21221581673a54b8139d408d4a3f8d2b879e86827d4b6fc53b995ff7a99ee3e9"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/progress-bar-empty-dark.png",
+            "bytes": 96,
+            "sha256": "bbee7131afe8a3365906240d89184dc86234c119467f390bc4bc6802328fdb4d"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/progress-bar-empty-light.png",
+            "bytes": 109,
+            "sha256": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/progress-bar-full-dark.png",
+            "bytes": 74,
+            "sha256": "3306a6244dcb3926fca38a28e3ced589df8ff1beed955eb17c0bbf01c918bc62"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/progress-bar-full-light.png",
+            "bytes": 84,
+            "sha256": "12395ea785480c5cdf12fade6e6cbf49666d5bb1cef7240c113dbcba6bdc5c87"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/style.css",
+            "bytes": 1428,
+            "sha256": "559f02d7d6043ab00a138da24459416038d6c931afbaec0a342c08e95c2104fe"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/unity-logo-dark.png",
+            "bytes": 3042,
+            "sha256": "c1b72d26c096487dabc948b54bc203f8dac7ed4e3f5733918798e858acb4b159"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/unity-logo-light.png",
+            "bytes": 3077,
+            "sha256": "002990aea0d946833cadc1519d5b7e50a4570bd537a0517dd79a59d3eec84da7"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/webgl-logo.png",
+            "bytes": 2947,
+            "sha256": "b30c3af2a4538c6edf5f2411953760641dfa257f2a4cc5b88d671aa243b1f12f"
+        },
+        {
+            "path": "builds/WebGL/TemplateData/webmemd-icon.png",
+            "bytes": 1670,
+            "sha256": "c56f5494640cedda273aad38d58e6ab9da625d5b3f4d875c0ff92c6192a569c2"
+        },
+        {
+            "path": "builds/WebGL/index.html",
+            "bytes": 5406,
+            "sha256": "8fa8bd830ce6fa9c4f150dbedcf7258298ecdbcde872de1ebc3e169b96e0d223"
+        }
+    ],
+    "result": "Succeeded",
+    "warnings": 1,
+    "errors": 0
+}

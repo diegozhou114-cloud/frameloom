@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "242f2bccb26da69a7f1e36806cec48248e8be64f",
+  "fixCommits": [
+    "ba598dfe49a69dae2a682b8684a11000486a0716"
+  ],
+  "acceptanceMethod": "WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    ".gitattributes",
+    "Assets/Scripts/Network/WebGL.meta",
+    "Assets/Scripts/Network/WebGL/INativeWebSocketClient.cs",
+    "Assets/Scripts/Network/WebGL/INativeWebSocketClient.cs.meta",
+    "Assets/Scripts/Network/WebGL/NativeWebSocketClientAdapter.cs",
+    "Assets/Scripts/Network/WebGL/NativeWebSocketClientAdapter.cs.meta",
+    "Assets/Scripts/Network/WebGL/WebGlRealtimeChannel.cs",
+    "Assets/Scripts/Network/WebGL/WebGlRealtimeChannel.cs.meta",
+    "Assets/Scripts/Network/WebGL/WebGlRealtimeChannelFactory.cs",
+    "Assets/Scripts/Network/WebGL/WebGlRealtimeChannelFactory.cs.meta",
+    "Assets/Scripts/Network/WebGL/ZWebGLFrameWork.Network.WebGL.asmdef",
+    "Assets/Scripts/Network/WebGL/ZWebGLFrameWork.Network.WebGL.asmdef.meta",
+    "Assets/Tests/Network/WebGlAssemblyBoundaryTests.cs",
+    "Assets/Tests/Network/WebGlAssemblyBoundaryTests.cs.meta",
+    "Assets/Tests/Network/WebGlRealtimeChannelTests.cs",
+    "Assets/Tests/Network/WebGlRealtimeChannelTests.cs.meta",
+    "Assets/Tests/Network/ZWebGLFrameWork.Network.Tests.asmdef",
+    "Packages/com.zwebglframework.nativewebsocket/Runtime/Upstream/src/NativeWebSocket/ZWebGLFrameWork.NativeWebSocket.Core.asmdef",
+    "Packages/com.zwebglframework.nativewebsocket/Runtime/Upstream/src/NativeWebSocket/ZWebGLFrameWork.NativeWebSocket.Core.asmdef.meta",
+    "scripts/vendor-nativewebsocket.sh"
+  ],
+  "gitDiffSha256": "33bba842a1fdd3c8643e98d2eaafd0590e5692986cef5002684b2bd9ddd6c9d7",
+  "reason": "Historical source inspection for 242f2bccb26da69a7f1e36806cec48248e8be64f..ba598dfe49a69dae2a682b8684a11000486a0716.",
+  "currentAcceptanceRequired": false
+}
