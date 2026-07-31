@@ -14,9 +14,13 @@ Huatuo dependency is part of this change.
 - Framework content is loaded locally and cannot be replaced at runtime.
 - Business content is loaded locally by default and is the only content that a
   future updater may replace.
-- Existing `ResourceManager.Load`, `LoadAsync`, `Unload`, `ClearCache`, and
-  `Provider` callers remain source-compatible and retain framework/local
+- Existing unlayered `ResourceManager.Load`, `LoadAsync`, `Unload`, and
+  `ClearCache` callers remain source-compatible and retain framework/local
   behavior.
+- The internal legacy `Provider`, `SetProvider`, and custom-provider `Init`
+  entry points are removed. They currently have no production callers and
+  would allow a remote implementation to replace framework content, which
+  violates the layer boundary.
 - The design adds no networking, remote manifest format, server endpoint, or
   dynamic-code execution behavior.
 - Existing serialized `AppConfig.EnableHotUpdate` and `ResourceProviderType`
