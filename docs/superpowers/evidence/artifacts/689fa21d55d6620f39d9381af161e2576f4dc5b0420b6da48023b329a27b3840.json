@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "fb6d7622499aeab95d1fe828dfa349b17eedb332",
+  "fixCommits": [
+    "67b494cee535fa50cbb7dc30a37f33a9a875f4bd"
+  ],
+  "acceptanceMethod": "ContentManifest_UnityAndDotNet_ProduceSameCanonicalHash",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/SimulationCore/Content.meta",
+    "Assets/Scripts/SimulationCore/Content/DeterministicContentManifest.cs",
+    "Assets/Scripts/SimulationCore/Content/DeterministicContentManifest.cs.meta",
+    "Assets/Scripts/SimulationCore/Core/ComponentTypeRegistry.cs",
+    "Assets/Scripts/SimulationCore/Core/DeterministicBinary.cs",
+    "Assets/Scripts/SimulationCore/Core/DeterministicBinary.cs.meta",
+    "Assets/Scripts/SimulationCore/Core/SimChunkHelper.cs",
+    "Assets/Scripts/SimulationCore/Core/SimComponentSchema.cs",
+    "Assets/Scripts/SimulationCore/Core/SimComponentSchema.cs.meta",
+    "Assets/Scripts/SimulationCore/Core/SimEntityArchetype.cs",
+    "Assets/Scripts/SimulationCore/Core/SimWorld.cs",
+    "Assets/Tests/SimulationCore/ContentManifestTests.cs",
+    "Assets/Tests/SimulationCore/ContentManifestTests.cs.meta"
+  ],
+  "gitDiffSha256": "d40fde85045666502451fb838538e7ef041b8b0cfc072617741b039c2c2bbbdd",
+  "reason": "Historical source inspection for fb6d7622499aeab95d1fe828dfa349b17eedb332..67b494cee535fa50cbb7dc30a37f33a9a875f4bd.",
+  "currentAcceptanceRequired": false
+}

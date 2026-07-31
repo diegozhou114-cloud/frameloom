@@ -2541,13 +2541,33 @@
       "replacementEvidence": []
     },
     "SIM-022": {
-      "status": "Open",
-      "redEvidence": [],
-      "fixCommits": [],
-      "greenEvidence": [],
-      "gateEvidence": [],
-      "closureMode": null,
-      "closedAt": null,
+      "status": "Closed",
+      "redEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/689fa21d55d6620f39d9381af161e2576f4dc5b0420b6da48023b329a27b3840.json",
+          "sha256": "689fa21d55d6620f39d9381af161e2576f4dc5b0420b6da48023b329a27b3840",
+          "bytes": 1450
+        }
+      ],
+      "fixCommits": [
+        "67b494cee535fa50cbb7dc30a37f33a9a875f4bd"
+      ],
+      "greenEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/b1d938001a8b28534cc1c43c845c19e508f80d357af0e362744a56dbcd0ae90a.trx",
+          "sha256": "b1d938001a8b28534cc1c43c845c19e508f80d357af0e362744a56dbcd0ae90a",
+          "bytes": 213294
+        }
+      ],
+      "gateEvidence": [
+        {
+          "path": "docs/superpowers/evidence/artifacts/b1d938001a8b28534cc1c43c845c19e508f80d357af0e362744a56dbcd0ae90a.trx",
+          "sha256": "b1d938001a8b28534cc1c43c845c19e508f80d357af0e362744a56dbcd0ae90a",
+          "bytes": 213294
+        }
+      ],
+      "closureMode": "Fixed",
+      "closedAt": "2026-07-31",
       "replacementEvidence": []
     },
     "TEST-001": {
