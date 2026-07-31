@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "8c5b752c38f19dd5b05d67bf8cd9286bb739718a",
+  "fixCommits": [
+    "b0f3911b5d1e21cd7ffaf68bf64179d9cfd83d41"
+  ],
+  "acceptanceMethod": "LauncherPlayMode_EntersInteractiveVillage",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/FSM/Game/GameLauncher.cs",
+    "Assets/Scripts/Gameplay/Building/VillageViewRenderer.cs",
+    "Assets/Scripts/Gameplay/Building/VillageViewRenderer.cs.meta",
+    "Assets/Scripts/Gameplay/Scene/VillageRuntimeBootstrap.cs",
+    "Assets/Scripts/Gameplay/Scene/VillageRuntimeBootstrap.cs.meta",
+    "Assets/Scripts/UI/Panels/ErrorPanel.cs",
+    "Assets/Scripts/UI/Panels/ForceUpdatePanel.cs",
+    "Assets/Scripts/UI/Panels/LoadingPanel.cs",
+    "Assets/Tests/Runtime/Scenes.meta",
+    "Assets/Tests/Runtime/Scenes/LauncherVillageCompositionTests.cs",
+    "Assets/Tests/Runtime/Scenes/LauncherVillageCompositionTests.cs.meta"
+  ],
+  "gitDiffSha256": "ff122c571aae3bd4fade13663a2535eb01a51fa0dc424d207efeba4c3b53b51b",
+  "reason": "Historical source inspection for 8c5b752c38f19dd5b05d67bf8cd9286bb739718a..b0f3911b5d1e21cd7ffaf68bf64179d9cfd83d41.",
+  "currentAcceptanceRequired": false
+}
