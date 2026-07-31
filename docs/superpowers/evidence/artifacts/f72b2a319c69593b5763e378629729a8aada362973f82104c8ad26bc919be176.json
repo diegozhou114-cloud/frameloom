@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "9cff8ad7a396cdc0ca0693e1883785e7aa53ccff",
+  "fixCommits": [
+    "2e42df8d2a271b511e5a698ce37aca8582804acc"
+  ],
+  "acceptanceMethod": "BattleResult_ValidCompletion_AppliesAndSavesRewardsOnce",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Combat/CombatManager.cs",
+    "Assets/Scripts/Data/DataManager.cs",
+    "Assets/Scripts/Data/Model/PlayerData.cs",
+    "Assets/Scripts/Data/PlayerSaveData.cs",
+    "Assets/Scripts/Data/SaveDataMapper.cs",
+    "Assets/Scripts/Data/SaveManager.cs",
+    "Assets/Scripts/FSM/Game/BattleRewardService.cs",
+    "Assets/Scripts/FSM/Game/BattleRewardService.cs.meta",
+    "Assets/Scripts/FSM/Game/States/BattleState.cs",
+    "Assets/Scripts/UI/Panels/ResultPanel.cs",
+    "Assets/Tests/Runtime/Data/BattleRewardServiceTests.cs",
+    "Assets/Tests/Runtime/Data/BattleRewardServiceTests.cs.meta",
+    "Assets/Tests/Runtime/ZWebGLFrameWork.Runtime.Tests.asmdef",
+    "scripts/repair/audit-compiler-contracts.sh"
+  ],
+  "gitDiffSha256": "40dd91aa5c63cf6719dcd2c1b090c930740f3bd39ff42038b889999542c5908b",
+  "reason": "Historical source inspection for 9cff8ad7a396cdc0ca0693e1883785e7aa53ccff..2e42df8d2a271b511e5a698ce37aca8582804acc.",
+  "currentAcceptanceRequired": false
+}
