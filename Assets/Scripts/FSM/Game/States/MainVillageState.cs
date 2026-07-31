@@ -46,11 +46,11 @@ namespace ZWebGLFrameWork.FSM
             }
 
             // ③ 启动资源产出计时器
-            _resourceProducer = new ResourceProducer(DataManager.Instance.Village);
-            _resourceProducer.Start();
+            StartResourceProducer();
 
             // ④ 订阅 HUD 攻击按钮事件
             EventBus.Subscribe("MainVillage_Attack", OnAttackClicked);
+            EventBus.Subscribe(DataManager.EventDataReady, OnDataReady);
 
             EventBus.Publish("MainVillageEntered");
 
@@ -89,6 +89,7 @@ namespace ZWebGLFrameWork.FSM
             _autosave?.FlushPending();
             _autosave = null;
             EventBus.Unsubscribe("MainVillage_Attack", OnAttackClicked);
+            EventBus.Unsubscribe(DataManager.EventDataReady, OnDataReady);
             _resourceProducer?.Stop();
             _resourceProducer = null;
             UIManager.Instance.Close<MainVillageHUD>();
@@ -97,6 +98,13 @@ namespace ZWebGLFrameWork.FSM
         }
 
         // ==================== 事件回调 ====================
+
+        private void OnDataReady()
+        {
+            _resourceProducer?.Stop();
+            StartResourceProducer();
+            _autosave?.InitializeBaseline();
+        }
 
         /// <summary>HUD 攻击按钮 → Battle</summary>
         private void OnAttackClicked()
@@ -128,6 +136,12 @@ namespace ZWebGLFrameWork.FSM
             return village != null && village.Buildings.Exists(building =>
                 building != null &&
                 FrameworkBattleContent.TryGetBuildingArchetypeId(building.TypeId, out _));
+        }
+
+        private void StartResourceProducer()
+        {
+            _resourceProducer = new ResourceProducer(DataManager.Instance.Village);
+            _resourceProducer.Start();
         }
 
         private Vector3 FindTownHallPosition()

@@ -81,8 +81,10 @@ require_absent DATA-005 Assets/Scripts/FSM/Game/States/BattleState.cs \
   'EventBus.Subscribe<SimBattleResult>(CombatManager.EventCombatEnded'
 require_absent DATA-005 Assets/Scripts/Combat/CombatManager.cs \
   'EventBus.Publish(EventCombatEnded, result);'
-require_text DATA-006 Assets/Scripts/Data/SaveManager.cs \
-  '(saved.State != BuildingState.Upgrading && saved.UpgradeEndTime != 0)'
+require_text DATA-006 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+  '? building.UpgradeEndTime > 0'
+require_text DATA-006 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+  ': building.UpgradeEndTime == 0);'
 require_text DATA-008 Assets/Scripts/Data/Model/VillageData.cs \
   'public void ClearBuildings()'
 require_text DATA-008 Assets/Scripts/Data/Model/VillageData.cs \
@@ -95,11 +97,11 @@ require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
   'if (building == null || string.IsNullOrWhiteSpace(building.Id))'
 require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
   'if (GetBuilding(building.Id) != null)'
-require_text DATA-010 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-010 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("建筑位置重叠", out error);'
-require_text DATA-011 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-011 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("建筑等级超出配置范围", out error);'
-require_text DATA-012 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-012 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("满级建筑不能处于升级状态", out error);'
 require_text CONFIG-001 Assets/Scripts/Data/ConfigTableManager.cs \
   'if (id <= 0)'
@@ -115,13 +117,13 @@ require_text DATA-014 Assets/Scripts/UI/Panels/DeployPanel.cs \
   'FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _)'
 require_text DATA-015 Assets/Scripts/Gameplay/Building/BuildingInteraction.cs \
   'DataManager.Instance.Player.TownHallLevel.Value = building.Level.Value;'
-require_text DATA-016 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-016 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("玩家大本营等级与建筑等级不一致", out error);'
-require_text DATA-017 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-017 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("村庄包含多个大本营", out error);'
 require_text DATA-018 Assets/Scripts/Data/Model/VillageData.cs \
   'Buildings.Exists(item => item.TypeId == 1)'
-require_text DATA-019 Assets/Scripts/Data/SaveManager.cs \
+require_text DATA-019 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
   'return Fail("玩家大本营等级超出配置范围", out error);'
 require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
   'private static bool HasSupportedDefender(VillageData village)'

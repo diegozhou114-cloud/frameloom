@@ -44,6 +44,16 @@ namespace ZWebGLFrameWork.Data
             Village.ClearBuildings();
         }
 
+        public void ReplaceValidatedState(ValidatedSaveState state)
+        {
+            if (state == null)
+                throw new System.ArgumentNullException(nameof(state));
+            Player = state.Player;
+            Village = state.Village;
+            IsReady = true;
+            EventBus.Publish(EventDataReady);
+        }
+
         protected override void OnDestroy()
         {
             Player = null;

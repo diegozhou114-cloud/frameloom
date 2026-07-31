@@ -64,6 +64,7 @@ namespace ZWebGLFrameWork.Gameplay
 
             // 监听 Tap 手势
             EventBus.Subscribe<GestureData>(InputManager.EventGesture, OnGesture);
+            EventBus.Subscribe(DataManager.EventDataReady, OnDataReady);
         }
 
         protected override void OnDestroy()
@@ -71,6 +72,7 @@ namespace ZWebGLFrameWork.Gameplay
             if (_sceneServices != null)
                 _sceneServices.Changed -= BindSceneServices;
             EventBus.Unsubscribe<GestureData>(InputManager.EventGesture, OnGesture);
+            EventBus.Unsubscribe(DataManager.EventDataReady, OnDataReady);
             base.OnDestroy();
         }
 
@@ -117,6 +119,24 @@ namespace ZWebGLFrameWork.Gameplay
 
             // 什么都没选中
             ClearSelection();
+        }
+
+        private void OnDataReady()
+        {
+            if (CurrentType != SelectionType.Building) return;
+            BuildingData building = SelectedBuilding;
+            if (building == null)
+            {
+                ClearSelection();
+                return;
+            }
+
+            SelectedGridPos = new Vector2Int(building.GridX.Value, building.GridY.Value);
+            BroadcastEvent(new SelectionEvent
+            {
+                Type = SelectionType.Building,
+                BuildingId = building.Id,
+            });
         }
 
         private void SelectBuilding(string buildingId)

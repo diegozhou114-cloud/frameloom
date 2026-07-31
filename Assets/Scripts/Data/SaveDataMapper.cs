@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.Data
 {
-    public static class SaveDataMapper
+    public static partial class SaveDataMapper
     {
         public static PlayerSaveData Capture(PlayerData player, VillageData village)
         {
@@ -62,16 +62,17 @@ namespace ZWebGLFrameWork.Data
         public static BuildingData RestoreBuilding(BuildingSaveData saved)
         {
             if (saved == null) throw new ArgumentNullException(nameof(saved));
-            return new BuildingData
+            var building = new BuildingData
             {
                 Id = saved.Id,
                 TypeId = saved.TypeId,
-                GridX = { Value = saved.GridX },
-                GridY = { Value = saved.GridY },
-                Level = { Value = saved.Level },
-                State = { Value = saved.State },
-                UpgradeEndTime = { Value = saved.UpgradeEndTime },
             };
+            building.GridX.SetSilent(saved.GridX);
+            building.GridY.SetSilent(saved.GridY);
+            building.Level.SetSilent(saved.Level);
+            building.State.SetSilent(saved.State);
+            building.UpgradeEndTime.SetSilent(saved.UpgradeEndTime);
+            return building;
         }
     }
 }

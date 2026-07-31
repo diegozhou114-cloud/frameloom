@@ -13,15 +13,18 @@ namespace ZWebGLFrameWork.UI
         private Text _gemsText;
         private Text _levelText;
         private Text _thText;
+        private PlayerData _boundPlayer;
 
         protected override void OnOpen(object data)
         {
             BuildOnce(BuildUI);
+            EventBus.Subscribe(DataManager.EventDataReady, OnDataReady);
             BindObservables();
         }
 
         protected override void OnClose()
         {
+            EventBus.Unsubscribe(DataManager.EventDataReady, OnDataReady);
             UnbindObservables();
         }
 
@@ -97,6 +100,8 @@ namespace ZWebGLFrameWork.UI
         {
             var player = DataManager.Instance?.Player;
             if (player == null) return;
+            UnbindObservables();
+            _boundPlayer = player;
             player.Gold.OnChanged += OnGoldChanged;
             player.Elixir.OnChanged += OnElixirChanged;
             player.Gems.OnChanged += OnGemsChanged;
@@ -113,7 +118,8 @@ namespace ZWebGLFrameWork.UI
 
         private void UnbindObservables()
         {
-            var player = DataManager.Instance?.Player;
+            PlayerData player = _boundPlayer;
+            _boundPlayer = null;
             if (player != null)
             {
                 player.Gold.OnChanged -= OnGoldChanged;
@@ -123,6 +129,8 @@ namespace ZWebGLFrameWork.UI
                 player.TownHallLevel.OnChanged -= OnTHChanged;
             }
         }
+
+        private void OnDataReady() => BindObservables();
 
         private void OnGoldChanged(int old, int v) { if (_goldText) _goldText.text = $"💰 {v}"; }
         private void OnElixirChanged(int old, int v) { if (_elixirText) _elixirText.text = $"💧 {v}"; }

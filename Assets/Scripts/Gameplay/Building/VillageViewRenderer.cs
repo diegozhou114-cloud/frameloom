@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 
 namespace ZWebGLFrameWork.Gameplay
@@ -15,6 +16,7 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void Start()
         {
+            EventBus.Subscribe(DataManager.EventDataReady, OnDataReady);
             Bind(DataManager.Instance?.Village);
         }
 
@@ -32,7 +34,13 @@ namespace ZWebGLFrameWork.Gameplay
 
         private void OnDestroy()
         {
+            EventBus.Unsubscribe(DataManager.EventDataReady, OnDataReady);
             Unbind();
+        }
+
+        private void OnDataReady()
+        {
+            Bind(DataManager.Instance?.Village);
         }
 
         private void Unbind()
