@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "dbc6d3b8656dd6b2c93f1221351e7aa413618f4b",
+  "fixCommits": [
+    "98c680939d57a931f71ca11a9e715a239aa97909"
+  ],
+  "acceptanceMethod": "SceneChange_AllGameplayServices_RebindAndReleaseOldScene",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Scripts/Gameplay/Building/BuildingInteraction.cs",
+    "Assets/Scripts/Gameplay/Building/BuildingPlacer.cs",
+    "Assets/Scripts/Gameplay/Control/InputManager.cs",
+    "Assets/Scripts/Gameplay/Control/SelectionManager.cs",
+    "Assets/Scripts/Gameplay/Scene.meta",
+    "Assets/Scripts/Gameplay/Scene/SceneServiceRegistry.cs",
+    "Assets/Scripts/Gameplay/Scene/SceneServiceRegistry.cs.meta",
+    "Assets/Scripts/UI/Panels/BuildingInfoPanel.cs",
+    "Assets/Tests/Runtime/Gameplay/SceneServiceRebindingTests.cs",
+    "Assets/Tests/Runtime/Gameplay/SceneServiceRebindingTests.cs.meta"
+  ],
+  "gitDiffSha256": "a61dd069ed8d47d9712ef9baf3cfa986c3a1013f8afa2d34523457eee85e2e5d",
+  "reason": "Historical source inspection for dbc6d3b8656dd6b2c93f1221351e7aa413618f4b..98c680939d57a931f71ca11a9e715a239aa97909.",
+  "currentAcceptanceRequired": false
+}
