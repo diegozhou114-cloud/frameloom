@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "kind": "HistoricalSourceRed",
+  "sourceRevision": "1706ea6830fa8812e6edca198de7392b8821c32f",
+  "fixCommits": [
+    "f50b644745d4e14d80abeff2fa50391f7e9393b7"
+  ],
+  "acceptanceMethod": "BuildScenes_LauncherIsEnabledSceneZero",
+  "testPresentBefore": false,
+  "testPresentAfter": true,
+  "paths": [
+    "Assets/Editor/BuildScript.cs",
+    "Assets/Tests/Editor/RepositoryIntegrityTests.cs",
+    "Assets/Tests/Editor/RepositoryIntegrityTests.cs.meta",
+    "ProjectSettings/EditorBuildSettings.asset"
+  ],
+  "gitDiffSha256": "6dda766fd65412fc8cb1a1c604cd3a05c6172d96403bcc4b46e282552f174d6c",
+  "reason": "Historical source inspection for 1706ea6830fa8812e6edca198de7392b8821c32f..f50b644745d4e14d80abeff2fa50391f7e9393b7.",
+  "currentAcceptanceRequired": false
+}
