@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-08-02",
+  "sourceCommit": "f20ab5abba611ec2b4c2265a58dd1a36b0d547f1",
+  "fixCommit": "5e950a0730345c4fb5cce24642fd78966a827b18",
+  "command": "node --test scripts/ci/workflow-contract.test.mjs",
+  "exitCode": 0,
+  "tests": 6,
+  "passed": 6,
+  "failed": 0,
+  "requiredTests": [
+    "Workflow_AllUnityActionsUsePinnedProjectVersion",
+    "Workflow_TriggersCoverAllGateInputs"
+  ]
+}

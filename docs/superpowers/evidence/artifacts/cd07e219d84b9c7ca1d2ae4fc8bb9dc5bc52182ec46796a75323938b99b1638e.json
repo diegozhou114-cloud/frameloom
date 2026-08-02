@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-08-02",
+  "sourceCommit": "c5dffc5f1a1f261d6fb71b7ecc858c283e08c857",
+  "fixCommit": "5e950a0730345c4fb5cce24642fd78966a827b18",
+  "command": "node --test scripts/ci/historical-workflow-contract.test.mjs",
+  "fixture": "Parent workflow from c5dffc5 with the two current CI-001/CI-002 acceptance tests",
+  "exitCode": 1,
+  "tests": 2,
+  "passed": 0,
+  "failed": 2,
+  "failures": [
+    {
+      "test": "Workflow_AllUnityActionsUsePinnedProjectVersion",
+      "actual": "unityVersion was undefined",
+      "expected": "${{ env.UNITY_VERSION }}"
+    },
+    {
+      "test": "Workflow_TriggersCoverAllGateInputs",
+      "actual": "push missing Assets/**",
+      "expected": "all gate input paths present for push and pull_request"
+    }
+  ]
+}

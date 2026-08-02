@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="Workflow_AllUnityActionsUsePinnedProjectVersion" time="0.000802" classname="test" file="/private/tmp/zweb-ci-parent-5e950a0-20260802/scripts/ci/historical-workflow-contract.test.mjs" failure="Expected values to be strictly equal:&#10;+ actual - expected&#10;&#10;+ undefined&#10;- '${{ env.UNITY_VERSION }}'&#10;">
+		<failure type="testCodeFailure" message="Expected values to be strictly equal:&#10;+ actual - expected&#10;&#10;+ undefined&#10;- '${{ env.UNITY_VERSION }}'">
+[Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:
++ actual - expected
+
++ undefined
+- '${{ env.UNITY_VERSION }}'
+] {
+  code: 'ERR_TEST_FAILURE',
+  failureType: 'testCodeFailure',
+  cause: AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - '${{ env.UNITY_VERSION }}'
+  
+      at TestContext.&lt;anonymous> (file:///private/tmp/zweb-ci-parent-5e950a0-20260802/scripts/ci/historical-workflow-contract.test.mjs:22:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.start (node:internal/test_runner/test:1191:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '${{ env.UNITY_VERSION }}',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+}
+		</failure>
+	</testcase>
+	<testcase name="Workflow_TriggersCoverAllGateInputs" time="0.000083" classname="test" file="/private/tmp/zweb-ci-parent-5e950a0-20260802/scripts/ci/historical-workflow-contract.test.mjs" failure="push missing Assets/**">
+		<failure type="testCodeFailure" message="push missing Assets/**">
+[Error [ERR_TEST_FAILURE]: push missing Assets/**] {
+  code: 'ERR_TEST_FAILURE',
+  failureType: 'testCodeFailure',
+  cause: AssertionError [ERR_ASSERTION]: push missing Assets/**
+      at TestContext.&lt;anonymous> (file:///private/tmp/zweb-ci-parent-5e950a0-20260802/scripts/ci/historical-workflow-contract.test.mjs:31:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+}
+		</failure>
+	</testcase>
+	<!-- tests 2 -->
+	<!-- suites 0 -->
+	<!-- pass 0 -->
+	<!-- fail 2 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 69.693083 -->
+</testsuites>

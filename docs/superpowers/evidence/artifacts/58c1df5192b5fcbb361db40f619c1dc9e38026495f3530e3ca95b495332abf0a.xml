@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.2716098">
+  <test-suite type="TestSuite" id="1243" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="183" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.271610" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1232" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.253459" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="328" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1233" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.250539" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1234" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.249296" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1235" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.248181" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1240" name="FSM" fullname="ZWebGLFrameWork.Runtime.Tests.FSM" runstate="Runnable" testcasecount="46" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.245978" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1095" name="LaunchCancellationTests" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.243166" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1101" name="LaunchState_BusinessContentUpdatePolicy_OnlyStopsForFailure" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_BusinessContentUpdatePolicy_OnlyStopsForFailure" methodname="LaunchState_BusinessContentUpdatePolicy_OnlyStopsForFailure" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1629796621" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.034517" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1096" name="LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" methodname="LaunchState_Exit_CancelsPipelineAndPreventsLateTransition" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="406848133" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.110797" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入启动状态
+[GameFSM] 退出启动状态
+]]></output>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1100" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.033173" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1098" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources(AssetBundle)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources(AssetBundle)" methodname="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1943241036" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.010056" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[[LaunchState] AssetBundle is reserved for TODO(YooAsset); using ResourcesProvider.
+]]></output>
+                  </test-case>
+                  <test-case id="1099" name="LaunchState_LegacyResourceProviderSelection_FallsBackToResources(Addressables)" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_LegacyResourceProviderSelection_FallsBackToResources(Addressables)" methodname="LaunchState_LegacyResourceProviderSelection_FallsBackToResources" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1717818060" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.001103" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[[LaunchState] Addressables is reserved for TODO(YooAsset); using ResourcesProvider.
+]]></output>
+                  </test-case>
+                </test-suite>
+                <test-case id="1097" name="LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" fullname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests.LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" methodname="LaunchState_PipelineCompletionDuringPause_TransitionsAfterResume" classname="ZWebGLFrameWork.Runtime.Tests.FSM.LaunchCancellationTests" runstate="Runnable" seed="1812341771" result="Passed" start-time="2026-08-02 14:48:44Z" end-time="2026-08-02 14:48:44Z" duration="0.033741" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[GameFSM] 进入启动状态
+[GameFSM] 退出启动状态
+Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

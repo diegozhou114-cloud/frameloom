@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Passed" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.2063112">
+  <test-suite type="TestSuite" id="1243" name="ZWbeglFrameWork" fullname="ZWbeglFrameWork" runstate="Runnable" testcasecount="183" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.206311" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1232" name="ZWebGLFrameWork.Runtime.Tests.dll" fullname="/Users/diegozhou/Documents/unityframework/zweb-master-merge/Library/ScriptAssemblies/ZWebGLFrameWork.Runtime.Tests.dll" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.188950" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="257" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1233" name="ZWebGLFrameWork" fullname="ZWebGLFrameWork" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.186998" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1234" name="Runtime" fullname="ZWebGLFrameWork.Runtime" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.186611" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1235" name="Tests" fullname="ZWebGLFrameWork.Runtime.Tests" runstate="Runnable" testcasecount="173" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.186367" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1242" name="Core" fullname="ZWebGLFrameWork.Runtime.Tests.Core" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.183918" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1217" name="ResourceManagerProviderTests" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.181128" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1218" name="ResourceManager_BusinessLoadsUseBusinessProvider" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_BusinessLoadsUseBusinessProvider" methodname="ResourceManager_BusinessLoadsUseBusinessProvider" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="2000762498" result="Passed" start-time="2026-08-02 14:48:04Z" end-time="2026-08-02 14:48:05Z" duration="0.071599" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider
+]]></output>
+                </test-case>
+                <test-case id="1220" name="ResourceManager_BusinessProviderSwap_DoesNotCacheAnInFlightOldProviderResult" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_BusinessProviderSwap_DoesNotCacheAnInFlightOldProviderResult" methodname="ResourceManager_BusinessProviderSwap_DoesNotCacheAnInFlightOldProviderResult" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="1177321608" result="Passed" start-time="2026-08-02 14:48:05Z" end-time="2026-08-02 14:48:05Z" duration="0.027103" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider
+]]></output>
+                </test-case>
+                <test-case id="1219" name="ResourceManager_BusinessProviderSwapKeepsFrameworkProvider" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_BusinessProviderSwapKeepsFrameworkProvider" methodname="ResourceManager_BusinessProviderSwapKeepsFrameworkProvider" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="136205452" result="Passed" start-time="2026-08-02 14:48:05Z" end-time="2026-08-02 14:48:05Z" duration="0.010419" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider
+]]></output>
+                </test-case>
+                <test-case id="1222" name="ResourceManager_DefaultBusinessUpdaterReportsNotConfigured" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_DefaultBusinessUpdaterReportsNotConfigured" methodname="ResourceManager_DefaultBusinessUpdaterReportsNotConfigured" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="890285241" result="Passed" start-time="2026-08-02 14:48:05Z" end-time="2026-08-02 14:48:05Z" duration="0.011955" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider
+]]></output>
+                </test-case>
+                <test-case id="1221" name="ResourceManager_FrameworkProviderCannotBeReplacedThroughPublicApi" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_FrameworkProviderCannotBeReplacedThroughPublicApi" methodname="ResourceManager_FrameworkProviderCannotBeReplacedThroughPublicApi" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="795564684" result="Passed" start-time="2026-08-02 14:48:05Z" end-time="2026-08-02 14:48:05Z" duration="0.008044" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1223" name="ResourceManager_UpdatedBusinessContentInstallsOnlyBusinessProvider" fullname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests.ResourceManager_UpdatedBusinessContentInstallsOnlyBusinessProvider" methodname="ResourceManager_UpdatedBusinessContentInstallsOnlyBusinessProvider" classname="ZWebGLFrameWork.Runtime.Tests.Core.ResourceManagerProviderTests" runstate="Runnable" seed="1461312770" result="Passed" start-time="2026-08-02 14:48:05Z" end-time="2026-08-02 14:48:05Z" duration="0.020781" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[ResourceManager] ✅ 初始化完成 — Framework: ResourcesProvider, Business: ResourcesProvider
+Saving results to: /Users/diegozhou/Library/Application Support/DefaultCompany/ZWbeglFrameWork/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

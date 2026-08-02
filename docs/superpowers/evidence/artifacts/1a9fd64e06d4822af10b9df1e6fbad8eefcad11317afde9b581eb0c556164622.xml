@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="Workflow_AllUnityActionsUsePinnedProjectVersion" time="0.000483" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<testcase name="Workflow_TriggersCoverAllGateInputs" time="0.000070" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<testcase name="all mutating jobs end with an exact clean-tree gate" time="0.000082" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<testcase name="CI_ServerProjects_BuildAndTestReleaseWarnAsError" time="0.000401" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<testcase name="CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts" time="0.000103" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<testcase name="build smoke gates require trusted HTTPS and structured Windows exit" time="0.000197" classname="test" file="/Users/diegozhou/Documents/unityframework/zweb-master-merge/scripts/ci/workflow-contract.test.mjs"/>
+	<!-- tests 6 -->
+	<!-- suites 0 -->
+	<!-- pass 6 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 63.031625 -->
+</testsuites>
