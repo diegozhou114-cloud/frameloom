@@ -2,35 +2,49 @@
 
 ## Goal
 
-Remove the nine Unity compiler errors currently reported for the simulation,
-gameplay, and network assemblies without changing public APIs or game behavior.
+Remove the reported Unity compiler errors without changing public APIs, game
+behavior, simulation determinism, or protocol behavior.
 
-## Scope
+## Original Repair Scope
 
-- `SimAttackSystem.cs`: make the writable two-component lambda match
-  `SimWorld.RefAction<SimEntity, T1, T2>` by declaring all parameter types.
-- `SimMovementSystem.cs`: apply the same explicit typed `ref` lambda syntax.
-- `ResourceProducer.cs`: import `System` so the existing `Math.Min` calls resolve.
-- `NetworkManager.cs`: pass the `reason` and `error` arguments required by the
-  `Action<string>` events, retain the connection-generation guard, and store the
-  subscribed delegates so `Disconnect` removes the exact same instances.
+The initial errors required typed `ref` component callbacks, correct
+`System.Math` resolution, generation-safe network delegates, a Unity-compatible
+replay serializer, and compile fixes in the Combat/FSM/ReplayValidator layers.
+Those repairs were implemented and verified before integration.
 
-No adjacent refactoring, API changes, new abstractions, or unrelated warning
-cleanup is included.
+## Rebase Constraint
 
-## Data And Event Flow
+Before integration, the remote `master` had advanced by 393 commits and replaced
+several affected systems with newer architecture. The rebase therefore treats
+the current remote implementation as authoritative:
 
-Simulation systems continue mutating component columns through the existing
-`RefAction` overload. Resource production retains its existing cap behavior.
-Network callbacks continue to reject stale connection generations; accepted
-callbacks forward their original message to `HandleDisconnected` or
-`HandleConnectFailed`. Disconnecting removes every callback registered for the
-current client before asking that client to disconnect.
+- Combat uses `ISimBattleSession` instead of the removed bootstrap flow.
+- Replay serialization uses the host codec.
+- `LogicInt` uses saturating `BigInteger` arithmetic.
+- Obsolete SimulationCore network and orchestrator files remain deleted.
 
-## Verification
+Restoring the pre-rebase production edits would reintroduce removed code or
+overwrite newer behavior, so they are intentionally not part of the final diff.
 
-The current Unity editor log is the RED baseline and contains exactly the nine
-reported compiler errors. After the edits, Unity must complete a fresh script
-compilation with zero C# compiler errors. The final diff must remain limited to
-the four production files above and this design document, apart from Unity's
-pre-existing generated metadata changes.
+## Final Retained Change
+
+`SimWorldDeterminismTests.FullSnapshot_Restore_ChecksumIdentical` stores the
+first `SimEntity` returned by `CreateEntity` and destroys that handle later. It
+no longer constructs an entity through inaccessible internals or assumes a
+specific ID, generation, or world epoch.
+
+The final rebased scope is one test file plus this design and its implementation
+record. No production API or runtime behavior changes.
+
+## Verification Contract
+
+- Unity batch compilation must contain no `error CS` diagnostics.
+- All Unity EditMode tests must pass.
+- The complete `SimWorldDeterminismTests` fixture must pass.
+- ReplayValidator must build with zero warnings and zero errors.
+- The commit range must pass `git diff --check` and exclude generated metadata,
+  build output, package lock rewrites, and user editor settings.
+
+Final evidence: 328/328 EditMode tests passed, the 10-test determinism fixture
+passed, ReplayValidator built with 0 warnings and 0 errors, and the commit-range
+whitespace check passed.
