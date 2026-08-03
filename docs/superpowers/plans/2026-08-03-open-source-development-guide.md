@@ -46,7 +46,7 @@ Expected: each documented type and method resolves to current source; examples u
 Create the first four guide sections with:
 
 - the three maturity labels and their exact initial classifications;
-- Unity `2022.3.62f3c1`, C# 9, .NET Standard 2.1, .NET 8, target platforms, and `./ci_build.sh Validate`;
+- Unity `2022.3.62f3c1`, C# 9, .NET Standard 2.1, .NET 8, target platforms, and `bash ./ci_build.sh Validate`;
 - one Mermaid overview showing offline Unity, online Unity, and the reference server sharing deterministic `SimulationCore`;
 - module responsibilities and the acyclic dependency direction.
 
@@ -130,7 +130,7 @@ Expected: 336 tests pass, 0 fail.
 Run:
 
 ```bash
-./ci_build.sh Validate
+bash ./ci_build.sh Validate
 ```
 
 Expected: Unity compilation validation passes. If Unity is unavailable or unlicensed, record the exact limitation in the delivery report instead of claiming validation.

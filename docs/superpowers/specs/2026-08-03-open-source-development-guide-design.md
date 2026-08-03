@@ -1,6 +1,6 @@
 # 开源开发使用文档设计
 
-日期：2026-08-03  
+日期：2026-08-03
 基线：`origin/master` / `1ea98c563a79ee2201d860fa4108fd44001bd6e5`
 
 ## 目标
@@ -107,7 +107,7 @@
 2. 检查示例使用的类型、方法、枚举和参数与源码一致。
 3. 检查所有相对 Markdown 链接可解析，Mermaid 代码块语法闭合。
 4. 运行 `dotnet test Server/ZWebGLFrameWork.Server.sln --nologo --verbosity minimal`。
-5. 在 Unity 2022.3.62f3c1 可用时运行 `./ci_build.sh Validate`；若环境无法运行，交付说明必须明确标记。
+5. 在 Unity 2022.3.62f3c1 可用时运行 `bash ./ci_build.sh Validate`；若环境无法运行，交付说明必须明确标记。
 6. 复查 `git diff --check` 和最终变更范围，确保只有 README、开发手册及其设计/计划文档发生预期变化。
 
 ## 非目标
