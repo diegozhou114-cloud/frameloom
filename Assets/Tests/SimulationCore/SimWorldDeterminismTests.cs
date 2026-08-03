@@ -115,9 +115,11 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
         public void FullSnapshot_Restore_ChecksumIdentical()
         {
             var world = CreateWorld();
+            SimEntity firstEntity = SimEntity.Invalid;
             for (int i = 0; i < 10; i++)
             {
                 var e = world.CreateEntity(typeof(SimTransformComponent), typeof(SimHealthComponent));
+                if (i == 0) firstEntity = e;
                 world.SetComponent(e, new SimTransformComponent { GridX = i, GridY = i * 2 });
                 world.SetComponent(e, new SimHealthComponent { CurrentHP = 100 - i * 3, MaxHP = 100 });
             }
@@ -126,7 +128,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             var snapshot = world.ExportFullSnapshot();
 
             // 修改世界
-            world.DestroyEntity(new SimEntity(0, 1));
+            world.DestroyEntity(firstEntity);
             world.CreateEntity(typeof(SimHealthComponent));
 
             // 恢复
