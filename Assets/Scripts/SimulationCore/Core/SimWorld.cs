@@ -37,6 +37,14 @@ namespace ZWebGLFrameWork.SimulationCore
         // 排序键缓存（避免每 Tick 分配 List<string>）
         private readonly List<string> _sortedKeys = new List<string>();
         private readonly List<EntityLocation> _sortedLocations = new List<EntityLocation>();
+        private readonly List<SimChunk> _hashChunks = new List<SimChunk>(4);
+        private readonly List<int> _hashIndices = new List<int>(SimChunk.Capacity);
+        private readonly List<Type> _hashEventTypes = new List<Type>(1);
+        private readonly Comparison<SimChunk> _hashChunkComparison;
+        private readonly Comparison<int> _hashIndexComparison;
+        private readonly Comparison<Type> _hashEventTypeComparison;
+        private SimChunk _hashSortChunk;
+        private byte[] _hashUtf8Buffer = new byte[64];
 
         private struct EntityLocation
         {
@@ -56,6 +64,9 @@ namespace ZWebGLFrameWork.SimulationCore
             _entityArchetypeKey = new string[_generationCap];
             _entityChunkIndex = new int[_generationCap];
             _entityLocalIndex = new int[_generationCap];
+            _hashChunkComparison = CompareHashChunks;
+            _hashIndexComparison = CompareHashIndices;
+            _hashEventTypeComparison = CompareHashEventTypes;
         }
 
         // ==================== Entity 生命周期 ====================
@@ -356,62 +367,79 @@ namespace ZWebGLFrameWork.SimulationCore
 
             // 按 Archetype Key 排序确保确定性
             _sortedKeys.Clear();
-            _sortedKeys.AddRange(_archetypes.Keys);
-            _sortedKeys.Sort();
-            foreach (var key in _sortedKeys)
+            try
             {
-                var archetype = _archetypes[key];
-                var schema = new DeterministicHash64(hash);
-                schema.AddInt32(archetype.ComponentTypeIds.Length);
-                foreach (int componentTypeId in archetype.ComponentTypeIds)
-                    schema.AddInt32(componentTypeId);
-                hash = schema.Value;
-                // 按 Chunk 首个 Entity ID 排序确保确定性（避免 swap-remove 导致的顺序变化）
-                var chunks = new List<SimChunk>(archetype.Chunks);
-                chunks.Sort((a, b) =>
+                _sortedKeys.AddRange(_archetypes.Keys);
+                _sortedKeys.Sort();
+                foreach (var key in _sortedKeys)
                 {
-                    int aId = a.Count > 0 ? a.EntityIds[0] : int.MaxValue;
-                    int bId = b.Count > 0 ? b.EntityIds[0] : int.MaxValue;
-                    return aId.CompareTo(bId);
-                });
-                foreach (var chunk in chunks)
-                {
-                    hash = HashChunk(archetype, chunk, hash);
+                    var archetype = _archetypes[key];
+                    var schema = new DeterministicHash64(hash);
+                    schema.AddInt32(archetype.ComponentTypeIds.Length);
+                    foreach (int componentTypeId in archetype.ComponentTypeIds)
+                        schema.AddInt32(componentTypeId);
+                    hash = schema.Value;
+                    // 按 Chunk 首个 Entity ID 排序确保确定性（避免 swap-remove 导致的顺序变化）
+                    _hashChunks.Clear();
+                    _hashChunks.AddRange(archetype.Chunks);
+                    _hashChunks.Sort(_hashChunkComparison);
+                    foreach (var chunk in _hashChunks)
+                        hash = HashChunk(archetype, chunk, hash);
                 }
+                return HashPendingEvents(hash);
             }
-            return HashPendingEvents(hash);
+            finally
+            {
+                _sortedKeys.Clear();
+                _hashChunks.Clear();
+            }
         }
 
         private ulong HashPendingEvents(ulong hash)
         {
-            var types = new List<Type>();
-            foreach (var pair in _eventQueues)
+            _hashEventTypes.Clear();
+            try
             {
-                if (pair.Value is System.Collections.ICollection values && values.Count > 0)
-                    types.Add(pair.Key);
-            }
-            types.Sort((left, right) => string.CompareOrdinal(left.FullName, right.FullName));
-
-            var state = new DeterministicHash64(hash);
-            state.AddInt32(types.Count);
-            foreach (Type type in types)
-            {
-                state.AddBytes(Encoding.UTF8.GetBytes(type.FullName ?? type.Name));
-                if (type == typeof(SimDamageEvent))
+                foreach (var pair in _eventQueues)
                 {
-                    var events = (List<SimDamageEvent>)_eventQueues[type];
-                    state.AddInt32(events.Count);
-                    foreach (SimDamageEvent damage in events)
-                    {
-                        state.AddInt32(damage.Amount);
-                        AddEntity(ref state, damage.Attacker);
-                        AddEntity(ref state, damage.Target);
-                    }
-                    continue;
+                    if (pair.Value is System.Collections.ICollection values && values.Count > 0)
+                        _hashEventTypes.Add(pair.Key);
                 }
-                throw new NotSupportedException($"No deterministic event hash registered for {type.FullName}.");
+                _hashEventTypes.Sort(_hashEventTypeComparison);
+
+                var state = new DeterministicHash64(hash);
+                state.AddInt32(_hashEventTypes.Count);
+                foreach (Type type in _hashEventTypes)
+                {
+                    string name = type.FullName ?? type.Name;
+                    int byteCount = Encoding.UTF8.GetByteCount(name);
+                    if (_hashUtf8Buffer.Length < byteCount)
+                        Array.Resize(ref _hashUtf8Buffer,
+                            Math.Max(byteCount, _hashUtf8Buffer.Length * 2));
+                    int encoded = Encoding.UTF8.GetBytes(
+                        name, 0, name.Length, _hashUtf8Buffer, 0);
+                    state.AddBytes(_hashUtf8Buffer, 0, encoded);
+                    if (type == typeof(SimDamageEvent))
+                    {
+                        var events = (List<SimDamageEvent>)_eventQueues[type];
+                        state.AddInt32(events.Count);
+                        foreach (SimDamageEvent damage in events)
+                        {
+                            state.AddInt32(damage.Amount);
+                            AddEntity(ref state, damage.Attacker);
+                            AddEntity(ref state, damage.Target);
+                        }
+                        continue;
+                    }
+                    throw new NotSupportedException(
+                        $"No deterministic event hash registered for {type.FullName}.");
+                }
+                return state.Value;
             }
-            return state.Value;
+            finally
+            {
+                _hashEventTypes.Clear();
+            }
         }
 
         private static void AddEntity(ref DeterministicHash64 state, SimEntity entity)
@@ -421,44 +449,67 @@ namespace ZWebGLFrameWork.SimulationCore
             state.AddInt32(entity.WorldEpoch);
         }
 
-        private static ulong HashChunk(SimArchetype archetype, SimChunk chunk, ulong hash)
+        private ulong HashChunk(SimArchetype archetype, SimChunk chunk, ulong hash)
         {
-            var indices = new List<int>(chunk.Count);
-            for (int index = 0; index < chunk.Count; index++) indices.Add(index);
-            indices.Sort((left, right) =>
+            _hashIndices.Clear();
+            _hashSortChunk = chunk;
+            try
             {
-                int byId = chunk.EntityIds[left].CompareTo(chunk.EntityIds[right]);
-                return byId != 0 ? byId : chunk.Generations[left].CompareTo(chunk.Generations[right]);
-            });
-            foreach (int i in indices)
-            {
-                // 哈希 Entity ID + Generation
-                const ulong prime = 1099511628211UL;
-                hash ^= (ulong)chunk.EntityIds[i]; hash *= prime;
-                hash ^= (ulong)chunk.Generations[i]; hash *= prime;
-
-                // 哈希每个组件（直接类型转换，零装箱）
-                for (int c = 0; c < archetype.ComponentTypeIds.Length; c++)
+                for (int index = 0; index < chunk.Count; index++) _hashIndices.Add(index);
+                _hashIndices.Sort(_hashIndexComparison);
+                foreach (int i in _hashIndices)
                 {
-                    Array col = chunk.ComponentColumns[c];
-                    if (col is SimTransformComponent[] tCol)
-                        hash = tCol[i].HashInto(hash);
-                    else if (col is SimHealthComponent[] hCol)
-                        hash = hCol[i].HashInto(hash);
-                    else if (col is SimTeamComponent[] teamCol)
-                        hash = teamCol[i].HashInto(hash);
-                    else if (col is SimMovementComponent[] mCol)
-                        hash = mCol[i].HashInto(hash);
-                    else if (col is SimAttackComponent[] aCol)
-                        hash = aCol[i].HashInto(hash);
-                    else if (col is SimTargetComponent[] tgtCol)
-                        hash = tgtCol[i].HashInto(hash);
-                    else if (col is SimIdentityComponent[] identityCol)
-                        hash = identityCol[i].HashInto(hash);
+                    // 哈希 Entity ID + Generation
+                    const ulong prime = 1099511628211UL;
+                    hash ^= (ulong)chunk.EntityIds[i]; hash *= prime;
+                    hash ^= (ulong)chunk.Generations[i]; hash *= prime;
+
+                    // 哈希每个组件（直接类型转换，零装箱）
+                    for (int c = 0; c < archetype.ComponentTypeIds.Length; c++)
+                    {
+                        Array col = chunk.ComponentColumns[c];
+                        if (col is SimTransformComponent[] tCol)
+                            hash = tCol[i].HashInto(hash);
+                        else if (col is SimHealthComponent[] hCol)
+                            hash = hCol[i].HashInto(hash);
+                        else if (col is SimTeamComponent[] teamCol)
+                            hash = teamCol[i].HashInto(hash);
+                        else if (col is SimMovementComponent[] mCol)
+                            hash = mCol[i].HashInto(hash);
+                        else if (col is SimAttackComponent[] aCol)
+                            hash = aCol[i].HashInto(hash);
+                        else if (col is SimTargetComponent[] tgtCol)
+                            hash = tgtCol[i].HashInto(hash);
+                        else if (col is SimIdentityComponent[] identityCol)
+                            hash = identityCol[i].HashInto(hash);
+                    }
                 }
+                return hash;
             }
-            return hash;
+            finally
+            {
+                _hashIndices.Clear();
+                _hashSortChunk = null;
+            }
         }
+
+        private static int CompareHashChunks(SimChunk left, SimChunk right)
+        {
+            int leftId = left.Count > 0 ? left.EntityIds[0] : int.MaxValue;
+            int rightId = right.Count > 0 ? right.EntityIds[0] : int.MaxValue;
+            return leftId.CompareTo(rightId);
+        }
+
+        private int CompareHashIndices(int left, int right)
+        {
+            int byId = _hashSortChunk.EntityIds[left].CompareTo(_hashSortChunk.EntityIds[right]);
+            return byId != 0
+                ? byId
+                : _hashSortChunk.Generations[left].CompareTo(_hashSortChunk.Generations[right]);
+        }
+
+        private static int CompareHashEventTypes(Type left, Type right) =>
+            string.CompareOrdinal(left.FullName, right.FullName);
 
         // ==================== 快照 ====================
 
@@ -480,18 +531,25 @@ namespace ZWebGLFrameWork.SimulationCore
 
             // 按 Archetype Key 排序确保确定性
             _sortedKeys.Clear();
-            _sortedKeys.AddRange(_archetypes.Keys);
-            _sortedKeys.Sort();
-            foreach (var key in _sortedKeys)
+            try
             {
-                var archetype = _archetypes[key];
-                foreach (var chunk in archetype.Chunks)
+                _sortedKeys.AddRange(_archetypes.Keys);
+                _sortedKeys.Sort();
+                foreach (var key in _sortedKeys)
                 {
-                    snapshot.ChunkSnapshots.Add(chunk.ExportSnapshot());
+                    var archetype = _archetypes[key];
+                    foreach (var chunk in archetype.Chunks)
+                    {
+                        snapshot.ChunkSnapshots.Add(chunk.ExportSnapshot());
+                    }
                 }
-            }
 
-            return snapshot;
+                return snapshot;
+            }
+            finally
+            {
+                _sortedKeys.Clear();
+            }
         }
 
         private SimEntity[] GetAllEntities()
@@ -509,6 +567,7 @@ namespace ZWebGLFrameWork.SimulationCore
         /// </summary>
         public void RestoreFromFull(TickSnapshot snapshot)
         {
+            ReleaseChecksumWorkingSets();
             ValidateSnapshot(snapshot);
             _worldEpoch = unchecked(_worldEpoch + 1);
             if (_worldEpoch == 0) _worldEpoch = 1;
@@ -627,11 +686,22 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>清空所有 Archetype、Chunk 和事件队列</summary>
         public void ClearPools()
         {
+            ReleaseChecksumWorkingSets();
             _worldEpoch = unchecked(_worldEpoch + 1);
             if (_worldEpoch == 0) _worldEpoch = 1;
             _archetypes.Clear();
             EntityCount = 0;
             _eventQueues.Clear();
+        }
+
+        internal void ReleaseChecksumWorkingSets()
+        {
+            _sortedKeys.Clear();
+            _sortedLocations.Clear();
+            _hashChunks.Clear();
+            _hashIndices.Clear();
+            _hashEventTypes.Clear();
+            _hashSortChunk = null;
         }
     }
 }

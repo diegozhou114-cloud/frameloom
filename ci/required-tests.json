@@ -8,7 +8,7 @@
           "requiredNames": ["SubscribeAndPublish_ZeroParams_HandlerIsCalled", "ValueChanged_TriggersOnChanged"]
         },
         "ZWebGLFrameWork.Editor.Tests": {
-          "minimumPassed": 10,
+          "minimumPassed": 28,
           "requiredNames": [
             "EditorAssembly_AutoFixProcessor_Compiles",
             "SimulationSystems_RefDelegates_Compile",
@@ -18,7 +18,25 @@
             "BuildScenes_LauncherIsEnabledSceneZero",
             "BuildScript_EmitsMachineReadableBuildReport",
             "ProductionAssemblies_DoNotBypassSimulationSession",
-            "LegacyCombat_SourceAndToggleAreAbsent"
+            "LegacyCombat_SourceAndToggleAreAbsent",
+            "SimulationPerformanceReport_WritesRequiredSchema",
+            "AllocationRecorder_DetectsKnownManagedAllocation",
+            "EntityPresentationKey_CollectionsDoNotAllocatePerLookup",
+            "SteadyStateTick_PresentationWorkingSetsStayWithinAllocationBudget",
+            "SteadyStateTick_ChecksumWorkingSetsStayWithinAllocationBudget",
+            "SteadyStateSystems_TraversalDelegatesDoNotAllocateAfterWarmup",
+            "SteadyStateTick_SystemDelegateCacheStaysWithinAllocationBudget",
+            "SteadyStateCommandBuffer_SortComparisonsAllocateOnlyDrainResult",
+            "SteadyStateTick_CommandComparersStayWithinAllocationBudget",
+            "SteadyStateTick_CommandExecutionWorkingSetsStayWithinAllocationBudget",
+            "TickResult_CommandCollectionsRemainOwnedAcrossLaterTicks",
+            "SessionTickWorkingSets_AreClearedAfterTickRestoreAndDispose",
+            "SteadyStateTick_QueryWorkingSetsStayWithinAllocationBudget",
+            "ModeProfile_WaveQueryMatchesDefensivePublicSnapshot",
+            "AcceptedSequenceHashWorkingSet_IsClearedAfterChecksumRestoreAndDispose",
+            "SteadyStateTick_ModeEvaluationAndStateTransitionStayWithinAllocationBudget",
+            "ModeRules_InternalEvaluationMatchesPublicEvaluation",
+            "TickState_FinalChecksumSemanticsRemainStableAcrossRestoreAndTerminal"
           ]
         },
         "ZWebGLFrameWork.Network.Tests": {

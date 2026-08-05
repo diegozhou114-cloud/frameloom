@@ -16,12 +16,8 @@ namespace ZWebGLFrameWork.SimulationCore
             int destructionBasisPoints, int futureWaves, bool timedOut,
             bool manualDeploymentSealed)
         {
-            if (completedTick < 0) throw new ArgumentOutOfRangeException(nameof(completedTick));
-            if (attackerAlive < 0) throw new ArgumentOutOfRangeException(nameof(attackerAlive));
-            if (defenderAlive < 0) throw new ArgumentOutOfRangeException(nameof(defenderAlive));
-            if (destructionBasisPoints < 0 || destructionBasisPoints > 10000)
-                throw new ArgumentOutOfRangeException(nameof(destructionBasisPoints));
-            if (futureWaves < 0) throw new ArgumentOutOfRangeException(nameof(futureWaves));
+            Validate(completedTick, attackerAlive, defenderAlive,
+                destructionBasisPoints, futureWaves);
 
             CompletedTick = completedTick;
             AttackerAlive = attackerAlive;
@@ -30,6 +26,17 @@ namespace ZWebGLFrameWork.SimulationCore
             FutureWaves = futureWaves;
             TimedOut = timedOut;
             ManualDeploymentSealed = manualDeploymentSealed;
+        }
+
+        internal static void Validate(int completedTick, int attackerAlive, int defenderAlive,
+            int destructionBasisPoints, int futureWaves)
+        {
+            if (completedTick < 0) throw new ArgumentOutOfRangeException(nameof(completedTick));
+            if (attackerAlive < 0) throw new ArgumentOutOfRangeException(nameof(attackerAlive));
+            if (defenderAlive < 0) throw new ArgumentOutOfRangeException(nameof(defenderAlive));
+            if (destructionBasisPoints < 0 || destructionBasisPoints > 10000)
+                throw new ArgumentOutOfRangeException(nameof(destructionBasisPoints));
+            if (futureWaves < 0) throw new ArgumentOutOfRangeException(nameof(futureWaves));
         }
     }
 
@@ -74,19 +81,37 @@ namespace ZWebGLFrameWork.SimulationCore
         public SimTerminalOutcome Evaluate(SimModeEvaluationInput input)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
+            return EvaluateCore(input.AttackerAlive, input.DefenderAlive,
+                input.DestructionBasisPoints, input.FutureWaves,
+                input.TimedOut, input.ManualDeploymentSealed);
+        }
 
-            if (input.AttackerAlive == 0 && input.DefenderAlive == 0)
+        internal SimTerminalOutcome Evaluate(int completedTick, int attackerAlive,
+            int defenderAlive, int destructionBasisPoints, int futureWaves,
+            bool timedOut, bool manualDeploymentSealed)
+        {
+            SimModeEvaluationInput.Validate(completedTick, attackerAlive, defenderAlive,
+                destructionBasisPoints, futureWaves);
+            return EvaluateCore(attackerAlive, defenderAlive, destructionBasisPoints,
+                futureWaves, timedOut, manualDeploymentSealed);
+        }
+
+        private SimTerminalOutcome EvaluateCore(int attackerAlive, int defenderAlive,
+            int destructionBasisPoints, int futureWaves, bool timedOut,
+            bool manualDeploymentSealed)
+        {
+            if (attackerAlive == 0 && defenderAlive == 0)
                 return NoRewards(SimTeam.None);
-            if (input.TimedOut)
+            if (timedOut)
                 return NoRewards(SimTeam.Defender);
-            if (input.DefenderAlive == 0 && input.AttackerAlive > 0)
-                return AttackerOutcome(input.DestructionBasisPoints);
-            if (input.AttackerAlive > 0)
+            if (defenderAlive == 0 && attackerAlive > 0)
+                return AttackerOutcome(destructionBasisPoints);
+            if (attackerAlive > 0)
                 return null;
 
             bool deploymentOpen = _profile.ManualDeployment
-                && !input.ManualDeploymentSealed;
-            if (deploymentOpen || input.FutureWaves > 0)
+                && !manualDeploymentSealed;
+            if (deploymentOpen || futureWaves > 0)
                 return null;
             return NoRewards(SimTeam.Defender);
         }

@@ -1,6 +1,6 @@
 namespace ZWebGLFrameWork.SimulationCore
 {
-    public readonly struct EntityPresentationKey
+    public readonly struct EntityPresentationKey : System.IEquatable<EntityPresentationKey>
     {
         public int EntityId { get; }
         public int Generation { get; }
@@ -10,6 +10,15 @@ namespace ZWebGLFrameWork.SimulationCore
             EntityId = entityId;
             Generation = generation;
         }
+
+        public bool Equals(EntityPresentationKey other) =>
+            EntityId == other.EntityId && Generation == other.Generation;
+
+        public override bool Equals(object obj) =>
+            obj is EntityPresentationKey other && Equals(other);
+
+        public override int GetHashCode() =>
+            unchecked((EntityId * 397) ^ Generation);
     }
 
     public readonly struct EntityPresentationState
@@ -69,9 +78,47 @@ namespace ZWebGLFrameWork.SimulationCore
             Destroyed = Freeze(destroyed);
         }
 
+        private PresentationFrame(bool isFull, int completedTick, int nextTick,
+            long timelineRevision,
+            System.Collections.Generic.IReadOnlyList<EntityPresentationState> entities,
+            System.Collections.Generic.IReadOnlyList<EntityPresentationState> created,
+            System.Collections.Generic.IReadOnlyList<EntityPresentationState> updated,
+            System.Collections.Generic.IReadOnlyList<EntityPresentationKey> destroyed)
+        {
+            IsFull = isFull;
+            CompletedTick = completedTick;
+            NextTick = nextTick;
+            TimelineRevision = timelineRevision;
+            Entities = entities;
+            Created = created;
+            Updated = updated;
+            Destroyed = destroyed;
+        }
+
+        internal static PresentationFrame TakeOwnership(bool isFull, int completedTick,
+            int nextTick, long timelineRevision, EntityPresentationState[] entities,
+            EntityPresentationState[] created, EntityPresentationState[] updated,
+            EntityPresentationKey[] destroyed)
+        {
+            return new PresentationFrame(isFull, completedTick, nextTick, timelineRevision,
+                Own(entities), Own(created), Own(updated), Own(destroyed));
+        }
+
         private static System.Collections.Generic.IReadOnlyList<T> Freeze<T>(T[] values)
         {
             return System.Array.AsReadOnly((T[])(values ?? System.Array.Empty<T>()).Clone());
+        }
+
+        private static System.Collections.Generic.IReadOnlyList<T> Own<T>(T[] values)
+        {
+            if (values == null || values.Length == 0) return EmptyList<T>.Value;
+            return System.Array.AsReadOnly(values);
+        }
+
+        private static class EmptyList<T>
+        {
+            internal static readonly System.Collections.Generic.IReadOnlyList<T> Value =
+                System.Array.AsReadOnly(System.Array.Empty<T>());
         }
     }
 }

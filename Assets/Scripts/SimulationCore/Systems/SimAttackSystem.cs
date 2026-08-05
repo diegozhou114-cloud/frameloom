@@ -3,37 +3,45 @@ namespace ZWebGLFrameWork.SimulationCore
     public class SimAttackSystem : SimSystemBase
     {
         private int _currentTick;
+        private readonly SimWorld.RefAction<SimEntity, SimAttackComponent,
+            SimTransformComponent> _attack;
 
         public int CurrentTick => _currentTick;
 
-        public SimAttackSystem() { Order = 20; }
+        public SimAttackSystem()
+        {
+            Order = 20;
+            _attack = Attack;
+        }
 
         public override void Update()
         {
             _currentTick++;
 
-            World.ForEachEntities<SimAttackComponent, SimTransformComponent>(
-                (SimEntity entity, ref SimAttackComponent attack, ref SimTransformComponent transform) =>
+            World.ForEachEntities(_attack);
+        }
+
+        private void Attack(SimEntity entity, ref SimAttackComponent attack,
+            ref SimTransformComponent transform)
+        {
+            if (attack.IsOnCooldown(_currentTick)) return;
+
+            if (!World.TryGetComponent<SimTargetComponent>(entity, out var target) || !target.HasTarget)
+                return;
+
+            // Use cached target position (populated by TargetCacheSystem)
+            // No remote entity lookup needed
+            LogicInt dx = LogicInt.Abs(transform.PosX - target.TargetPosX);
+            LogicInt dy = LogicInt.Abs(transform.PosY - target.TargetPosY);
+            if (dx > attack.Range || dy > attack.Range) return;
+
+            attack.LastAttackTick = _currentTick;
+
+            World.EnqueueEvent(new SimDamageEvent
             {
-                if (attack.IsOnCooldown(_currentTick)) return;
-
-                if (!World.TryGetComponent<SimTargetComponent>(entity, out var target) || !target.HasTarget)
-                    return;
-
-                // Use cached target position (populated by TargetCacheSystem)
-                // No remote entity lookup needed
-                LogicInt dx = LogicInt.Abs(transform.PosX - target.TargetPosX);
-                LogicInt dy = LogicInt.Abs(transform.PosY - target.TargetPosY);
-                if (dx > attack.Range || dy > attack.Range) return;
-
-                attack.LastAttackTick = _currentTick;
-
-                World.EnqueueEvent(new SimDamageEvent
-                {
-                    Amount = attack.Damage,
-                    Attacker = entity,
-                    Target = target.TargetEntity,
-                });
+                Amount = attack.Damage,
+                Attacker = entity,
+                Target = target.TargetEntity,
             });
         }
 

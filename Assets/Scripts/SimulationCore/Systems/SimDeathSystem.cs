@@ -1,11 +1,10 @@
+using System;
 using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
     public class SimDeathSystem : SimSystemBase
     {
-        public SimDeathSystem() { Order = 90; }
-
         public int AttackerAlive { get; private set; }
         public int DefenderAlive { get; private set; }
         public int AttackerDead { get; private set; }
@@ -15,6 +14,13 @@ namespace ZWebGLFrameWork.SimulationCore
         public int? Winner { get; private set; }
 
         private readonly List<SimEntity> _deadList = new List<SimEntity>();
+        private readonly Action<SimEntity, SimHealthComponent> _inspectHealth;
+
+        public SimDeathSystem()
+        {
+            Order = 90;
+            _inspectHealth = InspectHealth;
+        }
 
         public override void Update()
         {
@@ -22,16 +28,7 @@ namespace ZWebGLFrameWork.SimulationCore
             Winner = null;
             _deadList.Clear();
 
-            World.ForEachComponent<SimHealthComponent>((entity, health) =>
-            {
-                if (!health.IsAlive) { _deadList.Add(entity); return; }
-
-                if (World.TryGetComponent<SimTeamComponent>(entity, out var team))
-                {
-                    if (team.TeamId == SimTeam.Attacker) AttackerAlive++;
-                    else if (team.TeamId == SimTeam.Defender) DefenderAlive++;
-                }
-            });
+            World.ForEachComponent(_inspectHealth);
 
             foreach (var dead in _deadList)
             {
@@ -50,6 +47,17 @@ namespace ZWebGLFrameWork.SimulationCore
 
             if (AttackerAlive == 0 && DefenderAlive > 0) Winner = SimTeam.Defender;
             else if (DefenderAlive == 0 && AttackerAlive > 0) Winner = SimTeam.Attacker;
+        }
+
+        private void InspectHealth(SimEntity entity, SimHealthComponent health)
+        {
+            if (!health.IsAlive) { _deadList.Add(entity); return; }
+
+            if (World.TryGetComponent<SimTeamComponent>(entity, out var team))
+            {
+                if (team.TeamId == SimTeam.Attacker) AttackerAlive++;
+                else if (team.TeamId == SimTeam.Defender) DefenderAlive++;
+            }
         }
 
         public void ForceWinner(int teamId) { Winner = teamId; }

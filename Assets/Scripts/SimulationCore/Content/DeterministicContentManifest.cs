@@ -80,6 +80,14 @@ namespace ZWebGLFrameWork.SimulationCore
             _waveTicks = waves;
         }
 
+        internal int CountWavesAfter(int completedTick)
+        {
+            for (int index = 0; index < _waveTicks.Length; index++)
+                if (_waveTicks[index] > completedTick)
+                    return _waveTicks.Length - index;
+            return 0;
+        }
+
         internal static bool IsSupported(SimCombatMode mode) =>
             mode == SimCombatMode.VillageAttack
             || mode == SimCombatMode.BuilderBase

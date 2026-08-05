@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace ZWebGLFrameWork.SimulationCore
@@ -11,7 +12,11 @@ namespace ZWebGLFrameWork.SimulationCore
         /// <summary>已缓冲的命令数</summary>
         public int PendingCount => _pending.Count;
 
+        private static readonly Comparison<ISimCommand> WithinTickComparison =
+            CompareWithinTick;
+        private static readonly Comparison<ISimCommand> AllComparison = CompareAll;
         private readonly List<ISimCommand> _pending = new List<ISimCommand>();
+        private readonly List<ISimCommand> _orderedForHash = new List<ISimCommand>();
 
         /// <summary>添加一条命令（渲染帧调用）</summary>
         public void AddCommand(ISimCommand cmd)
@@ -23,17 +28,23 @@ namespace ZWebGLFrameWork.SimulationCore
         public List<ISimCommand> Drain(int tick)
         {
             var result = new List<ISimCommand>();
+            DrainInto(tick, result);
+            return result;
+        }
+
+        internal void DrainInto(int tick, List<ISimCommand> destination)
+        {
+            destination.Clear();
             for (int i = _pending.Count - 1; i >= 0; i--)
             {
                 if (_pending[i].Tick == tick)
                 {
-                    result.Add(_pending[i]);
+                    destination.Add(_pending[i]);
                     _pending.RemoveAt(i);
                 }
             }
             // 保持确定性：按 PlayerId 排序（同一 Tick 内多玩家命令的执行顺序）
-            result.Sort(CompareWithinTick);
-            return result;
+            destination.Sort(WithinTickComparison);
         }
 
         /// <summary>获取指定 Tick 的命令而不移除（用于录制）</summary>
@@ -43,54 +54,63 @@ namespace ZWebGLFrameWork.SimulationCore
             foreach (var cmd in _pending)
                 if (cmd.Tick == tick)
                     result.Add(cmd);
-            result.Sort(CompareWithinTick);
+            result.Sort(WithinTickComparison);
             return result;
         }
 
         public ulong HashInto(ulong hash)
         {
-            var ordered = new List<ISimCommand>(_pending);
-            ordered.Sort(CompareAll);
-            var state = new DeterministicHash64(hash);
-            state.AddInt32(ordered.Count);
-            foreach (ISimCommand command in ordered)
+            _orderedForHash.Clear();
+            try
             {
-                state.AddByte((byte)command.Type);
-                state.AddInt32(command.Tick);
-                state.AddInt32(command.PlayerId);
-                state.AddInt32(command.Sequence);
-                switch (command)
+                _orderedForHash.AddRange(_pending);
+                _orderedForHash.Sort(AllComparison);
+                var state = new DeterministicHash64(hash);
+                state.AddInt32(_orderedForHash.Count);
+                foreach (ISimCommand command in _orderedForHash)
                 {
-                    case DeployCmd deploy:
-                        state.AddInt32(deploy.UnitTypeId);
-                        state.AddInt32(deploy.GridX);
-                        state.AddInt32(deploy.GridY);
-                        break;
-                    case MoveCmd move:
-                        state.AddInt32(move.EntityId);
-                        state.AddInt32(move.TargetX);
-                        state.AddInt32(move.TargetY);
-                        break;
-                    case SkillCmd skill:
-                        state.AddInt32(skill.CasterId);
-                        state.AddInt32(skill.SkillId);
-                        state.AddInt32(skill.TargetX);
-                        state.AddInt32(skill.TargetY);
-                        break;
+                    state.AddByte((byte)command.Type);
+                    state.AddInt32(command.Tick);
+                    state.AddInt32(command.PlayerId);
+                    state.AddInt32(command.Sequence);
+                    switch (command)
+                    {
+                        case DeployCmd deploy:
+                            state.AddInt32(deploy.UnitTypeId);
+                            state.AddInt32(deploy.GridX);
+                            state.AddInt32(deploy.GridY);
+                            break;
+                        case MoveCmd move:
+                            state.AddInt32(move.EntityId);
+                            state.AddInt32(move.TargetX);
+                            state.AddInt32(move.TargetY);
+                            break;
+                        case SkillCmd skill:
+                            state.AddInt32(skill.CasterId);
+                            state.AddInt32(skill.SkillId);
+                            state.AddInt32(skill.TargetX);
+                            state.AddInt32(skill.TargetY);
+                            break;
+                    }
                 }
+                return state.Value;
             }
-            return state.Value;
+            finally
+            {
+                _orderedForHash.Clear();
+            }
         }
 
         public ISimCommand[] ExportPendingCommands()
         {
             var ordered = new List<ISimCommand>(_pending);
-            ordered.Sort(CompareAll);
+            ordered.Sort(AllComparison);
             return ordered.ToArray();
         }
 
         public void RestorePendingCommands(IEnumerable<ISimCommand> commands)
         {
+            _orderedForHash.Clear();
             _pending.Clear();
             if (commands == null) return;
             foreach (ISimCommand command in commands)
@@ -118,6 +138,9 @@ namespace ZWebGLFrameWork.SimulationCore
         public void Clear()
         {
             _pending.Clear();
+            _orderedForHash.Clear();
         }
+
+        internal void ReleaseChecksumWorkingSet() => _orderedForHash.Clear();
     }
 }

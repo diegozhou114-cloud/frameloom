@@ -41,7 +41,14 @@ namespace ZWebGLFrameWork.SimulationCore
         public void AddBytes(byte[] bytes)
         {
             if (bytes == null) return;
-            for (int index = 0; index < bytes.Length; index++) AddByte(bytes[index]);
+            AddBytes(bytes, 0, bytes.Length);
+        }
+
+        internal void AddBytes(byte[] bytes, int offset, int count)
+        {
+            if (bytes == null) return;
+            int end = offset + count;
+            for (int index = offset; index < end; index++) AddByte(bytes[index]);
         }
     }
 }

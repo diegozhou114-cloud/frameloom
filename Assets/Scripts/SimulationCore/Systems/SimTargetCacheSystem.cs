@@ -1,3 +1,5 @@
+using System;
+
 namespace ZWebGLFrameWork.SimulationCore
 {
     /// <summary>
@@ -7,21 +9,29 @@ namespace ZWebGLFrameWork.SimulationCore
     /// </summary>
     public class SimTargetCacheSystem : SimSystemBase
     {
-        public SimTargetCacheSystem() { Order = 9; }
+        private readonly Action<SimEntity, SimTargetComponent> _cacheTarget;
+
+        public SimTargetCacheSystem()
+        {
+            Order = 9;
+            _cacheTarget = CacheTarget;
+        }
 
         public override void Update()
         {
-            World.ForEachComponent<SimTargetComponent>((entity, target) =>
-            {
-                if (!target.HasTarget) return;
+            World.ForEachComponent(_cacheTarget);
+        }
 
-                if (World.TryGetComponent<SimTransformComponent>(target.TargetEntity, out var targetTransform))
-                {
-                    target.TargetPosX = targetTransform.PosX;
-                    target.TargetPosY = targetTransform.PosY;
-                    World.SetComponent(entity, target);
-                }
-            });
+        private void CacheTarget(SimEntity entity, SimTargetComponent target)
+        {
+            if (!target.HasTarget) return;
+
+            if (World.TryGetComponent<SimTransformComponent>(target.TargetEntity, out var targetTransform))
+            {
+                target.TargetPosX = targetTransform.PosX;
+                target.TargetPosY = targetTransform.PosY;
+                World.SetComponent(entity, target);
+            }
         }
     }
 }

@@ -80,6 +80,46 @@ namespace ZWebGLFrameWork.SimulationCore
             Checksum = checksum;
             Result = result;
         }
+
+        private TickResult(TickCode code, int completedTick, int nextTick, long timelineRevision,
+            System.Collections.Generic.IReadOnlyList<ISimCommand> executedCommands,
+            System.Collections.Generic.IReadOnlyList<CommandExecutionResult> commandOutcomes,
+            System.Collections.Generic.IReadOnlyList<SimBattleEvent> events,
+            PresentationFrame presentation, ulong checksum, SimBattleResult result)
+        {
+            Code = code;
+            CompletedTick = completedTick;
+            NextTick = nextTick;
+            TimelineRevision = timelineRevision;
+            ExecutedCommands = executedCommands;
+            CommandOutcomes = commandOutcomes;
+            Events = events;
+            Presentation = presentation;
+            Checksum = checksum;
+            Result = result;
+        }
+
+        internal static TickResult TakeOwnership(TickCode code, int completedTick, int nextTick,
+            long timelineRevision, ISimCommand[] executedCommands,
+            CommandExecutionResult[] commandOutcomes, SimBattleEvent[] events,
+            PresentationFrame presentation, ulong checksum, SimBattleResult result)
+        {
+            return new TickResult(code, completedTick, nextTick, timelineRevision,
+                Own(executedCommands), Own(commandOutcomes), Own(events),
+                presentation, checksum, result);
+        }
+
+        private static System.Collections.Generic.IReadOnlyList<T> Own<T>(T[] values)
+        {
+            if (values == null || values.Length == 0) return EmptyList<T>.Value;
+            return System.Array.AsReadOnly(values);
+        }
+
+        private static class EmptyList<T>
+        {
+            internal static readonly System.Collections.Generic.IReadOnlyList<T> Value =
+                System.Array.AsReadOnly(System.Array.Empty<T>());
+        }
     }
 
     public sealed class SimBattleResult

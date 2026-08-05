@@ -28,10 +28,34 @@ namespace ZWebGLFrameWork.SimulationCore
             int completedTick, int nextTick, int deployedCount,
             SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash,
             ulong acceptedSequenceHash)
+            : this(protocolVersion, schemaVersion, contentHash, seed, lifecycle, phase,
+                completedTick, nextTick, deployedCount, terminalOutcome, terminalFinalTick,
+                commandHash, acceptedSequenceHash, true)
+        {
+        }
+
+        internal static SessionChecksumState FromOwnedContentHash(
+            int protocolVersion, int schemaVersion, byte[] contentHash,
+            int seed, SessionLifecycle lifecycle, SimCombatPhase phase,
+            int completedTick, int nextTick, int deployedCount,
+            SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash,
+            ulong acceptedSequenceHash)
+        {
+            return new SessionChecksumState(protocolVersion, schemaVersion, contentHash,
+                seed, lifecycle, phase, completedTick, nextTick, deployedCount,
+                terminalOutcome, terminalFinalTick, commandHash, acceptedSequenceHash, false);
+        }
+
+        private SessionChecksumState(int protocolVersion, int schemaVersion, byte[] contentHash,
+            int seed, SessionLifecycle lifecycle, SimCombatPhase phase,
+            int completedTick, int nextTick, int deployedCount,
+            SimTerminalOutcome terminalOutcome, int terminalFinalTick, ulong commandHash,
+            ulong acceptedSequenceHash, bool cloneContentHash)
         {
             _protocolVersion = protocolVersion;
             _schemaVersion = schemaVersion;
-            _contentHash = (byte[])(contentHash ?? Array.Empty<byte>()).Clone();
+            byte[] source = contentHash ?? Array.Empty<byte>();
+            _contentHash = cloneContentHash ? (byte[])source.Clone() : source;
             _seed = seed;
             _lifecycle = lifecycle;
             _phase = phase;

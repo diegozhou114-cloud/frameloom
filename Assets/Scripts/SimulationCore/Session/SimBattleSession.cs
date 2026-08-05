@@ -8,15 +8,25 @@ namespace ZWebGLFrameWork.SimulationCore
     public sealed class SimBattleSession : ISimBattleSession
     {
         private const int MaxWaypointCoordinate = ushort.MaxValue;
+        private static readonly Comparison<KeyValuePair<int, int>> AcceptedSequenceComparison =
+            CompareAcceptedSequences;
         private readonly SimWorld _world;
         private readonly DeterministicContentManifest _manifest;
+        private readonly byte[] _contentHash;
         private readonly ISimLogger _logger;
         private readonly CommandBuffer _commandBuffer;
         private readonly SimSystemGroup _systems;
         private readonly SimDeathSystem _deathSystem;
         private readonly SimDamageSystem _damageSystem;
         private readonly SimAttackSystem _attackSystem;
+        private readonly PresentationFrameBuilder _presentationFrames;
         private readonly Dictionary<int, int> _lastSequenceByPlayer = new Dictionary<int, int>();
+        private readonly List<ISimCommand> _executedCommands = new List<ISimCommand>();
+        private readonly List<ISimCommand> _acceptedCommands = new List<ISimCommand>();
+        private readonly List<CommandExecutionResult> _commandOutcomes =
+            new List<CommandExecutionResult>();
+        private readonly List<KeyValuePair<int, int>> _acceptedSequenceHashEntries =
+            new List<KeyValuePair<int, int>>();
         private const int BasicSkillId = 1;
         private const int BasicSkillDamage = 30;
         private const int MaxSnapshotBytes = 8 * 1024 * 1024;
@@ -24,6 +34,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private PresentationFrame _currentFrame;
         private BattleInit _init;
         private SimModeProfile _modeProfile;
+        private SimModeRules _modeRules;
         private int _deployedCount;
         private SimTerminalOutcome _terminalOutcome;
         private int _terminalFinalTick = -1;
@@ -34,12 +45,14 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             _world = world ?? throw new ArgumentNullException(nameof(world));
             _manifest = manifest ?? throw new ArgumentNullException(nameof(manifest));
+            _contentHash = _manifest.ContentHash;
             _logger = logger;
             _commandBuffer = new CommandBuffer();
             _systems = SimCombatBootstrap.Build(world);
             _deathSystem = _systems.Find<SimDeathSystem>();
             _damageSystem = _systems.Find<SimDamageSystem>();
             _attackSystem = _systems.Find<SimAttackSystem>();
+            _presentationFrames = new PresentationFrameBuilder();
             _currentFrame = EmptyFrame();
             _state = new SimBattleState(SessionLifecycle.Created, SimCombatPhase.Idle,
                 -1, 0, 0, 0, _currentFrame, null);
@@ -56,11 +69,14 @@ namespace ZWebGLFrameWork.SimulationCore
             if (validation != StartCode.Accepted)
                 return new StartResult(validation, _currentFrame);
 
+            ClearCommandWorkingSets();
+            _acceptedSequenceHashEntries.Clear();
             foreach (var spec in init.InitialEntities)
                 CreateInitialEntity(spec);
 
             _init = init;
             _modeProfile = _manifest.GetMode(init.Mode);
+            _modeRules = new SimModeRules(_modeProfile);
             _deployedCount = 0;
             _terminalOutcome = null;
             _terminalFinalTick = -1;
@@ -127,64 +143,61 @@ namespace ZWebGLFrameWork.SimulationCore
             int completedTick = _state.NextTick;
             int nextTick = completedTick + 1;
             long revision = _state.TimelineRevision;
-            List<ISimCommand> executed = _commandBuffer.Drain(completedTick);
-            var acceptedCommands = new List<ISimCommand>(executed.Count);
-            var outcomes = new List<CommandExecutionResult>(executed.Count);
-            foreach (ISimCommand command in executed)
+            ClearCommandWorkingSets();
+            try
             {
-                CommandExecutionResult outcome = ExecuteCommand(command);
-                outcomes.Add(outcome);
-                if (outcome.Disposition == CommandDisposition.Accepted)
-                    acceptedCommands.Add(command);
-            }
-            SimCombatPhase phase = _state.Phase;
-            SessionLifecycle lifecycle = _state.Lifecycle;
-            if (phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment &&
-                nextTick >= _modeProfile.DeployDurationTicks)
-                phase = SimCombatPhase.Battling;
-
-            SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
-            bool systemsUpdated = false;
-            if (phase == SimCombatPhase.Battling)
-            {
-                _systems.UpdateAll();
-                systemsUpdated = true;
-                int futureWaves = _modeProfile.WaveTicks.Count(tick => tick > completedTick);
-                bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
-                SimTerminalOutcome terminalOutcome = new SimModeRules(_modeProfile).Evaluate(
-                    new SimModeEvaluationInput(completedTick, _deathSystem.AttackerAlive,
-                        _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
-                        futureWaves, timedOut, true));
-                if (terminalOutcome != null)
+                _commandBuffer.DrainInto(completedTick, _executedCommands);
+                foreach (ISimCommand command in _executedCommands)
                 {
-                    phase = SimCombatPhase.Ended;
-                    lifecycle = SessionLifecycle.Ended;
-                    _terminalOutcome = terminalOutcome;
-                    _terminalFinalTick = completedTick;
+                    CommandExecutionResult outcome = ExecuteCommand(command);
+                    _commandOutcomes.Add(outcome);
+                    if (outcome.Disposition == CommandDisposition.Accepted)
+                        _acceptedCommands.Add(command);
                 }
+                SimCombatPhase phase = _state.Phase;
+                SessionLifecycle lifecycle = _state.Lifecycle;
+                if (phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment &&
+                    nextTick >= _modeProfile.DeployDurationTicks)
+                    phase = SimCombatPhase.Battling;
+
+                SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
+                bool systemsUpdated = false;
+                if (phase == SimCombatPhase.Battling)
+                {
+                    _systems.UpdateAll();
+                    systemsUpdated = true;
+                    int futureWaves = _modeProfile.CountWavesAfter(completedTick);
+                    bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
+                    SimTerminalOutcome terminalOutcome = _modeRules.Evaluate(
+                        completedTick, _deathSystem.AttackerAlive,
+                        _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
+                        futureWaves, timedOut, true);
+                    if (terminalOutcome != null)
+                    {
+                        phase = SimCombatPhase.Ended;
+                        lifecycle = SessionLifecycle.Ended;
+                        _terminalOutcome = terminalOutcome;
+                        _terminalFinalTick = completedTick;
+                    }
+                }
+                PresentationFrame fullFrame = BuildFullFrame(completedTick, nextTick, revision);
+                _currentFrame = BuildDeltaFrame(_state.Presentation, fullFrame);
+                if (systemsUpdated)
+                    tickEvents = BuildTickEvents(_currentFrame.Destroyed);
+                ulong checksum = RefreshChecksum(lifecycle, phase,
+                    completedTick, nextTick, revision, fullFrame);
+                SimBattleResult result = _state.Result;
+                _sealedTick = -1;
+                return TickResult.TakeOwnership(
+                    lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
+                    completedTick, nextTick, revision,
+                    _acceptedCommands.ToArray(), _commandOutcomes.ToArray(),
+                    tickEvents, _currentFrame, checksum, result);
             }
-            PresentationFrame fullFrame = BuildFullFrame(completedTick, nextTick, revision);
-            _currentFrame = BuildDeltaFrame(_state.Presentation, fullFrame);
-            if (systemsUpdated)
-                tickEvents = BuildTickEvents(_currentFrame.Destroyed);
-            _state = new SimBattleState(lifecycle, phase,
-                completedTick, nextTick, revision, 0,
-                fullFrame, null);
-            ulong checksum = RefreshChecksum();
-            SimBattleResult result = null;
-            if (_terminalOutcome != null)
+            finally
             {
-                result = SimBattleResult.FromOutcome(
-                    _init.MatchId, _terminalOutcome, _terminalFinalTick, checksum);
-                _state = new SimBattleState(lifecycle, phase,
-                    completedTick, nextTick, revision, checksum,
-                    _state.Presentation, result);
+                ClearCommandWorkingSets();
             }
-            _sealedTick = -1;
-            return new TickResult(lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
-                completedTick, nextTick, revision,
-                acceptedCommands.ToArray(), outcomes.ToArray(),
-                tickEvents, _currentFrame, checksum, result);
         }
 
         public SimSnapshot CaptureSnapshot()
@@ -201,7 +214,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 _init?.MatchId ?? string.Empty,
                 _init?.SessionId ?? string.Empty,
                 _init?.SchemaVersion ?? SimComponentSchema.Version,
-                _manifest.ContentHash,
+                _contentHash,
                 _state.CompletedTick,
                 _state.NextTick,
                 _state.TimelineRevision,
@@ -213,6 +226,8 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public SnapshotRestoreResult RestoreSnapshot(SimSnapshot snapshot)
         {
+            ClearCommandWorkingSets();
+            _acceptedSequenceHashEntries.Clear();
             if (_disposed) return new SnapshotRestoreResult(SnapshotRestoreCode.Disposed, _currentFrame);
             if (_init == null || snapshot == null)
                 return new SnapshotRestoreResult(SnapshotRestoreCode.SnapshotUnavailable, _currentFrame);
@@ -222,7 +237,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 return new SnapshotRestoreResult(SnapshotRestoreCode.ForeignSession, _currentFrame);
             if (snapshot.SchemaVersion != _init.SchemaVersion)
                 return new SnapshotRestoreResult(SnapshotRestoreCode.UnsupportedSchema, _currentFrame);
-            if (!snapshot.ContentHash.SequenceEqual(_manifest.ContentHash))
+            if (!snapshot.ContentHash.SequenceEqual(_contentHash))
                 return new SnapshotRestoreResult(SnapshotRestoreCode.ContentMismatch, _currentFrame);
             if (snapshot.TimelineRevision < _state.TimelineRevision)
                 return new SnapshotRestoreResult(SnapshotRestoreCode.StaleRevision, _currentFrame);
@@ -284,6 +299,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 return new SnapshotRestoreResult(SnapshotRestoreCode.CorruptPayload, _currentFrame);
             }
 
+            _presentationFrames.Reset();
             _world.RestoreFromFull(data.WorldSnapshot);
             _commandBuffer.RestorePendingCommands(data.PendingCommands);
             _lastSequenceByPlayer.Clear();
@@ -318,10 +334,28 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             if (_disposed) return;
             _disposed = true;
+            _presentationFrames.Dispose();
             _state = new SimBattleState(SessionLifecycle.Disposed, _state.Phase,
                 _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
                 0, _currentFrame, _state.Result);
-            RefreshChecksum();
+            try
+            {
+                RefreshChecksum();
+            }
+            finally
+            {
+                ClearCommandWorkingSets();
+                _acceptedSequenceHashEntries.Clear();
+                _commandBuffer.ReleaseChecksumWorkingSet();
+                _world.ReleaseChecksumWorkingSets();
+            }
+        }
+
+        private void ClearCommandWorkingSets()
+        {
+            _executedCommands.Clear();
+            _acceptedCommands.Clear();
+            _commandOutcomes.Clear();
         }
 
         private StartCode Validate(BattleInit init)
@@ -332,7 +366,7 @@ namespace ZWebGLFrameWork.SimulationCore
             if (string.IsNullOrEmpty(init.MatchId) || string.IsNullOrEmpty(init.SessionId) ||
                 init.TickRate != 20 || init.InputDeadlineTicks < 0)
                 return StartCode.InvalidMatch;
-            if (!init.ContentHash.SequenceEqual(_manifest.ContentHash)) return StartCode.InvalidContent;
+            if (!init.ContentHash.SequenceEqual(_contentHash)) return StartCode.InvalidContent;
             if (!Enum.IsDefined(typeof(SimCombatMode), init.Mode)) return StartCode.InvalidMode;
             if (_manifest.GetMode(init.Mode) == null) return StartCode.InvalidMode;
 
@@ -1001,18 +1035,35 @@ namespace ZWebGLFrameWork.SimulationCore
             return checksum;
         }
 
-        private ulong ComputeChecksum()
+        private ulong RefreshChecksum(SessionLifecycle lifecycle, SimCombatPhase phase,
+            int completedTick, int nextTick, long revision, PresentationFrame presentation)
+        {
+            ulong checksum = ComputeChecksum(lifecycle, phase, completedTick, nextTick);
+            SimBattleResult result = _terminalOutcome == null
+                ? null
+                : SimBattleResult.FromOutcome(
+                    _init.MatchId, _terminalOutcome, _terminalFinalTick, checksum);
+            _state = new SimBattleState(lifecycle, phase, completedTick, nextTick,
+                revision, checksum, presentation, result);
+            return checksum;
+        }
+
+        private ulong ComputeChecksum() => ComputeChecksum(_state.Lifecycle, _state.Phase,
+            _state.CompletedTick, _state.NextTick);
+
+        private ulong ComputeChecksum(SessionLifecycle lifecycle, SimCombatPhase phase,
+            int completedTick, int nextTick)
         {
             ulong commandHash = _commandBuffer.HashInto(DeterministicHash64.OffsetBasis);
-            var sessionState = new SessionChecksumState(
+            var sessionState = SessionChecksumState.FromOwnedContentHash(
                 _init?.ProtocolVersion ?? 0,
                 _init?.SchemaVersion ?? SimComponentSchema.Version,
-                _manifest.ContentHash,
+                _contentHash,
                 _init?.Seed ?? 0,
-                _state.Lifecycle,
-                _state.Phase,
-                _state.CompletedTick,
-                _state.NextTick,
+                lifecycle,
+                phase,
+                completedTick,
+                nextTick,
                 _deployedCount,
                 _terminalOutcome,
                 _terminalFinalTick,
@@ -1052,8 +1103,8 @@ namespace ZWebGLFrameWork.SimulationCore
             var commands = new CommandBuffer();
             commands.RestorePendingCommands(data.PendingCommands);
             ulong commandHash = commands.HashInto(DeterministicHash64.OffsetBasis);
-            var sessionState = new SessionChecksumState(
-                _init.ProtocolVersion, _init.SchemaVersion, _manifest.ContentHash, _init.Seed,
+            var sessionState = SessionChecksumState.FromOwnedContentHash(
+                _init.ProtocolVersion, _init.SchemaVersion, _contentHash, _init.Seed,
                 data.Lifecycle, data.Phase, data.CompletedTick, data.NextTick,
                 data.DeployedCount, data.TerminalOutcome, data.TerminalFinalTick,
                 commandHash, HashAcceptedSequences(data.LastSequenceByPlayer));
@@ -1064,21 +1115,33 @@ namespace ZWebGLFrameWork.SimulationCore
             return world.HashInto(hash);
         }
 
-        private static ulong HashAcceptedSequences(
-            IReadOnlyDictionary<int, int> sequences)
+        private ulong HashAcceptedSequences(Dictionary<int, int> sequences)
         {
-            var ordered = new List<KeyValuePair<int, int>>(
-                sequences ?? new Dictionary<int, int>());
-            ordered.Sort((left, right) => left.Key.CompareTo(right.Key));
-            var hash = new DeterministicHash64(DeterministicHash64.OffsetBasis);
-            hash.AddInt32(ordered.Count);
-            foreach (KeyValuePair<int, int> sequence in ordered)
+            _acceptedSequenceHashEntries.Clear();
+            try
             {
-                hash.AddInt32(sequence.Key);
-                hash.AddInt32(sequence.Value);
+                if (sequences != null)
+                    foreach (KeyValuePair<int, int> sequence in sequences)
+                        _acceptedSequenceHashEntries.Add(sequence);
+                _acceptedSequenceHashEntries.Sort(AcceptedSequenceComparison);
+                var hash = new DeterministicHash64(DeterministicHash64.OffsetBasis);
+                hash.AddInt32(_acceptedSequenceHashEntries.Count);
+                foreach (KeyValuePair<int, int> sequence in _acceptedSequenceHashEntries)
+                {
+                    hash.AddInt32(sequence.Key);
+                    hash.AddInt32(sequence.Value);
+                }
+                return hash.Value;
             }
-            return hash.Value;
+            finally
+            {
+                _acceptedSequenceHashEntries.Clear();
+            }
         }
+
+        private static int CompareAcceptedSequences(
+            KeyValuePair<int, int> left, KeyValuePair<int, int> right) =>
+            left.Key.CompareTo(right.Key);
 
         private TickResult CreateTickResult(TickCode code)
         {
@@ -1088,85 +1151,12 @@ namespace ZWebGLFrameWork.SimulationCore
                 _currentFrame, _state.Checksum, _state.Result);
         }
 
-        private PresentationFrame BuildFullFrame(int completedTick, int nextTick, long revision)
-        {
-            var states = new List<EntityPresentationState>();
-            _world.ForEachComponent<SimIdentityComponent>((entity, identity) =>
-            {
-                _world.TryGetComponent(entity, out SimTransformComponent transform);
-                _world.TryGetComponent(entity, out SimHealthComponent health);
-                _world.TryGetComponent(entity, out SimTeamComponent team);
-                states.Add(new EntityPresentationState(entity.Id, entity.Generation,
-                    identity.ArchetypeId, identity.OwnerPlayerId, team.TeamId,
-                    transform.GridX, transform.GridY, transform.PosX.RawValue,
-                    transform.PosY.RawValue, 0, health.CurrentHP));
-            });
-            states.Sort((left, right) => left.EntityId.CompareTo(right.EntityId));
-            return new PresentationFrame(true, completedTick, nextTick, revision,
-                states.ToArray(), Array.Empty<EntityPresentationState>(),
-                Array.Empty<EntityPresentationState>(),
-                Array.Empty<EntityPresentationKey>());
-        }
+        private PresentationFrame BuildFullFrame(int completedTick, int nextTick, long revision) =>
+            _presentationFrames.BuildFull(_world, completedTick, nextTick, revision);
 
-        private static PresentationFrame BuildDeltaFrame(
-            PresentationFrame previous, PresentationFrame current)
-        {
-            var previousByKey = new Dictionary<EntityPresentationKey,
-                EntityPresentationState>();
-            foreach (EntityPresentationState state in previous.Entities)
-                previousByKey.Add(Key(state), state);
-
-            var created = new List<EntityPresentationState>();
-            var updated = new List<EntityPresentationState>();
-            var remaining = new HashSet<EntityPresentationKey>(previousByKey.Keys);
-            foreach (EntityPresentationState state in current.Entities)
-            {
-                EntityPresentationKey key = Key(state);
-                if (!previousByKey.TryGetValue(key, out EntityPresentationState old))
-                    created.Add(state);
-                else if (!SamePresentationState(old, state))
-                    updated.Add(state);
-                remaining.Remove(key);
-            }
-
-            var destroyed = new List<EntityPresentationKey>(remaining);
-            created.Sort(CompareStates);
-            updated.Sort(CompareStates);
-            destroyed.Sort(CompareKeys);
-            return new PresentationFrame(false, current.CompletedTick,
-                current.NextTick, current.TimelineRevision,
-                Array.Empty<EntityPresentationState>(), created.ToArray(),
-                updated.ToArray(), destroyed.ToArray());
-        }
-
-        private static EntityPresentationKey Key(EntityPresentationState state) =>
-            new EntityPresentationKey(state.EntityId, state.Generation);
-
-        private static bool SamePresentationState(
-            EntityPresentationState left, EntityPresentationState right) =>
-            left.ArchetypeId == right.ArchetypeId &&
-            left.OwnerPlayerId == right.OwnerPlayerId &&
-            left.TeamId == right.TeamId &&
-            left.GridX == right.GridX &&
-            left.GridY == right.GridY &&
-            left.PosXRaw == right.PosXRaw &&
-            left.PosYRaw == right.PosYRaw &&
-            left.OrientationMilliDegrees == right.OrientationMilliDegrees &&
-            left.Health == right.Health;
-
-        private static int CompareStates(
-            EntityPresentationState left, EntityPresentationState right)
-        {
-            int byId = left.EntityId.CompareTo(right.EntityId);
-            return byId != 0 ? byId : left.Generation.CompareTo(right.Generation);
-        }
-
-        private static int CompareKeys(
-            EntityPresentationKey left, EntityPresentationKey right)
-        {
-            int byId = left.EntityId.CompareTo(right.EntityId);
-            return byId != 0 ? byId : left.Generation.CompareTo(right.Generation);
-        }
+        private PresentationFrame BuildDeltaFrame(
+            PresentationFrame previous, PresentationFrame current) =>
+            _presentationFrames.BuildDelta(previous, current);
 
         private static PresentationFrame EmptyFrame() =>
             new PresentationFrame(true, -1, 0, 0,
