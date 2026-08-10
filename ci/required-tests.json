@@ -44,7 +44,7 @@
           "requiredNames": ["WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences", "NativeKcp_FragmentedMessage_RoundTrips"]
         },
         "ZWebGLFrameWork.SimulationCore.Tests": {
-          "minimumPassed": 79,
+          "minimumPassed": 81,
           "requiredNames": [
             "UnityAndValidator_SameBattleInitAndCommands_SameTickResults",
             "Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence",
@@ -68,7 +68,9 @@
             "BufferedTick_RejectedRestoreReturnsLatestOwningFrameWithoutStateRead",
             "OwningTick_AcceptedSubmitRepeatedStartPreservesDeltaPresentation",
             "OwningTick_AcceptedSubmitRejectedRestorePreservesDeltaPresentation",
-            "OwningTick_AcceptedSubmitDisposePreservesDeltaPresentation"
+            "OwningTick_AcceptedSubmitDisposePreservesDeltaPresentation",
+            "ReplayPlayback_BufferedCapabilityAvoidsOwningTickAndStateMaterialization",
+            "ReplayPlayback_OwningOnlySessionRetainsCompatibility"
           ]
         }
       }

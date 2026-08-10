@@ -119,6 +119,11 @@ namespace ZWebGLFrameWork.Server
                         return Rejected(ReplayValidationCode.InitialStateMismatch);
 
                     playbackStarted = true;
+                    IBufferedSimBattleSession bufferedSession =
+                        session as IBufferedSimBattleSession;
+                    using SimTickOutputBuffer tickOutput = bufferedSession == null
+                        ? null
+                        : new SimTickOutputBuffer(SimTickOutputFields.CommandOutcomes);
                     SimBattleResult actualFinalResult = null;
                     for (int index = 0; index < replay.Records.Count; index++)
                     {
@@ -147,19 +152,44 @@ namespace ZWebGLFrameWork.Server
                                 return Rejected(ReplayValidationCode.CommandRejected, index);
                         }
 
-                        TickResult tick = session.Tick();
-                        if (tick?.CommandOutcomes == null ||
-                            tick.CommandOutcomes.Any(outcome =>
+                        TickCode tickCode;
+                        int completedTick;
+                        ulong checksum;
+                        SimBattleResult tickResult;
+                        IReadOnlyList<CommandExecutionResult> outcomes;
+                        if (bufferedSession != null)
+                        {
+                            bufferedSession.TickInto(tickOutput);
+                            tickCode = tickOutput.Code;
+                            completedTick = tickOutput.Tick;
+                            checksum = tickOutput.Checksum;
+                            tickResult = tickOutput.Result;
+                            outcomes = tickOutput.CommandOutcomes;
+                        }
+                        else
+                        {
+                            TickResult tick = session.Tick();
+                            if (tick == null)
+                                return Rejected(
+                                    ReplayValidationCode.CommandRejected, index);
+                            tickCode = tick.Code;
+                            completedTick = tick.CompletedTick;
+                            checksum = tick.Checksum;
+                            tickResult = tick.Result;
+                            outcomes = tick.CommandOutcomes;
+                        }
+                        if (outcomes == null ||
+                            outcomes.Any(outcome =>
                                 outcome.Disposition != CommandDisposition.Accepted))
                             return Rejected(ReplayValidationCode.CommandRejected, index);
-                        if (tick == null || tick.CompletedTick != record.Tick ||
-                            tick.Checksum != record.Checksum)
+                        if (completedTick != record.Tick ||
+                            checksum != record.Checksum)
                             return Rejected(ReplayValidationCode.ChecksumMismatch,
-                                index, record.Checksum, tick?.Checksum ?? 0);
+                                index, record.Checksum, checksum);
 
-                        if (tick.Code == TickCode.Ended)
+                        if (tickCode == TickCode.Ended)
                         {
-                            actualFinalResult = tick.Result;
+                            actualFinalResult = tickResult;
                             if (index != replay.Records.Count - 1 ||
                                 record.Tick != replay.FinalTick)
                                 return Rejected(
@@ -167,8 +197,11 @@ namespace ZWebGLFrameWork.Server
                         }
                     }
 
-                    if (actualFinalResult == null || session.State == null ||
-                        session.State.Lifecycle != SessionLifecycle.Ended)
+                    bool ended = bufferedSession != null
+                        ? tickOutput.Lifecycle == SessionLifecycle.Ended
+                        : session.State != null &&
+                            session.State.Lifecycle == SessionLifecycle.Ended;
+                    if (actualFinalResult == null || !ended)
                         return Rejected(ReplayValidationCode.Truncated);
                     if (replay.FinalChecksum !=
                         replay.Records[replay.FinalTick].Checksum)
@@ -346,6 +379,11 @@ namespace ZWebGLFrameWork.Server
             StartResult started = session.Start(init);
             if (!started.Accepted)
                 return Invalid(-1, 0, session.State.Checksum);
+            IBufferedSimBattleSession bufferedSession =
+                session as IBufferedSimBattleSession;
+            using SimTickOutputBuffer tickOutput = bufferedSession == null
+                ? null
+                : new SimTickOutputBuffer(SimTickOutputFields.None);
 
             foreach (ReplayTickRecord tickRecord in replay.Records)
             {
@@ -358,18 +396,29 @@ namespace ZWebGLFrameWork.Server
                     }
                     catch (ArgumentException)
                     {
-                        return Invalid(tickRecord.Tick, tickRecord.Checksum, session.State.Checksum);
+                        return Invalid(tickRecord.Tick, tickRecord.Checksum,
+                            session.State.Checksum);
                     }
                     if (command == null || !session.Submit(command).Accepted)
-                        return Invalid(tickRecord.Tick, tickRecord.Checksum, session.State.Checksum);
+                        return Invalid(tickRecord.Tick, tickRecord.Checksum,
+                            session.State.Checksum);
                 }
 
-                TickResult tick = session.Tick();
-                if (tick.Checksum != tickRecord.Checksum)
+                ulong actualChecksum;
+                if (bufferedSession != null)
+                {
+                    bufferedSession.TickInto(tickOutput);
+                    actualChecksum = tickOutput.Checksum;
+                }
+                else
+                {
+                    actualChecksum = session.Tick().Checksum;
+                }
+                if (actualChecksum != tickRecord.Checksum)
                 {
                     _logger?.Error($"Tick {tickRecord.Tick}: checksum mismatch! " +
-                        $"Expected={tickRecord.Checksum:X16} Actual={tick.Checksum:X16}");
-                    return Invalid(tickRecord.Tick, tickRecord.Checksum, tick.Checksum);
+                        $"Expected={tickRecord.Checksum:X16} Actual={actualChecksum:X16}");
+                    return Invalid(tickRecord.Tick, tickRecord.Checksum, actualChecksum);
                 }
             }
 

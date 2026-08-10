@@ -12,6 +12,8 @@ namespace ZWebGLFrameWork.FrameSync
         private readonly long _tickIntervalMilliseconds;
         private readonly long _startMilliseconds;
         private readonly ISimBattleSession _session;
+        private readonly IBufferedSimBattleSession? _bufferedSession;
+        private readonly SimTickOutputBuffer _tickOutput;
         private readonly IAuthorityCommandMapper _commandMapper;
         private readonly Action<int> _sealTick;
         private readonly IFrameBroadcaster _broadcaster;
@@ -45,6 +47,8 @@ namespace ZWebGLFrameWork.FrameSync
             _inputDeadlineTicks = inputDeadlineTicks;
             _tickIntervalMilliseconds = 1000 / tickRate;
             _session = session ?? throw new ArgumentNullException(nameof(session));
+            _bufferedSession = session as IBufferedSimBattleSession;
+            _tickOutput = new SimTickOutputBuffer(SimTickOutputFields.None);
             _commandMapper = commandMapper ??
                 throw new ArgumentNullException(nameof(commandMapper));
             _sealTick = sealTick ?? throw new ArgumentNullException(nameof(sealTick));
@@ -104,25 +108,43 @@ namespace ZWebGLFrameWork.FrameSync
                         }
 
                         _sealTick(_nextTick);
-                        TickResult tick = _session.Tick();
-                        if (tick == null ||
-                            (tick.Code != TickCode.Advanced && tick.Code != TickCode.Ended) ||
-                            tick.CompletedTick != _nextTick)
+                        TickCode tickCode;
+                        int completedTick;
+                        ulong checksum;
+                        if (_bufferedSession != null)
+                        {
+                            _bufferedSession.TickInto(_tickOutput);
+                            tickCode = _tickOutput.Code;
+                            completedTick = _tickOutput.Tick;
+                            checksum = _tickOutput.Checksum;
+                        }
+                        else
+                        {
+                            TickResult tick = _session.Tick();
+                            if (tick == null)
+                                throw new InvalidOperationException(
+                                    $"SimulationCore refused sealed tick {_nextTick}.");
+                            tickCode = tick.Code;
+                            completedTick = tick.CompletedTick;
+                            checksum = tick.Checksum;
+                        }
+                        if ((tickCode != TickCode.Advanced && tickCode != TickCode.Ended) ||
+                            completedTick != _nextTick)
                             throw new InvalidOperationException(
                                 $"SimulationCore refused sealed tick {_nextTick}.");
 
                         AuthorityFrame frame = new AuthorityFrame
                         {
                             MatchId = _matchId,
-                            Tick = tick.CompletedTick,
+                            Tick = completedTick,
                             OrderedInputs = ordered,
                             AckPlayer0 = _inbox.AckForPlayer(0),
                             AckPlayer1 = _inbox.AckForPlayer(1),
-                            Checksum = tick.Checksum
+                            Checksum = checksum
                         };
                         _nextTick++;
                         advanced++;
-                        _isEnded = tick.Code == TickCode.Ended;
+                        _isEnded = tickCode == TickCode.Ended;
                         _broadcaster.Broadcast(frame);
                         if (_disposed || _isFaulted || _isEnded) break;
                     }
@@ -146,6 +168,7 @@ namespace ZWebGLFrameWork.FrameSync
             {
                 if (_disposed) return;
                 _disposed = true;
+                _tickOutput.Dispose();
                 _session.Dispose();
             }
         }

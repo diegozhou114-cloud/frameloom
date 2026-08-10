@@ -45,6 +45,11 @@ namespace ZWebGLFrameWork.SimulationCore
             }
             if (!started.Accepted) return Invalid();
 
+            IBufferedSimBattleSession bufferedSession =
+                session as IBufferedSimBattleSession;
+            using SimTickOutputBuffer tickOutput = bufferedSession == null
+                ? null
+                : new SimTickOutputBuffer(SimTickOutputFields.ExecutedCommands);
             int executedCount = 0;
             for (int index = 0; index < replay.Records.Count; index++)
             {
@@ -73,22 +78,56 @@ namespace ZWebGLFrameWork.SimulationCore
                             session.State.Checksum, executedCount);
                 }
 
-                TickResult tick = session.Tick();
-                if (tick == null || tick.CompletedTick != record.Tick ||
-                    tick.Checksum != record.Checksum)
+                int completedTick;
+                ulong actualChecksum;
+                SimBattleResult tickResult;
+                int tickExecutedCount;
+                if (bufferedSession != null)
+                {
+                    bufferedSession.TickInto(tickOutput);
+                    completedTick = tickOutput.Tick;
+                    actualChecksum = tickOutput.Checksum;
+                    tickResult = tickOutput.Result;
+                    tickExecutedCount = tickOutput.ExecutedCommands.Count;
+                }
+                else
+                {
+                    TickResult tick = session.Tick();
+                    if (tick == null)
+                        return Invalid(index, record.Checksum, 0, executedCount);
+                    completedTick = tick.CompletedTick;
+                    actualChecksum = tick.Checksum;
+                    tickResult = tick.Result;
+                    tickExecutedCount = tick.ExecutedCommands.Count;
+                }
+                if (completedTick != record.Tick ||
+                    actualChecksum != record.Checksum)
                     return Invalid(index, record.Checksum,
-                        tick?.Checksum ?? 0, executedCount);
-                executedCount += tick.ExecutedCommands.Count;
-                if (tick.Result != null && index != replay.Records.Count - 1)
-                    return Invalid(index + 1, 0, tick.Checksum, executedCount);
+                        actualChecksum, executedCount);
+                executedCount += tickExecutedCount;
+                if (tickResult != null && index != replay.Records.Count - 1)
+                    return Invalid(index + 1, 0, actualChecksum, executedCount);
             }
 
-            ulong finalChecksum = session.State.Checksum;
-            if (replay.FinalTick != session.State.CompletedTick ||
-                replay.FinalChecksum != finalChecksum ||
-                !SameResult(replay.FinalResult, session.State.Result))
-                return Invalid(replay.FinalTick, replay.FinalChecksum,
-                    finalChecksum, executedCount);
+            ulong finalChecksum;
+            if (bufferedSession != null)
+            {
+                finalChecksum = tickOutput.Checksum;
+                if (replay.FinalTick != tickOutput.Tick ||
+                    replay.FinalChecksum != finalChecksum ||
+                    !SameResult(replay.FinalResult, tickOutput.Result))
+                    return Invalid(replay.FinalTick, replay.FinalChecksum,
+                        finalChecksum, executedCount);
+            }
+            else
+            {
+                finalChecksum = session.State.Checksum;
+                if (replay.FinalTick != session.State.CompletedTick ||
+                    replay.FinalChecksum != finalChecksum ||
+                    !SameResult(replay.FinalResult, session.State.Result))
+                    return Invalid(replay.FinalTick, replay.FinalChecksum,
+                        finalChecksum, executedCount);
+            }
             return new ReplayPlaybackResult(true, -1, finalChecksum,
                 finalChecksum, executedCount, finalChecksum);
         }
