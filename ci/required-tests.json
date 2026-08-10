@@ -44,12 +44,31 @@
           "requiredNames": ["WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences", "NativeKcp_FragmentedMessage_RoundTrips"]
         },
         "ZWebGLFrameWork.SimulationCore.Tests": {
-          "minimumPassed": 60,
+          "minimumPassed": 79,
           "requiredNames": [
             "UnityAndValidator_SameBattleInitAndCommands_SameTickResults",
             "Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence",
             "ReplayExportParseValidate_RoundTripsExecutedCommands",
-            "SupportedModes_MatchApprovedBehaviorMatrix"
+            "SupportedModes_MatchApprovedBehaviorMatrix",
+            "BufferedTickCapability_ExposesApprovedPublicContract",
+            "SimTickOutputBuffer_ExposesCapacityAndLifetimeContract",
+            "SimTickOutputBuffer_RejectsInvalidFlagsAndCapacities",
+            "BufferedTick_MatchesOwningTwinForCreateCommandsAndDamage",
+            "BufferedTick_MatchesOwningTwinForDamageDestroyAndTerminalResult",
+            "BufferedTick_MatchesOwningTwinForMultiChunkWorld",
+            "BufferedTick_StateIsCachedPerVersionAndOwningResultsStayStable",
+            "BufferedSession_RejectsAlternatingAndCrossSessionBuffersBeforeAdvance",
+            "OutputBuffer_EnsureCapacityAndClearPreserveViewsCapacityAndBinding",
+            "StartAndRestoreAttemptsInvalidateBorrowedContentsWithoutUnbinding",
+            "SuccessfulRestoreDisposeAndExceptionClearReferencesAndReleaseBinding",
+            "TickInto_RespectsNoneFieldSelectionWhilePublishingScalars",
+            "SteadyStateBufferedTick_AllFieldsStayWithinAllocationBudget",
+            "BufferedTick_DisposeMaterializesLatestOwningStateWithoutStateRead",
+            "BufferedTick_RepeatedStartReturnsLatestOwningFrameWithoutStateRead",
+            "BufferedTick_RejectedRestoreReturnsLatestOwningFrameWithoutStateRead",
+            "OwningTick_AcceptedSubmitRepeatedStartPreservesDeltaPresentation",
+            "OwningTick_AcceptedSubmitRejectedRestorePreservesDeltaPresentation",
+            "OwningTick_AcceptedSubmitDisposePreservesDeltaPresentation"
           ]
         }
       }

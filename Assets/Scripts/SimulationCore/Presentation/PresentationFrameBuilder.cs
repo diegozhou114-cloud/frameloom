@@ -7,6 +7,8 @@ namespace ZWebGLFrameWork.SimulationCore
     internal sealed class PresentationFrameBuilder : IDisposable
     {
         private readonly List<EntityPresentationState> _states = new List<EntityPresentationState>();
+        private readonly List<EntityPresentationState> _current =
+            new List<EntityPresentationState>();
         private readonly Dictionary<EntityPresentationKey, EntityPresentationState> _previous =
             new Dictionary<EntityPresentationKey, EntityPresentationState>();
         private readonly HashSet<EntityPresentationKey> _remaining =
@@ -34,39 +36,33 @@ namespace ZWebGLFrameWork.SimulationCore
             SimWorld world, int completedTick, int nextTick, long revision)
         {
             EnsureActive();
-            _states.Clear();
-            if (_states.Capacity < world.EntityCount) _states.Capacity = world.EntityCount;
-            _currentWorld = world;
             try
             {
-                world.ForEachComponent(_collectState);
+                CollectStates(world);
+                ReplaceCurrent();
+                return BuildOwnedCurrent(completedTick, nextTick, revision);
             }
             finally
             {
-                _currentWorld = null;
+                ClearAdvanceWorkingSets();
             }
-            _states.Sort(_compareStates);
-            EntityPresentationState[] entities = _states.ToArray();
-            _states.Clear();
-            return PresentationFrame.TakeOwnership(true, completedTick, nextTick, revision,
-                entities, Array.Empty<EntityPresentationState>(),
-                Array.Empty<EntityPresentationState>(), Array.Empty<EntityPresentationKey>());
         }
 
-        internal PresentationFrame BuildDelta(PresentationFrame previous, PresentationFrame current)
+        internal void Advance(SimWorld world, SimPresentationOutputBuffer destination)
         {
             EnsureActive();
-            ResetDelta();
-            for (int index = 0; index < previous.Entities.Count; index++)
+            ClearAdvanceWorkingSets();
+            CollectStates(world);
+            for (int index = 0; index < _current.Count; index++)
             {
-                EntityPresentationState state = previous.Entities[index];
+                EntityPresentationState state = _current[index];
                 EntityPresentationKey key = Key(state);
                 _previous.Add(key, state);
                 _remaining.Add(key);
             }
-            for (int index = 0; index < current.Entities.Count; index++)
+            for (int index = 0; index < _states.Count; index++)
             {
-                EntityPresentationState state = current.Entities[index];
+                EntityPresentationState state = _states[index];
                 EntityPresentationKey key = Key(state);
                 if (!_previous.TryGetValue(key, out EntityPresentationState old))
                     _created.Add(state);
@@ -78,20 +74,41 @@ namespace ZWebGLFrameWork.SimulationCore
             _created.Sort(_compareStates);
             _updated.Sort(_compareStates);
             _destroyed.Sort(_compareKeys);
-            EntityPresentationState[] created = _created.ToArray();
-            EntityPresentationState[] updated = _updated.ToArray();
-            EntityPresentationKey[] destroyed = _destroyed.ToArray();
-            ResetDelta();
-            return PresentationFrame.TakeOwnership(false, current.CompletedTick,
-                current.NextTick, current.TimelineRevision,
-                Array.Empty<EntityPresentationState>(), created, updated, destroyed);
+            destination?.CopyFrom(_states, _created, _updated, _destroyed);
+            ReplaceCurrent();
+            _states.Clear();
+            _previous.Clear();
+            _remaining.Clear();
         }
 
-        internal void Reset()
+        internal IReadOnlyList<EntityPresentationKey> Destroyed => _destroyed;
+
+        internal PresentationFrame BuildOwnedCurrent(
+            int completedTick, int nextTick, long revision) =>
+            PresentationFrame.TakeOwnership(true, completedTick, nextTick, revision,
+                _current.ToArray(), Array.Empty<EntityPresentationState>(),
+                Array.Empty<EntityPresentationState>(), Array.Empty<EntityPresentationKey>());
+
+        internal PresentationFrame BuildOwnedDelta(
+            int completedTick, int nextTick, long revision) =>
+            PresentationFrame.TakeOwnership(false, completedTick, nextTick, revision,
+                Array.Empty<EntityPresentationState>(), _created.ToArray(),
+                _updated.ToArray(), _destroyed.ToArray());
+
+        internal void CopyCurrentTo(SimPresentationOutputBuffer destination) =>
+            destination.CopyFrom(_current, _created, _updated, _destroyed);
+
+        internal void ClearAdvanceWorkingSets()
         {
             _states.Clear();
             ResetDelta();
             _currentWorld = null;
+        }
+
+        internal void Reset()
+        {
+            ClearAdvanceWorkingSets();
+            _current.Clear();
         }
 
         public void Dispose()
@@ -110,6 +127,30 @@ namespace ZWebGLFrameWork.SimulationCore
                 identity.ArchetypeId, identity.OwnerPlayerId, team.TeamId,
                 transform.GridX, transform.GridY, transform.PosX.RawValue,
                 transform.PosY.RawValue, 0, health.CurrentHP));
+        }
+
+        private void CollectStates(SimWorld world)
+        {
+            _states.Clear();
+            if (_states.Capacity < world.EntityCount) _states.Capacity = world.EntityCount;
+            _currentWorld = world;
+            try
+            {
+                world.ForEachComponent(_collectState);
+            }
+            finally
+            {
+                _currentWorld = null;
+            }
+            _states.Sort(_compareStates);
+        }
+
+        private void ReplaceCurrent()
+        {
+            _current.Clear();
+            if (_current.Capacity < _states.Count) _current.Capacity = _states.Count;
+            for (int index = 0; index < _states.Count; index++)
+                _current.Add(_states[index]);
         }
 
         private void ResetDelta()

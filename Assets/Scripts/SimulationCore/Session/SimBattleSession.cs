@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace ZWebGLFrameWork.SimulationCore
 {
-    public sealed class SimBattleSession : ISimBattleSession
+    public sealed partial class SimBattleSession : ISimBattleSession, IBufferedSimBattleSession
     {
         private const int MaxWaypointCoordinate = ushort.MaxValue;
         private static readonly Comparison<KeyValuePair<int, int>> AcceptedSequenceComparison =
@@ -25,6 +25,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly List<ISimCommand> _acceptedCommands = new List<ISimCommand>();
         private readonly List<CommandExecutionResult> _commandOutcomes =
             new List<CommandExecutionResult>();
+        private readonly List<SimBattleEvent> _tickEvents = new List<SimBattleEvent>();
         private readonly List<KeyValuePair<int, int>> _acceptedSequenceHashEntries =
             new List<KeyValuePair<int, int>>();
         private const int BasicSkillId = 1;
@@ -54,15 +55,17 @@ namespace ZWebGLFrameWork.SimulationCore
             _attackSystem = _systems.Find<SimAttackSystem>();
             _presentationFrames = new PresentationFrameBuilder();
             _currentFrame = EmptyFrame();
-            _state = new SimBattleState(SessionLifecycle.Created, SimCombatPhase.Idle,
+            SetOwnedState(SessionLifecycle.Created, SimCombatPhase.Idle,
                 -1, 0, 0, 0, _currentFrame, null);
         }
 
-        public SimBattleState State => _state;
-        public ulong LastChecksum => _state.Checksum;
+        public SimBattleState State => MaterializeState();
+        public ulong LastChecksum => _checksum;
 
         public StartResult Start(BattleInit init)
         {
+            InvalidateBorrowedOutput();
+            MaterializeState();
             if (_disposed) return new StartResult(StartCode.AlreadyStarted, _currentFrame);
             if (_init != null) return new StartResult(StartCode.AlreadyStarted, _currentFrame);
             StartCode validation = Validate(init);
@@ -84,27 +87,29 @@ namespace ZWebGLFrameWork.SimulationCore
             _currentFrame = BuildFullFrame(-1, 0, 0);
             SimCombatPhase initialPhase = _modeProfile.ManualDeployment
                 ? SimCombatPhase.Deploying : SimCombatPhase.Battling;
-            _state = new SimBattleState(SessionLifecycle.Running, initialPhase,
+            SetOwnedState(SessionLifecycle.Running, initialPhase,
                 -1, 0, 0, 0, _currentFrame, null);
-            RefreshChecksum();
+            ulong checksum = RefreshChecksum();
+            SetOwnedState(SessionLifecycle.Running, initialPhase,
+                -1, 0, 0, checksum, _currentFrame, null);
             _logger?.Log($"[SimBattleSession] Started match {init.MatchId}.");
             return new StartResult(StartCode.Accepted, _currentFrame);
         }
 
         public CommandSubmitResult Submit(ISimCommand command)
         {
-            if (_disposed || _state.Lifecycle != SessionLifecycle.Running)
+            if (_disposed || _lifecycle != SessionLifecycle.Running)
                 return new CommandSubmitResult(CommandDisposition.WrongPhase);
             if (command == null) return new CommandSubmitResult(CommandDisposition.InvalidPayload);
             if (command.Sequence < 0 || command.Sequence == int.MaxValue)
                 return new CommandSubmitResult(CommandDisposition.InvalidPayload);
             if (!IsPlayer(command.PlayerId))
                 return new CommandSubmitResult(CommandDisposition.UnknownPlayer);
-            if (command.Tick < _state.NextTick)
+            if (command.Tick < _nextTick)
                 return new CommandSubmitResult(CommandDisposition.LateTick);
             if (command.Tick == _sealedTick)
                 return new CommandSubmitResult(CommandDisposition.LateTick);
-            if (command.Tick > _state.NextTick + 64)
+            if (command.Tick > _nextTick + 64)
                 return new CommandSubmitResult(CommandDisposition.FutureWindowExceeded);
             CommandDisposition validation = ValidateCommand(command);
             if (validation != CommandDisposition.Accepted)
@@ -125,9 +130,9 @@ namespace ZWebGLFrameWork.SimulationCore
         internal void SealTick(int tick)
         {
             if (_disposed) throw new ObjectDisposedException(nameof(SimBattleSession));
-            if (_state.Lifecycle != SessionLifecycle.Running)
+            if (_lifecycle != SessionLifecycle.Running)
                 throw new InvalidOperationException("Only running sessions can seal ticks.");
-            if (tick != _state.NextTick)
+            if (tick != _nextTick)
                 throw new ArgumentOutOfRangeException(nameof(tick),
                     "Only the next simulation tick can be sealed.");
             _sealedTick = tick;
@@ -135,69 +140,7 @@ namespace ZWebGLFrameWork.SimulationCore
 
         public TickResult Tick()
         {
-            if (_disposed)
-                return CreateTickResult(TickCode.Disposed);
-            if (_state.Lifecycle != SessionLifecycle.Running)
-                return CreateTickResult(TickCode.NotRunning);
-
-            int completedTick = _state.NextTick;
-            int nextTick = completedTick + 1;
-            long revision = _state.TimelineRevision;
-            ClearCommandWorkingSets();
-            try
-            {
-                _commandBuffer.DrainInto(completedTick, _executedCommands);
-                foreach (ISimCommand command in _executedCommands)
-                {
-                    CommandExecutionResult outcome = ExecuteCommand(command);
-                    _commandOutcomes.Add(outcome);
-                    if (outcome.Disposition == CommandDisposition.Accepted)
-                        _acceptedCommands.Add(command);
-                }
-                SimCombatPhase phase = _state.Phase;
-                SessionLifecycle lifecycle = _state.Lifecycle;
-                if (phase == SimCombatPhase.Deploying && _modeProfile.ManualDeployment &&
-                    nextTick >= _modeProfile.DeployDurationTicks)
-                    phase = SimCombatPhase.Battling;
-
-                SimBattleEvent[] tickEvents = Array.Empty<SimBattleEvent>();
-                bool systemsUpdated = false;
-                if (phase == SimCombatPhase.Battling)
-                {
-                    _systems.UpdateAll();
-                    systemsUpdated = true;
-                    int futureWaves = _modeProfile.CountWavesAfter(completedTick);
-                    bool timedOut = nextTick >= _modeProfile.TimeoutTicks;
-                    SimTerminalOutcome terminalOutcome = _modeRules.Evaluate(
-                        completedTick, _deathSystem.AttackerAlive,
-                        _deathSystem.DefenderAlive, _deathSystem.DestructionBasisPoints,
-                        futureWaves, timedOut, true);
-                    if (terminalOutcome != null)
-                    {
-                        phase = SimCombatPhase.Ended;
-                        lifecycle = SessionLifecycle.Ended;
-                        _terminalOutcome = terminalOutcome;
-                        _terminalFinalTick = completedTick;
-                    }
-                }
-                PresentationFrame fullFrame = BuildFullFrame(completedTick, nextTick, revision);
-                _currentFrame = BuildDeltaFrame(_state.Presentation, fullFrame);
-                if (systemsUpdated)
-                    tickEvents = BuildTickEvents(_currentFrame.Destroyed);
-                ulong checksum = RefreshChecksum(lifecycle, phase,
-                    completedTick, nextTick, revision, fullFrame);
-                SimBattleResult result = _state.Result;
-                _sealedTick = -1;
-                return TickResult.TakeOwnership(
-                    lifecycle == SessionLifecycle.Ended ? TickCode.Ended : TickCode.Advanced,
-                    completedTick, nextTick, revision,
-                    _acceptedCommands.ToArray(), _commandOutcomes.ToArray(),
-                    tickEvents, _currentFrame, checksum, result);
-            }
-            finally
-            {
-                ClearCommandWorkingSets();
-            }
+            return TickOwned();
         }
 
         public SimSnapshot CaptureSnapshot()
@@ -215,17 +158,19 @@ namespace ZWebGLFrameWork.SimulationCore
                 _init?.SessionId ?? string.Empty,
                 _init?.SchemaVersion ?? SimComponentSchema.Version,
                 _contentHash,
-                _state.CompletedTick,
-                _state.NextTick,
-                _state.TimelineRevision,
+                _completedTick,
+                _nextTick,
+                _timelineRevision,
                 payload.Length,
-                _state.Checksum,
+                _checksum,
                 payload,
                 payloadHash);
         }
 
         public SnapshotRestoreResult RestoreSnapshot(SimSnapshot snapshot)
         {
+            InvalidateBorrowedOutput();
+            MaterializeState();
             ClearCommandWorkingSets();
             _acceptedSequenceHashEntries.Clear();
             if (_disposed) return new SnapshotRestoreResult(SnapshotRestoreCode.Disposed, _currentFrame);
@@ -239,7 +184,7 @@ namespace ZWebGLFrameWork.SimulationCore
                 return new SnapshotRestoreResult(SnapshotRestoreCode.UnsupportedSchema, _currentFrame);
             if (!snapshot.ContentHash.SequenceEqual(_contentHash))
                 return new SnapshotRestoreResult(SnapshotRestoreCode.ContentMismatch, _currentFrame);
-            if (snapshot.TimelineRevision < _state.TimelineRevision)
+            if (snapshot.TimelineRevision < _timelineRevision)
                 return new SnapshotRestoreResult(SnapshotRestoreCode.StaleRevision, _currentFrame);
             if (snapshot.NextTick != snapshot.CompletedTick + 1)
                 return new SnapshotRestoreResult(SnapshotRestoreCode.InvalidTick, _currentFrame);
@@ -311,21 +256,22 @@ namespace ZWebGLFrameWork.SimulationCore
             _deployedCount = data.DeployedCount;
             _terminalOutcome = data.TerminalOutcome;
             _terminalFinalTick = data.TerminalFinalTick;
-            long revision = _state.TimelineRevision + 1;
+            long revision = _timelineRevision + 1;
             _currentFrame = BuildFullFrame(data.CompletedTick, data.NextTick, revision);
-            _state = new SimBattleState(data.Lifecycle, data.Phase,
+            SetOwnedState(data.Lifecycle, data.Phase,
                 data.CompletedTick, data.NextTick, revision, 0, _currentFrame, null);
             ulong restoredChecksum = RefreshChecksum();
             if (restoredChecksum != snapshot.StateChecksum)
                 throw new InvalidOperationException("Validated snapshot checksum changed during atomic apply.");
+            SimBattleResult result = null;
             if (_terminalOutcome != null)
             {
-                SimBattleResult result = SimBattleResult.FromOutcome(
+                result = SimBattleResult.FromOutcome(
                     _init.MatchId, _terminalOutcome, _terminalFinalTick, restoredChecksum);
-                _state = new SimBattleState(data.Lifecycle, data.Phase,
-                    data.CompletedTick, data.NextTick, revision, restoredChecksum,
-                    _currentFrame, result);
             }
+            SetOwnedState(data.Lifecycle, data.Phase,
+                data.CompletedTick, data.NextTick, revision, restoredChecksum,
+                _currentFrame, result);
             _sealedTick = -1;
             return new SnapshotRestoreResult(SnapshotRestoreCode.Restored, _currentFrame);
         }
@@ -333,14 +279,19 @@ namespace ZWebGLFrameWork.SimulationCore
         public void Dispose()
         {
             if (_disposed) return;
+            ReleaseBorrowedOutput();
+            MaterializeState();
             _disposed = true;
             _presentationFrames.Dispose();
-            _state = new SimBattleState(SessionLifecycle.Disposed, _state.Phase,
-                _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
-                0, _currentFrame, _state.Result);
+            SetOwnedState(SessionLifecycle.Disposed, _phase,
+                _completedTick, _nextTick, _timelineRevision,
+                0, _currentFrame, _result);
             try
             {
-                RefreshChecksum();
+                ulong checksum = RefreshChecksum();
+                SetOwnedState(SessionLifecycle.Disposed, _phase,
+                    _completedTick, _nextTick, _timelineRevision,
+                    checksum, _currentFrame, _result);
             }
             finally
             {
@@ -356,6 +307,7 @@ namespace ZWebGLFrameWork.SimulationCore
             _executedCommands.Clear();
             _acceptedCommands.Clear();
             _commandOutcomes.Clear();
+            _tickEvents.Clear();
         }
 
         private StartCode Validate(BattleInit init)
@@ -446,7 +398,7 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (command)
             {
                 case DeployCmd deploy:
-                    if (_state.Phase != SimCombatPhase.Deploying ||
+                    if (_phase != SimCombatPhase.Deploying ||
                         !_modeProfile.ManualDeployment)
                         return new CommandExecutionResult(command,
                             CommandDisposition.WrongPhase, -1, -1);
@@ -467,17 +419,16 @@ namespace ZWebGLFrameWork.SimulationCore
                     return new CommandExecutionResult(command, CommandDisposition.Accepted,
                         deployed.Id, deployed.Generation);
                 case EndDeploymentCmd:
-                    if (_state.Phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
+                    if (_phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
                         return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
                     if (!IsAttacker(command.PlayerId))
                         return new CommandExecutionResult(command,
                             CommandDisposition.UnauthorizedEntity, -1, -1);
-                    _state = new SimBattleState(_state.Lifecycle, SimCombatPhase.Battling,
-                        _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
-                        _state.Checksum, _state.Presentation, _state.Result);
+                    _phase = SimCombatPhase.Battling;
+                    _stateDirty = true;
                     return new CommandExecutionResult(command, CommandDisposition.Accepted, -1, -1);
                 case MoveCmd move:
-                    if (_state.Phase != SimCombatPhase.Battling)
+                    if (_phase != SimCombatPhase.Battling)
                         return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
                     if (!TryFindEntity(move.EntityId, out SimEntity mover) ||
                         !_world.TryGetComponent(mover, out SimMovementComponent movement))
@@ -497,7 +448,7 @@ namespace ZWebGLFrameWork.SimulationCore
                     return new CommandExecutionResult(command, CommandDisposition.Accepted,
                         mover.Id, mover.Generation);
                 case SkillCmd skill:
-                    if (_state.Phase != SimCombatPhase.Battling)
+                    if (_phase != SimCombatPhase.Battling)
                         return new CommandExecutionResult(command, CommandDisposition.WrongPhase, -1, -1);
                     if (!TryFindEntity(skill.CasterId, out SimEntity caster) ||
                         !_world.TryGetComponent(caster, out SimIdentityComponent skillIdentity))
@@ -661,7 +612,7 @@ namespace ZWebGLFrameWork.SimulationCore
             switch (command)
             {
                 case DeployCmd deploy:
-                    if (_state.Phase != SimCombatPhase.Deploying ||
+                    if (_phase != SimCombatPhase.Deploying ||
                         !_modeProfile.ManualDeployment)
                         return CommandDisposition.WrongPhase;
                     if (_deployedCount >= _modeProfile.MaxDeployCount)
@@ -674,12 +625,12 @@ namespace ZWebGLFrameWork.SimulationCore
                         !IsCellOccupied(deploy.GridX, deploy.GridY)
                         ? CommandDisposition.Accepted : CommandDisposition.InvalidPayload;
                 case EndDeploymentCmd:
-                    if (_state.Phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
+                    if (_phase != SimCombatPhase.Deploying || !_modeProfile.ManualDeployment)
                         return CommandDisposition.WrongPhase;
                     return IsAttacker(command.PlayerId)
                         ? CommandDisposition.Accepted : CommandDisposition.UnauthorizedEntity;
                 case MoveCmd move:
-                    if (_state.Phase != SimCombatPhase.Battling)
+                    if (_phase != SimCombatPhase.Battling)
                         return CommandDisposition.WrongPhase;
                     if (!IsWaypointCoordinate(move.TargetX, move.TargetY) ||
                         !TryFindEntity(move.EntityId, out SimEntity mover) ||
@@ -690,7 +641,7 @@ namespace ZWebGLFrameWork.SimulationCore
                         return CommandDisposition.UnauthorizedEntity;
                     return CommandDisposition.Accepted;
                 case SkillCmd skill:
-                    if (_state.Phase != SimCombatPhase.Battling)
+                    if (_phase != SimCombatPhase.Battling)
                         return CommandDisposition.WrongPhase;
                     if (skill.SkillId != BasicSkillId ||
                         !IsWaypointCoordinate(skill.TargetX, skill.TargetY) ||
@@ -989,22 +940,20 @@ namespace ZWebGLFrameWork.SimulationCore
             return path;
         }
 
-        private SimBattleEvent[] BuildTickEvents(
-            IReadOnlyList<EntityPresentationKey> destroyedEntities)
+        private void BuildTickEvents(IReadOnlyList<EntityPresentationKey> destroyedEntities,
+            List<SimBattleEvent> destination)
         {
+            destination.Clear();
             int damageCount = _damageSystem?.AppliedEvents.Count ?? 0;
             int destroyedCount = destroyedEntities?.Count ?? 0;
-            if (damageCount == 0 && destroyedCount == 0)
-                return Array.Empty<SimBattleEvent>();
-            var events = new SimBattleEvent[damageCount + destroyedCount];
             for (int index = 0; index < damageCount; index++)
             {
                 SimDamageEvent damage = _damageSystem.AppliedEvents[index];
-                events[index] = new SimBattleEvent(
+                destination.Add(new SimBattleEvent(
                     SimBattleEventType.DamageApplied,
                     new EntityPresentationKey(damage.Attacker.Id, damage.Attacker.Generation),
                     new EntityPresentationKey(damage.Target.Id, damage.Target.Generation),
-                    damage.Amount);
+                    damage.Amount));
             }
             for (int index = 0; index < destroyedCount; index++)
             {
@@ -1020,36 +969,25 @@ namespace ZWebGLFrameWork.SimulationCore
                         damage.Attacker.Id, damage.Attacker.Generation);
                     break;
                 }
-                events[damageCount + index] = new SimBattleEvent(
-                    SimBattleEventType.EntityDestroyed, source, target, 0);
+                destination.Add(new SimBattleEvent(
+                    SimBattleEventType.EntityDestroyed, source, target, 0));
             }
-            return events;
         }
 
         private ulong RefreshChecksum()
         {
             ulong checksum = ComputeChecksum();
-            _state = new SimBattleState(_state.Lifecycle, _state.Phase,
-                _state.CompletedTick, _state.NextTick, _state.TimelineRevision,
-                checksum, _state.Presentation, _state.Result);
+            _checksum = checksum;
+            if (!_stateDirty)
+            {
+                _state = new SimBattleState(_lifecycle, _phase, _completedTick,
+                    _nextTick, _timelineRevision, checksum, _state.Presentation, _result);
+            }
             return checksum;
         }
 
-        private ulong RefreshChecksum(SessionLifecycle lifecycle, SimCombatPhase phase,
-            int completedTick, int nextTick, long revision, PresentationFrame presentation)
-        {
-            ulong checksum = ComputeChecksum(lifecycle, phase, completedTick, nextTick);
-            SimBattleResult result = _terminalOutcome == null
-                ? null
-                : SimBattleResult.FromOutcome(
-                    _init.MatchId, _terminalOutcome, _terminalFinalTick, checksum);
-            _state = new SimBattleState(lifecycle, phase, completedTick, nextTick,
-                revision, checksum, presentation, result);
-            return checksum;
-        }
-
-        private ulong ComputeChecksum() => ComputeChecksum(_state.Lifecycle, _state.Phase,
-            _state.CompletedTick, _state.NextTick);
+        private ulong ComputeChecksum() => ComputeChecksum(_lifecycle, _phase,
+            _completedTick, _nextTick);
 
         private ulong ComputeChecksum(SessionLifecycle lifecycle, SimCombatPhase phase,
             int completedTick, int nextTick)
@@ -1079,10 +1017,10 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             return new SessionSnapshotData
             {
-                Lifecycle = _state.Lifecycle,
-                Phase = _state.Phase,
-                CompletedTick = _state.CompletedTick,
-                NextTick = _state.NextTick,
+                Lifecycle = _lifecycle,
+                Phase = _phase,
+                CompletedTick = _completedTick,
+                NextTick = _nextTick,
                 AttackSystemTick = _attackSystem.CurrentTick,
                 AttackerAlive = _deathSystem.AttackerAlive,
                 DefenderAlive = _deathSystem.DefenderAlive,
@@ -1145,18 +1083,18 @@ namespace ZWebGLFrameWork.SimulationCore
 
         private TickResult CreateTickResult(TickCode code)
         {
-            return new TickResult(code, _state.CompletedTick, _state.NextTick,
-                _state.TimelineRevision, Array.Empty<ISimCommand>(),
+            bool stateWasDirty = _stateDirty;
+            SimBattleState state = MaterializeState();
+            PresentationFrame presentation = stateWasDirty
+                ? state.Presentation : _currentFrame;
+            return new TickResult(code, _completedTick, _nextTick,
+                _timelineRevision, Array.Empty<ISimCommand>(),
                 Array.Empty<CommandExecutionResult>(), Array.Empty<SimBattleEvent>(),
-                _currentFrame, _state.Checksum, _state.Result);
+                presentation, _checksum, _result);
         }
 
         private PresentationFrame BuildFullFrame(int completedTick, int nextTick, long revision) =>
             _presentationFrames.BuildFull(_world, completedTick, nextTick, revision);
-
-        private PresentationFrame BuildDeltaFrame(
-            PresentationFrame previous, PresentationFrame current) =>
-            _presentationFrames.BuildDelta(previous, current);
 
         private static PresentationFrame EmptyFrame() =>
             new PresentationFrame(true, -1, 0, 0,
