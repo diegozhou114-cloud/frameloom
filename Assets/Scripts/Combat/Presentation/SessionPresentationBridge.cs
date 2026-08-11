@@ -9,9 +9,12 @@ namespace ZWebGLFrameWork.Combat
         private readonly IEntityViewFactory _factory;
         private readonly Dictionary<EntityPresentationKey, IEntityView> _views =
             new Dictionary<EntityPresentationKey, IEntityView>();
+        private readonly List<KeyValuePair<EntityPresentationKey, IEntityView>> _sampleViews =
+            new List<KeyValuePair<EntityPresentationKey, IEntityView>>();
         private readonly PresentationInterpolator _interpolator =
             new PresentationInterpolator();
         private long _lease;
+        private long _revision = long.MinValue;
 
         public int ViewCount => _views.Count;
 
@@ -24,11 +27,26 @@ namespace ZWebGLFrameWork.Combat
         {
             if (frame == null) throw new System.ArgumentNullException(nameof(frame));
             long lease = ++_lease;
+            _revision = frame.TimelineRevision;
             _interpolator.BeginFrame(frame);
             if (frame.IsFull)
                 ApplyFull(frame.Entities, lease);
             else
                 ApplyDelta(frame, lease);
+            if (lease == _lease) Sample(1f, lease);
+        }
+
+        internal void Apply(SimPresentationOutputBuffer frame, long revision)
+        {
+            if (frame == null) throw new System.ArgumentNullException(nameof(frame));
+            long lease = ++_lease;
+            bool reset = revision != _revision;
+            _revision = revision;
+            _interpolator.BeginFrame(frame, revision);
+            if (reset)
+                ApplyFull(frame.Entities, lease);
+            else
+                ApplyDelta(frame.Destroyed, frame.Created, frame.Updated, lease);
             if (lease == _lease) Sample(1f, lease);
         }
 
@@ -40,22 +58,35 @@ namespace ZWebGLFrameWork.Combat
         private void Sample(float alpha, long lease)
         {
             alpha = alpha < 0f ? 0f : alpha > 1f ? 1f : alpha;
-            var views = new List<KeyValuePair<EntityPresentationKey, IEntityView>>(_views);
-            foreach (KeyValuePair<EntityPresentationKey, IEntityView> pair in views)
+            _sampleViews.Clear();
+            try
             {
-                if (lease != _lease) return;
-                if (!_interpolator.TryGet(pair.Key, out InterpolationPair states))
-                    continue;
-                pair.Value.SetPosition(Interpolate(states.Previous.PosXRaw,
-                    states.Current.PosXRaw, alpha), Interpolate(
-                    states.Previous.PosYRaw, states.Current.PosYRaw, alpha));
-                if (lease != _lease) return;
+                foreach (KeyValuePair<EntityPresentationKey, IEntityView> pair in _views)
+                    _sampleViews.Add(pair);
+                for (int index = 0; index < _sampleViews.Count; index++)
+                {
+                    if (lease != _lease) return;
+                    KeyValuePair<EntityPresentationKey, IEntityView> pair =
+                        _sampleViews[index];
+                    if (!_interpolator.TryGet(pair.Key, out InterpolationPair states))
+                        continue;
+                    pair.Value.SetPosition(Interpolate(states.Previous.PosXRaw,
+                        states.Current.PosXRaw, alpha), Interpolate(
+                        states.Previous.PosYRaw, states.Current.PosYRaw, alpha));
+                    if (lease != _lease) return;
+                }
+            }
+            finally
+            {
+                _sampleViews.Clear();
             }
         }
 
         public void Cleanup()
         {
             ++_lease;
+            _revision = long.MinValue;
+            _sampleViews.Clear();
             var views = new List<IEntityView>(_views.Values);
             _views.Clear();
             _interpolator.Clear();
@@ -66,8 +97,9 @@ namespace ZWebGLFrameWork.Combat
         private void ApplyFull(IReadOnlyList<EntityPresentationState> states, long lease)
         {
             var present = new HashSet<EntityPresentationKey>();
-            foreach (EntityPresentationState state in states)
+            for (int index = 0; index < states.Count; index++)
             {
+                EntityPresentationState state = states[index];
                 EntityPresentationKey key = Key(state);
                 present.Add(key);
                 if (!ApplyState(state, lease)) return;
@@ -82,12 +114,19 @@ namespace ZWebGLFrameWork.Combat
 
         private void ApplyDelta(PresentationFrame frame, long lease)
         {
-            foreach (EntityPresentationKey key in frame.Destroyed)
-                if (!Destroy(key, lease)) return;
-            foreach (EntityPresentationState state in frame.Created)
-                if (!ApplyState(state, lease)) return;
-            foreach (EntityPresentationState state in frame.Updated)
-                if (!ApplyState(state, lease)) return;
+            ApplyDelta(frame.Destroyed, frame.Created, frame.Updated, lease);
+        }
+
+        private void ApplyDelta(IReadOnlyList<EntityPresentationKey> destroyed,
+            IReadOnlyList<EntityPresentationState> created,
+            IReadOnlyList<EntityPresentationState> updated, long lease)
+        {
+            for (int index = 0; index < destroyed.Count; index++)
+                if (!Destroy(destroyed[index], lease)) return;
+            for (int index = 0; index < created.Count; index++)
+                if (!ApplyState(created[index], lease)) return;
+            for (int index = 0; index < updated.Count; index++)
+                if (!ApplyState(updated[index], lease)) return;
         }
 
         private bool ApplyState(EntityPresentationState state, long lease)

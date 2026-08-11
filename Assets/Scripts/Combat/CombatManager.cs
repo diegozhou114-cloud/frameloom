@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -15,6 +15,8 @@ namespace ZWebGLFrameWork.Combat
         private const float TickInterval = 1f / 20f;
         private ISimBattleSessionFactory _sessionFactory;
         private ISimBattleSession _session;
+        private IBufferedSimBattleSession _bufferedSession;
+        private SimTickOutputBuffer _tickOutput;
         private BattleInitFactory _battleInitFactory;
         private SessionPresentationBridge _presentation;
         private UniTaskCompletionSource<SimBattleResult> _completion;
@@ -22,8 +24,12 @@ namespace ZWebGLFrameWork.Combat
         private ISimLogger _logger;
         private float _accumulator;
         private int _nextSequence = 1;
+        private int _nextTick;
         private int _attackerPlayerId;
+        private int _attackerAliveCount;
+        private int _defenderAliveCount;
         private SimModeProfile _modeProfile;
+        private int[] _waveTicks = Array.Empty<int>();
 
         public SimCombatPhase CurrentPhase { get; private set; } = SimCombatPhase.Idle;
         public SimBattleResult LastResult { get; private set; }
@@ -36,8 +42,16 @@ namespace ZWebGLFrameWork.Combat
             ? 0 : Math.Max(0, _modeProfile.TimeoutTicks - Math.Max(0, CompletedTick));
         public int AttackerAliveCount => CountAlive(SimTeam.Attacker);
         public int DefenderAliveCount => CountAlive(SimTeam.Defender);
-        public int CurrentWave => _modeProfile == null
-            ? 0 : _modeProfile.WaveTicks.Count(tick => tick <= CompletedTick);
+        public int CurrentWave
+        {
+            get
+            {
+                int count = 0;
+                for (int index = 0; index < _waveTicks.Length; index++)
+                    if (_waveTicks[index] <= CompletedTick) count++;
+                return count;
+            }
+        }
 
         protected override void OnSingletonAwake()
         {
@@ -57,7 +71,10 @@ namespace ZWebGLFrameWork.Combat
             BattleInit init = _battleInitFactory.Create(parameters);
             ISimBattleSession candidate = null;
             StartResult started;
+            SimBattleState initialState;
             SimModeProfile modeProfile;
+            IBufferedSimBattleSession buffered = null;
+            SimTickOutputBuffer tickOutput = null;
             try
             {
                 candidate = _sessionFactory.Create(_canonicalManifestBytes, _logger);
@@ -65,30 +82,43 @@ namespace ZWebGLFrameWork.Combat
                 if (!started.Accepted)
                     throw new InvalidOperationException(
                         "Session start rejected: " + started.Code);
+                initialState = candidate.State;
                 modeProfile = FrameworkBattleContent.GetModeProfile(parameters.ModeId);
+                buffered = candidate as IBufferedSimBattleSession;
+                if (buffered != null)
+                    tickOutput = new SimTickOutputBuffer(
+                        SimTickOutputFields.Presentation,
+                        started.InitialFrame.Entities.Count);
             }
             catch
             {
+                tickOutput?.Dispose();
                 candidate?.Dispose();
                 throw;
             }
 
             var completion = new UniTaskCompletionSource<SimBattleResult>();
             _session = candidate;
+            _bufferedSession = buffered;
+            _tickOutput = tickOutput;
             _completion = completion;
             _attackerPlayerId = parameters.AttackerPlayerId;
             _modeProfile = modeProfile;
+            _waveTicks = modeProfile.WaveTicks;
             _nextSequence = 1;
+            _nextTick = initialState.NextTick;
             _accumulator = 0f;
             LastResult = null;
             CompletedTick = -1;
+            CountAlive(started.InitialFrame.Entities,
+                out _attackerAliveCount, out _defenderAliveCount);
             using (cancellationToken.Register(() => CancelBattle(completion, cancellationToken)))
             {
                 if (!OwnsBattle(candidate, completion))
                     return await completion.Task;
                 try
                 {
-                    SetPhase(candidate.State.Phase);
+                    SetPhase(initialState.Phase);
                     if (!OwnsBattle(candidate, completion))
                         return await completion.Task;
                     _presentation.Apply(started.InitialFrame);
@@ -113,7 +143,7 @@ namespace ZWebGLFrameWork.Combat
             if (_session == null) return WrongPhase();
             return _session.Submit(new DeployCmd
             {
-                Tick = _session.State.NextTick,
+                Tick = NextCommandTick(),
                 PlayerId = _attackerPlayerId,
                 Sequence = _nextSequence++,
                 UnitTypeId = archetypeId,
@@ -127,7 +157,7 @@ namespace ZWebGLFrameWork.Combat
             if (_session == null) return WrongPhase();
             return _session.Submit(new MoveCmd
             {
-                Tick = _session.State.NextTick,
+                Tick = NextCommandTick(),
                 PlayerId = _attackerPlayerId,
                 Sequence = _nextSequence++,
                 EntityId = entityId,
@@ -141,7 +171,7 @@ namespace ZWebGLFrameWork.Combat
             if (_session == null) return WrongPhase();
             return _session.Submit(new SkillCmd
             {
-                Tick = _session.State.NextTick,
+                Tick = NextCommandTick(),
                 PlayerId = _attackerPlayerId,
                 Sequence = _nextSequence++,
                 CasterId = casterId,
@@ -156,7 +186,7 @@ namespace ZWebGLFrameWork.Combat
             if (_session == null) return WrongPhase();
             return _session.Submit(new EndDeploymentCmd
             {
-                Tick = _session.State.NextTick,
+                Tick = NextCommandTick(),
                 PlayerId = _attackerPlayerId,
                 Sequence = _nextSequence++,
             });
@@ -201,17 +231,40 @@ namespace ZWebGLFrameWork.Combat
                     _accumulator -= TickInterval;
                     activeSession = _session;
                     activeCompletion = _completion;
-                    TickResult tick = activeSession.Tick();
+                    SimBattleResult result;
+                    if (_bufferedSession != null)
+                    {
+                        SimTickOutputBuffer output = _tickOutput;
+                        _bufferedSession.TickInto(output);
+                        if (!OwnsBattle(activeSession, activeCompletion)) return;
+                        int completedTick = output.Tick;
+                        SimCombatPhase phase = output.Phase;
+                        long revision = output.Revision;
+                        result = output.Result;
+                        CountAlive(output.Presentation.Entities,
+                            out int attackerAlive, out int defenderAlive);
+                        _nextTick = completedTick + 1;
+                        _attackerAliveCount = attackerAlive;
+                        _defenderAliveCount = defenderAlive;
+                        _presentation.Apply(output.Presentation, revision);
+                        if (!OwnsBattle(activeSession, activeCompletion)) return;
+                        CompletedTick = completedTick;
+                        SetPhase(phase);
+                    }
+                    else
+                    {
+                        TickResult tick = activeSession.Tick();
+                        if (!OwnsBattle(activeSession, activeCompletion)) return;
+                        _presentation.Apply(tick.Presentation);
+                        if (!OwnsBattle(activeSession, activeCompletion)) return;
+                        CompletedTick = tick.CompletedTick;
+                        SetPhase(activeSession.State.Phase);
+                        result = tick.Result;
+                    }
                     if (!OwnsBattle(activeSession, activeCompletion)) return;
+                    if (result == null) continue;
 
-                    _presentation.Apply(tick.Presentation);
-                    if (!OwnsBattle(activeSession, activeCompletion)) return;
-                    CompletedTick = tick.CompletedTick;
-                    SetPhase(activeSession.State.Phase);
-                    if (!OwnsBattle(activeSession, activeCompletion)) return;
-                    if (tick.Result == null) continue;
-
-                    CompleteBattle(activeSession, tick.Result);
+                    CompleteBattle(activeSession, result);
                     return;
                 }
 
@@ -267,12 +320,20 @@ namespace ZWebGLFrameWork.Combat
                 return;
 
             ISimBattleSession session = _session;
+            SimTickOutputBuffer tickOutput = _tickOutput;
             _session = null;
+            _bufferedSession = null;
+            _tickOutput = null;
             _completion = null;
             _modeProfile = null;
+            _waveTicks = Array.Empty<int>();
             _attackerPlayerId = 0;
+            _attackerAliveCount = 0;
+            _defenderAliveCount = 0;
             _accumulator = 0f;
             _nextSequence = 1;
+            _nextTick = 0;
+            tickOutput?.Dispose();
             _presentation?.Cleanup();
             session?.Dispose();
             if (!preserveTerminalPhase)
@@ -282,9 +343,35 @@ namespace ZWebGLFrameWork.Combat
         private int CountAlive(int teamId)
         {
             if (_session == null) return 0;
+            if (_bufferedSession != null)
+                return teamId == SimTeam.Attacker
+                    ? _attackerAliveCount : _defenderAliveCount;
             PresentationFrame snapshot = _session.State.Presentation;
             if (snapshot == null) return 0;
-            return snapshot.Entities.Count(row => row.TeamId == teamId && row.Health > 0);
+            int count = 0;
+            for (int index = 0; index < snapshot.Entities.Count; index++)
+            {
+                EntityPresentationState state = snapshot.Entities[index];
+                if (state.TeamId == teamId && state.Health > 0) count++;
+            }
+            return count;
+        }
+
+        private int NextCommandTick() => _bufferedSession == null
+            ? _session.State.NextTick : _nextTick;
+
+        private static void CountAlive(IReadOnlyList<EntityPresentationState> states,
+            out int attackerAlive, out int defenderAlive)
+        {
+            attackerAlive = 0;
+            defenderAlive = 0;
+            for (int index = 0; index < states.Count; index++)
+            {
+                EntityPresentationState state = states[index];
+                if (state.Health <= 0) continue;
+                if (state.TeamId == SimTeam.Attacker) attackerAlive++;
+                else if (state.TeamId == SimTeam.Defender) defenderAlive++;
+            }
         }
 
         private void SetPhase(SimCombatPhase phase)

@@ -43,6 +43,14 @@
           "minimumPassed": 10,
           "requiredNames": ["WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences", "NativeKcp_FragmentedMessage_RoundTrips"]
         },
+        "ZWebGLFrameWork.Combat.Tests": {
+          "minimumPassed": 27,
+          "requiredNames": [
+            "BufferedPresentation_AppliesWithoutRetainingBorrowedCollections",
+            "BufferedPresentation_RevisionChangePerformsFullResync",
+            "SteadyStateBufferedPresentation_ApplyAndSampleDoNotAllocateAfterWarmup"
+          ]
+        },
         "ZWebGLFrameWork.SimulationCore.Tests": {
           "minimumPassed": 81,
           "requiredNames": [
@@ -86,9 +94,14 @@
           ]
         },
         "ZWebGLFrameWork.Combat.PlayModeTests": {
-          "minimumPassed": 1,
+          "minimumPassed": 15,
           "requiredNames": [
-            "BattleState_UsesSingleSimulationSession_EndToEnd"
+            "BattleState_UsesSingleSimulationSession_EndToEnd",
+            "CombatManager_BufferedSessionAvoidsOwningTickAndHotStateReads",
+            "CombatManager_BufferedStartUsesAuthoritativeSessionPhase",
+            "CombatManager_BufferedPresentationCallbackUsesAdvancedCommandTick",
+            "CombatManager_BufferedPresentationFailureDoesNotCommitCompletedTick",
+            "CombatManager_OwningOnlySessionRetainsCompatibility"
           ]
         }
       }

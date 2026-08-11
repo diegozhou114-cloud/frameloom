@@ -26,21 +26,44 @@ namespace ZWebGLFrameWork.Combat
         {
             if (frame == null) throw new System.ArgumentNullException(nameof(frame));
             bool reset = frame.IsFull || frame.TimelineRevision != _revision;
+            BeginFrame(frame.Entities, frame.Created, frame.Updated, frame.Destroyed,
+                frame.TimelineRevision, reset);
+        }
+
+        internal void BeginFrame(SimPresentationOutputBuffer frame, long revision)
+        {
+            if (frame == null) throw new System.ArgumentNullException(nameof(frame));
+            BeginFrame(frame.Entities, frame.Created, frame.Updated, frame.Destroyed,
+                revision, revision != _revision);
+        }
+
+        private void BeginFrame(IReadOnlyList<EntityPresentationState> entities,
+            IReadOnlyList<EntityPresentationState> created,
+            IReadOnlyList<EntityPresentationState> updated,
+            IReadOnlyList<EntityPresentationKey> destroyed, long revision, bool reset)
+        {
             if (reset)
             {
                 _pairs.Clear();
-                _revision = frame.TimelineRevision;
-                foreach (EntityPresentationState state in frame.Entities)
+                _revision = revision;
+                for (int index = 0; index < entities.Count; index++)
+                {
+                    EntityPresentationState state = entities[index];
                     _pairs.Add(Key(state), new InterpolationPair(state, state));
+                }
                 return;
             }
 
-            foreach (EntityPresentationKey key in frame.Destroyed)
-                _pairs.Remove(key);
-            foreach (EntityPresentationState state in frame.Created)
-                _pairs[Key(state)] = new InterpolationPair(state, state);
-            foreach (EntityPresentationState state in frame.Updated)
+            for (int index = 0; index < destroyed.Count; index++)
+                _pairs.Remove(destroyed[index]);
+            for (int index = 0; index < created.Count; index++)
             {
+                EntityPresentationState state = created[index];
+                _pairs[Key(state)] = new InterpolationPair(state, state);
+            }
+            for (int index = 0; index < updated.Count; index++)
+            {
+                EntityPresentationState state = updated[index];
                 EntityPresentationKey key = Key(state);
                 if (_pairs.TryGetValue(key, out InterpolationPair previous))
                     _pairs[key] = new InterpolationPair(previous.Current, state);
