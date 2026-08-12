@@ -19,6 +19,7 @@ namespace ZWebGLFrameWork.Combat
         private SimTickOutputBuffer _tickOutput;
         private BattleInitFactory _battleInitFactory;
         private SessionPresentationBridge _presentation;
+        private UnityEntityViewFactory _ownedViewFactory;
         private UniTaskCompletionSource<SimBattleResult> _completion;
         private byte[] _canonicalManifestBytes;
         private ISimLogger _logger;
@@ -59,8 +60,8 @@ namespace ZWebGLFrameWork.Combat
             _canonicalManifestBytes = FrameworkBattleContent.CanonicalBytes();
             _battleInitFactory = new BattleInitFactory(_canonicalManifestBytes);
             var viewConfig = Resources.Load<ViewConfig>("Config/ViewConfig");
-            _presentation = new SessionPresentationBridge(
-                new UnityEntityViewFactory(viewConfig));
+            _ownedViewFactory = new UnityEntityViewFactory(viewConfig);
+            _presentation = new SessionPresentationBridge(_ownedViewFactory);
         }
 
         public async UniTask<SimBattleResult> StartBattleAsync(BattleParams parameters,
@@ -209,12 +210,26 @@ namespace ZWebGLFrameWork.Combat
             if (_session != null)
                 throw new InvalidOperationException("Cannot reconfigure an active battle.");
 
-            _presentation?.Cleanup();
+            byte[] replacementManifest = (byte[])canonicalManifestBytes.Clone();
+            var replacementInitFactory = new BattleInitFactory(replacementManifest);
+            var replacementPresentation = new SessionPresentationBridge(viewFactory);
+            SessionPresentationBridge oldPresentation = _presentation;
+            UnityEntityViewFactory oldOwnedViewFactory = _ownedViewFactory;
+
             _sessionFactory = sessionFactory;
-            _canonicalManifestBytes = (byte[])canonicalManifestBytes.Clone();
-            _battleInitFactory = new BattleInitFactory(_canonicalManifestBytes);
-            _presentation = new SessionPresentationBridge(viewFactory);
+            _canonicalManifestBytes = replacementManifest;
+            _battleInitFactory = replacementInitFactory;
+            _presentation = replacementPresentation;
             _logger = logger;
+            _ownedViewFactory = null;
+            try
+            {
+                oldPresentation?.Cleanup();
+            }
+            finally
+            {
+                oldOwnedViewFactory?.Dispose();
+            }
         }
 
         private void Update()
@@ -392,10 +407,24 @@ namespace ZWebGLFrameWork.Combat
         private static CommandSubmitResult WrongPhase() =>
             new CommandSubmitResult(CommandDisposition.WrongPhase);
 
+        private void DisposeOwnedViewFactory()
+        {
+            UnityEntityViewFactory owned = _ownedViewFactory;
+            _ownedViewFactory = null;
+            owned?.Dispose();
+        }
+
         protected override void OnDestroy()
         {
-            StopBattle();
-            base.OnDestroy();
+            try
+            {
+                StopBattle();
+            }
+            finally
+            {
+                try { DisposeOwnedViewFactory(); }
+                finally { base.OnDestroy(); }
+            }
         }
     }
 }

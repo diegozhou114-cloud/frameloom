@@ -56,11 +56,12 @@
           "requiredNames": ["WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences", "NativeKcp_FragmentedMessage_RoundTrips"]
         },
         "ZWebGLFrameWork.Combat.Tests": {
-          "minimumPassed": 27,
+          "minimumPassed": 28,
           "requiredNames": [
             "BufferedPresentation_AppliesWithoutRetainingBorrowedCollections",
             "BufferedPresentation_RevisionChangePerformsFullResync",
-            "SteadyStateBufferedPresentation_ApplyAndSampleDoNotAllocateAfterWarmup"
+            "SteadyStateBufferedPresentation_ApplyAndSampleDoNotAllocateAfterWarmup",
+            "LegacyPoolPrewarmerTypeAndRoot_AreAbsent"
           ]
         },
         "ZWebGLFrameWork.SimulationCore.Tests": {
@@ -117,14 +118,26 @@
           ]
         },
         "ZWebGLFrameWork.Combat.PlayModeTests": {
-          "minimumPassed": 15,
+          "minimumPassed": 27,
           "requiredNames": [
             "BattleState_UsesSingleSimulationSession_EndToEnd",
             "CombatManager_BufferedSessionAvoidsOwningTickAndHotStateReads",
             "CombatManager_BufferedStartUsesAuthoritativeSessionPhase",
             "CombatManager_BufferedPresentationCallbackUsesAdvancedCommandTick",
             "CombatManager_BufferedPresentationFailureDoesNotCommitCompletedTick",
-            "CombatManager_OwningOnlySessionRetainsCompatibility"
+            "CombatManager_OwningOnlySessionRetainsCompatibility",
+            "SameArchetype_DestroyThenCreate_ReusesSameViewAndGameObject",
+            "DifferentConfiguredArchetypes_DoNotSharePools",
+            "UnknownArchetypes_ShareFallbackPool",
+            "RetentionLimit_Keeps64AndDestroysThe65th",
+            "ForeignAndRepeatedDestroy_DoNotReturnWrongPool",
+            "FactoryDispose_DestroysAvailableCheckedOutRootAndRejectsCreate",
+            "SteadyStateFactoryCreateDestroy_DoesNotAllocateAfterWarmup",
+            "CombatManager_StopBattleKeepsProductionFactoryForNextBattle",
+            "CombatManager_OnDestroyDisposesProductionFactory",
+            "ConfigureForTests_DoesNotOwnInjectedFactory",
+            "ConfigureForTests_CleanupFailureCommitsReplacementAndDisposesOwnedFactory",
+            "ConfigureForTests_ReplacementConstructionFailureLeavesConfigurationUntouched"
           ]
         }
       }

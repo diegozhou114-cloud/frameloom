@@ -183,11 +183,6 @@ namespace ZWebGLFrameWork.FSM
                 return;
             }
 
-            // 对象池预热（异步）
-            PublishProgress("预热对象池...", 0.70f);
-            await PoolPrewarmer.PrewarmFromConfigAsync(ConfigTableManager.Instance)
-                .AttachExternalCancellation(token);
-
             // ─── ⑦ 完成 ───
             BootProfiler.EndPhase("Phase3_DataPreload");
             PublishProgress("即将进入游戏...", 1f);
