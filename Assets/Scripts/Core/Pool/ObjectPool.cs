@@ -1,179 +1,191 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace ZWebGLFrameWork.Core
 {
-    // ============================================================
-    // 泛型对象池 — 适用于普通 C# 对象
-    // ============================================================
-
-    /// <summary>
-    /// 通用对象池，适用于 C# 对象（非 MonoBehaviour）。
-    /// 用法：var pool = new ObjectPool&lt;MyClass&gt;(factory, resetAction, initialCapacity);
-    /// </summary>
-    public class ObjectPool<T> where T : class
+    /// <summary>通用对象池，适用于普通 C# 引用对象。</summary>
+    public class ObjectPool<T> : IDisposable where T : class
     {
-        private readonly Stack<T> _pool;
-        private readonly object _poolLock = new object();
+        private const int DefaultMaxRetained = 256;
+        private readonly Stack<T> _availableStack;
+        private readonly HashSet<T> _owned;
+        private readonly HashSet<T> _available;
+        private readonly HashSet<T> _checkedOut;
+        private readonly object _poolLock = new();
         private readonly Func<T> _createFunc;
         private readonly Action<T> _onGet;
         private readonly Action<T> _onRelease;
         private readonly Action<T> _onDestroy;
+        private readonly int _maxRetained;
+        private bool _disposed;
 
-        public int Count => _pool.Count;
+        public int Count { get { lock (_poolLock) return _availableStack.Count; } }
 
-        /// <param name="createFunc">创建新实例的工厂方法</param>
-        /// <param name="onGet">从池中取出时的回调</param>
-        /// <param name="onRelease">放回池中时的回调</param>
-        /// <param name="onDestroy">销毁时的回调</param>
-        /// <param name="preload">预热数量</param>
-        public ObjectPool(
-            Func<T> createFunc,
-            Action<T> onGet = null,
-            Action<T> onRelease = null,
-            Action<T> onDestroy = null,
-            int preload = 0)
+        public ObjectPool(Func<T> createFunc, Action<T> onGet,
+            Action<T> onRelease, Action<T> onDestroy, int preload)
+            : this(createFunc, onGet, onRelease, onDestroy, preload,
+                DefaultMaxRetained) { }
+
+        public ObjectPool(Func<T> createFunc, Action<T> onGet = null,
+            Action<T> onRelease = null, Action<T> onDestroy = null, int preload = 0,
+            int maxRetained = DefaultMaxRetained)
         {
-            _createFunc = createFunc ?? throw new ArgumentNullException(nameof(createFunc));
+            if (createFunc == null) throw new ArgumentNullException(nameof(createFunc));
+            if (preload < 0) throw new ArgumentOutOfRangeException(nameof(preload));
+            if (maxRetained < preload)
+                throw new ArgumentOutOfRangeException(nameof(maxRetained));
+            _createFunc = createFunc;
             _onGet = onGet;
             _onRelease = onRelease;
             _onDestroy = onDestroy;
-            _pool = new Stack<T>(preload > 0 ? preload : 4);
-
-            for (int i = 0; i < preload; i++)
+            _maxRetained = maxRetained;
+            _availableStack = new Stack<T>(Math.Max(preload, 4));
+            _owned = NewIdentitySet();
+            _available = NewIdentitySet();
+            _checkedOut = NewIdentitySet();
+            try
             {
-                _pool.Push(_createFunc());
+                for (int index = 0; index < preload; index++)
+                {
+                    T item = CreateOwned();
+                    _available.Add(item);
+                    _availableStack.Push(item);
+                }
+            }
+            catch (Exception creationFailure)
+            {
+                Exception cleanupFailure = DestroyAvailable();
+                if (cleanupFailure != null)
+                    throw new AggregateException(creationFailure, cleanupFailure);
+                throw;
             }
         }
 
-        /// <summary>从池中获取一个实例（池空时自动创建）</summary>
         public T Get()
         {
             lock (_poolLock)
             {
-                T obj = _pool.Count > 0 ? _pool.Pop() : _createFunc();
-                _onGet?.Invoke(obj);
-                return obj;
-            }
-        }
-
-        /// <summary>将实例放回池中</summary>
-        public void Release(T obj)
-        {
-            if (obj == null) return;
-            lock (_poolLock)
-            {
-                _onRelease?.Invoke(obj);
-                _pool.Push(obj);
-            }
-        }
-
-        /// <summary>清空池并销毁所有实例</summary>
-        public void Clear()
-        {
-            lock (_poolLock)
-            {
-                while (_pool.Count > 0)
+                ThrowIfDisposed();
+                bool reused = _availableStack.Count > 0;
+                T item = reused ? _availableStack.Pop() : CreateOwned();
+                if (reused) _available.Remove(item);
+                _checkedOut.Add(item);
+                try
                 {
-                    _onDestroy?.Invoke(_pool.Pop());
+                    _onGet?.Invoke(item);
+                    return item;
+                }
+                catch (Exception callbackFailure)
+                {
+                    _checkedOut.Remove(item);
+                    if (reused)
+                    {
+                        _available.Add(item);
+                        _availableStack.Push(item);
+                    }
+                    else
+                    {
+                        _owned.Remove(item);
+                        try { _onDestroy?.Invoke(item); }
+                        catch (Exception destroyFailure)
+                        {
+                            throw new AggregateException(callbackFailure, destroyFailure);
+                        }
+                    }
+                    throw;
                 }
             }
         }
-    }
 
-    // ============================================================
-    // GameObject 对象池 — 适用于 Unity Prefab 实例
-    // ============================================================
-
-    /// <summary>
-    /// GameObject 专用对象池，管理 Prefab 实例的复用。
-    /// </summary>
-    public class GameObjectPool
-    {
-        private readonly Stack<GameObject> _pool = new Stack<GameObject>();
-        private readonly object _poolLock = new object();
-        private readonly GameObject _prefab;
-        private readonly Transform _parent;
-
-        public int Count => _pool.Count;
-
-        /// <param name="prefab">预制体</param>
-        /// <param name="parent">池中对象的父节点</param>
-        /// <param name="preload">预热数量</param>
-        public GameObjectPool(GameObject prefab, Transform parent = null, int preload = 0)
-        {
-            _prefab = prefab ?? throw new ArgumentNullException(nameof(prefab));
-            _parent = parent;
-
-            for (int i = 0; i < preload; i++)
-            {
-                var obj = UnityEngine.Object.Instantiate(_prefab, _parent);
-                obj.SetActive(false);
-                _pool.Push(obj);
-            }
-        }
-
-        /// <summary>从池中取出（激活状态），池空时自动 Instantiate</summary>
-        public GameObject Get()
+        public void Release(T item)
         {
             lock (_poolLock)
             {
-                GameObject obj;
-                if (_pool.Count > 0)
+                ThrowIfDisposed();
+                if (ReferenceEquals(item, null)) throw new ArgumentNullException(nameof(item));
+                if (!_owned.Contains(item))
+                    throw new ArgumentException("Object does not belong to this pool.", nameof(item));
+                if (_available.Contains(item))
+                    throw new InvalidOperationException("Object has already been released.");
+                if (!_checkedOut.Contains(item))
+                    throw new InvalidOperationException("Object is not checked out.");
+                _onRelease?.Invoke(item);
+                _checkedOut.Remove(item);
+                if (_availableStack.Count < _maxRetained)
                 {
-                    obj = _pool.Pop();
+                    _available.Add(item);
+                    _availableStack.Push(item);
                 }
                 else
                 {
-                    obj = UnityEngine.Object.Instantiate(_prefab, _parent);
+                    _owned.Remove(item);
+                    _onDestroy?.Invoke(item);
                 }
-
-                obj.SetActive(true);
-                return obj;
             }
         }
 
-        /// <summary>从池中取出并设置位置/旋转/父节点</summary>
-        public GameObject Get(Vector3 position, Quaternion rotation, Transform parent = null)
-        {
-            var obj = Get();
-            obj.transform.SetParent(parent ?? _parent);
-            obj.transform.SetPositionAndRotation(position, rotation);
-            return obj;
-        }
-
-        /// <summary>
-        /// 放回池中（失活状态）。
-        /// 注意：出于性能考虑，此方法不验证传入的 GameObject 是否源自本池；
-        /// 调用方需确保只归还从本池 Get() 取出的对象，否则可能导致父节点错乱或重复入池。
-        /// </summary>
-        public void Release(GameObject obj)
-        {
-            if (obj == null) return;
-
-            lock (_poolLock)
-            {
-                obj.SetActive(false);
-                obj.transform.SetParent(_parent);
-                _pool.Push(obj);
-            }
-        }
-
-        /// <summary>清空池并销毁所有对象</summary>
         public void Clear()
         {
             lock (_poolLock)
             {
-                while (_pool.Count > 0)
-                {
-                    var obj = _pool.Pop();
-                    if (obj != null)
-                    {
-                        UnityEngine.Object.Destroy(obj);
-                    }
-                }
+                ThrowIfDisposed();
+                Exception failure = DestroyAvailable();
+                if (failure != null) throw failure;
             }
         }
+
+        public void Dispose()
+        {
+            lock (_poolLock)
+            {
+                if (_disposed) return;
+                _disposed = true;
+                _availableStack.Clear();
+                _available.Clear();
+                _checkedOut.Clear();
+                Exception failure = null;
+                foreach (T item in _owned) failure = Destroy(item, failure);
+                _owned.Clear();
+                if (failure != null) throw failure;
+            }
+        }
+
+        private T CreateOwned()
+        {
+            T item = _createFunc();
+            if (ReferenceEquals(item, null))
+                throw new InvalidOperationException("Pool factory returned null.");
+            if (!_owned.Add(item))
+                throw new InvalidOperationException("Pool factory returned an owned object.");
+            return item;
+        }
+
+        private Exception DestroyAvailable()
+        {
+            Exception failure = null;
+            while (_availableStack.Count > 0)
+            {
+                T item = _availableStack.Pop();
+                _available.Remove(item);
+                _owned.Remove(item);
+                failure = Destroy(item, failure);
+            }
+            return failure;
+        }
+
+        private Exception Destroy(T item, Exception failure)
+        {
+            try { _onDestroy?.Invoke(item); }
+            catch (Exception exception) { return failure ?? exception; }
+            return failure;
+        }
+
+        private void ThrowIfDisposed()
+        {
+            if (_disposed) throw new ObjectDisposedException(GetType().Name);
+        }
+
+        private static HashSet<T> NewIdentitySet() =>
+            new(ReferenceIdentityComparer<T>.Instance);
     }
 }

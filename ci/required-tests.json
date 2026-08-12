@@ -4,8 +4,20 @@
     "EditMode": {
       "assemblies": {
         "ZWebGLFrameWork.Core.Tests": {
-          "minimumPassed": 28,
-          "requiredNames": ["SubscribeAndPublish_ZeroParams_HandlerIsCalled", "ValueChanged_TriggersOnChanged"]
+          "minimumPassed": 37,
+          "requiredNames": [
+            "SubscribeAndPublish_ZeroParams_HandlerIsCalled",
+            "ValueChanged_TriggersOnChanged",
+            "Constructor_RejectsInvalidArgumentsAndCapacity",
+            "Release_UsesReferenceIdentityAndRejectsInvalidReturns",
+            "Release_WhenRetentionIsFullDestroysOverflow",
+            "Clear_DestroysAvailableButCheckedOutRemainsOwned",
+            "Dispose_DestroysAllOwnedAndRejectsFurtherUse",
+            "CallbackFailures_PreserveOwnershipState",
+            "FactoryAndDestroyFailures_LeaveConsistentLedger",
+            "SteadyStateObjectPool_GetReleaseDoesNotAllocateAfterWarmup",
+            "LegacyFiveParameterConstructor_ExistsAndForwards"
+          ]
         },
         "ZWebGLFrameWork.Editor.Tests": {
           "minimumPassed": 28,
@@ -86,11 +98,22 @@
     "PlayMode": {
       "assemblies": {
         "ZWebGLFrameWork.Runtime.Tests": {
-          "minimumPassed": 20,
+          "minimumPassed": 31,
           "requiredNames": [
             "LauncherPlayMode_EntersInteractiveVillage",
             "LauncherButton_PointerClick_InvokesAction",
-            "SceneChange_AllGameplayServices_RebindAndReleaseOldScene"
+            "SceneChange_AllGameplayServices_RebindAndReleaseOldScene",
+            "Constructor_RejectsInvalidGameObjectPoolArgumentsAndCapacity",
+            "GetRelease_PreservesActivationParentPositionAndRotation",
+            "Release_RejectsNullForeignAndDuplicateGameObjects",
+            "Clear_DestroysAvailableButCheckedOutCanReturn",
+            "Dispose_DestroysAllOwnedAndRejectsGameObjectPoolUse",
+            "ExternallyDestroyedGameObjects_ArePrunedSafely",
+            "SteadyStateGameObjectPool_GetReleaseDoesNotAllocateAfterWarmup",
+            "LegacyThreeParameterConstructor_ExistsAndForwards",
+            "Release_PrunesDestroyedRetainedBeforeCapacityDecision",
+            "DestroyedCheckedOut_RemainsOwnedAcrossGetAndClearUntilRelease",
+            "Release_WhenRetentionIsFullDestroysLiveOverflow"
           ]
         },
         "ZWebGLFrameWork.Combat.PlayModeTests": {
