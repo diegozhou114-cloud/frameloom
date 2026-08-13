@@ -27,6 +27,38 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             }
         }
 
+        [Test]
+        public void FirstBufferedTick_AllFieldsStayWithinAllocationBudget()
+        {
+            Recorder recorder = CreateValidatedRecorder();
+            try
+            {
+                WarmupFirstTickPath();
+                using ISimBattleSession session = CreateSession(300, true);
+                using var output = new SimTickOutputBuffer(
+                    SimTickOutputFields.All, 300, 16, 8);
+                output.EnsureCapacity(300, 16, 8);
+                recorder.enabled = true;
+                ((IBufferedSimBattleSession)session).TickInto(output);
+                recorder.enabled = false;
+                Assert.That(recorder.sampleBlockCount, Is.Zero,
+                    $"first buffered tick allocated {recorder.sampleBlockCount} events");
+            }
+            finally
+            {
+                recorder.enabled = false;
+            }
+        }
+
+        private static void WarmupFirstTickPath()
+        {
+            using ISimBattleSession session = CreateSession(300, true);
+            using var output = new SimTickOutputBuffer(
+                SimTickOutputFields.All, 300, 16, 8);
+            output.EnsureCapacity(300, 16, 8);
+            ((IBufferedSimBattleSession)session).TickInto(output);
+        }
+
         private static ScenarioResult Measure(Recorder recorder, int entityCount)
         {
             using ISimBattleSession session = CreateSession(entityCount);
@@ -87,9 +119,10 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             GC.KeepAlive(buffer);
         }
 
-        private static ISimBattleSession CreateSession(int entityCount)
+        private static ISimBattleSession CreateSession(
+            int entityCount, bool manualDeployment = false)
         {
-            byte[] manifestBytes = BenchmarkManifestBytes();
+            byte[] manifestBytes = BenchmarkManifestBytes(manualDeployment);
             byte[] contentHash = DeterministicContentManifest.Parse(manifestBytes).ContentHash;
             var entities = new InitialEntitySpec[entityCount];
             int attackerCount = entityCount / 2;
@@ -116,7 +149,7 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
             throw new InvalidOperationException("Buffered benchmark start failed: " + started.Code);
         }
 
-        private static byte[] BenchmarkManifestBytes() =>
+        private static byte[] BenchmarkManifestBytes(bool manualDeployment = false) =>
             new DeterministicContentManifest(1, new[]
             {
                 new SimArchetypeDefinition(10, "BenchmarkAttacker",
@@ -125,12 +158,14 @@ namespace ZWebGLFrameWork.SimulationCore.Tests
                     int.MaxValue, 0, 1, 1000000, 1),
             }, new[]
             {
-                Mode(SimCombatMode.VillageAttack), Mode(SimCombatMode.BuilderBase),
+                Mode(SimCombatMode.VillageAttack, manualDeployment), Mode(SimCombatMode.BuilderBase),
                 Mode(SimCombatMode.ClanWar), Mode(SimCombatMode.Campaign),
             }).ToCanonicalBytes();
 
-        private static SimModeProfile Mode(SimCombatMode mode) =>
-            new SimModeProfile(mode, false, 0, 0, 10000, Array.Empty<int>());
+        private static SimModeProfile Mode(
+            SimCombatMode mode, bool manualDeployment = false) =>
+            new SimModeProfile(mode, manualDeployment, manualDeployment ? 40 : 0,
+                manualDeployment ? 600 : 0, 10000, Array.Empty<int>());
 
         private readonly struct ScenarioResult
         {

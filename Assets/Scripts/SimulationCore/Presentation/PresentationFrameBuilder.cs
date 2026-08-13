@@ -149,6 +149,8 @@ namespace ZWebGLFrameWork.SimulationCore
         {
             _current.Clear();
             if (_current.Capacity < _states.Count) _current.Capacity = _states.Count;
+            _previous.EnsureCapacity(_states.Count);
+            _remaining.EnsureCapacity(_states.Count);
             for (int index = 0; index < _states.Count; index++)
                 _current.Add(_states[index]);
         }

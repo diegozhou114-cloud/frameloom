@@ -40,6 +40,7 @@ namespace ZWebGLFrameWork.SimulationCore
         private readonly List<SimChunk> _hashChunks = new List<SimChunk>(4);
         private readonly List<int> _hashIndices = new List<int>(SimChunk.Capacity);
         private readonly List<Type> _hashEventTypes = new List<Type>(1);
+        private static readonly Comparer<string> HashKeyComparer = Comparer<string>.Default;
         private readonly Comparison<SimChunk> _hashChunkComparison;
         private readonly Comparison<int> _hashIndexComparison;
         private readonly Comparison<Type> _hashEventTypeComparison;
@@ -370,7 +371,7 @@ namespace ZWebGLFrameWork.SimulationCore
             try
             {
                 _sortedKeys.AddRange(_archetypes.Keys);
-                _sortedKeys.Sort();
+                SortHashKeys();
                 foreach (var key in _sortedKeys)
                 {
                     var archetype = _archetypes[key];
@@ -392,6 +393,22 @@ namespace ZWebGLFrameWork.SimulationCore
             {
                 _sortedKeys.Clear();
                 _hashChunks.Clear();
+            }
+        }
+
+        private void SortHashKeys()
+        {
+            for (int index = 1; index < _sortedKeys.Count; index++)
+            {
+                string value = _sortedKeys[index];
+                int destination = index - 1;
+                while (destination >= 0 &&
+                    HashKeyComparer.Compare(_sortedKeys[destination], value) > 0)
+                {
+                    _sortedKeys[destination + 1] = _sortedKeys[destination];
+                    destination--;
+                }
+                _sortedKeys[destination + 1] = value;
             }
         }
 

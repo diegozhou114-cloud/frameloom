@@ -65,7 +65,7 @@
           ]
         },
         "ZWebGLFrameWork.SimulationCore.Tests": {
-          "minimumPassed": 81,
+          "minimumPassed": 83,
           "requiredNames": [
             "UnityAndValidator_SameBattleInitAndCommands_SameTickResults",
             "Rollback_AfterTickT_ResumesAtTPlusOneWithOriginalChecksumSequence",
@@ -84,6 +84,7 @@
             "SuccessfulRestoreDisposeAndExceptionClearReferencesAndReleaseBinding",
             "TickInto_RespectsNoneFieldSelectionWhilePublishingScalars",
             "SteadyStateBufferedTick_AllFieldsStayWithinAllocationBudget",
+            "FirstBufferedTick_AllFieldsStayWithinAllocationBudget",
             "BufferedTick_DisposeMaterializesLatestOwningStateWithoutStateRead",
             "BufferedTick_RepeatedStartReturnsLatestOwningFrameWithoutStateRead",
             "BufferedTick_RejectedRestoreReturnsLatestOwningFrameWithoutStateRead",
@@ -91,7 +92,8 @@
             "OwningTick_AcceptedSubmitRejectedRestorePreservesDeltaPresentation",
             "OwningTick_AcceptedSubmitDisposePreservesDeltaPresentation",
             "ReplayPlayback_BufferedCapabilityAvoidsOwningTickAndStateMaterialization",
-            "ReplayPlayback_OwningOnlySessionRetainsCompatibility"
+            "ReplayPlayback_OwningOnlySessionRetainsCompatibility",
+            "MultiArchetypeWorld_HashIntoDoesNotAllocateAfterWarmup"
           ]
         }
       }
