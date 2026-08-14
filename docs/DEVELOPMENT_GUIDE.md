@@ -24,6 +24,8 @@ ZWebGLFrameWork 是面向策略游戏的 Unity 2022.3 通用框架。目标是�
 |---|---|---|
 | 离线启动、五槽位 JSON 存档、单机战斗 | `Ready` | 使用框架默认内容与本地保留身份。 |
 | 确定性 `SimulationCore`、snapshot、checksum、Replay 基础流程 | `Ready` | 业务必须保持输入、内容和数值规则确定性。 |
+| Buffered simulation output、Replay/server/Combat 消费链 | `Ready` | 主路径复用 borrowed output；owning API 保留为 compatibility fallback。 |
+| 表现插值、实体 GameObject 池与 [`ObjectPool`](../Assets/Scripts/Core/Pool/ObjectPool.cs) / [`GameObjectPool`](../Assets/Scripts/Core/Pool/GameObjectPool.cs) 契约 | `Ready` | 池有明确容量、引用所有权和生命周期；表现数据同步消费。 |
 | WebGL WSS、Native KCP、认证 envelope | `Reference` | transport 已实现；客户端帧同步协调器尚未闭环。 |
 | .NET 8 FrameSync 组件、RealtimeHost、ReplayValidator CLI | `Reference` | 可构建、可测试；当前 Host 不能分配真实 match。 |
 | matchmaker/session 分配、客户端逐 tick 发送和 ack 消费 | `Integration Required` | 必须由业务项目实现。 |
@@ -98,7 +100,7 @@ flowchart LR
 
 - `SimulationCore` 不引用 `UnityEngine`，也不读取时间、网络、文件、浮点物理或场景对象。
 - tick、玩家、sequence、内容 hash 和初态由调用方显式提供。
-- `TickResult.Presentation` 是 Unity 表现输入，`TickResult.Checksum` 是一致性证据。
+- Buffered 或 owning tick output 中的 `Presentation` 是 Unity 表现输入，checksum 是一致性证据。
 - 通用 [`ECS`](../Assets/Scripts/ECS) 可用于普通 Unity 运行时组织，但不是权威战斗状态；帧同步状态归 `SimulationCore` 所有。
 - 服务端和客户端必须使用相同 canonical manifest、协议版本、schema、初态和有序命令。
 
@@ -141,14 +143,16 @@ BattleState -> CombatManager -> SimBattleSession
 
 这两个类型适合离线开发和演示，但不能用于可信联机结算。正式项目必须由 matchmaker/权威服务签发 match、session、玩家身份、初态、内容版本和提交 nonce，并把结果与持久化账户绑定。
 
-[`CombatManager`](../Assets/Scripts/Combat/CombatManager.cs) 每 `1/20` 秒调用一次 session `Tick()`，把 `TickResult.Presentation` 交给表现桥，并通过以下 API 把 Unity 操作转成确定性命令：
+[`CombatManager`](../Assets/Scripts/Combat/CombatManager.cs) 以 `1/20` 秒为固定推进间隔。每场战斗启动时检查一次 session 是否支持 [`IBufferedSimBattleSession`](../Assets/Scripts/SimulationCore/Session/IBufferedSimBattleSession.cs)：支持时，整场复用同一个仅请求 `Presentation` 字段的 [`SimTickOutputBuffer`](../Assets/Scripts/SimulationCore/Session/SimTickOutputBuffer.cs)，并通过 `TickInto` 推进。推进后直接读取 buffer 的 tick、phase、result 和表现字段，不再读取 `session.State`。不支持 buffered capability 的替换 session 才使用 owning `Tick()` 兼容 fallback。
+
+Buffered 表现数据是 borrowed output，只能在约定的生命周期内同步消费。[`SessionPresentationBridge`](../Assets/Scripts/Combat/Presentation/SessionPresentationBridge.cs) 在下一次推进前同步完成 Apply；[`PresentationInterpolator`](../Assets/Scripts/Combat/Presentation/PresentationInterpolator.cs) 保存实体表现状态的值拷贝，后续 Sample 不依赖跨 tick 的 borrowed 集合引用。CombatManager 通过以下 API 把 Unity 操作转成确定性命令：
 
 - `SubmitDeployUnit(Vector2Int, int)`
 - `SubmitMove(int, Vector2Int)`
 - `SubmitSkill(int, int, Vector2Int)`
 - `EndDeployPhase()`
 
-这些入口自动使用 `State.NextTick` 和单调递增 sequence。在线模式不能直接复用这条本地提交路径；业务帧同步协调器需要先把本地命令编码并发送，再按权威帧协调预测和重放。
+这些入口自动使用当前待提交 tick：buffered 路径使用启动时从权威 `State` 初始化、随后随每次 buffered output 推进的缓存值；owning fallback 则读取 `session.State.NextTick`。两条路径都维护单调递增 sequence。在线模式不能直接复用这条本地提交路径；业务帧同步协调器需要先把本地命令编码并发送，再按权威帧协调预测和重放。
 
 ## 6. SimulationCore 使用方法
 
@@ -452,6 +456,14 @@ Unity Test Runner 中运行：
 
 CI 定义位于 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)，包含：审计门禁、Ubuntu Unity EditMode/PlayMode、Linux/Windows .NET 8 restore/build/test、WebGL/Windows 构建和 smoke 验证。服务端 CI 使用 locked restore、Release、warnings-as-errors；本地只运行 `dotnet test` 不能替代完整发布门禁。
 
+### 已验证基线与证据边界
+
+- Editor/Mono 下，buffered `SimulationCore` 以及 Combat `Update -> TickInto -> Apply/Sample` 稳态路径已有零 `GC.Alloc` gate。
+- 框架收口执行过 50,000 advanced ticks 的 SOAK，覆盖真实表现对象创建、更新、销毁和池复用，用于验证稳态分配、池账本与内存趋势。
+- Unity `2022.3.62f3c1` 的 WebGL IL2CPP 构建和可信本地 HTTPS 浏览器 smoke 已验证。
+- WebGL IL2CPP Player 内每 tick managed allocation 尚未取得有效实测；不得用 Editor/Mono 的零分配数据替代或表述为 WebGL IL2CPP allocation 结果。
+- 仓库包含 GitHub Actions workflow，但 Gitee 当前没有可见的 CI 运行记录；workflow 定义不能表述为远端 CI 已通过。
+
 提交前检查清单：
 
 - Unity 和 .NET 8 对同一 manifest/命令的 golden checksum 一致。
@@ -467,9 +479,11 @@ CI 定义位于 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)，包�
 - `RealtimeHost` 的正式 matchmaker、session allocation、权威内容/初态创建和 actor scheduler。
 - Unity 客户端逐 tick sender、ack/retransmit 队列和权威帧消费循环。
 - 客户端预测、rollback/replay 协调器和超窗 full resync。
-- 生产账户、结果持久化、反作弊、服务发现、容量、监控、证书和密钥轮换。
+- 生产账户、结果持久化、反作弊、部署、服务发现、容量、监控、容灾、SLA、证书和密钥轮换。
 - YooAsset/Huatuo 业务内容和代码热更新实现。
 - Android/iOS 原生实时 transport；当前 Native KCP asmdef 只包含 Editor 和 WindowsStandalone64。
+
+完整玩法、美术、关卡、经济和商业化内容不属于框架交付范围；以上 `Integration Required` 与生产工程项也不构成当前框架实现缺陷。
 
 ### 贡献规则
 
