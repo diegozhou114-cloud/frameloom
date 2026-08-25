@@ -97,6 +97,13 @@ Never reuse `Library`, `Temp`, `Logs`, or project-local package state. Both mani
 UniTask SHA. Lockfiles must resolve FrameLoom to `P` and `R` respectively; those revisions are not
 expected to match. Both resolved packages report SemVer `0.1.0`.
 
+The Pre-tag P/R runs resolve the real GitHub URL after the audited full history and `master=R` exist
+in the private repository but before any tag exists. Record the authentication mechanism boundary
+without exposing credentials; these are private authenticated resolutions and cannot be described
+as anonymous. The three `v0.1.0` package metadata URLs may still return 404 before tag creation and
+that expected state does not fail Git UPM resolution. Post-public repeats P and R resolution
+anonymously; private results cannot substitute for public availability evidence.
+
 Before acceptance, the terminal-revision gate in
 [Release Evidence](05-release-evidence.md#terminal-revisions) must establish both package paths as
 `T`. For each resolved package, generate a POSIX-relative, byte-order-sorted inventory of path plus

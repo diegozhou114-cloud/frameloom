@@ -51,11 +51,27 @@ All Pre-tag Required rows must be `PASS` before creating a tag. This phase inclu
 and host gates, both P/R fresh-project runs, P/R tree/content equality, D0 on full `R`, identity,
 documentation, license/notices/metadata, history, diff/whitespace, and exact staged-whitelist audits.
 
+First fast-forward full `R` to Gitee `master`; GitHub still does not exist. Run D0 from the Gitee URL
+pinned to full `R`, then require the complete history/privacy/license audit to pass. Only afterward
+perform the approved availability recheck, create GitHub as an empty private repository without
+generated content, and push complete unchanged history with `master=R`. This first GitHub push must
+not create or push a tag.
+
+Run the P and R fresh-project gates through the real private GitHub URL. Record their authenticated
+private boundary and never describe them as anonymous. P/R commit objects are both reachable from
+`master=R`; lockfiles must resolve their respective full SHAs. A 404 from the three tag-based package
+metadata URLs before `v0.1.0` exists is expected and does not fail these UPM gates. Only when every
+Pre-tag Required row is `PASS` may the tag transition begin.
+
+### Tag Transition
+
+This transition is not a fourth gate phase. It starts only after every Pre-tag Required row passes
+and ends before Post-tag/Pre-public evaluation.
+
 Create one local unsigned annotated `v0.1.0` directly on `R`. Its English message contains
 `FrameLoom v0.1.0` and full `R`. Reject lightweight, wrong-target, abbreviated-message, signed, or
-verified claims. After the approved read-only availability recheck, create GitHub as an empty private
-repository without generated content. Push complete unchanged `master` history and that exact
-existing tag object to Gitee and private GitHub; never recreate the tag per host.
+verified claims. Push that same existing tag object to Gitee and private GitHub; never recreate it
+per host.
 
 ### Post-tag / Pre-public
 
@@ -68,10 +84,11 @@ the two approved asset names to the private repository's Release before visibili
 
 ### Post-public
 
-After visibility changes, run anonymous clone, clean consumer UPM resolution, README/link checks,
-the three metadata URLs, Release page, and candidate Release asset checks. Any Required failure
-stops release completion and announcement. Public visibility does not permit moving/rebuilding the
-tag; repair in a later commit/version.
+After visibility changes, run anonymous clone, separate clean P and R consumer UPM resolutions,
+`v0.1.0` tag/Release resolution at `R`, README/link checks, the three metadata URLs, Release page,
+and candidate Release asset checks. Private authenticated results cannot substitute for these
+anonymous gates. Any Required failure stops release completion and announcement. Public visibility
+does not permit moving/rebuilding the tag; repair in a later commit/version.
 
 Future-phase Required rows may remain `NOT RUN` before their phase and do not block an earlier
 transition. A phase transition evaluates every Required row assigned to that phase and all prior

@@ -51,10 +51,17 @@ invalidates the candidate rather than relabeling it `P`.
 
 ## 6. Release Commit
 
-Create direct child `R` changing only root `README.md` to embed full `P`. Run P/R tree/content
-equality, both fresh-project runs, and D0 on full `R`. A failure invalidates the pair; append corrected
-`P'` and README-only child `R'`, then rerun applicable gates. Do not broaden whitelist, rewrite
-history, or move a tag.
+Create direct child `R` changing only root `README.md` to embed full `P`, then run local P/R
+tree/content equality. Subsequent remote work requires separate owner authorization and follows this
+order: fast-forward Gitee `master` to `R`; run D0 against Gitee full `R`; pass the complete
+history/privacy/license audit; create empty private GitHub; push unchanged full history and
+`master=R` without a tag; then run authenticated private-GitHub P/R fresh-project gates.
+
+Only after every Pre-tag Required gate passes may release operations create the annotated tag once
+locally and push that same object to both remotes. Tag, visibility, Release, and announcement remain
+outside implementation authority. Before tag creation, a failure invalidates the pair; append
+corrected `P'` and README-only child `R'`, then rerun applicable gates. Do not broaden the whitelist,
+rewrite history, or move a created tag.
 
 Implementation planning begins only after final design approval. The design-only `D` and
 plan-only `L` precede implementation under the approved identity and whitelist rules.

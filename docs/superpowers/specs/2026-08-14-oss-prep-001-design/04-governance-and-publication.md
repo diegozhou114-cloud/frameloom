@@ -22,13 +22,16 @@ signed-in session; it created no repository. Recheck availability immediately be
 
 ## Authority And Branches
 
-Before publication, Gitee is staging authority and `DEMO-D0` uses full `R`. GitHub is not created
-before its approved publication stage. Create it empty and private with no generated README,
-license, `.gitignore`, initial commit, `main`, or other branch.
+Before publication, Gitee is staging authority and `DEMO-D0` uses full `R`; GitHub does not exist
+before D0. After D0 passes, the complete history/privacy/license audit must pass before the first
+private GitHub push. Recheck availability, then create GitHub empty and private with no generated
+README, license, `.gitignore`, initial commit, `main`, or other branch.
 
-Push complete unchanged history through `master`, set it as the sole default/canonical branch, and
-do not squash, rebase, filter, or re-import. Local, Gitee, and GitHub canonical/default branches are
-all `master`; no `main` compatibility branch exists. Any future rename is separate governance work.
+The Pre-tag GitHub push contains complete unchanged history and `master=R` only; it pushes no tag.
+Set `master` as the sole default/canonical branch and do not squash, rebase, filter, or re-import.
+Local, Gitee, and GitHub canonical/default branches are all `master`; no `main` compatibility branch
+exists. Any future rename is separate governance work. After all Pre-tag gates pass, create the tag
+once locally and push the same tag object to Gitee and private GitHub.
 
 After publication, GitHub is sole authority for branches, PRs, Issues, Actions, Releases, and
 development. Gitee accepts only fast-forward mirrors of GitHub branches/tags and no independent
