@@ -5,7 +5,6 @@
         "ZWebGLFrameWork.Core",
         "ZWebGLFrameWork.ECS",
         "ZWebGLFrameWork.Data",
-        "ZWebGLFrameWork.Network",
         "ZWebGLFrameWork.UI",
         "ZWebGLFrameWork.FSM",
         "ZWebGLFrameWork.Gameplay",
