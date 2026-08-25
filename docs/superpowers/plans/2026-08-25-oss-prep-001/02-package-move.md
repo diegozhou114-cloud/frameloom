@@ -109,7 +109,7 @@ unsafe/override/precompiled/version/no-engine fields must remain byte-semantical
 
 | File after move | Name | GUID | Exact references | includePlatforms / defineConstraints / autoReferenced |
 | --- | --- | --- | --- | --- |
-| `Assets/Editor/ZWebGLFrameWork.Editor.asmdef` | `ZWebGLFrameWork.Editor` | `bc1e7ddea4af03f4f8c98d0fbd904c41` | `ZWebGLFrameWork.Core,ZWebGLFrameWork.ECS,ZWebGLFrameWork.Data,ZWebGLFrameWork.Network,ZWebGLFrameWork.UI,ZWebGLFrameWork.FSM,ZWebGLFrameWork.Gameplay,ZWebGLFrameWork.Combat,ZWebGLFrameWork.SimulationCore` | `[Editor] / [] / true` |
+| `Assets/Editor/ZWebGLFrameWork.Editor.asmdef` | `ZWebGLFrameWork.Editor` | `bc1e7ddea4af03f4f8c98d0fbd904c41` | `ZWebGLFrameWork.Core,ZWebGLFrameWork.ECS,ZWebGLFrameWork.Data,ZWebGLFrameWork.UI,ZWebGLFrameWork.FSM,ZWebGLFrameWork.Gameplay,ZWebGLFrameWork.Combat,ZWebGLFrameWork.SimulationCore` | `[Editor] / [] / true` |
 | `Assets/Tests/Combat/ZWebGLFrameWork.Combat.Tests.asmdef` | `ZWebGLFrameWork.Combat.Tests` | `37a5a73b9f3cd498ea4024d5954d5295` | `ZWebGLFrameWork.Combat,ZWebGLFrameWork.Core,ZWebGLFrameWork.Data,ZWebGLFrameWork.SimulationCore` | `[Editor] / [UNITY_INCLUDE_TESTS] / false` |
 | `Packages/com.zwebglframework.runtime/Runtime/Combat/ZWebGLFrameWork.Combat.asmdef` | `ZWebGLFrameWork.Combat` | `a4b58f3c00bb55944b3fda5d7624f2c1` | `ZWebGLFrameWork.Core,ZWebGLFrameWork.Data,ZWebGLFrameWork.Gameplay,ZWebGLFrameWork.SimulationCore,UniTask` | `[] / [] / true` |
 | `Assets/Tests/Core/ZWebGLFrameWork.Core.Tests.asmdef` | `ZWebGLFrameWork.Core.Tests` | `a667fc877e975ba4cbe87636fabb41bb` | `ZWebGLFrameWork.Core,ZWebGLFrameWork.Data` | `[Editor] / [UNITY_INCLUDE_TESTS] / false` |
