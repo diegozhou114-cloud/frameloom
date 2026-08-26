@@ -77,30 +77,33 @@ Packages/com.zwebglframework.nativewebsocket/ -> Packages/com.zwebglframework.ru
   same SHA. Unity's generated embedded lock value may use `file:com.zwebglframework.runtime`; this
   is not an authored `file:` dependency.
 - **Do not touch:** historical plans/specs/evidence, `docs/启动管线开发待办.md`, product assets,
-  runtime semantics, Server project names, or `.github/workflows/ci.yml` whose existing broad
-  `Assets/**` and `Packages/**` paths already cover the move.
+  runtime semantics, Server behavior/tests/infrastructure/project names, or `.github/workflows/ci.yml`
+  whose existing broad `Assets/**` and `Packages/**` paths already cover the move.
 - **Verify:** run `rg -n 'Assets/Scripts|Packages/com\.zwebglframework\.(kcp2k|nativewebsocket)'`
   over the listed live consumers and expect no stale hit except explicit absence assertions; parse
-  both package JSON files with `jq`; run the vendor script tests and Server locked restore/build.
+  both package JSON files with `jq`; run the vendor script tests and the Task 1.3 package-owned .NET
+  builds/tests against relocated paths. Do not use the complete Server solution as this gate.
 - **Checkpoint:** path-only repairs and regenerated host manifest/lock, separate from API changes.
 - **Stop:** any consumer needs a source copy/symlink, lock revision changes, or Server must rename an
-  assembly/project to compile.
+  assembly/project or change behavior/test infrastructure to compile.
 
 ## Task 2.4: Prove Assembly And Host Compatibility
 
 - **Paths:** all moved production/transport asmdefs, all host test asmdefs, host Unity project,
-  Server solution, and `$OSS_EVIDENCE_ROOT/package-move/`.
-- **Behavior:** deep-compare every asmdef field and GUID against baseline, run the stage 1 Unity,
-  Server, Node, and Python commands on moved paths, then refresh CodeGraph after the large move.
+  package-linked .NET projects, and `$OSS_EVIDENCE_ROOT/package-move/`.
+- **Behavior:** deep-compare every asmdef field and GUID against baseline; run the stage 1 Required
+  Unity, framework .NET, Node, and Python commands on moved paths; then refresh CodeGraph after the
+  large move. Optional Server reference results remain separately labeled and non-blocking.
 - **Do not touch:** asmdef names/references/platform settings to silence failures; package API logic.
 - **Verify:** `node scripts/oss/validate-package-move.mjs ...`, full baseline commands from
   [task 1.3](01-baseline.md#task-13-run-the-pre-move-compile-and-test-baseline), and
   `codegraph sync && codegraph explore "SessionPresentationBridge CommandRecorder canonical paths"`.
-  Expected: all regressions exit 0 and CodeGraph reports only package production definitions.
+  Expected: all Required regressions exit 0 and CodeGraph reports only package production definitions.
 - **Checkpoint:** reviewable canonical-move commit; staged diff contains relocation/validator/path
   repair only, with no API visibility or behavior change.
-- **Stop:** changed GUID/asmdef contract, serialization incompatibility, compile/test regression,
-  stale CodeGraph package paths after sync, or any production definition remains under `Assets/`.
+- **Stop:** changed GUID/asmdef contract, serialization incompatibility, Required compile/test
+  regression, mixed-filter drift, stale CodeGraph package paths after sync, or any production
+  definition remains under `Assets/`. Optional Server reference failure alone does not stop the move.
 
 ## Frozen Assembly Inventory
 

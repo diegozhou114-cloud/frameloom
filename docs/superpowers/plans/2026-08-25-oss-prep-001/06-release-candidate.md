@@ -143,4 +143,6 @@ These are blockers, not implementation actions:
    announcement and is fixed in a new version, never by moving v0.1.0.
 5. **Completion:** only after every Required row in every phase is PASS generate and independently
    verify `frameloom-v0.1.0-validation-summary.md` and `frameloom-v0.1.0-sha256.txt`. Keep raw logs
-   private and distinguish local results from actual Actions results.
+   private and distinguish local results from actual Actions results. Keep every Server reference
+   row `Required = No`; do not present optional results or the historical 336/340 aggregate as
+   framework or CI PASS.

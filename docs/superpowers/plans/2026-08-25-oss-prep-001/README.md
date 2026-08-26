@@ -6,6 +6,8 @@
 
 **Design correction D2:** `cdb122fd6a4451ceae489b8f9d18dff53ded9e85`
 
+**Framework-scope correction D3:** `c164d8a99d8a76dc08c5a7bc92798999f2af4980`
+
 **Target branch:** `codex/oss-prep-001`
 
 **Unity:** `2022.3.62f3c1`
@@ -37,8 +39,10 @@ a tag, then authenticated P/R fresh-project validation. Tag and visibility remai
 
 ## Revision Terms
 
-- `D` is the approved design commit above; `D2` is its direct release-order correction.
-- `L` is the plan-bundle-only direct child of `D2`; Git resolves its SHA after commit creation.
+- `D` is the approved design commit above; `D2` corrects release order and `D3` narrows the release
+  gate to framework scope.
+- `L` is the original plan-bundle-only direct child of `D2`; `L2` is the plan-only direct child of
+  `D3` that applies the framework-scope correction.
 - `P` is the final package-freeze revision after any number of reviewable implementation commits.
 - `R` is the direct child of `P` and changes only root `README.md`.
 - `T` is the identical `Packages/com.zwebglframework.runtime` Git tree in `P` and `R`.
@@ -79,6 +83,11 @@ assets, all existing `Assets/Editor/` host tools, tests, `Server/`, and external
 their approved host locations. No existing Editor tool is sufficiently consumer-only to justify an
 assembly-boundary change in v0.1.0, so the package has no tracked `Editor/` content.
 
+`Server/` remains a reference implementation. Only mechanical source-link/include changes required
+by package relocation are allowed; behavior, test infrastructure, deployment, and productization are
+outside scope. Required .NET validation targets package-owned engine-free cross-runtime contracts;
+the complete Server solution and reference hosts/tests are non-Required diagnostics.
+
 Do not implement Demo content, rename `ZWebGLFrameWork.*` namespaces/asmdefs/Server projects, change
 serialized identities, add source copies/symlinks/`file:` dependencies, create GitHub, push, create
 a tag, switch visibility, or publish a Release during implementation. Never touch
@@ -93,6 +102,9 @@ plans merely because they contain old paths.
 - The 25 current asmdefs comprise 16 production/transport, eight test, and one host Editor assembly.
 - CodeGraph identifies `CombatManager` as the production caller of buffered presentation Apply;
   Replay capture callers are the Unity and Server Replay/session fixtures listed in stage 3.
+- The per-project .NET classification and exact mixed-assembly class filter are owned by
+  [Task 1.3](01-baseline.md#task-13-run-the-pre-move-compile-and-test-baseline). Reference Server
+  failure or `NOT RUN` never blocks independent Node/Python gates and is never framework CI PASS.
 - Kcp2k is MIT at `66efda6686f649838d42f078fbaabf56ac449de4`. NativeWebSocket is pinned at
   `cbbf04d42522d5f5b466224a0b8e3936676f9b32`; its canonical root Apache-2.0 license is the
   distribution basis, while nested Unity package and csproj MIT declarations are disclosed metadata
@@ -112,5 +124,9 @@ docs/superpowers/plans/2026-08-25-oss-prep-001/05-package-freeze.md
 docs/superpowers/plans/2026-08-25-oss-prep-001/06-release-candidate.md
 ```
 
-Implementation requires a separate instruction after `L`; plan approval and the plan-only commit
+Implementation requires a separate instruction after `L2`; plan approval and the plan-only commit
 authorize neither implementation nor publication.
+
+The `L2` scope-correction whitelist is exactly the five actually modified plan files: `README.md`,
+`01-baseline.md`, `02-package-move.md`, `05-package-freeze.md`, and `06-release-candidate.md` in this
+directory. It contains no design, implementation, test, package, or Server file.

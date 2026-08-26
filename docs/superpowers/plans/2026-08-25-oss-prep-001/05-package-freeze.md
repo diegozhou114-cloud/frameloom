@@ -31,13 +31,14 @@ node scripts/oss/audit-history.mjs --revision "$CANDIDATE_P" \
 
 ## Task 5.2: Run Every Applicable Required Gate On The Candidate
 
-- **Paths:** candidate package/runtime, host Unity project, Server solution, Node/Python/CI tooling,
-  external `$OSS_EVIDENCE_ROOT/p-candidate/gates/`; `ci/oss/gates.json` owns phase assignments.
-- **Behavior:** execute the Required package/runtime/host suite against the full candidate SHA. The
+- **Paths:** candidate package/runtime, host Unity project, package-linked .NET projects,
+  Node/Python/CI tooling, optional Server reference projects, external
+  `$OSS_EVIDENCE_ROOT/p-candidate/gates/`; `ci/oss/gates.json` owns phase assignments.
+- **Behavior:** execute the Required package/runtime/Unity-host/framework suite against the candidate. The
   runner records environment, revision, exit status, sanitized evidence name/digest, and Notes for
   each gate. Rows that structurally require `R`, tag, private GitHub, or public GitHub remain Required
-  but `NOT RUN` in their later phase and do not block this stage. WebGL IL2CPP managed allocation is
-  the fixed non-Required `NOT RUN`; Editor/Mono evidence cannot substitute.
+  but `NOT RUN` in their later phase and do not block this stage. WebGL IL2CPP managed allocation and
+  Server reference validation are non-Required; neither substitutes for Required framework evidence.
 - **Do not touch:** thresholds/tests to obtain PASS, package content during the run, generated logs in
   repository, or Actions success claims without a cited run.
 - **Verify:** run:
@@ -59,7 +60,7 @@ node scripts/oss/release-evidence.mjs validate-gates \
 | --- | --- |
 | Unity | compile, nonzero EditMode/PlayMode, focused external contracts |
 | Performance | Editor/Mono allocation and SOAK via `SimulationPerformanceBatch.Run` |
-| Server | locked restore, warnings-as-errors build, nonzero Release tests |
+| Framework .NET | package-owned SimulationCore/Network builds, ECS/Network tests, exact mixed filter |
 | Tooling | Node and Python suites, workflow contracts, clean generated state |
 | WebGL | Unity 2022.3.62f3c1 IL2CPP build, summary/hashes, trusted-browser smoke |
 | Structure | GUID/meta/path mapping, all asmdef fields/GUIDs, one production copy |
@@ -67,9 +68,14 @@ node scripts/oss/release-evidence.mjs validate-gates \
 | Audit | full-history secrets/privacy/PII/size/license and new identity range |
 | Diff | whitespace, exact checkpoint whitelists, no Layout/shader-log change |
 
+  ReplayValidator, FrameSync, RealtimeHost, Kcp2kHost, `Server/Tests`, fixture generators, and the
+  complete Server solution are separate `Required = No` rows. `FAIL` or `NOT RUN` is reported without
+  blocking `P`; the historical 336/340 result is diagnostic only and never framework or CI PASS.
+
 - **Checkpoint:** complete private P-candidate evidence with no failed applicable Required row.
 - **Stop:** any applicable Required row is not `PASS`, any gate ran against a dirty/different revision,
-  WebGL smoke is replaced by build-only evidence, or unmeasured allocation is overstated.
+  mixed filtering drifts, WebGL smoke is replaced by build-only evidence, or optional Server/allocation
+  evidence is overstated.
 
 ## Task 5.3: Designate P And Freeze T
 
