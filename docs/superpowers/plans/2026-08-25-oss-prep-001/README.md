@@ -53,6 +53,16 @@ dependency revision is UniTask `e5acc106ee196bc5a32fb14cdf2987b0f96d11e0`.
   `/Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/Unity`.
 - Keep raw logs and generated projects under an owner-selected repository-external
   `OSS_EVIDENCE_ROOT`; never commit that directory or claim stronger cache isolation than observed.
+- Treat the one-time Unity metadata canonicalization as a pre-baseline repair before Task 1.1. Its
+  accepted tracked scope is exactly the 71 legacy `.meta` blobs that are 59 bytes without a terminal
+  LF and that Unity 2022.3.62f3c1 reproducibly rewrites in a clean clone. Preserve every GUID, asset
+  path, and pre-existing nonempty semantic value.
+- A missing importer is not independently invalid. Keep the other 16 importerless `.meta` files
+  byte-for-byte unchanged, including
+  `Assets/Tests/SimulationCore/SessionTerminalTests.cs.meta` with `timeCreated: 1784620800`.
+- Unity may generate shader compiler logs only at the approved ignored pattern
+  `/Logs/shadercompiler-UnityShaderCompiler*.log`. Never edit, delete, stage, or use those logs as
+  test input. Any other tracked change or unapproved untracked path blocks execution.
 - Use `Diego Zhou <316624805+diegozhou114-cloud@users.noreply.github.com>` through command-scoped
   author/committer variables for every new commit. Do not change Git configuration or timestamps.
 - Begin each code/tool change with a failing focused test or contract, capture RED outside the
@@ -77,7 +87,9 @@ plans merely because they contain old paths.
 
 ## Planning Findings
 
-- The baseline has 523 tracked `.meta` files; every file contains a GUID.
+- The baseline has 523 tracked `.meta` files with 523 unique GUIDs. The pre-baseline repair
+  canonicalizes the 71 clean-clone-reproducible legacy files and leaves the 16 stable importerless
+  files byte-for-byte unchanged; importer presence alone is not an integrity criterion.
 - The 25 current asmdefs comprise 16 production/transport, eight test, and one host Editor assembly.
 - CodeGraph identifies `CombatManager` as the production caller of buffered presentation Apply;
   Replay capture callers are the Unity and Server Replay/session fixtures listed in stage 3.

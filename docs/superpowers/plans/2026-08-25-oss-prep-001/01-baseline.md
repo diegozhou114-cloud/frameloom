@@ -3,12 +3,27 @@
 This stage owns the immutable pre-move inventory and stop-on-baseline-failure gate. Shared execution
 rules are in the [plan index](README.md#execution-contract).
 
+## Pre-Baseline Repair Gate
+
+Before Task 1.1, land the one-time Unity 2022.3 metadata canonicalization as a separately reviewed
+repair. The only accepted tracked metadata scope is the 71 legacy `.meta` blobs that are 59 bytes,
+lack a terminal LF, and are reproducibly rewritten by a clean-clone import. Copy Unity's output
+byte-for-byte; preserve all GUIDs, asset paths, and pre-existing nonempty semantic values.
+
+Do not treat a missing importer as independently invalid. Keep the remaining 16 importerless
+`.meta` files byte-for-byte unchanged. In particular,
+`Assets/Tests/SimulationCore/SessionTerminalTests.cs.meta` must retain
+`timeCreated: 1784620800`. Unity-generated shader logs are permitted only at the ignored pattern
+`/Logs/shadercompiler-UnityShaderCompiler*.log`; never edit, delete, stage, or use them as test
+input. Any other tracked change or unapproved untracked path blocks Task 1.1.
+
 ## Task 1.1: Confirm Revision And Capture Tracked State
 
 - **Paths:** repository root; external outputs
   `$OSS_EVIDENCE_ROOT/baseline/git.txt`, `tracked-files.txt`, and `status.txt`.
 - **Behavior:** require branch `codex/oss-prep-001`, require `D` to be an ancestor of HEAD, record
-  full HEAD/branch/remotes/tracked paths/staged and unstaged status, and record the Unity version.
+  full HEAD/branch/remotes/tracked paths/staged and unstaged status, approved ignored shader-log
+  paths, and the Unity version.
 - **Do not touch:** any tracked file, index, remote, Git config, `Library/`, Layout, or shader log.
 - **Verify:** run:
 
