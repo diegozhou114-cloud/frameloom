@@ -31,6 +31,40 @@ the package. `Assets/Tests/PublicApiContract/` owns the external contract assemb
 paths to the canonical source. No manifest authors `file:` dependencies or symlinks; the current
 host uses Unity's embedded-package behavior, while external consumers use immutable Git URLs.
 
+`Server/` is a package-external reference implementation, not a service deliverable. Package moves
+may change only mechanical source-link/include paths required by relocation; they do not change
+Server behavior, test infrastructure, deployment scope, or product readiness.
+
+## Cross-Runtime .NET Scope
+
+The Required .NET gate validates package-owned, engine-free contracts. It does not build or test the
+complete Server solution as a release condition. The project inventory is:
+
+| Project | Classification | Basis |
+| --- | --- | --- |
+| `Server/SimulationCore/ZWebGLFrameWork.SimulationCore.csproj` | Framework Required | Directly compiles package-owned SimulationCore source. |
+| `Server/NetworkContracts/ZWebGLFrameWork.Network.Contracts.csproj` | Framework Required | Directly compiles package-owned Network contracts. |
+| `Server/ECS.Tests/ZWebGLFrameWork.ECS.ServerTests.csproj` | Framework Required | Directly compiles ECS source and its engine-free lifecycle tests. |
+| `Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj` | Framework Required | Directly compiles Network contracts/runtime/WebGL boundaries and their engine-free tests. |
+| `Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj` | Mixed | Links framework tests but also references ReplayValidator and repository checks. |
+| `Server/ReplayValidator/ReplayValidator.csproj` | Reference Non-Required | Replay validation reference executable. |
+| `Server/FrameSync/FrameSyncServer.csproj` | Reference Non-Required | Frame-sync reference behavior. |
+| `Server/Kcp2kHost/ZWebGLFrameWork.Kcp2kHost.csproj` | Reference Non-Required | Kcp transport reference host. |
+| `Server/RealtimeHost/ZWebGLFrameWork.RealtimeHost.csproj` | Reference Non-Required | ASP.NET realtime reference host. |
+| `Server/Tests/ZWebGLFrameWork.Server.Tests.csproj` | Reference Non-Required | Tests ReplayValidator, FrameSync, Kcp2kHost, and RealtimeHost. |
+| `Server/Tools/FrameSyncFixtureGenerator/FrameSyncFixtureGenerator.csproj` | Reference Non-Required | Reference fixture generation. |
+| `Server/Tools/ReplayFixtureGenerator/ReplayFixtureGenerator.csproj` | Reference Non-Required | Reference replay fixture generation. |
+| `Server/ZWebGLFrameWork.Server.sln` | Reference Non-Required aggregate | Mixes every classification and is not a framework gate. |
+
+The stable Required subset of the mixed test assembly is the exact classes
+`ContentManifestGoldenTests`, `DeterministicRandomCompatibilityTests`,
+`LogicIntCompatibilityTests`, `ModeBehaviorGoldenTests`, `SessionCommandTests`,
+`SessionDeterminismTests`, `ModeBehaviorTests`, `CoreTargetingTests`, `SimSystemGroupTests`, and
+`SessionTerminalTests`, selected by fully qualified class-name filters. Exclude
+`ArchitectureTests`, `ReplayRoundTripTests`, and `ReplayValidatorTests`. A filter that selects an
+unexpected class or depends on repository-root/service behavior stops the gate; do not create a new
+test project to conceal the mixed boundary.
+
 ## Dependency Contract
 
 Unity 2022.3 cannot express Git dependencies transitively between packages. Each consumer manifest

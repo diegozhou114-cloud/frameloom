@@ -10,14 +10,18 @@ unreviewable batch.
 ## 1. Baseline
 
 Record tracked files, every `.meta` GUID, asmdef name/GUID/reference, Server/CI path reference,
-branch/full HEAD, and Git status. Run approved baseline compilation and tests. A failure stops
-migration and is reported as pre-existing rather than obscured by later changes.
+branch/full HEAD, and Git status. Run approved Required baseline compilation and tests. A Required
+failure stops migration and is reported as pre-existing rather than obscured by later changes.
+Server reference build/tests are non-Required diagnostics: failure or `NOT RUN` does not stop
+independent Node/Python gates. The existing 336/340 aggregate result is historical evidence, not a
+Server PASS.
 
 ## 2. Canonical Package Move
 
 Move production source into `Packages/com.zwebglframework.runtime/` with history and `.meta` intact;
 do not copy it. Repair host, Server, CI, and asmdef-related paths. Do not mix public API behavior
-changes into this stage.
+changes into this stage. Server changes are limited to mechanical source-link/include paths required
+by relocation; do not alter reference behavior, tests, infrastructure, or product scope.
 
 Compare GUID/asmdef inventories, compile all affected assemblies, and run complete host regression.
 Serialization GUID or assembly incompatibility stops work and is not bypassed by metadata
@@ -44,10 +48,11 @@ paths/links, evidence formats, and checkpoint whitelist.
 
 ## 5. Package Freeze
 
-Run every Required pre-`R` package/runtime/host/tooling/audit/document gate. R-dependent rows remain
-Required but cannot run or be marked PASS yet. When all applicable gates pass, record full `P` and
-`P:Packages/com.zwebglframework.runtime` as `T`. No package path changes afterward. A failure
-invalidates the candidate rather than relabeling it `P`.
+Run every Required pre-`R` package/runtime/Unity-host/framework-.NET/tooling/audit/document gate.
+Server reference rows remain non-Required. R-dependent rows remain Required but cannot run or be
+marked PASS yet. When all applicable gates pass, record full `P` and
+`P:Packages/com.zwebglframework.runtime` as `T`. No package path changes afterward. A Required
+failure invalidates the candidate rather than relabeling it `P`.
 
 ## 6. Release Commit
 

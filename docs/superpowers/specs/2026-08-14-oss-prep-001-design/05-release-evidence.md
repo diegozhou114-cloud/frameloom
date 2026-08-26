@@ -31,25 +31,34 @@ version rather than candidate regeneration.
 
 Every gate is assigned exactly one phase: `Pre-tag`, `Post-tag/Pre-public`, or `Post-public`.
 Technical gates are Required unless explicitly identified as non-goals. Required package/runtime
-coverage includes Unity EditMode/PlayMode, Editor/Mono allocation and SOAK, Server build/tests,
-Node/Python, WebGL IL2CPP build/browser smoke, P/R fresh-project, external contracts, P/R
-tree/content equality, GUID/meta/asmdef/path, licenses/notices/metadata, full-history
-secret/privacy/size/provenance/license audit, and diff/whitespace/staged whitelists.
+coverage includes Unity EditMode/PlayMode, Editor/Mono allocation and SOAK, package-owned engine-free
+cross-runtime .NET validation, Node/Python, WebGL IL2CPP build/browser smoke, P/R fresh-project,
+external contracts, P/R tree/content equality, GUID/meta/asmdef/path, licenses/notices/metadata,
+full-history secret/privacy/size/provenance/license audit, and diff/whitespace/staged whitelists.
+
+The Required .NET projects and mixed-assembly class filter are owned by the
+[package specification](02-package-and-dependencies.md#cross-runtime-net-scope). ReplayValidator,
+FrameSync, RealtimeHost, Kcp2kHost, `Server/Tests`, fixture generators, and the complete Server
+solution are reference-only `Required = No` rows. Their failure or `NOT RUN` status cannot block
+FrameLoom, halt independent Node/Python gates, or be represented as framework or CI PASS. The prior
+336/340 aggregate Server result is historical diagnostic evidence only, never a complete PASS.
 
 Runtime/host gates run from complete `P`; package-only checks may use equivalent `T`. `R` does not
 mechanically repeat runtime tests, but must pass R fresh-project, equality, D0, and release-material
 audits. Evidence may attribute unchanged runtime results to `P/T`, never claim a rerun on `R`.
 
-Only WebGL IL2CPP managed allocation and explicit non-goals use `Required = No`. Missing Actions
-history never waives local gates and local results are not CI results.
+WebGL IL2CPP managed allocation, Server reference validation, and explicit non-goals use
+`Required = No`. Missing Actions history never waives local gates and local results are not CI
+results.
 
 ## Publication State Machine
 
 ### Pre-tag
 
-All Pre-tag Required rows must be `PASS` before creating a tag. This phase includes all P/T runtime
-and host gates, both P/R fresh-project runs, P/R tree/content equality, D0 on full `R`, identity,
-documentation, license/notices/metadata, history, diff/whitespace, and exact staged-whitelist audits.
+All Pre-tag Required rows must be `PASS` before creating a tag. This phase includes all P/T runtime,
+Unity-host, and framework cross-runtime gates, both P/R fresh-project runs, P/R tree/content equality,
+D0 on full `R`, identity, documentation, license/notices/metadata, history, diff/whitespace, and exact
+staged-whitelist audits.
 
 First fast-forward full `R` to Gitee `master`; GitHub still does not exist. Run D0 from the Gitee URL
 pinned to full `R`, then require the complete history/privacy/license audit to pass. Only afterward
@@ -130,10 +139,11 @@ Gate | Required | Environment | Revision | Status | Evidence digest | Notes
 use `-` and explanatory Notes. No INCONCLUSIVE/SKIPPED/WARN/UNKNOWN status exists. The generator and
 validator enforce columns, values, digest mapping, phase blockers, and final all-Required-PASS.
 
-The fixed non-Required row is:
+Fixed non-Required policy rows include:
 
 ```text
 WebGL IL2CPP managed allocation | No | Unity 2022.3.62f3c1 WebGL IL2CPP | R | NOT RUN | - | Not measured; Editor/Mono results cannot substitute for WebGL IL2CPP managed-allocation evidence.
+Server reference build/tests | No | .NET 8 reference implementation | P | NOT RUN | - | Optional reference-host evidence; not a framework or CI result.
 ```
 
 ## Checksum And Privacy
