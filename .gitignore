@@ -5,6 +5,7 @@
 [Bb]uild/
 [Bb]uilds/
 BuildLogs/
+/Logs/shadercompiler-UnityShaderCompiler*.log
 *.user
 *.userprefs
 /*.csproj
