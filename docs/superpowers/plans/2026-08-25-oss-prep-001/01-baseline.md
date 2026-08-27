@@ -107,6 +107,7 @@ UNITY_BIN=/Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/
 "$UNITY_BIN" -batchmode -nographics -runTests -projectPath "$PWD" -testPlatform PlayMode \
   -testResults "$OSS_EVIDENCE_ROOT/baseline/playmode.xml" \
   -logFile "$OSS_EVIDENCE_ROOT/baseline/playmode.log"
+npm ci --prefix ci --ignore-scripts
 node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs
 PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py'
 for project in \
