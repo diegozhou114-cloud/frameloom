@@ -145,6 +145,9 @@ namespace ZWebGLFrameWork.Combat.PlayModeTests
 
                 Assert.That(completion.Status, Is.EqualTo(UniTaskStatus.Faulted));
                 Assert.That(manager.CompletedTick, Is.EqualTo(-1));
+                InvalidOperationException observed = Assert.Throws<InvalidOperationException>(
+                    () => completion.GetAwaiter().GetResult());
+                Assert.That(observed.Message, Is.EqualTo("buffered presentation failed"));
             }
             finally
             {
