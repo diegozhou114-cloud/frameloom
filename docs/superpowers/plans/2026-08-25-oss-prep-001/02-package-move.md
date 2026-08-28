@@ -58,7 +58,7 @@ Packages/com.zwebglframework.nativewebsocket/ -> Packages/com.zwebglframework.ru
 ## Task 2.3: Repair Every Live Path Consumer And Host Lock
 
 - **Paths:** update `Assets/Editor/AutoFixProcessor.cs`, `Assets/Editor/CompileHook.cs`,
-  `Assets/Tests/Editor/{LegacyCombatRemovalTests.cs,RepositoryIntegrityTests.cs}`,
+  `Assets/Tests/Editor/{LegacyCombatRemovalTests.cs,RepositoryIntegrityTests.cs,SimulationArchitectureTests.cs}`,
   `Assets/Tests/Network/{LegacyNetworkStackRemovalTests.cs,WebGlAssemblyBoundaryTests.cs}`,
   `scripts/repair/audit-compiler-contracts.sh`, `scripts/vendor-kcp2k.sh`,
   `scripts/vendor-nativewebsocket.sh`, `scripts/vendor-nativewebsocket.test.sh`,
@@ -71,6 +71,9 @@ Packages/com.zwebglframework.nativewebsocket/ -> Packages/com.zwebglframework.ru
   `Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj`, and
   `Server/SimulationCore.Tests/ArchitectureTests.cs`.
 - **Behavior:** point live source/link/include/vendor destinations at `Runtime/` or `ThirdParty/`.
+  In `SimulationArchitectureTests`, derive the project root and point both the production scan and
+  obsolete-path checks at `Packages/com.zwebglframework.runtime/Runtime`; do not reconstruct the old
+  root through `Application.dataPath`, `Scripts`, or split strings.
   Pin host UniTask to full SHA `e5acc106ee196bc5a32fb14cdf2987b0f96d11e0`. Author no framework
   manifest entry: embedded discovery is automatic. Regenerate the lock so the old two embedded
   packages disappear, `com.zwebglframework.runtime` is `source: embedded`, and UniTask resolves the
@@ -87,6 +90,8 @@ Packages/com.zwebglframework.nativewebsocket/ -> Packages/com.zwebglframework.ru
   both package JSON files with `jq`; run the vendor script tests and the Task 1.3 package-owned .NET
   builds/tests against relocated paths. BUILD-002 must require the private ref `Attack` method, not
   the removed inline lambda; the allocation test and Task 2.4 Unity gate verify cached traversal.
+  Run the focused `SimulationArchitectureTests` class and full EditMode suite so structured old-path
+  construction is exercised instead of relying only on literal `rg` matches.
   Do not use the complete Server solution as this gate.
 - **Checkpoint:** path-only repairs and regenerated host manifest/lock, separate from API changes.
 - **Stop:** any consumer needs a source copy/symlink, lock revision changes, or Server must rename an
