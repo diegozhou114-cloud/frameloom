@@ -8,9 +8,9 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/ECS/Entity.cs" Link="ECS/Entity.cs" />
-    <Compile Include="../../Assets/Scripts/ECS/IComponent.cs" Link="ECS/IComponent.cs" />
-    <Compile Include="../../Assets/Scripts/ECS/World.cs" Link="ECS/World.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/ECS/Entity.cs" Link="ECS/Entity.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/ECS/IComponent.cs" Link="ECS/IComponent.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/ECS/World.cs" Link="ECS/World.cs" />
     <Compile Include="../../Assets/Tests/ECS/WorldLifecycleTests.cs" Link="Tests/ECS/WorldLifecycleTests.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
     <PackageReference Include="NUnit" Version="4.2.2" />

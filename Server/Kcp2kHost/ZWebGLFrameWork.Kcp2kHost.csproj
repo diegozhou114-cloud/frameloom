@@ -9,6 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../FrameSync/FrameSyncServer.csproj" />
-    <Compile Include="../../Packages/com.zwebglframework.kcp2k/Runtime/Upstream/**/*.cs" Link="kcp2k/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/ThirdParty/Kcp2k/Runtime/Upstream/**/*.cs" Link="kcp2k/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

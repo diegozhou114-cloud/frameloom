@@ -57,7 +57,8 @@ namespace ZWebGLFrameWork.Editor
             foreach (var guid in asmdefs)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!path.StartsWith("Assets/Scripts/") && !path.StartsWith("Assets/Editor/"))
+                if (!path.StartsWith("Packages/com.zwebglframework.runtime/Runtime/") &&
+                    !path.StartsWith("Assets/Editor/"))
                     continue;
 
                 var asmdef = AssetDatabase.LoadAssetAtPath<TextAsset>(path);

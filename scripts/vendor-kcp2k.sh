@@ -77,7 +77,7 @@ cp -R "$work/$SOURCE_SUBTREE/kcp2k/." "$work/Upstream/"
 find "$work/Upstream" -name '*.asmdef' -delete
 find "$work/Upstream" -name '*.meta' -delete
 
-package_root=Packages/com.zwebglframework.kcp2k
+package_root=Packages/com.zwebglframework.runtime/ThirdParty/Kcp2k
 upstream_root="$package_root/Runtime/Upstream"
 metadata_root="$work/metadata"
 if [[ -d "$upstream_root" ]]; then

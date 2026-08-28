@@ -8,6 +8,6 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/SimulationCore/**/*.cs" Link="SimulationCore/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/**/*.cs" Link="SimulationCore/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

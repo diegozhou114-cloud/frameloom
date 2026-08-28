@@ -25,7 +25,7 @@ ZWebGLFrameWork 是面向策略游戏的 Unity 2022.3 通用框架。目标是�
 | 离线启动、五槽位 JSON 存档、单机战斗 | `Ready` | 使用框架默认内容与本地保留身份。 |
 | 确定性 `SimulationCore`、snapshot、checksum、Replay 基础流程 | `Ready` | 业务必须保持输入、内容和数值规则确定性。 |
 | Buffered simulation output、Replay/server/Combat 消费链 | `Ready` | 主路径复用 borrowed output；owning API 保留为 compatibility fallback。 |
-| 表现插值、实体 GameObject 池与 [`ObjectPool`](../Assets/Scripts/Core/Pool/ObjectPool.cs) / [`GameObjectPool`](../Assets/Scripts/Core/Pool/GameObjectPool.cs) 契约 | `Ready` | 池有明确容量、引用所有权和生命周期；表现数据同步消费。 |
+| 表现插值、实体 GameObject 池与 [`ObjectPool`](../Packages/com.zwebglframework.runtime/Runtime/Core/Pool/ObjectPool.cs) / [`GameObjectPool`](../Packages/com.zwebglframework.runtime/Runtime/Core/Pool/GameObjectPool.cs) 契约 | `Ready` | 池有明确容量、引用所有权和生命周期；表现数据同步消费。 |
 | WebGL WSS、Native KCP、认证 envelope | `Reference` | transport 已实现；客户端帧同步协调器尚未闭环。 |
 | .NET 8 FrameSync 组件、RealtimeHost、ReplayValidator CLI | `Reference` | 可构建、可测试；当前 Host 不能分配真实 match。 |
 | matchmaker/session 分配、客户端逐 tick 发送和 ack 消费 | `Integration Required` | 必须由业务项目实现。 |
@@ -47,8 +47,8 @@ ZWebGLFrameWork 是面向策略游戏的 Unity 2022.3 通用框架。目标是�
 
 1. 用 Unity Hub 的 `2022.3.62f3c1` 打开仓库根目录，等待 [`Packages/manifest.json`](../Packages/manifest.json) 中的包恢复完成。
 2. 打开启动场景 [`Assets/Scence/Launcher.unity`](../Assets/Scence/Launcher.unity)。该场景已在 [`EditorBuildSettings.asset`](../ProjectSettings/EditorBuildSettings.asset) 中启用。
-3. 确认 [`Assets/Resources/Config/AppConfig.asset`](../Assets/Resources/Config/AppConfig.asset) 的 Offline Mode 已开启。字段定义位于 [`AppConfig`](../Assets/Scripts/Data/AppConfig.cs)，默认值为 `true`。
-4. 进入 Play Mode。无需在场景中手动挂载 [`GameLauncher`](../Assets/Scripts/FSM/Game/GameLauncher.cs)；它只会在活动场景名为 `Launcher` 时自动创建。
+3. 确认 [`Assets/Resources/Config/AppConfig.asset`](../Assets/Resources/Config/AppConfig.asset) 的 Offline Mode 已开启。字段定义位于 [`AppConfig`](../Packages/com.zwebglframework.runtime/Runtime/Data/AppConfig.cs)，默认值为 `true`。
+4. 进入 Play Mode。无需在场景中手动挂载 [`GameLauncher`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/GameLauncher.cs)；它只会在活动场景名为 `Launcher` 时自动创建。
 5. 首次运行会在 `Application.persistentDataPath` 创建 `save_0.json`，随后进入主城。点击攻击按钮可进入使用本地权威 fallback 的单机战斗。
 
 如果 `AppConfig.asset` 缺失，框架会创建默认配置并输出错误；这只是降级路径，不应作为正常项目配置。默认战斗内容和本地权威身份也会各输出一次 warning，用来提醒集成者替换 fallback。
@@ -67,7 +67,7 @@ dotnet test Server/ZWebGLFrameWork.Server.sln --nologo --verbosity minimal
 
 ## 3. 统一运行模型
 
-确定性 [`ISimBattleSession`](../Assets/Scripts/SimulationCore/Session/ISimBattleSession.cs) 是三种模式的共同边界。Unity 的输入、网络 transport 和服务端路由都只能提交命令；表现层只消费 `PresentationFrame`，不能直接改模拟状态。
+确定性 [`ISimBattleSession`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/ISimBattleSession.cs) 是三种模式的共同边界。Unity 的输入、网络 transport 和服务端路由都只能提交命令；表现层只消费 `PresentationFrame`，不能直接改模拟状态。
 
 ```mermaid
 flowchart LR
@@ -101,22 +101,22 @@ flowchart LR
 - `SimulationCore` 不引用 `UnityEngine`，也不读取时间、网络、文件、浮点物理或场景对象。
 - tick、玩家、sequence、内容 hash 和初态由调用方显式提供。
 - Buffered 或 owning tick output 中的 `Presentation` 是 Unity 表现输入，checksum 是一致性证据。
-- 通用 [`ECS`](../Assets/Scripts/ECS) 可用于普通 Unity 运行时组织，但不是权威战斗状态；帧同步状态归 `SimulationCore` 所有。
+- 通用 [`ECS`](../Packages/com.zwebglframework.runtime/Runtime/ECS) 可用于普通 Unity 运行时组织，但不是权威战斗状态；帧同步状态归 `SimulationCore` 所有。
 - 服务端和客户端必须使用相同 canonical manifest、协议版本、schema、初态和有序命令。
 
 ## 4. 项目结构与依赖边界
 
 | 路径 | 职责 | 依赖规则 |
 |---|---|---|
-| [`Assets/Scripts/Core`](../Assets/Scripts/Core) | 单例、事件、日志、资源、场景、音频、SDK 等基础设施 | 不依赖业务模块。 |
-| [`Assets/Scripts/Data`](../Assets/Scripts/Data) | 响应式模型、配置、本地存档、业务数据 | 依赖 Core。 |
-| [`Assets/Scripts/ECS`](../Assets/Scripts/ECS) | Unity 侧通用轻量 ECS | 依赖 Core，不替代 SimulationCore。 |
-| [`Assets/Scripts/SimulationCore`](../Assets/Scripts/SimulationCore) | 确定性世界、命令、模式、session、snapshot、Replay | 无 Unity 引用，是客户端/服务端共享真值。 |
-| [`Assets/Scripts/Combat`](../Assets/Scripts/Combat) | Unity 战斗编排、输入适配、表现桥接和 fallback 内容 | 依赖 SimulationCore、Data、Gameplay。 |
-| [`Assets/Scripts/Network`](../Assets/Scripts/Network) | 无引擎协议、WSS/KCP adapter、HTTP 和连接生命周期 | Contracts 无 Unity；平台 adapter 依赖 Contracts/Runtime。 |
-| [`Assets/Scripts/UI`](../Assets/Scripts/UI) | 六层 UI、栈、生命周期和面板 | 只通过公开模型、事件和表现数据协作。 |
-| [`Assets/Scripts/Gameplay`](../Assets/Scripts/Gameplay) | 网格、相机、输入、建筑放置等 Unity 玩法 | 不承载确定性权威结算。 |
-| [`Assets/Scripts/FSM`](../Assets/Scripts/FSM) | `Launch -> Login -> MainVillage -> Battle` 全局流程 | 作为组合根依赖 Data、Network、UI、Combat。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/Core`](../Packages/com.zwebglframework.runtime/Runtime/Core) | 单例、事件、日志、资源、场景、音频、SDK 等基础设施 | 不依赖业务模块。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/Data`](../Packages/com.zwebglframework.runtime/Runtime/Data) | 响应式模型、配置、本地存档、业务数据 | 依赖 Core。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/ECS`](../Packages/com.zwebglframework.runtime/Runtime/ECS) | Unity 侧通用轻量 ECS | 依赖 Core，不替代 SimulationCore。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/SimulationCore`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore) | 确定性世界、命令、模式、session、snapshot、Replay | 无 Unity 引用，是客户端/服务端共享真值。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/Combat`](../Packages/com.zwebglframework.runtime/Runtime/Combat) | Unity 战斗编排、输入适配、表现桥接和 fallback 内容 | 依赖 SimulationCore、Data、Gameplay。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/Network`](../Packages/com.zwebglframework.runtime/Runtime/Network) | 无引擎协议、WSS/KCP adapter、HTTP 和连接生命周期 | Contracts 无 Unity；平台 adapter 依赖 Contracts/Runtime。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/UI`](../Packages/com.zwebglframework.runtime/Runtime/UI) | 六层 UI、栈、生命周期和面板 | 只通过公开模型、事件和表现数据协作。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/Gameplay`](../Packages/com.zwebglframework.runtime/Runtime/Gameplay) | 网格、相机、输入、建筑放置等 Unity 玩法 | 不承载确定性权威结算。 |
+| [`Packages/com.zwebglframework.runtime/Runtime/FSM`](../Packages/com.zwebglframework.runtime/Runtime/FSM) | `Launch -> Login -> MainVillage -> Battle` 全局流程 | 作为组合根依赖 Data、Network、UI、Combat。 |
 | [`Server`](../Server) | .NET 8 帧同步、WSS/KCP ingress、ReplayValidator 和测试 | 引用共享 SimulationCore 与 Network.Contracts。 |
 
 新增程序集时遵循“稳定底层不依赖易变上层”：`SimulationCore` 与 `Network.Contracts` 必须继续保持 host-neutral；Unity 表现依赖它们，而不是反向引用。
@@ -133,19 +133,19 @@ MainVillageState -> FrameworkBattleAuthority -> BattleState
 BattleState -> CombatManager -> SimBattleSession
 ```
 
-[`GameFSM`](../Assets/Scripts/FSM/Game/GameFSM.cs) 注册全局状态；[`LaunchState`](../Assets/Scripts/FSM/Game/States/LaunchState.cs) 初始化资源、数据和配置；[`LoginState`](../Assets/Scripts/FSM/Game/States/LoginState.cs) 在 Offline Mode 下准备本地存档并跳过网络；[`MainVillageState`](../Assets/Scripts/FSM/Game/States/MainVillageState.cs) 从攻击事件创建战斗参数；[`BattleState`](../Assets/Scripts/FSM/Game/States/BattleState.cs) 管理战斗生命周期和结算提交。
+[`GameFSM`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/GameFSM.cs) 注册全局状态；[`LaunchState`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LaunchState.cs) 初始化资源、数据和配置；[`LoginState`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LoginState.cs) 在 Offline Mode 下准备本地存档并跳过网络；[`MainVillageState`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/MainVillageState.cs) 从攻击事件创建战斗参数；[`BattleState`](../Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/BattleState.cs) 管理战斗生命周期和结算提交。
 
-[`SaveManager`](../Assets/Scripts/Data/SaveManager.cs) 支持槽位 `0..4`，用 `PlayerPrefs` 保存当前槽位索引，并把明文 JSON 写入 `Application.persistentDataPath`。[`OfflineSaveFlow`](../Assets/Scripts/Data/OfflineSaveFlow.cs) 的顺序是：不存在则创建默认存档，然后校验并加载到 `DataManager`。创建、迁移或写盘失败时流程返回 `false`，UI 应让用户重试或切换槽位，不能假装加载成功。
+[`SaveManager`](../Packages/com.zwebglframework.runtime/Runtime/Data/SaveManager.cs) 支持槽位 `0..4`，用 `PlayerPrefs` 保存当前槽位索引，并把明文 JSON 写入 `Application.persistentDataPath`。[`OfflineSaveFlow`](../Packages/com.zwebglframework.runtime/Runtime/Data/OfflineSaveFlow.cs) 的顺序是：不存在则创建默认存档，然后校验并加载到 `DataManager`。创建、迁移或写盘失败时流程返回 `false`，UI 应让用户重试或切换槽位，不能假装加载成功。
 
 ### 本地 authority 的边界
 
-[`FrameworkBattleAuthority`](../Assets/Scripts/Combat/FrameworkBattleAuthority.cs) 为单机 fallback 生成唯一 `MatchId`、`SessionId` 和稳定 seed，并使用保留的本地玩家身份 `1000/2000`。[`FrameworkBattleContent`](../Assets/Scripts/Combat/FrameworkBattleContent.cs) 提供 TownHall、Cannon、Barbarian 和四种模式的最小 canonical manifest。
+[`FrameworkBattleAuthority`](../Packages/com.zwebglframework.runtime/Runtime/Combat/FrameworkBattleAuthority.cs) 为单机 fallback 生成唯一 `MatchId`、`SessionId` 和稳定 seed，并使用保留的本地玩家身份 `1000/2000`。[`FrameworkBattleContent`](../Packages/com.zwebglframework.runtime/Runtime/Combat/FrameworkBattleContent.cs) 提供 TownHall、Cannon、Barbarian 和四种模式的最小 canonical manifest。
 
 这两个类型适合离线开发和演示，但不能用于可信联机结算。正式项目必须由 matchmaker/权威服务签发 match、session、玩家身份、初态、内容版本和提交 nonce，并把结果与持久化账户绑定。
 
-[`CombatManager`](../Assets/Scripts/Combat/CombatManager.cs) 以 `1/20` 秒为固定推进间隔。每场战斗启动时检查一次 session 是否支持 [`IBufferedSimBattleSession`](../Assets/Scripts/SimulationCore/Session/IBufferedSimBattleSession.cs)：支持时，整场复用同一个仅请求 `Presentation` 字段的 [`SimTickOutputBuffer`](../Assets/Scripts/SimulationCore/Session/SimTickOutputBuffer.cs)，并通过 `TickInto` 推进。推进后直接读取 buffer 的 tick、phase、result 和表现字段，不再读取 `session.State`。不支持 buffered capability 的替换 session 才使用 owning `Tick()` 兼容 fallback。
+[`CombatManager`](../Packages/com.zwebglframework.runtime/Runtime/Combat/CombatManager.cs) 以 `1/20` 秒为固定推进间隔。每场战斗启动时检查一次 session 是否支持 [`IBufferedSimBattleSession`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/IBufferedSimBattleSession.cs)：支持时，整场复用同一个仅请求 `Presentation` 字段的 [`SimTickOutputBuffer`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/SimTickOutputBuffer.cs)，并通过 `TickInto` 推进。推进后直接读取 buffer 的 tick、phase、result 和表现字段，不再读取 `session.State`。不支持 buffered capability 的替换 session 才使用 owning `Tick()` 兼容 fallback。
 
-Buffered 表现数据是 borrowed output，只能在约定的生命周期内同步消费。[`SessionPresentationBridge`](../Assets/Scripts/Combat/Presentation/SessionPresentationBridge.cs) 在下一次推进前同步完成 Apply；[`PresentationInterpolator`](../Assets/Scripts/Combat/Presentation/PresentationInterpolator.cs) 保存实体表现状态的值拷贝，后续 Sample 不依赖跨 tick 的 borrowed 集合引用。CombatManager 通过以下 API 把 Unity 操作转成确定性命令：
+Buffered 表现数据是 borrowed output，只能在约定的生命周期内同步消费。[`SessionPresentationBridge`](../Packages/com.zwebglframework.runtime/Runtime/Combat/Presentation/SessionPresentationBridge.cs) 在下一次推进前同步完成 Apply；[`PresentationInterpolator`](../Packages/com.zwebglframework.runtime/Runtime/Combat/Presentation/PresentationInterpolator.cs) 保存实体表现状态的值拷贝，后续 Sample 不依赖跨 tick 的 borrowed 集合引用。CombatManager 通过以下 API 把 Unity 操作转成确定性命令：
 
 - `SubmitDeployUnit(Vector2Int, int)`
 - `SubmitMove(int, Vector2Int)`
@@ -156,7 +156,7 @@ Buffered 表现数据是 borrowed output，只能在约定的生命周期内同�
 
 ## 6. SimulationCore 使用方法
 
-[`SimBattleSessionFactory`](../Assets/Scripts/SimulationCore/Session/SimBattleSessionFactory.cs) 接收 canonical manifest bytes，返回一次性 session。下面示例使用当前公共 API 构成 `Start -> Submit -> Tick -> Snapshot -> Replay` 最小闭环：
+[`SimBattleSessionFactory`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/SimBattleSessionFactory.cs) 接收 canonical manifest bytes，返回一次性 session。下面示例使用当前公共 API 构成 `Start -> Submit -> Tick -> Snapshot -> Replay` 最小闭环：
 
 ```csharp
 using System;
@@ -243,7 +243,7 @@ ReplayPlaybackResult playback = ReplayPlayback.Run(replaySession, replay);
 
 ### 结果处理
 
-不要只检查返回值非空。调用方必须按 [`SessionResults`](../Assets/Scripts/SimulationCore/Session/SessionResults.cs) 和 [`TickResult`](../Assets/Scripts/SimulationCore/Session/TickResult.cs) 的状态码分支：
+不要只检查返回值非空。调用方必须按 [`SessionResults`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/SessionResults.cs) 和 [`TickResult`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Session/TickResult.cs) 的状态码分支：
 
 - `StartResult.Code`：协议、schema、match、内容、玩家、初始实体或模式不匹配时拒绝。
 - `CommandSubmitResult.Disposition`：区分重复/倒序 sequence、late tick、future window、未知玩家、错误阶段、非法 payload 和越权实体。
@@ -252,26 +252,26 @@ ReplayPlaybackResult playback = ReplayPlayback.Run(replaySession, replay);
 
 ### 确定性约束
 
-- 模拟数值使用 [`LogicInt`](../Assets/Scripts/SimulationCore/Math/LogicInt.cs) 或整数，不引入 `float`/`double` 作为权威状态。
+- 模拟数值使用 [`LogicInt`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Math/LogicInt.cs) 或整数，不引入 `float`/`double` 作为权威状态。
 - 迭代顺序、命令顺序和序列化字段必须稳定；不要依赖无序容器枚举结果。
 - 不读取 `Time.*`、`UnityEngine.Random`、系统时间或平台文件。
 - canonical manifest 变化必须更新内容 hash，并保证 Unity 和 .NET 8 使用完全相同的 bytes。
-- UI 和视图只能读取 [`PresentationFrame`](../Assets/Scripts/SimulationCore/Presentation/PresentationFrame.cs)，不能回写世界。
+- UI 和视图只能读取 [`PresentationFrame`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Presentation/PresentationFrame.cs)，不能回写世界。
 
 ## 7. 网络层接入
 
-[`IRealtimeChannel`](../Assets/Scripts/Network/Contracts/Transport/IRealtimeChannel.cs) 统一暴露 `ConnectAsync`、`SendAsync`、`ReceiveAsync`、`CloseAsync` 和连接状态。[`RealtimeConnectionController`](../Assets/Scripts/Network/Runtime/RealtimeConnectionController.cs) 管理替换连接、取消过期连接和释放 transport。
+[`IRealtimeChannel`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Transport/IRealtimeChannel.cs) 统一暴露 `ConnectAsync`、`SendAsync`、`ReceiveAsync`、`CloseAsync` 和连接状态。[`RealtimeConnectionController`](../Packages/com.zwebglframework.runtime/Runtime/Network/Runtime/RealtimeConnectionController.cs) 管理替换连接、取消过期连接和释放 transport。
 
 平台选择：
 
 | 平台 | Transport | 实现 | 端点要求 |
 |---|---|---|---|
-| WebGL / Editor | `RealtimeTransport.WebSocket` | [`WebGlRealtimeChannel`](../Assets/Scripts/Network/WebGL/WebGlRealtimeChannel.cs) | `wss://.../v1/realtime`，子协议 `zweb.framesync.v1`。 |
-| Windows / Editor | `RealtimeTransport.NativeKcp` | [`Kcp2kRealtimeChannel`](../Assets/Scripts/Network/Native/Kcp2kRealtimeChannel.cs) | 有效 host 和 `1..65535` 端口，例如 `kcp://127.0.0.1:7777`。 |
+| WebGL / Editor | `RealtimeTransport.WebSocket` | [`WebGlRealtimeChannel`](../Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/WebGlRealtimeChannel.cs) | `wss://.../v1/realtime`，子协议 `zweb.framesync.v1`。 |
+| Windows / Editor | `RealtimeTransport.NativeKcp` | [`Kcp2kRealtimeChannel`](../Packages/com.zwebglframework.runtime/Runtime/Network/Native/Kcp2kRealtimeChannel.cs) | 有效 host 和 `1..65535` 端口，例如 `kcp://127.0.0.1:7777`。 |
 
-两个平台工厂在 `BeforeSceneLoad` 自动注册到 [`RealtimeChannelFactoryRegistry`](../Assets/Scripts/Network/Runtime/RealtimeChannelFactoryRegistry.cs)。若程序集没有被目标平台包含，`Create` 会报告未注册，不应降级到错误 transport。
+两个平台工厂在 `BeforeSceneLoad` 自动注册到 [`RealtimeChannelFactoryRegistry`](../Packages/com.zwebglframework.runtime/Runtime/Network/Runtime/RealtimeChannelFactoryRegistry.cs)。若程序集没有被目标平台包含，`Create` 会报告未注册，不应降级到错误 transport。
 
-连接所需的 [`RealtimeCredentials`](../Assets/Scripts/Network/Contracts/Protocol/RealtimeModels.cs) 由 HTTPS guest/login 或业务认证服务返回，包含 `SessionId`、opaque ticket、resume token、32-byte MAC key 和过期时间。Unity 的 [`GuestLoginResult`](../Assets/Scripts/Network/UnityHttp/GuestLoginModels.cs) 会拒绝非 2xx、格式错误、空字段、过期凭据和错误 key 长度。
+连接所需的 [`RealtimeCredentials`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Protocol/RealtimeModels.cs) 由 HTTPS guest/login 或业务认证服务返回，包含 `SessionId`、opaque ticket、resume token、32-byte MAC key 和过期时间。Unity 的 [`GuestLoginResult`](../Packages/com.zwebglframework.runtime/Runtime/Network/UnityHttp/GuestLoginModels.cs) 会拒绝非 2xx、格式错误、空字段、过期凭据和错误 key 长度。
 
 ```csharp
 using System;
@@ -296,19 +296,19 @@ await NetworkManager.Instance.Realtime.ConnectAsync(
     endpoint, credentials, CancellationToken.None);
 ```
 
-[`RealtimeProtocol`](../Assets/Scripts/Network/Contracts/Protocol/RealtimeProtocol.cs) 当前版本为 `1`，最大消息 payload 为 65536 bytes，rollback window 常量为 64 ticks。WSS 在连接阶段发送 `AuthHello`；Native KCP 在认证后用 sequence + HMAC-SHA256 包装完整消息，并用 1024-packet replay window 拒绝重放。
+[`RealtimeProtocol`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Protocol/RealtimeProtocol.cs) 当前版本为 `1`，最大消息 payload 为 65536 bytes，rollback window 常量为 64 ticks。WSS 在连接阶段发送 `AuthHello`；Native KCP 在认证后用 sequence + HMAC-SHA256 包装完整消息，并用 1024-packet replay window 拒绝重放。
 
 ### 仍需业务实现的客户端闭环
 
 transport 连接成功不等于帧同步已接通。业务项目还必须实现：
 
-1. 每 tick 把本地 `ISimCommand` 映射成 versioned `CommandEnvelope`，维护单调 sequence，并用 [`RealtimeCodec`](../Assets/Scripts/Network/Contracts/Protocol/RealtimeCodec.cs) 编码发送。
+1. 每 tick 把本地 `ISimCommand` 映射成 versioned `CommandEnvelope`，维护单调 sequence，并用 [`RealtimeCodec`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Protocol/RealtimeCodec.cs) 编码发送。
 2. 单线程消费 `ReceiveAsync`，严格检查 decode error、message kind、match、tick 和 revision。
 3. 用 `AuthorityFrame.AckForPlayer` 清理本地重发队列，并按 `OrderedInputs` 重放权威顺序。
 4. 比较每 tick checksum；不一致时恢复合适 snapshot 并重放，超出 64-tick window 时请求 full resync。
 5. 用 `ResumeHello` 的 accepted sequence、authority tick 和 revision 恢复短断线；凭据过期或状态不匹配时重新登录。
 
-认证失败、错误 session/player、消息过大、限流、late input 和过期 ticket 都是可观察的 [`ProtocolError`](../Assets/Scripts/Network/Contracts/Protocol/RealtimeProtocol.cs)，不能被统一吞成“网络断开”。
+认证失败、错误 session/player、消息过大、限流、late input 和过期 ticket 都是可观察的 [`ProtocolError`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Protocol/RealtimeProtocol.cs)，不能被统一吞成“网络断开”。
 
 ## 8. 帧同步参考服务端
 
@@ -365,25 +365,25 @@ dotnet run --project Server/RealtimeHost/ZWebGLFrameWork.RealtimeHost.csproj -c 
 
 一次命令扩展至少同步修改：
 
-1. 在 [`ISimCommand.cs`](../Assets/Scripts/SimulationCore/Command/ISimCommand.cs) 增加稳定的 `SimCommandType` 数值并定义 payload struct。
+1. 在 [`ISimCommand.cs`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Command/ISimCommand.cs) 增加稳定的 `SimCommandType` 数值并定义 payload struct。
 2. 在 `SimBattleSession` 增加提交校验和执行逻辑，所有 rejection 使用明确 `CommandDisposition`。
-3. 在 [`CommandRecorder`](../Assets/Scripts/SimulationCore/Command/CommandRecorder.cs) 增加 Replay 序列化/反序列化。
-4. 在线命令同步更新 [`FrameSyncCommandCodec`](../Assets/Scripts/Network/Contracts/Protocol/FrameSyncCommandCodec.cs) 和服务端 [`FrameworkAuthorityCommandMapper`](../Server/FrameSync/FrameworkAuthorityCommandMapper.cs)。
+3. 在 [`CommandRecorder`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Command/CommandRecorder.cs) 增加 Replay 序列化/反序列化。
+4. 在线命令同步更新 [`FrameSyncCommandCodec`](../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/Protocol/FrameSyncCommandCodec.cs) 和服务端 [`FrameworkAuthorityCommandMapper`](../Server/FrameSync/FrameworkAuthorityCommandMapper.cs)。
 5. 更新 Replay strict schema、资源限制相关测试、Unity/.NET golden tests，并明确协议兼容策略。
 
 不要复用旧 message ID 表示不同语义，也不要让 Unity 对象引用进入命令 payload。
 
 ### 新增确定性内容或战斗模式
 
-业务内容由 [`DeterministicContentManifest`](../Assets/Scripts/SimulationCore/Content/DeterministicContentManifest.cs) 生成 canonical bytes。新增 archetype 时使用稳定正整数 ID、整数/`LogicInt` 原始值，并同步客户端与服务端内容来源。
+业务内容由 [`DeterministicContentManifest`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Content/DeterministicContentManifest.cs) 生成 canonical bytes。新增 archetype 时使用稳定正整数 ID、整数/`LogicInt` 原始值，并同步客户端与服务端内容来源。
 
-当前模式不是继承体系。新增模式需同步更新 `SimCombatMode`、manifest 的支持/完整性校验、[`SimModeRules`](../Assets/Scripts/SimulationCore/Modes/SimModeRules.cs)、`BattleInitFactory` 的字符串映射、fallback 内容以及模式和 Replay golden tests。不要只增加 UI 枚举后让 session 静默回退。
+当前模式不是继承体系。新增模式需同步更新 `SimCombatMode`、manifest 的支持/完整性校验、[`SimModeRules`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Modes/SimModeRules.cs)、`BattleInitFactory` 的字符串映射、fallback 内容以及模式和 Replay golden tests。不要只增加 UI 枚举后让 session 静默回退。
 
-生产内容热更新应实现 [`IBusinessContentUpdater`](../Assets/Scripts/Core/Resource/BusinessContentUpdate.cs)，成功后通过 [`ResourceManager.SetBusinessProvider`](../Assets/Scripts/Core/Resource/ResourceManager.cs) 只替换业务 provider。框架资源固定本地 provider。当前未集成 YooAsset/Huatuo，因此该能力仍为 `Integration Required`。
+生产内容热更新应实现 [`IBusinessContentUpdater`](../Packages/com.zwebglframework.runtime/Runtime/Core/Resource/BusinessContentUpdate.cs)，成功后通过 [`ResourceManager.SetBusinessProvider`](../Packages/com.zwebglframework.runtime/Runtime/Core/Resource/ResourceManager.cs) 只替换业务 provider。框架资源固定本地 provider。当前未集成 YooAsset/Huatuo，因此该能力仍为 `Integration Required`。
 
 ### 新增 UI 面板
 
-1. 在 `Assets/Scripts/UI/Panels/` 新建继承 [`UIBase`](../Assets/Scripts/UI/Core/UIBase.cs) 的面板。
+1. 在 `Packages/com.zwebglframework.runtime/Runtime/UI/Panels/` 新建继承 [`UIBase`](../Packages/com.zwebglframework.runtime/Runtime/UI/Core/UIBase.cs) 的面板。
 2. 选择 `UILayer`，在 `OnOpen` 订阅事件，在 `OnClose` 对称取消；静态层级使用 `BuildOnce`，重复打开的数据刷新使用 `OnRebind`。
 3. 可将 prefab 放在 `Assets/Resources/UI/Panels/<TypeName>.prefab`；缺少 prefab 时 `UIManager` 会动态创建 GameObject。
 4. 用 `UIManager.Instance.Open<T>(data)` / `Close<T>()` 管理生命周期，不直接销毁缓存面板。
@@ -392,11 +392,11 @@ dotnet run --project Server/RealtimeHost/ZWebGLFrameWork.RealtimeHost.csproj -c 
 
 新增实时传输时实现 `IRealtimeChannel` 和 `IRealtimeChannelFactory`，为新 `RealtimeTransport` 注册工厂，并覆盖连接替换、取消、认证、收发上限、关闭、重放与错误映射测试。不要让上层 `NetworkManager` 判断具体 socket 类型。
 
-新增资源 provider 时实现 [`IResourceProvider`](../Assets/Scripts/Core/Resource/IResourceProvider.cs)，明确同步加载能力、缓存失效和卸载语义。生产业务 provider 通过业务更新器安装，不能替换 framework provider。
+新增资源 provider 时实现 [`IResourceProvider`](../Packages/com.zwebglframework.runtime/Runtime/Core/Resource/IResourceProvider.cs)，明确同步加载能力、缓存失效和卸载语义。生产业务 provider 通过业务更新器安装，不能替换 framework provider。
 
 ## 10. Replay 与问题定位
 
-[`CommandRecorder`](../Assets/Scripts/SimulationCore/Command/CommandRecorder.cs) 应记录 `TickResult.ExecutedCommands` 和该 tick checksum，而不是记录尚未执行的客户端意图。在线可信上传还必须携带服务端签发的 `SimulationSchemaHash`、`ContentConfigHash`、`InitialStateHash` 和 `SubmissionNonce`。
+[`CommandRecorder`](../Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Command/CommandRecorder.cs) 应记录 `TickResult.ExecutedCommands` 和该 tick checksum，而不是记录尚未执行的客户端意图。在线可信上传还必须携带服务端签发的 `SimulationSchemaHash`、`ContentConfigHash`、`InitialStateHash` 和 `SubmissionNonce`。
 
 本地回放可用 `ReplayPlayback.Run(session, replay)`；权威校验使用 [`ReplayValidator`](../Server/ReplayValidator/ReplayValidator.cs) CLI：
 

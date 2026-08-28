@@ -13,7 +13,8 @@ namespace ZWebGLFrameWork.SimulationCore.ServerTests
         public void SimulationCore_HasNoUnityEngineReferences()
         {
             string root = RepositoryRoot();
-            string core = Path.Combine(root, "Assets/Scripts/SimulationCore");
+            string core = Path.Combine(root,
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore");
             string[] forbidden = { "UnityEngine", "System.Text.Json" };
             string[] offenders = Directory.GetFiles(core, "*.cs", SearchOption.AllDirectories)
                 .Where(path => forbidden.Any(token => File.ReadAllText(path).Contains(token)))

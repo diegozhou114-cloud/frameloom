@@ -13,17 +13,22 @@ namespace ZWebGLFrameWork.Editor.Tests
             string root = Directory.GetParent(UnityEngine.Application.dataPath).FullName;
             string[] forbiddenPaths =
             {
-                "Assets/Scripts/Combat/AI", "Assets/Scripts/Combat/Components",
-                "Assets/Scripts/Combat/Core", "Assets/Scripts/Combat/Events",
-                "Assets/Scripts/Combat/Modes", "Assets/Scripts/Combat/Spawner",
-                "Assets/Scripts/Combat/Systems", "Assets/Scripts/Combat/SimInitializerImpl.cs",
-                "Assets/Scripts/Combat/SimulationSyncBridge.cs",
-                "Assets/Scripts/Combat/View/Interpolator.cs",
-                "Assets/Scripts/Combat/Tests/BattleE2ETests.cs"
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/AI",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Components",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Core",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Events",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Modes",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Spawner",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/Systems",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/SimInitializerImpl.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/SimulationSyncBridge.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Combat/View/Interpolator.cs",
+                "Assets/Tests/Combat/BattleE2ETests.cs"
             };
             Assert.That(forbiddenPaths.Where(path => Directory.Exists(Path.Combine(root, path)) ||
                 File.Exists(Path.Combine(root, path))), Is.Empty);
-            string appConfig = File.ReadAllText(Path.Combine(root, "Assets/Scripts/Data/AppConfig.cs"));
+            string appConfig = File.ReadAllText(Path.Combine(root,
+                "Packages/com.zwebglframework.runtime/Runtime/Data/AppConfig.cs"));
             Assert.That(appConfig, Does.Not.Contain("UseSimulationCore"));
         }
 

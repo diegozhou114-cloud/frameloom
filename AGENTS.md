@@ -5,9 +5,9 @@ Unity 2022.3 WebGL 框架 — Clash-of-Clans 风格的策略游戏，自研轻�
 ## Project
 
 - **引擎**: Unity 2022.3.62f3c1, C# 9.0, .NET Standard 2.1
-- **入口**: `Assets/Scripts/FSM/Game/GameFSM.cs` (全局状态机: Launch→Login→MainVillage→Battle)
+- **入口**: `Packages/com.zwebglframework.runtime/Runtime/FSM/Game/GameFSM.cs` (全局状态机: Launch→Login→MainVillage→Battle)
 - **目标平台**: WebGL (主), Windows, Android, iOS
-- **9 个 Assembly Definitions** (`Assets/Scripts/*/ZWebGLFrameWork.*.asmdef` + SimulationCore)
+- **9 个 Assembly Definitions** (`Packages/com.zwebglframework.runtime/Runtime/*/ZWebGLFrameWork.*.asmdef` + SimulationCore)
 
 ## Commands
 
@@ -22,7 +22,7 @@ Unity 2022.3 WebGL 框架 — Clash-of-Clans 风格的策略游戏，自研轻�
 ## Architecture
 
 ```
-Assets/Scripts/
+Packages/com.zwebglframework.runtime/Runtime/
 ├── Core/          # 基础层: Singleton, EventBus, ObjectPool, CoroutineManager, Audio, Log, Resource, Scene, SDK
 ├── ECS/           # 自研轻量ECS: World, Entity, ComponentPool<SparseSet>, SystemBase
 ├── FSM/           # 状态机: FSM<T>, GameFSM(5状态+转换规则表+Loading过渡)
@@ -51,6 +51,6 @@ Assets/Editor/     # 编辑器: CompileHook, BuildScript, BuildValidator
 
 ## Notes
 
-- 测试: Core/Tests/ (EventBus + Observable), Tests/SimulationCore/ (determinism + replay + LogicInt)
+- 测试: Assets/Tests/Core/ (EventBus + Observable), Assets/Tests/SimulationCore/ (determinism + replay + LogicInt)
 - 所有基础设施模块已就绪: Audio, Scene, Logging, Localization, Resource, Coroutine, SDK, Diagnostics
 - Reasonix 工作流定义在 `.reasonix/workflow.md`，任务状态机在 `.reasonix/task-router.md`

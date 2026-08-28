@@ -7,7 +7,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/Network/Contracts/**/*.cs"
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/**/*.cs"
              Link="Contracts/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

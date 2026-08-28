@@ -46,7 +46,7 @@ cmp -s "$work/LICENSE" "$LICENSE_FILE"
 git -C "$work/repo" archive "$UPSTREAM_COMMIT" \
   src/NativeWebSocket integrations/Unity | tar -x -C "$work"
 
-package=Packages/com.zwebglframework.nativewebsocket
+package=Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket
 saved_meta="$work/meta"
 if [[ -d "$package" ]]; then
   (cd "$package" && find . -name '*.meta' -print | while IFS= read -r file; do

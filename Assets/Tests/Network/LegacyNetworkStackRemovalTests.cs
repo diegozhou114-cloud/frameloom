@@ -15,15 +15,16 @@ namespace ZWebGLFrameWork.Network.Tests
         {
             string[] forbidden =
             {
-                "Assets/Scripts/Network/KCP/KcpCore.cs",
-                "Assets/Scripts/Network/KCP/KcpClient.cs",
-                "Assets/Scripts/Network/Protocols/TcpClient.cs",
-                "Assets/Scripts/Network/Protocols/UdpClient.cs",
-                "Assets/Scripts/Network/Core/AddressResolver.cs",
-                "Assets/Scripts/Network/Core/INetworkClient.cs"
+                "Packages/com.zwebglframework.runtime/Runtime/Network/KCP/KcpCore.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/KCP/KcpClient.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Protocols/TcpClient.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Protocols/UdpClient.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Core/AddressResolver.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Core/INetworkClient.cs"
             };
             Assert.That(forbidden.Where(File.Exists), Is.Empty);
-            string fsm = File.ReadAllText("Assets/Scripts/FSM/Game/States/LoginState.cs");
+            string fsm = File.ReadAllText(
+                "Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LoginState.cs");
             Assert.That(fsm, Does.Not.Contain("NetworkProtocol.TCP"));
             Assert.That(fsm, Does.Contain("GuestLoginAsync"));
         }
@@ -31,8 +32,12 @@ namespace ZWebGLFrameWork.Network.Tests
         [Test]
         public void HappyEyeballs_FirstFails_SecondWinnerRemainsOpen()
         {
-            Assert.That(File.Exists("Assets/Scripts/Network/Core/AddressResolver.cs"), Is.False);
-            Assert.That(File.Exists("Assets/Scripts/Network/Core/INetworkClient.cs"), Is.False);
+            Assert.That(File.Exists(
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Core/AddressResolver.cs"),
+                Is.False);
+            Assert.That(File.Exists(
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Core/INetworkClient.cs"),
+                Is.False);
             Assert.That(typeof(RealtimeConnectionController).GetProperty(
                 nameof(RealtimeConnectionController.Current)), Is.Not.Null);
         }
@@ -40,7 +45,9 @@ namespace ZWebGLFrameWork.Network.Tests
         [Test]
         public void TcpTransport_PartialSend_CompletesWholeFrame()
         {
-            Assert.That(File.Exists("Assets/Scripts/Network/Protocols/TcpClient.cs"), Is.False);
+            Assert.That(File.Exists(
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Protocols/TcpClient.cs"),
+                Is.False);
             MethodInfo send = typeof(IRealtimeChannel).GetMethod(nameof(IRealtimeChannel.SendAsync));
             Assert.That(send.GetParameters()[0].ParameterType, Is.EqualTo(typeof(byte[])));
             Assert.That(send.ReturnType, Is.EqualTo(typeof(Task)));

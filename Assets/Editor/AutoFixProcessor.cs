@@ -164,7 +164,7 @@ namespace ZWebGLFrameWork.Editor
             foreach (var guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!path.StartsWith("Assets/Scripts/")) continue;
+                if (!path.StartsWith("Packages/com.zwebglframework.runtime/Runtime/")) continue;
 
                 // 检查每个 asmdef 的 references 是否完整
                 // 此处为框架性代码，需根据实际编译错误扩展

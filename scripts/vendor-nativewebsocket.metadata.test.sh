@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-package=Packages/com.zwebglframework.nativewebsocket
+package=Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket
+if [[ ! -d "$package" ]]; then
+  printf 'missing NativeWebSocket package root: %s\n' "$package" >&2
+  exit 1
+fi
 
 # This verifies the Unity-imported metadata committed alongside the embedded
 # package. The networked vendor command has its own provenance contract test.

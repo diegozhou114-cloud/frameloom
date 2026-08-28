@@ -57,95 +57,95 @@ require_missing() {
 
 require_text BUILD-001 Assets/Editor/AutoFixProcessor.cs \
   'private static int FindUsingInsertPosition(string content)'
-require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimMovementSystem.cs \
+require_text BUILD-002 Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Systems/SimMovementSystem.cs \
   '(SimEntity entity, ref SimTransformComponent transform, ref SimMovementComponent movement) =>'
-require_text BUILD-002 Assets/Scripts/SimulationCore/Systems/SimAttackSystem.cs \
-  '(SimEntity entity, ref SimAttackComponent attack, ref SimTransformComponent transform) =>'
-require_text BUILD-003 Assets/Scripts/Gameplay/Economy/ResourceProducer.cs 'using System;'
-require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
-require_absent RESOURCE-001 Assets/Scripts/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
-require_count BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
+require_text BUILD-002 Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Systems/SimAttackSystem.cs \
+  'private void Attack(SimEntity entity, ref SimAttackComponent attack,'
+require_text BUILD-003 Packages/com.zwebglframework.runtime/Runtime/Gameplay/Economy/ResourceProducer.cs 'using System;'
+require_absent RESOURCE-001 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LaunchState.cs 'CheckVersionAsync('
+require_absent RESOURCE-001 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LaunchState.cs 'DownloadUpdatesAsync('
+require_count BOOT-006 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LoginState.cs \
   'if (!CanApplyGuestLoginCompletion(token)) return;' 2
-require_absent BOOT-006 Assets/Scripts/FSM/Game/States/LoginState.cs \
+require_absent BOOT-006 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LoginState.cs \
   '|| !IsActive'
-require_missing RESOURCE-002 Assets/Scripts/FSM/Game/HotUpdateManager.cs
-require_text DATA-005 Assets/Scripts/FSM/Game/BattleRewardService.cs \
+require_missing RESOURCE-002 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/HotUpdateManager.cs
+require_text DATA-005 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/BattleRewardService.cs \
   'public sealed class BattleRewardService'
-require_text DATA-005 Assets/Scripts/FSM/Game/BattleRewardService.cs \
+require_text DATA-005 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/BattleRewardService.cs \
   'SaveFailed,'
-require_text DATA-005 Assets/Scripts/Data/PlayerSaveData.cs \
+require_text DATA-005 Packages/com.zwebglframework.runtime/Runtime/Data/PlayerSaveData.cs \
   'public List<string> AppliedBattleResultIds = new List<string>();'
-require_text DATA-005 Assets/Scripts/FSM/Game/States/BattleState.cs \
+require_text DATA-005 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/BattleState.cs \
   'BattleRewardCommitStatus status = _rewardService.Commit('
-require_absent DATA-005 Assets/Scripts/FSM/Game/States/BattleState.cs \
+require_absent DATA-005 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/BattleState.cs \
   'EventBus.Subscribe<SimBattleResult>(CombatManager.EventCombatEnded'
-require_absent DATA-005 Assets/Scripts/Combat/CombatManager.cs \
+require_absent DATA-005 Packages/com.zwebglframework.runtime/Runtime/Combat/CombatManager.cs \
   'EventBus.Publish(EventCombatEnded, result);'
-require_text DATA-006 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-006 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   '? building.UpgradeEndTime > 0'
-require_text DATA-006 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-006 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   ': building.UpgradeEndTime == 0);'
-require_text DATA-008 Assets/Scripts/Data/Model/VillageData.cs \
+require_text DATA-008 Packages/com.zwebglframework.runtime/Runtime/Data/Model/VillageData.cs \
   'public void ClearBuildings()'
-require_text DATA-008 Assets/Scripts/Data/Model/VillageData.cs \
+require_text DATA-008 Packages/com.zwebglframework.runtime/Runtime/Data/Model/VillageData.cs \
   'OnBuildingRemoved?.Invoke(building);'
-require_absent DATA-008 Assets/Scripts/Data/SaveManager.cs \
+require_absent DATA-008 Packages/com.zwebglframework.runtime/Runtime/Data/SaveManager.cs \
   'village.Buildings.Clear();'
-require_absent DATA-008 Assets/Scripts/Data/DataManager.cs \
+require_absent DATA-008 Packages/com.zwebglframework.runtime/Runtime/Data/DataManager.cs \
   'Village.Buildings.Clear();'
-require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
+require_text DATA-009 Packages/com.zwebglframework.runtime/Runtime/Data/Model/VillageData.cs \
   'if (building == null || string.IsNullOrWhiteSpace(building.Id))'
-require_text DATA-009 Assets/Scripts/Data/Model/VillageData.cs \
+require_text DATA-009 Packages/com.zwebglframework.runtime/Runtime/Data/Model/VillageData.cs \
   'if (GetBuilding(building.Id) != null)'
-require_text DATA-010 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-010 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("建筑位置重叠", out error);'
-require_text DATA-011 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-011 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("建筑等级超出配置范围", out error);'
-require_text DATA-012 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-012 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("满级建筑不能处于升级状态", out error);'
-require_text CONFIG-001 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-001 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   'if (id <= 0)'
-require_text CONFIG-002 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-002 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   '!Enum.IsDefined(typeof(ResourceType), building.ResourceType)'
-require_text CONFIG-007 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-007 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   'building.ResourceType == ResourceType.None'
-require_text CONFIG-003 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-003 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   '(footprint.SizeX <= 0 || footprint.SizeY <= 0)'
-require_text DATA-013 Assets/Scripts/UI/Panels/DeployPanel.cs \
+require_text DATA-013 Packages/com.zwebglframework.runtime/Runtime/UI/Panels/DeployPanel.cs \
   'GetUnitsByTownHall(player.TownHallLevel.Value)'
-require_text DATA-014 Assets/Scripts/UI/Panels/DeployPanel.cs \
+require_text DATA-014 Packages/com.zwebglframework.runtime/Runtime/UI/Panels/DeployPanel.cs \
   'FrameworkBattleContent.TryGetUnitArchetypeId(unit.Id, out _)'
-require_text DATA-015 Assets/Scripts/Gameplay/Building/BuildingInteraction.cs \
+require_text DATA-015 Packages/com.zwebglframework.runtime/Runtime/Gameplay/Building/BuildingInteraction.cs \
   'DataManager.Instance.Player.TownHallLevel.Value = building.Level.Value;'
-require_text DATA-016 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-016 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("玩家大本营等级与建筑等级不一致", out error);'
-require_text DATA-017 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-017 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("村庄包含多个大本营", out error);'
-require_text DATA-018 Assets/Scripts/Data/Model/VillageData.cs \
+require_text DATA-018 Packages/com.zwebglframework.runtime/Runtime/Data/Model/VillageData.cs \
   'Buildings.Exists(item => item.TypeId == 1)'
-require_text DATA-019 Assets/Scripts/Data/SaveDataMapper.Validation.cs \
+require_text DATA-019 Packages/com.zwebglframework.runtime/Runtime/Data/SaveDataMapper.Validation.cs \
   'return Fail("玩家大本营等级超出配置范围", out error);'
-require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
+require_text DATA-020 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/MainVillageState.cs \
   'private static bool HasSupportedDefender(VillageData village)'
-require_text DATA-020 Assets/Scripts/FSM/Game/States/MainVillageState.cs \
+require_text DATA-020 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/MainVillageState.cs \
   'FrameworkBattleContent.TryGetBuildingArchetypeId(building.TypeId, out _)'
-require_text REPLAY-008 Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs \
+require_text REPLAY-008 Packages/com.zwebglframework.runtime/Runtime/Combat/Replay/UnityReplayJsonCodec.cs \
   'throw new FormatException("Replay JSON contains a null record.");'
-require_text REPLAY-008 Assets/Scripts/Combat/Replay/UnityReplayJsonCodec.cs \
+require_text REPLAY-008 Packages/com.zwebglframework.runtime/Runtime/Combat/Replay/UnityReplayJsonCodec.cs \
   'throw new FormatException("Replay JSON contains a null command.");'
-require_text CONFIG-004 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-004 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   'item is UnitConfig unit && unit.RequiredTownHall <= 0'
-require_text CONFIG-005 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-005 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   'item is BuildingConfig maxLevel && maxLevel.MaxLevel <= 0'
-require_text CONFIG-006 Assets/Scripts/Data/ConfigTableManager.cs \
+require_text CONFIG-006 Packages/com.zwebglframework.runtime/Runtime/Data/ConfigTableManager.cs \
   'levelArrays.BuildCost.Length < levelArrays.MaxLevel'
-require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
+require_text BOOT-007 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LaunchState.cs \
   'if (!configOk)'
-require_text BOOT-007 Assets/Scripts/FSM/Game/States/LaunchState.cs \
+require_text BOOT-007 Packages/com.zwebglframework.runtime/Runtime/FSM/Game/States/LaunchState.cs \
   'PublishError("ConfigTableManager", "部分配置表加载失败，可能影响游戏功能");'
-if [[ -f "$repo_root/Assets/Scripts/Combat/Core/CombatBootstrap.cs" ]]; then
-  require_text BUILD-004 Assets/Scripts/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
-elif rg -n '\bCombatBootstrap\b' "$repo_root/Assets/Scripts" "$repo_root/Assets/Tests" \
+if [[ -f "$repo_root/Packages/com.zwebglframework.runtime/Runtime/Combat/Core/CombatBootstrap.cs" ]]; then
+  require_text BUILD-004 Packages/com.zwebglframework.runtime/Runtime/Combat/Core/CombatBootstrap.cs 'using UnityEngine;'
+elif rg -n '\bCombatBootstrap\b' "$repo_root/Packages/com.zwebglframework.runtime/Runtime" "$repo_root/Assets/Tests" \
     --glob '*.cs'; then
   printf '[BUILD-004] FAIL CombatBootstrap removed but source/test references remain\n'
   failures=$((failures + 1))

@@ -8,12 +8,12 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../../Assets/Scripts/Network/Contracts/**/*.cs" Link="Network/Contracts/%(RecursiveDir)%(Filename)%(Extension)" />
-    <Compile Include="../../Assets/Scripts/Network/Runtime/IRealtimeChannelFactory.cs" Link="Network/Runtime/IRealtimeChannelFactory.cs" />
-    <Compile Include="../../Assets/Scripts/Network/Runtime/RealtimeChannelFactoryRegistry.cs" Link="Network/Runtime/RealtimeChannelFactoryRegistry.cs" />
-    <Compile Include="../../Assets/Scripts/Network/Runtime/RealtimeConnectionController.cs" Link="Network/Runtime/RealtimeConnectionController.cs" />
-    <Compile Include="../../Assets/Scripts/Network/WebGL/INativeWebSocketClient.cs" Link="Network/WebGL/INativeWebSocketClient.cs" />
-    <Compile Include="../../Assets/Scripts/Network/WebGL/WebGlRealtimeChannel.cs" Link="Network/WebGL/WebGlRealtimeChannel.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/Contracts/**/*.cs" Link="Network/Contracts/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/Runtime/IRealtimeChannelFactory.cs" Link="Network/Runtime/IRealtimeChannelFactory.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/Runtime/RealtimeChannelFactoryRegistry.cs" Link="Network/Runtime/RealtimeChannelFactoryRegistry.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/Runtime/RealtimeConnectionController.cs" Link="Network/Runtime/RealtimeConnectionController.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/INativeWebSocketClient.cs" Link="Network/WebGL/INativeWebSocketClient.cs" />
+    <Compile Include="../../Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/WebGlRealtimeChannel.cs" Link="Network/WebGL/WebGlRealtimeChannel.cs" />
     <Compile Include="../../Assets/Tests/Network/RealtimeCodecTests.cs" Link="Tests/Network/RealtimeCodecTests.cs" />
     <Compile Include="../../Assets/Tests/Network/BoundedMessagePumpTests.cs" Link="Tests/Network/BoundedMessagePumpTests.cs" />
     <Compile Include="../../Assets/Tests/Network/AuthenticatedPacketCodecTests.cs" Link="Tests/Network/AuthenticatedPacketCodecTests.cs" />

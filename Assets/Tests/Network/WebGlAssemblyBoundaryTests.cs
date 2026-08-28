@@ -11,7 +11,8 @@ namespace ZWebGLFrameWork.Network.Tests
         [Test]
         public void WebGLAssembly_HasNoSocketThreadOrNativeKcpReferences()
         {
-            string[] files = Directory.GetFiles("Assets/Scripts/Network/WebGL", "*.cs",
+            string[] files = Directory.GetFiles(
+                "Packages/com.zwebglframework.runtime/Runtime/Network/WebGL", "*.cs",
                 SearchOption.AllDirectories);
             string source = string.Join("\n", files.Select(File.ReadAllText));
             Assert.That(source, Does.Not.Contain("System.Net.Sockets"));
@@ -23,7 +24,8 @@ namespace ZWebGLFrameWork.Network.Tests
             Assert.That(handwrittenBridgeExists, Is.False);
 
             string asmdef = File.ReadAllText(
-                "Assets/Scripts/Network/WebGL/ZWebGLFrameWork.Network.WebGL.asmdef");
+                "Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/" +
+                "ZWebGLFrameWork.Network.WebGL.asmdef");
             Assert.That(asmdef, Does.Contain("ZWebGLFrameWork.Network.Contracts"));
             Assert.That(asmdef, Does.Contain("colyseus.nativewebsocket"));
             Assert.That(asmdef, Does.Not.Contain("ZWebGLFrameWork.Network.Native"));

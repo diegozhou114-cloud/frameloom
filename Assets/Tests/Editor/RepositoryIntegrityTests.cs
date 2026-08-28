@@ -88,7 +88,9 @@ namespace ZWebGLFrameWork.Editor.Tests
         [Test]
         public void FrameworkBattleDefaults_KeepProductionReplacementMarkers()
         {
-            string combat = Path.Combine(Application.dataPath, "Scripts/Combat");
+            string root = Directory.GetParent(Application.dataPath).FullName;
+            string combat = Path.Combine(root,
+                "Packages/com.zwebglframework.runtime/Runtime/Combat");
             Assert.That(File.ReadAllText(Path.Combine(combat, "FrameworkBattleAuthority.cs")),
                 Does.Contain("TODO(PRODUCTION-AUTHORITY)"));
             Assert.That(File.ReadAllText(Path.Combine(combat, "FrameworkBattleContent.cs")),
