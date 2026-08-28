@@ -1,0 +1,8 @@
+{
+  "name": "com.zwebglframework.runtime",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  }
+}
