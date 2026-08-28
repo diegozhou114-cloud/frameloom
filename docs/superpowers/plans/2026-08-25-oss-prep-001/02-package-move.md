@@ -75,14 +75,19 @@ Packages/com.zwebglframework.nativewebsocket/ -> Packages/com.zwebglframework.ru
   manifest entry: embedded discovery is automatic. Regenerate the lock so the old two embedded
   packages disappear, `com.zwebglframework.runtime` is `source: embedded`, and UniTask resolves the
   same SHA. Unity's generated embedded lock value may use `file:com.zwebglframework.runtime`; this
-  is not an authored `file:` dependency.
+  is not an authored `file:` dependency. For BUILD-002, follow commit `24a71f1`'s allocation-safe
+  cached named-ref delegate shape: audit the current private ref `Attack` method, while the existing
+  allocation test and the Task 2.4 Unity gate protect its cached use. Do not modify production source
+  to satisfy an obsolete inline-lambda text oracle.
 - **Do not touch:** historical plans/specs/evidence, `docs/启动管线开发待办.md`, product assets,
   runtime semantics, Server behavior/tests/infrastructure/project names, or `.github/workflows/ci.yml`
   whose existing broad `Assets/**` and `Packages/**` paths already cover the move.
 - **Verify:** run `rg -n 'Assets/Scripts|Packages/com\.zwebglframework\.(kcp2k|nativewebsocket)'`
   over the listed live consumers and expect no stale hit except explicit absence assertions; parse
   both package JSON files with `jq`; run the vendor script tests and the Task 1.3 package-owned .NET
-  builds/tests against relocated paths. Do not use the complete Server solution as this gate.
+  builds/tests against relocated paths. BUILD-002 must require the private ref `Attack` method, not
+  the removed inline lambda; the allocation test and Task 2.4 Unity gate verify cached traversal.
+  Do not use the complete Server solution as this gate.
 - **Checkpoint:** path-only repairs and regenerated host manifest/lock, separate from API changes.
 - **Stop:** any consumer needs a source copy/symlink, lock revision changes, or Server must rename an
   assembly/project or change behavior/test infrastructure to compile.
