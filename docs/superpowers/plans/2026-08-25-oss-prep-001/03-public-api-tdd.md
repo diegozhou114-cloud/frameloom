@@ -28,14 +28,18 @@ strict RED-to-GREEN order; no failing assembly is committed.
   `defineConstraints: [UNITY_INCLUDE_TESTS]`. Never put `nunit.framework.dll` in ordinary
   `references`. It has no matching `InternalsVisibleTo`. Use real public session APIs to publish
   presentation, call the buffered overload directly, then clear/reuse/dispose the parent and prove
-  later `Sample` uses retained value copies/bridge-owned views. The first direct call must produce
-  an inaccessible-member RED.
+  later `Sample` uses retained value copies/bridge-owned views. With the current overload set, the
+  canonical inaccessible-member RED is CS1501: Roslyn excludes the internal two-argument overload
+  from the external assembly's accessible candidates and sees only the public one-argument overload.
 - **Do not touch:** production visibility/behavior, friend assembly lists, reflection, extra
   production assembly references, duplicated production code, repository-path loading, Demo content,
   or allocation measurement.
 - **Verify:** run focused EditMode compilation with `-testFilter
-  ZWebGLFrameWork.PublicApiContract.Tests`; expected RED is specifically CS0122 for the existing
-  buffered `Apply`, with no unrelated compile error. Save log/results outside the repository.
+  ZWebGLFrameWork.PublicApiContract.Tests`; expected RED is the single unique CS1501 diagnostic on
+  the direct two-argument `SessionPresentationBridge.Apply` call, with no other compiler diagnostic
+  or root cause. Prove the external assembly has no friend, reflection, or dynamic access. Do not
+  alter the call to manufacture CS0122; task 3.2 makes this same call compile by changing only the
+  buffered overload's visibility to public. Save log/results outside the repository.
 - **Checkpoint:** RED evidence plus uncommitted external test sources; do not commit broken compile.
 - **Stop:** the test compiles through internals/reflection, cannot publish data through public
   session APIs, or fails for any reason other than overload visibility.
