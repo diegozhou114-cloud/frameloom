@@ -36,6 +36,15 @@ cross-runtime .NET validation, Node/Python, WebGL IL2CPP build/browser smoke, P/
 external contracts, P/R tree/content equality, GUID/meta/asmdef/path, licenses/notices/metadata,
 full-history secret/privacy/size/provenance/license audit, and diff/whitespace/staged whitelists.
 
+For local macOS Unity `2022.3.62f3c1`, CompileAndValidate uses `-batchmode -nographics -quit`.
+EditMode and PlayMode use `-batchmode -runTests` without `-nographics`; evidence records the
+actual graphics backend and device (Metal on Apple M3 Pro for the approved local host). A test
+gate is `PASS` only when Unity exits 0 by itself, the complete nonzero XML has zero failed tests,
+completion-to-exit is recorded, watchdog and signal counts are zero, and no shutdown spin or
+unobserved exception is present. Signal termination (including exit 143) or an XML-only result is
+not a pass. This rule applies only to the local macOS gate; GitHub Actions/headless behavior needs
+separate evidence and cannot inherit the local result.
+
 The Required .NET projects and mixed-assembly class filter are owned by the
 [package specification](02-package-and-dependencies.md#cross-runtime-net-scope). ReplayValidator,
 FrameSync, RealtimeHost, Kcp2kHost, `Server/Tests`, fixture generators, and the complete Server
