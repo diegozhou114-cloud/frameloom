@@ -92,6 +92,12 @@ codegraph explore "SessionPresentationBridge.Apply CommandRecorder.Record caller
 - **Behavior:** establish a passing Unity, Node, Python, and package-owned engine-free .NET baseline.
   Run the mixed SimulationCore test assembly only through its exact framework class filter. The
   complete Server solution and reference hosts/tests/tools are non-Required diagnostics.
+  On the local macOS host, CompileAndValidate retains `-batchmode -nographics -quit`, while
+  EditMode and PlayMode use `-batchmode -runTests` without `-nographics`; record the actual Metal
+  backend/device. A Required test gate needs Unity to exit 0 by itself, complete XML with zero
+  failures, completion-to-exit evidence, no watchdog signal, and no shutdown spin or unobserved
+  exception. Signal termination or XML-only output is never PASS. GitHub Actions/headless runs
+  require separate evidence and do not inherit this local result.
 - **Do not touch:** production/tests/configuration to make a baseline pass; do not classify a current
   failure as migration fallout or add a test project to separate the mixed assembly.
 - **Verify:** run:
@@ -101,10 +107,10 @@ UNITY_BIN=/Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/
 "$UNITY_BIN" -batchmode -nographics -quit -projectPath "$PWD" \
   -executeMethod ZWebGLFrameWork.Editor.BuildValidator.CompileAndValidate \
   -logFile "$OSS_EVIDENCE_ROOT/baseline/unity-validate.log"
-"$UNITY_BIN" -batchmode -nographics -runTests -projectPath "$PWD" -testPlatform EditMode \
+"$UNITY_BIN" -batchmode -runTests -projectPath "$PWD" -testPlatform EditMode \
   -testResults "$OSS_EVIDENCE_ROOT/baseline/editmode.xml" \
   -logFile "$OSS_EVIDENCE_ROOT/baseline/editmode.log"
-"$UNITY_BIN" -batchmode -nographics -runTests -projectPath "$PWD" -testPlatform PlayMode \
+"$UNITY_BIN" -batchmode -runTests -projectPath "$PWD" -testPlatform PlayMode \
   -testResults "$OSS_EVIDENCE_ROOT/baseline/playmode.xml" \
   -logFile "$OSS_EVIDENCE_ROOT/baseline/playmode.log"
 npm ci --prefix ci --ignore-scripts
