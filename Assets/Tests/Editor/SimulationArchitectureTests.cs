@@ -11,11 +11,13 @@ namespace ZWebGLFrameWork.Editor.Tests
         [Test]
         public void ProductionAssemblies_DoNotBypassSimulationSession()
         {
-            string scripts = Path.Combine(Application.dataPath, "Scripts");
-            string[] offenders = Directory.GetFiles(scripts, "*.cs", SearchOption.AllDirectories)
+            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
+            string runtime = Path.Combine(
+                projectRoot, "Packages/com.zwebglframework.runtime/Runtime");
+            string[] offenders = Directory.GetFiles(runtime, "*.cs", SearchOption.AllDirectories)
                 .Where(path => !path.Replace('\\', '/').Contains("/SimulationCore/") &&
                     Regex.IsMatch(File.ReadAllText(path), @"\b(?:SimWorld|SimOrchestrator)\b"))
-                .Select(path => path.Substring(Application.dataPath.Length + 1)
+                .Select(path => path.Substring(projectRoot.Length + 1)
                     .Replace('\\', '/'))
                 .ToArray();
 
@@ -25,17 +27,18 @@ namespace ZWebGLFrameWork.Editor.Tests
         [Test]
         public void ObsoleteFrameSyncStack_IsAbsent()
         {
+            string projectRoot = Directory.GetParent(Application.dataPath).FullName;
             string[] obsoletePaths =
             {
-                "Scripts/SimulationCore/Network/FrameInput.cs",
-                "Scripts/SimulationCore/Network/InputPacket.cs",
-                "Scripts/SimulationCore/Network/InputReceiver.cs",
-                "Scripts/SimulationCore/Network/InputSender.cs",
-                "Scripts/SimulationCore/Network/FrameSyncClient.cs",
-                "Scripts/Network/Simulation/KcpTransport.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Network/FrameInput.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Network/InputPacket.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Network/InputReceiver.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Network/InputSender.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/SimulationCore/Network/FrameSyncClient.cs",
+                "Packages/com.zwebglframework.runtime/Runtime/Network/Simulation/KcpTransport.cs",
             };
             string[] obsolete = obsoletePaths
-                .Where(path => File.Exists(Path.Combine(Application.dataPath, path)))
+                .Where(path => File.Exists(Path.Combine(projectRoot, path)))
                 .ToArray();
 
             Assert.That(obsolete, Is.Empty, string.Join("\n", obsolete));
