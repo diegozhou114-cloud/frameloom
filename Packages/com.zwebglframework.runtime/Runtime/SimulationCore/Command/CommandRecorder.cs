@@ -76,11 +76,43 @@ namespace ZWebGLFrameWork.SimulationCore
             if (result.Result != null) _replay.FinalResult = result.Result;
         }
 
+        /// <summary>Records a published caller-owned tick output.</summary>
+        /// <remarks>
+        /// Borrowed commands are synchronously copied into Replay-owned serializable values before
+        /// return, so the caller may then clear, reuse, or dispose the parent output. Outputs that
+        /// omit executed commands or do not contain a published tick are rejected.
+        /// </remarks>
+        /// <param name="output">The caller-owned output borrowed for this call.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="output"/> is null.</exception>
+        /// <exception cref="System.ArgumentException"><paramref name="output"/> has invalid state.</exception>
+        public void Record(SimTickOutputBuffer output)
+        {
+            if (output == null)
+                throw new System.ArgumentNullException(nameof(output));
+            if ((output.Fields & SimTickOutputFields.ExecutedCommands) == 0)
+                throw new System.ArgumentException(
+                    "Output must include executed commands.", nameof(output));
+            if (output.Tick < 0)
+                throw new System.ArgumentException(
+                    "Output must contain a published tick.", nameof(output));
+
+            var record = new ReplayTickRecord
+            {
+                Tick = output.Tick,
+                Checksum = output.Checksum,
+                Commands = SerializeCommands(output.ExecutedCommands),
+            };
+            _replay.Records.Add(record);
+            _replay.FinalTick = output.Tick;
+            _replay.FinalChecksum = output.Checksum;
+            if (output.Result != null) _replay.FinalResult = output.Result;
+        }
+
         /// <summary>导出 ReplayFile（战斗结束后调用）</summary>
         public ReplayFile Export() => _replay;
 
         /// <summary>序列化命令列表为 SerializableCommand 列表</summary>
-        private static List<SerializableCommand> SerializeCommands(List<ISimCommand> cmds)
+        private static List<SerializableCommand> SerializeCommands(IReadOnlyList<ISimCommand> cmds)
         {
             var result = new List<SerializableCommand>(cmds.Count);
             foreach (var cmd in cmds)
