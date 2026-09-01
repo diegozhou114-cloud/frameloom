@@ -36,7 +36,18 @@ namespace ZWebGLFrameWork.Combat
             if (lease == _lease) Sample(1f, lease);
         }
 
-        internal void Apply(SimPresentationOutputBuffer frame, long revision)
+        /// <summary>
+        /// Synchronously consumes presentation data borrowed from a parent
+        /// <see cref="SimTickOutputBuffer"/> while that parent remains valid.
+        /// All borrowed collections are consumed before return; no buffer, collection, or list view
+        /// is retained. Only interpolation value copies and bridge-owned views remain.
+        /// </summary>
+        /// <param name="frame">The presentation buffer borrowed from the parent output.</param>
+        /// <param name="revision">The revision from the same parent output's
+        /// <see cref="SimTickOutputBuffer.Revision"/>.</param>
+        /// <remarks>After return, the caller may clear, reuse, or dispose the parent output;
+        /// subsequent <see cref="Sample(float)"/> calls remain valid.</remarks>
+        public void Apply(SimPresentationOutputBuffer frame, long revision)
         {
             if (frame == null) throw new System.ArgumentNullException(nameof(frame));
             long lease = ++_lease;

@@ -10,9 +10,6 @@ namespace ZWebGLFrameWork.Combat.Tests
 {
     public sealed class BufferedSessionPresentationBridgeTests
     {
-        private delegate void BufferedApply(SessionPresentationBridge bridge,
-            SimPresentationOutputBuffer presentation, long revision);
-
         [Test]
         public void BufferedPresentation_AppliesWithoutRetainingBorrowedCollections()
         {
@@ -21,7 +18,7 @@ namespace ZWebGLFrameWork.Combat.Tests
             using var output = new SimTickOutputBuffer(SimTickOutputFields.Presentation, 2);
             Fill(output.Presentation, new[] { State(1, 20000) });
 
-            RequireBufferedApply()(bridge, output.Presentation, 0);
+            bridge.Apply(output.Presentation, 0);
             output.Clear();
             Fill(output.Presentation, new[] { State(1, 90000) });
             bridge.Sample(1f);
@@ -35,22 +32,21 @@ namespace ZWebGLFrameWork.Combat.Tests
             var factory = new RecordingFactory();
             var bridge = new SessionPresentationBridge(factory);
             using var output = new SimTickOutputBuffer(SimTickOutputFields.Presentation, 4);
-            BufferedApply apply = RequireBufferedApply();
             Fill(output.Presentation, new[] { State(1, 10000), State(2, 20000) });
-            apply(bridge, output.Presentation, 0);
+            bridge.Apply(output.Presentation, 0);
 
             output.Clear();
             Fill(output.Presentation, new[] { State(1, 30000), State(3, 40000) },
                 new[] { State(3, 40000) }, new[] { State(1, 30000) },
                 new[] { new EntityPresentationKey(2, 1) });
-            apply(bridge, output.Presentation, 0);
+            bridge.Apply(output.Presentation, 0);
             Assert.That(factory.ActiveIds, Is.EquivalentTo(new[] { 1, 3 }));
 
             output.Clear();
             Fill(output.Presentation, new[] { State(1, 50000), State(4, 60000) },
                 new[] { State(99, 990000) }, Array.Empty<EntityPresentationState>(),
                 new[] { new EntityPresentationKey(1, 1) });
-            apply(bridge, output.Presentation, 1);
+            bridge.Apply(output.Presentation, 1);
             bridge.Sample(0f);
 
             Assert.That(factory.ActiveIds, Is.EquivalentTo(new[] { 1, 4 }));
@@ -68,17 +64,16 @@ namespace ZWebGLFrameWork.Combat.Tests
             for (int index = 0; index < states.Length; index++)
                 states[index] = State(index + 1, (index + 1) * 10000L);
             Fill(output.Presentation, states);
-            BufferedApply apply = FindBufferedApply();
             bridge.Apply(Full(states));
             for (int index = 0; index < 32; index++)
-                ApplyAndSample(bridge, output.Presentation, apply);
+                ApplyAndSample(bridge, output.Presentation);
             Recorder recorder = CreateValidatedRecorder();
             long events;
             try
             {
                 recorder.enabled = false;
                 recorder.enabled = true;
-                ApplyAndSample(bridge, output.Presentation, apply);
+                ApplyAndSample(bridge, output.Presentation);
                 recorder.enabled = false;
                 events = recorder.sampleBlockCount;
             }
@@ -90,26 +85,10 @@ namespace ZWebGLFrameWork.Combat.Tests
         }
 
         private static void ApplyAndSample(SessionPresentationBridge bridge,
-            SimPresentationOutputBuffer presentation, BufferedApply apply)
+            SimPresentationOutputBuffer presentation)
         {
-            if (apply != null) apply(bridge, presentation, 0);
+            bridge.Apply(presentation, 0);
             bridge.Sample(0.5f);
-        }
-
-        private static BufferedApply RequireBufferedApply()
-        {
-            BufferedApply apply = FindBufferedApply();
-            Assert.That(apply, Is.Not.Null, "buffered presentation Apply overload is missing");
-            return apply;
-        }
-
-        private static BufferedApply FindBufferedApply()
-        {
-            MethodInfo method = typeof(SessionPresentationBridge).GetMethod("Apply",
-                BindingFlags.Instance | BindingFlags.NonPublic, null,
-                new[] { typeof(SimPresentationOutputBuffer), typeof(long) }, null);
-            return method == null ? null : (BufferedApply)Delegate.CreateDelegate(
-                typeof(BufferedApply), method);
         }
 
         private static void Fill(SimPresentationOutputBuffer destination,
