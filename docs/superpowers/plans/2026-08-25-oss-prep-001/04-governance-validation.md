@@ -23,7 +23,9 @@ the [stage 3 checkpoint](03-public-api-tdd.md#task-35-focused-then-complete-regr
   unapproved metadata fields/keywords, CI badges, Demo links, or registry publication settings.
 - **Verify:** `node --test scripts/oss/validate-package-governance.test.mjs` is RED on each invalid
   fixture, then GREEN; `node scripts/oss/validate-package-governance.mjs --root "$PWD"` exits 0;
-  `jq -e` validates metadata; all three URL filenames exist in the package.
+  `jq -e` validates metadata; the package README and changelog URL filenames exist. The exact
+  `licensesUrl` value is Required here, while its local package `LICENSE` target is created and
+  validated in task 4.2.
 - **Checkpoint:** final package metadata/docs plus validator; new metas are exact-whitelisted and
   unique. Package metadata is now final and receives no release-stage edit.
 - **Stop:** Unity package specification rejects an approved field/path, docs require a guessed SHA,
@@ -46,6 +48,7 @@ the [stage 3 checkpoint](03-public-api-tdd.md#task-35-focused-then-complete-regr
   and `< 0.1` as not, promises intake/evaluation only, and offers no response/fix/SLA commitment.
   `CONTRIBUTING.md` implements the approved no-CLA/no-DCO MIT contribution grant, rights warranty,
   third-party disclosure/approval rules, and lightweight PR confirmations in English.
+  The package `LICENSE` created here is the Required local target of task 4.1's exact `licensesUrl`.
 - **Do not touch:** third-party headers/licenses, vendored code, Demo art, per-file SPDX/MIT headers,
   README, source behavior, CLA/DCO/signing systems, or governance email outside Security/Conduct.
 - **Verify:** run the governance Node tests/validator, then:
@@ -140,7 +143,8 @@ test "$(shasum -a 256 Packages/com.zwebglframework.runtime/ThirdParty/NativeWebS
   EditMode/PlayMode, and Server regression. Audit public English scope and exact new-meta list.
 - **Do not touch:** stable APIs, product content, Layout, shader logs, root README, or remotes.
 - **Verify:** all commands above plus [task 1.3](01-baseline.md#task-13-run-the-pre-move-compile-and-test-baseline)
-  exit 0; `git diff --check` is clean; no generated consumer/cache/evidence is tracked.
+  exit 0; package `README.md`, `CHANGELOG.md`, and `LICENSE` all exist; `git diff --check` is clean;
+  no generated consumer/cache/evidence is tracked.
 - **Checkpoint:** Package And Governance complete; package docs/notices/license/metadata are ready for
   `P`, while root README remains intentionally unchanged until `R`.
 - **Stop:** any regression, non-English normative public addition, unexpected meta, generated project,
