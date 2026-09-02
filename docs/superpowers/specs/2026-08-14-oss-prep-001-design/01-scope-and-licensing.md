@@ -35,6 +35,13 @@ copyright statement, attribution, upstream identity, and immutable revision. Do 
 expand, or relicense third-party rights, and do not assign FrameLoom MIT copyright to vendored
 content. FrameLoom MIT excludes content separately marked under another license.
 
+For NativeWebSocket commit `cbbf04d42522d5f5b466224a0b8e3936676f9b32`, the repository-root
+Apache-2.0 `LICENSE` is the repository-wide distribution baseline. The retained
+`integrations/Unity/WebSocket.jspre` remains under its file-specific MIT notice. The nested Unity
+`package.json` and .NET `NativeWebSocket.csproj` MIT declarations are preserved metadata conflicts;
+they do not relicense other NativeWebSocket files or establish FrameLoom MIT authority. Notices
+disclose all three MIT indicators and the Apache-2.0 baseline without rewriting upstream material.
+
 Demo art is outside the framework MIT grant. A future Demo repository must separately record art
 provenance and redistribution permission; no Demo art enters this package.
 
@@ -50,6 +57,10 @@ NativeWebSocket. Each stable-schema entry records:
 - original copyright statement;
 - modification status and precise modification scope; and
 - every covered package distribution path.
+
+The NativeWebSocket entry separately records its root Apache-2.0 baseline, the file-specific MIT
+notice on `WebSocket.jspre`, and the two nested MIT metadata conflicts. These classifications do not
+extend FrameLoom's MIT grant to vendored content.
 
 The package notice also records UniTask upstream, MIT license, and full commit
 `e5acc106ee196bc5a32fb14cdf2987b0f96d11e0`. It states that UniTask is not vendored, is not declared
@@ -81,8 +92,10 @@ The validator reports and fails on:
 - a package entry missing from the root notice;
 - any common-field mismatch;
 - a package third-party path without a package notice;
-- a referenced retained-license file that does not exist; or
-- a UniTask SHA different from the consumer manifest template.
+- a referenced retained-license file that does not exist;
+- a UniTask SHA different from the consumer manifest template;
+- a missing or reinterpreted NativeWebSocket MIT indicator; or
+- an unresolved licensing-review deferral.
 
 Unresolved revision, license, copyright, modification, or path facts block release; notices cannot
 use guessed values or unresolved placeholders.
