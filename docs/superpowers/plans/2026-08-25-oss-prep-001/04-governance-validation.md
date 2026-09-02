@@ -35,10 +35,12 @@ the [stage 3 checkpoint](03-public-api-tdd.md#task-35-focused-then-complete-regr
 
 - **Paths:** add root and package `LICENSE`; root and package `THIRD_PARTY_NOTICES.md`;
   `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and
-  `.github/pull_request_template.md`; extend the governance validator/tests. Add package document
-  metas only for `LICENSE` and `THIRD_PARTY_NOTICES.md`. Audit retained NativeWebSocket
+  `.github/pull_request_template.md`; close the approved NativeWebSocket classification in
+  `docs/dependencies/README.md`; extend the governance validator/tests. Add package document metas
+  only for `LICENSE` and `THIRD_PARTY_NOTICES.md`. Audit retained NativeWebSocket
   `ThirdParty/NativeWebSocket/LICENSE.txt`, nested `Runtime/Upstream/integrations/Unity/package.json`,
-  and nested `Runtime/Upstream/src/NativeWebSocket/NativeWebSocket.csproj`.
+  nested `Runtime/Upstream/src/NativeWebSocket/NativeWebSocket.csproj`, and file-specific
+  `Runtime/Upstream/integrations/Unity/WebSocket.jspre`.
 - **Behavior:** tests first reject changed MIT bytes, notice common-field drift, missing retained
   licenses, undisclosed package third-party paths, wrong UniTask SHA, and excess email exposure.
   Both licenses are byte-identical standard MIT with `Copyright (c) 2026 Diego Zhou`. Package notices
@@ -49,6 +51,9 @@ the [stage 3 checkpoint](03-public-api-tdd.md#task-35-focused-then-complete-regr
   `CONTRIBUTING.md` implements the approved no-CLA/no-DCO MIT contribution grant, rights warranty,
   third-party disclosure/approval rules, and lightweight PR confirmations in English.
   The package `LICENSE` created here is the Required local target of task 4.1's exact `licensesUrl`.
+  NativeWebSocket uses its root Apache-2.0 license as the repository-wide distribution baseline;
+  `WebSocket.jspre` remains under its file-specific MIT notice, while the nested Unity package and
+  .NET project MIT declarations remain metadata conflicts. None establishes FrameLoom MIT authority.
 - **Do not touch:** third-party headers/licenses, vendored code, Demo art, per-file SPDX/MIT headers,
   README, source behavior, CLA/DCO/signing systems, or governance email outside Security/Conduct.
 - **Verify:** run the governance Node tests/validator, then:
@@ -62,9 +67,11 @@ test "$(shasum -a 256 Packages/com.zwebglframework.runtime/ThirdParty/NativeWebS
 
   Expected: `cmp` and tests exit 0; license hashes match; structured common entries agree; all notice
   paths exist. NativeWebSocket notices pin `cbbf04d42522d5f5b466224a0b8e3936676f9b32`, identify the
-  canonical root Apache-2.0 license as the owner-reviewed distribution basis, disclose both nested
-  MIT metadata declarations as conflicts, and verify retained materials satisfy actual redistribution
-  requirements. The validator rejects FrameLoom MIT reinterpretation and unresolved review deferrals.
+  canonical root Apache-2.0 license as the owner-reviewed distribution baseline, preserve the
+  file-specific `WebSocket.jspre` MIT classification, disclose both nested MIT metadata declarations
+  as conflicts, and verify retained materials satisfy actual redistribution requirements. The
+  validator rejects missing/reinterpreted indicators, FrameLoom MIT reinterpretation, and unresolved
+  review deferrals.
 - **Checkpoint:** licensing/governance files and their test-first validator, separate from tooling.
 - **Stop:** the owner-reviewed NativeWebSocket conclusion is missing or cannot be closed from approved
   design and pinned upstream evidence, any upstream revision/license/copyright/modification fact
