@@ -9,6 +9,17 @@ const YAML = require('yaml');
 const source = await readFile('.github/workflows/ci.yml', 'utf8');
 const playwrightConfig = await readFile('ci/smoke/playwright.config.mjs', 'utf8');
 const workflow = YAML.parse(source);
+const normalizeShell = value => String(value || '').replace(/\s+/g, ' ').trim();
+const forbiddenReleaseCommands = [
+  /(?:\.\/)?scripts\/oss\/(?:audit-history|release-evidence)\.mjs\b/i,
+  /(?:\.\/)?scripts\/oss\/run-required-gates\.sh\b/i,
+  /\bgit\b[^\n;&|]{0,200}\b(?:push|tag|ls-remote|remote)\b/i,
+  /\bgh\b[^\n;&|]{0,200}\b(?:repo|release)\b/i,
+];
+const forbiddenPassClaims = [
+  /GitHub Actions(?: CI)?[^\n]{0,32}\bPASS\b/i,
+  /WebGL[^\n]{0,48}managed[ -]?allocation[^\n]{0,48}\bPASS\b/i,
+];
 const requiredPaths = [
   'Assets/**', 'Packages/**', 'ProjectSettings/**', 'Server/**',
   '.github/workflows/**', 'scripts/**', 'ci/**',
@@ -98,4 +109,35 @@ test('build smoke gates require trusted HTTPS and structured Windows exit', () =
   assert.doesNotMatch(windowsCommands, /Select-Object -First 1/);
   assert.match(windowsCommands, /validate-player-log\.mjs/);
   assert.doesNotMatch(playwrightConfig, /ignoreHTTPSErrors:\s*true/);
+});
+
+test('CI runs repository-safe OSS contracts without publication claims', () => {
+  const auditCommands = workflow.jobs.audit.steps
+    .map(step => normalizeShell(step.run))
+    .filter(Boolean);
+  assert.ok(auditCommands.includes(
+    'node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs'),
+  'audit job must run the repository-safe OSS fixture and negative contracts');
+
+  const allCommands = Object.values(workflow.jobs)
+    .flatMap(job => (job.steps || []).map(step => normalizeShell(step.run)))
+    .filter(Boolean)
+    .join('\n');
+  for (const pattern of forbiddenReleaseCommands) assert.doesNotMatch(allCommands, pattern,
+    'CI must not run formal release/history, remote, tag, or Release commands');
+  for (const pattern of forbiddenPassClaims) assert.doesNotMatch(source, pattern,
+    'CI must not claim formal CI or WebGL managed-allocation PASS');
+});
+
+test('repository-safe checks reject normalized wrapper and claim variants', () => {
+  for (const command of [
+    "bash -c 'node ./scripts/oss/audit-history.mjs --revision HEAD'",
+    'sh scripts/oss/run-required-gates.sh --phase package-freeze',
+    'env MODE=probe git -c http.version=HTTP/1.1 ls-remote origin',
+    'bash -c "gh release create v0.1.0"',
+  ]) assert.ok(forbiddenReleaseCommands.some(pattern => pattern.test(normalizeShell(command))), command);
+  for (const claim of ['GitHub Actions PASS', 'GitHub Actions CI - PASS',
+    'WebGL managed-allocation: PASS']) {
+    assert.ok(forbiddenPassClaims.some(pattern => pattern.test(normalizeShell(claim))), claim);
+  }
 });

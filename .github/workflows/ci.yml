@@ -43,7 +43,7 @@ jobs:
           cache: npm
           cache-dependency-path: ci/package-lock.json
       - run: npm ci --prefix ci --ignore-scripts
-      - run: node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs
+      - run: node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs
       - run: PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py'
       - run: node scripts/audit/evidence-ledger.mjs validate --ledger docs/superpowers/specs/2026-07-16-project-repair-evidence.json
       - run: scripts/repair/audit-meta.sh "$PWD"

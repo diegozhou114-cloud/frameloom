@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "topics": ["unity", "unity3d", "unity-package", "upm", "webgl", "deterministic-simulation", "strategy-game", "ecs"],
+  "gates": [
+    {"id":"unity-compile","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 macOS","revision":"P"},
+    {"id":"unity-editmode","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 macOS","revision":"P"},
+    {"id":"unity-playmode","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 macOS","revision":"P"},
+    {"id":"external-public-contracts","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 macOS","revision":"P"},
+    {"id":"editor-mono-allocation","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 Editor Mono","revision":"P"},
+    {"id":"simulation-soak","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 macOS","revision":"P"},
+    {"id":"framework-dotnet","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":".NET 8 framework projects","revision":"P"},
+    {"id":"node-python-workflow","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Node and Python local","revision":"P"},
+    {"id":"webgl-build-browser-smoke","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Unity 2022.3.62f3c1 WebGL browser","revision":"P"},
+    {"id":"package-structure-governance","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Repository local","revision":"P"},
+    {"id":"p-history-provenance","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Git history local","revision":"P"},
+    {"id":"p-diff-whitespace-whitelist","phase":"Pre-tag","milestone":"package-freeze","required":true,"environment":"Git worktree local","revision":"P"},
+    {"id":"pr-package-tree-equality","phase":"Pre-tag","milestone":"release-candidate","required":true,"environment":"Git object database","revision":"P/R"},
+    {"id":"d0","phase":"Pre-tag","milestone":"release-candidate","required":true,"environment":"Unity Gitee consumer","revision":"R"},
+    {"id":"r-history-provenance","phase":"Pre-tag","milestone":"release-candidate","required":true,"environment":"Git history local","revision":"R"},
+    {"id":"r-diff-whitespace-whitelist","phase":"Pre-tag","milestone":"release-candidate","required":true,"environment":"Git worktree local","revision":"R"},
+    {"id":"p-fresh-project","phase":"Pre-tag","milestone":"private-github","required":true,"environment":"Unity authenticated GitHub consumer","revision":"P"},
+    {"id":"r-fresh-project","phase":"Pre-tag","milestone":"private-github","required":true,"environment":"Unity authenticated GitHub consumer","revision":"R"},
+    {"id":"webgl-il2cpp-managed-allocation","phase":"Pre-tag","milestone":"package-freeze","required":false,"environment":"Unity 2022.3.62f3c1 WebGL IL2CPP","revision":"R","notes":"Not measured; Editor/Mono results cannot substitute for WebGL IL2CPP managed-allocation evidence."},
+    {"id":"server-reference-build-tests","phase":"Pre-tag","milestone":"package-freeze","required":false,"environment":".NET 8 reference implementation","revision":"P","notes":"Optional reference-host evidence; not a framework or CI result."},
+    {"id":"tag-identity","phase":"Post-tag/Pre-public","milestone":"post-tag","required":true,"environment":"Local, Gitee, and GitHub Git","revision":"R"},
+    {"id":"repository-heads-topics","phase":"Post-tag/Pre-public","milestone":"post-tag","required":true,"environment":"Gitee and GitHub repository metadata","revision":"R"},
+    {"id":"tagged-material-links","phase":"Post-tag/Pre-public","milestone":"post-tag","required":true,"environment":"GitHub authenticated metadata","revision":"R"},
+    {"id":"release-candidate-assets","phase":"Post-tag/Pre-public","milestone":"post-tag","required":true,"environment":"GitHub private Release","revision":"R"},
+    {"id":"anonymous-p-fresh-project","phase":"Post-public","milestone":"post-public","required":true,"environment":"Unity anonymous GitHub consumer","revision":"P"},
+    {"id":"anonymous-r-fresh-project","phase":"Post-public","milestone":"post-public","required":true,"environment":"Unity anonymous GitHub consumer","revision":"R"},
+    {"id":"public-release-assets","phase":"Post-public","milestone":"post-public","required":true,"environment":"GitHub anonymous Release","revision":"R"}
+  ]
+}
