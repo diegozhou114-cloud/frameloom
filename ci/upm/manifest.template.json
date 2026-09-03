@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#__UNITASK_REVISION__",
+    "com.unity.test-framework": "1.4.6",
+    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#__FRAMEWORK_REVISION__"
+  }
+}
