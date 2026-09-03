@@ -96,13 +96,16 @@ test "$(shasum -a 256 Packages/com.zwebglframework.runtime/ThirdParty/NativeWebS
   `defineConstraints: [UNITY_INCLUDE_TESTS]`; NUnit is not an ordinary reference. Stage 4 executes only
   fixtures, negative tests, and a no-remote dry-run; it performs no Unity consumer resolution and
   emits no formal release-gate evidence. The implemented validator is exercised on fixtures for lock
-  source/revision, package identity/version, origin/subdirectory, public-only access, compile result,
-  and cleanup so it is ready for the first real authenticated P/R runs in
+  source/revision, both Git package cache identities and observed origins/subdirectories/revisions,
+  persisted byte/mode inventories and digests, package identity/version, absence of friend grants,
+  public-only access, the local macOS TestRunner lifecycle contract, and symlink-safe cleanup so it is
+  ready for the first real authenticated P/R runs in
   [task 6.4](06-release-candidate.md#task-64-authorize-private-github-master-and-pr-fresh-gates).
 - **Do not touch:** commit a consumer project/Library/Logs/Temp/cache, contact a remote, invoke Unity,
   generate formal release evidence, declare UniTask in package metadata, reuse host source binaries,
   or substitute `file:`, symlink, local repository, or Gitee for the unavailable GitHub gate.
-- **Verify:** `node --test scripts/oss/*fresh-project*.test.mjs`; then run
+- **Verify:** `node --test scripts/oss/generate-upm-consumer.test.mjs
+  scripts/oss/*fresh-project*.test.mjs`; then run
   `scripts/oss/run-fresh-project-gate.sh --dry-run --no-remote --framework-revision 1111111111111111111111111111111111111111 --fixture-output "$OSS_EVIDENCE_ROOT/fresh-tool-fixture"`.
   Expected: fixture/negative tests and dry-run exit 0 without Unity or network access; generated
   manifest/asmdef/driver inputs are deterministic; no consumer project remains; output is explicitly
