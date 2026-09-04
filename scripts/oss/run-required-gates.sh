@@ -5,12 +5,12 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
 REGISTRY="$ROOT/ci/oss/gates.json"
 PHASE= REVISION= UNITY= EVIDENCE_ROOT= EXECUTOR= OUTPUT= RESULTS= FAILED_GATE=
 FIXTURE=0 FAILED=0
-TOTAL_TIMEOUT=${FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS:-1200}; EXIT_GRACE=${FRAMELOOM_GATE_EXIT_GRACE_SECONDS:-600}
-POLL_SECONDS=${FRAMELOOM_GATE_POLL_SECONDS:-2}; TERM_GRACE=${FRAMELOOM_GATE_TERM_GRACE_SECONDS:-30}
-U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= WRAPPER_START= SIGNALS=0
+TOTAL_TIMEOUT=${FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS:-1200}; EXIT_GRACE=${FRAMELOOM_GATE_EXIT_GRACE_SECONDS:-600}; POLL_SECONDS=${FRAMELOOM_GATE_POLL_SECONDS:-2}; TERM_GRACE=${FRAMELOOM_GATE_TERM_GRACE_SECONDS:-30}; U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= WRAPPER_START= SIGNALS=0
 MIXED_CLASSES='ContentManifestGoldenTests DeterministicRandomCompatibilityTests LogicIntCompatibilityTests ModeBehaviorGoldenTests SessionCommandTests SessionDeterminismTests ModeBehaviorTests CoreTargetingTests SimSystemGroupTests SessionTerminalTests'
-P_PREFIX=61add622c04ad72494b5da785e542b984ec18df4
-P_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_FOUNDATION=61add622c04ad72494b5da785e542b984ec18df4
+P_FOUNDATION_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_PREFIX=ef4abbee5afe6891ccc570eefcd1842d35ef95dd
+P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
 set_once() { [ -z "$1" ] || fail "Duplicate argument: $2"; printf '%s' "$3"; }
@@ -116,6 +116,8 @@ evidence_inventory() {
 p_diff_gate() {
   local dir=$1 row actual expected; row=$(git -C "$ROOT" rev-list --parents -n 1 "$REVISION") || return 1; set -- $row
   [ "$#" -eq 2 ] && [ "$1" = "$REVISION" ] && [ "$2" = "$P_PREFIX" ] || { printf 'candidate must be the non-merge direct child of %s\n' "$P_PREFIX"; return 1; }
+  row=$(git -C "$ROOT" rev-list --parents -n 1 "$P_PREFIX") || return 1; set -- $row; [ "$#" -eq 2 ] && [ "$1" = "$P_PREFIX" ] && [ "$2" = "$P_FOUNDATION" ] || { printf 'Stage 4 checkpoint must be the non-merge direct child of %s\n' "$P_FOUNDATION"; return 1; }
+  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$P_PREFIX" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $P_FOUNDATION_PATHS | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/stage4-checkpoint-paths.txt"; [ "$actual" = "$expected" ] || { printf 'Stage 4 checkpoint path mismatch\nexpected:\n%s\nactual:\n%s\n' "$expected" "$actual"; return 1; }
   actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$REVISION" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $P_PATHS | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/checkpoint-paths.txt"
   [ "$actual" = "$expected" ] || { printf 'checkpoint path mismatch\nexpected:\n%s\nactual:\n%s\n' "$expected" "$actual"; return 1; }
   git -C "$ROOT" diff --check af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" && git -C "$ROOT" diff --quiet af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" -- README.md UserSettings/Layouts/default-2022.dwlt

@@ -127,11 +127,14 @@ test('package structure rejects filesystem and Git-index runtime symlinks', asyn
   for (const name of ['README.md.meta', 'CHANGELOG.md.meta', 'LICENSE.meta', 'THIRD_PARTY_NOTICES.md.meta']) assert.ok(shell.includes(`Packages/com.zwebglframework.runtime/${name}`));
 });
 
-test('P diff gate accepts only the exact non-merge direct-child checkpoint', async t => {
-  const source = await readFile(driver, 'utf8'); const prefix = source.match(/^P_PREFIX=([a-f0-9]{40})$/m)[1];
-  const paths = source.match(/^P_PATHS='([^']+)'$/m)[1].split(' '); const setup = source.match(/^P_(?:PREFIX|PATHS)=.*$/gm).join('\n');
-  assert.equal(prefix, '61add622c04ad72494b5da785e542b984ec18df4');
-  assert.deepEqual(paths, ['.github/workflows/ci.yml', 'ci/oss/gates.json', 'scripts/ci/workflow-contract.test.mjs', 'scripts/oss/audit-history.mjs', 'scripts/oss/audit-history.test.mjs', 'scripts/oss/compare-package-content.mjs', 'scripts/oss/compare-package-content.test.mjs', 'scripts/oss/release-evidence.mjs', 'scripts/oss/release-evidence.test.mjs', 'scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/oss/run-webgl-smoke.sh', 'scripts/oss/run-webgl-smoke.test.mjs']);
+test('vendor contract accepts the wrapped governance classification', () => { const result = spawnSync('bash', [path.join(repository, 'scripts/vendor-nativewebsocket.test.sh')], { cwd: repository, encoding: 'utf8' }); assert.equal(result.status, 0, result.stdout + result.stderr); });
+
+test('P diff gate pins the Stage 4 checkpoint and exact non-merge repair child', async t => {
+  const source = await readFile(driver, 'utf8'), foundation = source.match(/^P_FOUNDATION=([a-f0-9]{40})$/m)[1], prefix = source.match(/^P_PREFIX=([a-f0-9]{40})$/m)[1];
+  const foundationPaths = source.match(/^P_FOUNDATION_PATHS='([^']+)'$/m)[1].split(' '), paths = source.match(/^P_PATHS='([^']+)'$/m)[1].split(' '); const setup = source.match(/^P_(?:FOUNDATION|FOUNDATION_PATHS|PREFIX|PATHS)=.*$/gm).join('\n');
+  assert.equal(foundation, '61add622c04ad72494b5da785e542b984ec18df4'); assert.equal(prefix, 'ef4abbee5afe6891ccc570eefcd1842d35ef95dd');
+  assert.deepEqual(foundationPaths, ['.github/workflows/ci.yml', 'ci/oss/gates.json', 'scripts/ci/workflow-contract.test.mjs', 'scripts/oss/audit-history.mjs', 'scripts/oss/audit-history.test.mjs', 'scripts/oss/compare-package-content.mjs', 'scripts/oss/compare-package-content.test.mjs', 'scripts/oss/release-evidence.mjs', 'scripts/oss/release-evidence.test.mjs', 'scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/oss/run-webgl-smoke.sh', 'scripts/oss/run-webgl-smoke.test.mjs']);
+  assert.deepEqual(paths, ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/vendor-nativewebsocket.test.sh']);
   const gate = source.match(/p_diff_gate\(\) \{[\s\S]*?\n\}/)[0]; const git = (root, args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' });
   for (const mode of ['valid', 'extra', 'missing', 'non-direct', 'merge']) {
     const top = await realpath(await mkdtemp(path.join(os.tmpdir(), `frameloom-diff-${mode}-`))); t.after(() => rm(top, { recursive: true, force: true })); const repo = path.join(top, 'repo');

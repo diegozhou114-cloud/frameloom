@@ -12,4 +12,4 @@ rg -q 'ZWebGLFrameWork.NativeWebSocket.Core' \
 rg -q '^#if !UNITY_WEBGL' \
   Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket/Runtime/Upstream/src/NativeWebSocket/WebSocket.cs
 rg -q 'Apache-2.0' docs/dependencies/README.md
-rg -q 'integrations/Unity/package.json.*MIT' docs/dependencies/README.md
+node -e 'const text=require("fs").readFileSync(process.argv[1],"utf8").replace(/\s+/g," ");const expected="The MIT declarations in `Runtime/Upstream/integrations/Unity/package.json` and `Runtime/Upstream/src/NativeWebSocket/NativeWebSocket.csproj` are preserved metadata conflicts.";if(!text.includes(expected))process.exit(1)' docs/dependencies/README.md
