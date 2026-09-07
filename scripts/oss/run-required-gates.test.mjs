@@ -5,12 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { validateGates } from './release-evidence.mjs';
-
 const repository = path.resolve(new URL('../..', import.meta.url).pathname);
 const driver = path.join(repository, 'scripts/oss/run-required-gates.sh');
 const registryPath = path.join(repository, 'ci/oss/gates.json');
 const revision = '1'.repeat(40);
-
 async function fixture(t) {
   const top = await realpath(await mkdtemp(path.join(os.tmpdir(), 'frameloom-required-gates-')));
   t.after(() => rm(top, { recursive: true, force: true }));
@@ -34,23 +32,19 @@ printf 'result=PASS\n' >> "$output"
   await chmod(executor, 0o755);
   return { top, unity, executor, log: path.join(top, 'executor.log') };
 }
-
 function run(value, evidence, extra = [], env = {}) {
   return spawnSync(driver, ['--fixture-run', '--phase', 'package-freeze', '--revision', revision,
     '--unity', value.unity, '--evidence-root', evidence, '--executor', value.executor, ...extra], {
     cwd: repository, encoding: 'utf8', env: { ...process.env, FRAMELOOM_EXECUTOR_LOG: value.log, ...env },
   });
 }
-
 async function rows(evidence) {
   return (await readFile(path.join(evidence, 'fixture-results.ndjson'), 'utf8')).trim()
     .split('\n').map(JSON.parse);
 }
-
 function semanticShell(source) {
   return source.replace(/\\\r?\n/g, ' ').replace(/\s+/g, ' ').trim();
 }
-
 async function watchdogFixture(t, ignoreTerm) {
   const top = await realpath(await mkdtemp(path.join(os.tmpdir(), 'frameloom-watchdog-')));
   t.after(() => rm(top, { recursive: true, force: true }));
@@ -62,7 +56,9 @@ async function watchdogFixture(t, ignoreTerm) {
   await copyFile(path.join(repository, 'scripts/oss/release-evidence.mjs'), path.join(scripts, 'release-evidence.mjs'));
   await copyFile(registryPath, path.join(ci, 'gates.json'));
   const unity = path.join(repo, 'FakeUnity');
-  await writeFile(unity, `#!/bin/sh\ntrap '${ignoreTerm ? '' : 'exit 143'}' TERM\nwhile :; do :; done\n`); await chmod(unity, 0o755);
+  const source = path.join(repo, 'fake-unity.c');
+  await writeFile(source, `#include <signal.h>\n#include <unistd.h>\nstatic void stop(int value){(void)value;${ignoreTerm ? '' : '_exit(143);'}}\nint main(void){signal(SIGTERM,stop);for(;;)pause();}\n`);
+  assert.equal(spawnSync('/usr/bin/clang', ['-arch', 'arm64', source, '-o', unity]).status, 0); await rm(source);
   for (const tool of ['dotnet', 'gitleaks']) { const stub = path.join(bin, tool); await writeFile(stub, '#!/bin/sh\nexit 0\n'); await chmod(stub, 0o755); }
   assert.equal(spawnSync('git', ['init', '-q'], { cwd: repo }).status, 0);
   assert.equal(spawnSync('git', ['add', '.'], { cwd: repo }).status, 0);
@@ -75,7 +71,6 @@ async function watchdogFixture(t, ignoreTerm) {
   });
   return { evidence, result };
 }
-
 test('formal Unity commands use the bounded lifecycle and macOS TestRunner contract', async () => {
   const source = await readFile(driver, 'utf8'); const shell = semanticShell(source);
   const branch = shell.match(/if \[ "\$kind" = test \]; then args=\((.*?)\); \[ -z "\$filter" \]/);
@@ -93,7 +88,19 @@ test('formal Unity commands use the bounded lifecycle and macOS TestRunner contr
   assert.ok(source.trimEnd().split('\n').length <= 200, 'runner exceeds 200 lines');
   assert.notEqual((await lstat(driver)).mode & 0o111, 0, 'runner is not executable');
 });
-
+test('formal Apple Silicon preflight accepts only a native thin arm64 Unity editor', async () => {
+  const source = await readFile(driver, 'utf8'), shell = semanticShell(source);
+  const predicate = source.match(/native_unity_ok\(\) \{[\s\S]*?\n\}/); assert.ok(predicate, 'missing architecture predicate');
+  const cases = [
+    [['Darwin', '1', 'arm64', 'Mach-O 64-bit executable arm64'], true],
+    [['Darwin', '1', 'x86_64', 'Mach-O 64-bit executable x86_64'], false],
+    [['Darwin', '1', 'x86_64 arm64', 'Mach-O universal binary with 2 architectures'], false],
+    [['Darwin', '2', 'arm64', 'Mach-O 64-bit executable arm64'], false],
+    [['Linux', 'not-applicable', 'not-applicable', 'ELF 64-bit executable'], true],
+  ];
+  for (const [args, accepted] of cases) { const result = spawnSync('bash', ['-c', `${predicate[0]}\nnative_unity_ok "$@"`, 'gate', ...args]); assert.equal(result.status === 0, accepted, args.join('|')); }
+  for (const contract of [/\/usr\/bin\/uname -s/, /\/usr\/sbin\/sysctl -in hw\.optional\.arm64/, /\/usr\/sbin\/sysctl -n hw\.machine/, /\/usr\/bin\/lipo -archs "\$UNITY"/, /\/usr\/bin\/file -b "\$UNITY"/, /unity-architecture\.txt/, /unity-\*\|external-public-contracts\|editor-mono-allocation\|simulation-soak\|webgl-build-browser-smoke/]) assert.match(shell, contract);
+});
 test('watchdog sends TERM and escalates to KILL only for an identity-confirmed live process', { skip: process.platform !== 'darwin' }, async t => {
   for (const [ignoreTerm, expected] of [[false, ['TERM']], [true, ['TERM', 'KILL']]]) {
     const value = await watchdogFixture(t, ignoreTerm); assert.equal(value.result.status, 1, value.result.stderr);
@@ -106,7 +113,6 @@ test('watchdog sends TERM and escalates to KILL only for an identity-confirmed l
     assert.match(lifecycle, new RegExp(`signals=${expected.length}$`, 'm'));
   }
 });
-
 test('mixed SimulationCore TRX must contain the exact approved class set', async () => {
   const source = await readFile(driver, 'utf8'); const shell = semanticShell(source);
   const assignment = source.match(/^MIXED_CLASSES='([^']+)'$/m); assert.ok(assignment);
@@ -118,7 +124,6 @@ test('mixed SimulationCore TRX must contain the exact approved class set', async
   assert.match(shell, /missing=.*extra=/);
   assert.match(shell, /validate-trx\.py.*--minimum 132.*simulation\.trx.*\$MIXED_CLASSES/);
 });
-
 test('package structure rejects filesystem and Git-index runtime symlinks', async () => {
   const shell = semanticShell(await readFile(driver, 'utf8'));
   assert.match(shell, /find "\$runtime" -type l -print -quit/);
@@ -126,16 +131,14 @@ test('package structure rejects filesystem and Git-index runtime symlinks', asyn
   assert.match(shell, /\$1=="120000"/);
   for (const name of ['README.md.meta', 'CHANGELOG.md.meta', 'LICENSE.meta', 'THIRD_PARTY_NOTICES.md.meta']) assert.ok(shell.includes(`Packages/com.zwebglframework.runtime/${name}`));
 });
-
 test('vendor contract accepts the wrapped governance classification', () => { const result = spawnSync('bash', [path.join(repository, 'scripts/vendor-nativewebsocket.test.sh')], { cwd: repository, encoding: 'utf8' }); assert.equal(result.status, 0, result.stdout + result.stderr); });
-
-test('P diff gate pins the Stage 4 checkpoint and exact non-merge repair child', async t => {
-  const source = await readFile(driver, 'utf8'), foundation = source.match(/^P_FOUNDATION=([a-f0-9]{40})$/m)[1], prefix = source.match(/^P_PREFIX=([a-f0-9]{40})$/m)[1];
-  const foundationPaths = source.match(/^P_FOUNDATION_PATHS='([^']+)'$/m)[1].split(' '), paths = source.match(/^P_PATHS='([^']+)'$/m)[1].split(' '); const setup = source.match(/^P_(?:FOUNDATION|FOUNDATION_PATHS|PREFIX|PATHS)=.*$/gm).join('\n');
-  assert.equal(foundation, '61add622c04ad72494b5da785e542b984ec18df4'); assert.equal(prefix, 'ef4abbee5afe6891ccc570eefcd1842d35ef95dd');
-  assert.deepEqual(foundationPaths, ['.github/workflows/ci.yml', 'ci/oss/gates.json', 'scripts/ci/workflow-contract.test.mjs', 'scripts/oss/audit-history.mjs', 'scripts/oss/audit-history.test.mjs', 'scripts/oss/compare-package-content.mjs', 'scripts/oss/compare-package-content.test.mjs', 'scripts/oss/release-evidence.mjs', 'scripts/oss/release-evidence.test.mjs', 'scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/oss/run-webgl-smoke.sh', 'scripts/oss/run-webgl-smoke.test.mjs']);
-  assert.deepEqual(paths, ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/vendor-nativewebsocket.test.sh']);
-  const gate = source.match(/p_diff_gate\(\) \{[\s\S]*?\n\}/)[0]; const git = (root, args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' });
+test('P diff gate pins the append-only corrections and exact non-merge candidate', async t => {
+  const source = await readFile(driver, 'utf8'); const values = Object.fromEntries([...source.matchAll(/^P_([A-Z0-9_]+)=(?:'([^']*)'|([a-f0-9]{40}))$/gm)].map(match => [match[1], match[2] ?? match[3]]));
+  const paths = values.PATHS.split(' '), setup = source.match(/^P_[A-Z0-9_]+=.*$/gm).join('\n');
+  assert.deepEqual([values.FOUNDATION, values.STAGE4, values.REPAIR, values.DESIGN, values.PREFIX], ['61add622c04ad72494b5da785e542b984ec18df4', 'ef4abbee5afe6891ccc570eefcd1842d35ef95dd', '76f009686196a459a9bbea6dec8f192fa2d4a09a', 'f98478a960e7f68b6294dd8c8af1bc48877542f4', '7a0d7f4f096fc21ed4fef4e1efa638adc987659e']);
+  assert.deepEqual(values.STAGE4_PATHS.split(' '), ['.github/workflows/ci.yml', 'ci/oss/gates.json', 'scripts/ci/workflow-contract.test.mjs', 'scripts/oss/audit-history.mjs', 'scripts/oss/audit-history.test.mjs', 'scripts/oss/compare-package-content.mjs', 'scripts/oss/compare-package-content.test.mjs', 'scripts/oss/release-evidence.mjs', 'scripts/oss/release-evidence.test.mjs', 'scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/oss/run-webgl-smoke.sh', 'scripts/oss/run-webgl-smoke.test.mjs']);
+  assert.deepEqual([values.REPAIR_PATHS.split(' '), values.DESIGN_PATHS.split(' '), values.PREFIX_PATHS.split(' '), paths], [['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/vendor-nativewebsocket.test.sh'], ['docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'], ['docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'], ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs']]);
+  const gate = source.match(/checkpoint_gate\(\) \{[\s\S]*?\n\}\np_diff_gate\(\) \{[\s\S]*?\n\}/)[0]; const git = (root, args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }); const prefix = values.PREFIX;
   for (const mode of ['valid', 'extra', 'missing', 'non-direct', 'merge']) {
     const top = await realpath(await mkdtemp(path.join(os.tmpdir(), `frameloom-diff-${mode}-`))); t.after(() => rm(top, { recursive: true, force: true })); const repo = path.join(top, 'repo');
     assert.equal(spawnSync('git', ['clone', '-q', '--no-hardlinks', repository, repo]).status, 0); assert.equal(git(repo, ['config', 'user.name', 'Fixture']).status, 0); assert.equal(git(repo, ['config', 'user.email', 'fixture@example.test']).status, 0);
@@ -146,10 +149,9 @@ test('P diff gate pins the Stage 4 checkpoint and exact non-merge repair child',
     const revision = git(repo, ['rev-parse', 'HEAD']).stdout.trim(); const evidence = path.join(top, 'evidence'); await mkdir(evidence);
     const result = spawnSync('bash', ['-c', `${setup}\n${gate}\nROOT=$1 REVISION=$2; p_diff_gate "$3"`, 'gate', repo, revision, evidence], { encoding: 'utf8' });
     assert.equal(result.status === 0, mode === 'valid', `${mode}: ${result.stdout}${result.stderr}`);
-    if (mode !== 'valid') assert.match(result.stdout, ['extra', 'missing'].includes(mode) ? /checkpoint path mismatch/ : /candidate must be the non-merge direct child/);
+    if (mode !== 'valid') assert.match(result.stdout, ['extra', 'missing'].includes(mode) ? /candidate path mismatch/ : /candidate must be the non-merge direct child/);
   }
 });
-
 test('fixture runner executes every applicable Required gate and cannot pose as formal evidence', async t => {
   const value = await fixture(t); const evidence = path.join(value.top, 'evidence');
   const result = run(value, evidence); assert.equal(result.status, 0, result.stderr);
@@ -168,7 +170,6 @@ test('fixture runner executes every applicable Required gate and cannot pose as 
   });
   await assert.rejects(lstat(path.join(evidence, 'results.ndjson')), /ENOENT/);
 });
-
 test('first Required failure is recorded and stops later applicable gates', async t => {
   const value = await fixture(t); const evidence = path.join(value.top, 'failed');
   const result = run(value, evidence, [], { FRAMELOOM_FAIL_GATE: 'unity-editmode' });
@@ -179,7 +180,6 @@ test('first Required failure is recorded and stops later applicable gates', asyn
     ['unity-compile', 'unity-editmode']);
   assert.match(result.stderr, /Required gate failed: unity-editmode/);
 });
-
 test('rejects unsafe fixture and production arguments before execution', async t => {
   const value = await fixture(t); const inside = path.join(repository, 'gate-evidence-forbidden');
   const existing = path.join(value.top, 'existing'); await mkdir(existing); await writeFile(path.join(existing, 'stale'), 'x');

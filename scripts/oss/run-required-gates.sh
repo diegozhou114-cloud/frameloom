@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
 REGISTRY="$ROOT/ci/oss/gates.json"
 PHASE= REVISION= UNITY= EVIDENCE_ROOT= EXECUTOR= OUTPUT= RESULTS= FAILED_GATE=
@@ -8,13 +7,18 @@ FIXTURE=0 FAILED=0
 TOTAL_TIMEOUT=${FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS:-1200}; EXIT_GRACE=${FRAMELOOM_GATE_EXIT_GRACE_SECONDS:-600}; POLL_SECONDS=${FRAMELOOM_GATE_POLL_SECONDS:-2}; TERM_GRACE=${FRAMELOOM_GATE_TERM_GRACE_SECONDS:-30}; U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= WRAPPER_START= SIGNALS=0
 MIXED_CLASSES='ContentManifestGoldenTests DeterministicRandomCompatibilityTests LogicIntCompatibilityTests ModeBehaviorGoldenTests SessionCommandTests SessionDeterminismTests ModeBehaviorTests CoreTargetingTests SimSystemGroupTests SessionTerminalTests'
 P_FOUNDATION=61add622c04ad72494b5da785e542b984ec18df4
-P_FOUNDATION_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
-P_PREFIX=ef4abbee5afe6891ccc570eefcd1842d35ef95dd
-P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
+P_STAGE4=ef4abbee5afe6891ccc570eefcd1842d35ef95dd
+P_STAGE4_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_REPAIR=76f009686196a459a9bbea6dec8f192fa2d4a09a
+P_REPAIR_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
+P_DESIGN=f98478a960e7f68b6294dd8c8af1bc48877542f4
+P_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
+P_PREFIX=7a0d7f4f096fc21ed4fef4e1efa638adc987659e
+P_PREFIX_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'
+P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
 set_once() { [ -z "$1" ] || fail "Duplicate argument: $2"; printf '%s' "$3"; }
-
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --fixture-run) [ "$FIXTURE" -eq 0 ] || fail "Duplicate argument: $1"; FIXTURE=1; shift ;;
@@ -31,29 +35,31 @@ done
 [ "$FIXTURE" -eq 1 ] || [ -z "$EXECUTOR" ] || fail "--executor requires --fixture-run"
 [ "$FIXTURE" -eq 0 ] || [ -n "$EXECUTOR" ] || fail "--fixture-run requires --executor"
 canonical_executable() {
-  local value=$1 label=$2 canonical
-  [[ "$value" = /* ]] && [ -f "$value" ] && [ -x "$value" ] && [ ! -L "$value" ] ||
-    fail "$label must be an absolute executable"
-  canonical=$(cd "$(dirname "$value")" && pwd -P)/$(basename "$value")
-  [ "$value" = "$canonical" ] || fail "$label must be canonical"
+  local value=$1 label=$2 canonical; [[ "$value" = /* ]] && [ -f "$value" ] && [ -x "$value" ] && [ ! -L "$value" ] || fail "$label must be an absolute executable"
+  canonical=$(cd "$(dirname "$value")" && pwd -P)/$(basename "$value"); [ "$value" = "$canonical" ] || fail "$label must be canonical"
 }
 canonical_executable "$UNITY" Unity
 [ -z "$EXECUTOR" ] || canonical_executable "$EXECUTOR" Executor
+native_unity_ok() {
+  [ "$1" != Darwin ] || { [ "$2" = 0 ] || { [ "$2" = 1 ] && [ "$3" = arm64 ] && [ "$4" = 'Mach-O 64-bit executable arm64' ]; }; }
+}
+unity_architecture_gate() {
+  local dir=$1 host process hardware=not-applicable machine architectures=not-applicable description verdict=FAIL; host=$(/usr/bin/uname -s) || return 1; process=$(/usr/bin/uname -m) || return 1; description=$(/usr/bin/file -b "$UNITY") || return 1
+  if [ "$host" = Darwin ]; then hardware=$(/usr/sbin/sysctl -in hw.optional.arm64) || return 1; machine=$(/usr/sbin/sysctl -n hw.machine) || return 1; architectures=$(/usr/bin/lipo -archs "$UNITY") || return 1; else machine=$process; fi
+  native_unity_ok "$host" "$hardware" "$architectures" "$description" && verdict=PASS; printf 'host_os=%s\nprocess_machine=%s\nhardware_machine=%s\nhardware_arm64=%s\neditor_architectures=%s\neditor_file=%s\nverdict=%s\n' "$host" "$process" "$machine" "$hardware" "$architectures" "$description" "$verdict" > "$dir/unity-architecture.txt"
+  [ "$verdict" = PASS ] || { printf 'Apple Silicon formal runs require a native thin arm64 Unity editor\n' >&2; return 1; }
+}
 OUTPUT=$(node -e '
 const fs=require("fs"),path=require("path"),[input,repo]=process.argv.slice(1);
 const die=m=>{console.error(m);process.exit(2)};if(!path.isAbsolute(input))die("Evidence root must be absolute");
 const target=path.resolve(input),parent=fs.realpathSync(path.dirname(target));const canonical=path.join(parent,path.basename(target)),root=fs.realpathSync(repo);
-if(input!==target||target!==canonical)die("Evidence root must be a canonical directory");const relative=path.relative(root,target);
-if(relative===""||(!relative.startsWith(".."+path.sep)&&relative!==".."))die("Evidence root must be outside the repository");
+if(input!==target||target!==canonical)die("Evidence root must be a canonical directory");const relative=path.relative(root,target);if(relative===""||(!relative.startsWith(".."+path.sep)&&relative!==".."))die("Evidence root must be outside the repository");
 let info;try{info=fs.lstatSync(target)}catch(e){if(e.code!=="ENOENT")throw e}if(info&&(!info.isDirectory()||info.isSymbolicLink()))die("Evidence root must be a canonical directory");
 if(info&&fs.readdirSync(target).length)die("Evidence root must be new or empty");if(!info)fs.mkdirSync(target);console.log(canonical);
 ' "$EVIDENCE_ROOT" "$ROOT")
 (cd "$ROOT" && node --input-type=module -e 'import {readFile} from "node:fs/promises";import {validateRegistry} from "./scripts/oss/release-evidence.mjs";const e=validateRegistry(JSON.parse(await readFile("ci/oss/gates.json")));if(e.length)throw Error(e.join("\n"));') >/dev/null
-
 candidate_ok() {
-  [ "$(git -C "$ROOT" rev-parse --verify HEAD^{commit})" = "$REVISION" ] &&
-    [ "$(git -C "$ROOT" rev-parse --verify "$REVISION^{commit}")" = "$REVISION" ] &&
-    [ -z "$(git -C "$ROOT" status --porcelain=v1 --untracked-files=all)" ]
+  [ "$(git -C "$ROOT" rev-parse --verify HEAD^{commit})" = "$REVISION" ] && [ "$(git -C "$ROOT" rev-parse --verify "$REVISION^{commit}")" = "$REVISION" ] && [ -z "$(git -C "$ROOT" status --porcelain=v1 --untracked-files=all)" ]
 }
 if [ "$FIXTURE" -eq 1 ]; then
   RESULTS="$OUTPUT/fixture-results.ndjson"
@@ -67,13 +73,8 @@ else
   RESULTS="$OUTPUT/results.ndjson"
 fi
 : > "$RESULTS"
-
-focused_xml() {
-  python3 "$ROOT/scripts/audit/read-test-results.py" "$1" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s);if(!r.length||r.some(x=>!["Passed","Success"].includes(x.result)))process.exit(1);console.log(`focused tests passed=${r.length}`)})'
-}
-xml_ok() {
-  if [ -z "$2" ]; then python3 "$ROOT/scripts/ci/validate-unity-results.py" --mode "$1" --manifest "$ROOT/ci/required-tests.json" --results "$3"; else focused_xml "$3"; fi
-}
+focused_xml() { python3 "$ROOT/scripts/audit/read-test-results.py" "$1" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const r=JSON.parse(s);if(!r.length||r.some(x=>!["Passed","Success"].includes(x.result)))process.exit(1);console.log(`focused tests passed=${r.length}`)})'; }
+xml_ok() { if [ -z "$2" ]; then python3 "$ROOT/scripts/ci/validate-unity-results.py" --mode "$1" --manifest "$ROOT/ci/required-tests.json" --results "$3"; else focused_xml "$3"; fi; }
 process_cwd() { lsof -a -p "$1" -d cwd -Fn 2>/dev/null | awk '/^n/{sub(/^n/,"");print;exit}'; }
 identity_ok() {
   local start command parent cwd
@@ -109,17 +110,16 @@ unity_run() {
   if [ "$kind" = test ]; then [ "$complete" -ge "$started" ] && [ "$complete" -le "$ended" ] && [ "$((ended-complete))" -le "$EXIT_GRACE" ] && [ "$(rg -Fc "$marker" "$log" || true)" -eq 1 ] || return 1; xml_ok "$mode" "$filter" "$xml" && rg -Fq 'Metal devices available:' "$log" && rg -Fq 'Using device ' "$log" && rg -m3 'GfxDevice: creating device client|Metal devices available:|Using device ' "$log" || return 1; fi
   ! rg -qi 'Application::Terminate|Application::CoreShutdown|JobSystem::ShutdownJobThreads|buffered presentation failed|PublishUnobservedTestException|PublishUnobservedTaskException|ExceptionHolder.*Finalize' "$log"
 }
-evidence_inventory() {
-  local dir=$1; [ -z "$(find "$dir" -type l -print -quit)" ] || return 1
-  (cd "$dir" && find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s  %s\n' "$(shasum -a 256 "$file" | cut -d' ' -f1)" "${file#./}"; done)
+evidence_inventory() { local dir=$1; [ -z "$(find "$dir" -type l -print -quit)" ] || return 1; (cd "$dir" && find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s  %s\n' "$(shasum -a 256 "$file" | cut -d' ' -f1)" "${file#./}"; done); }
+checkpoint_gate() {
+  local child=$1 parent=$2 paths=$3 file=$4 label=$5 dir=$6 row actual expected; row=$(git -C "$ROOT" rev-list --parents -n 1 "$child") || return 1; set -- $row
+  [ "$#" -eq 2 ] && [ "$1" = "$child" ] && [ "$2" = "$parent" ] || { printf '%s must be the non-merge direct child of %s\n' "$label" "$parent"; return 1; }
+  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$child" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $paths | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/$file"
+  [ "$actual" = "$expected" ] || { printf '%s path mismatch\nexpected:\n%s\nactual:\n%s\n' "$label" "$expected" "$actual"; return 1; }
 }
 p_diff_gate() {
-  local dir=$1 row actual expected; row=$(git -C "$ROOT" rev-list --parents -n 1 "$REVISION") || return 1; set -- $row
-  [ "$#" -eq 2 ] && [ "$1" = "$REVISION" ] && [ "$2" = "$P_PREFIX" ] || { printf 'candidate must be the non-merge direct child of %s\n' "$P_PREFIX"; return 1; }
-  row=$(git -C "$ROOT" rev-list --parents -n 1 "$P_PREFIX") || return 1; set -- $row; [ "$#" -eq 2 ] && [ "$1" = "$P_PREFIX" ] && [ "$2" = "$P_FOUNDATION" ] || { printf 'Stage 4 checkpoint must be the non-merge direct child of %s\n' "$P_FOUNDATION"; return 1; }
-  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$P_PREFIX" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $P_FOUNDATION_PATHS | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/stage4-checkpoint-paths.txt"; [ "$actual" = "$expected" ] || { printf 'Stage 4 checkpoint path mismatch\nexpected:\n%s\nactual:\n%s\n' "$expected" "$actual"; return 1; }
-  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$REVISION" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $P_PATHS | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/checkpoint-paths.txt"
-  [ "$actual" = "$expected" ] || { printf 'checkpoint path mismatch\nexpected:\n%s\nactual:\n%s\n' "$expected" "$actual"; return 1; }
+  local dir=$1
+  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PREFIX" "$P_DESIGN" "$P_PREFIX_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$REVISION" "$P_PREFIX" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
   git -C "$ROOT" diff --check af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" && git -C "$ROOT" diff --quiet af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" -- README.md UserSettings/Layouts/default-2022.dwlt
 }
 framework_dotnet() {
@@ -156,6 +156,7 @@ NODE
 }
 run_formal_gate() {
   local id=$1 dir=$2; printf 'gate=%s\nrevision=%s\n' "$id" "$REVISION"
+  case "$id" in unity-*|external-public-contracts|editor-mono-allocation|simulation-soak|webgl-build-browser-smoke) unity_architecture_gate "$dir" || return 1 ;; esac
   case "$id" in
     unity-compile) unity_run compile '' '' "$dir" ;;
     unity-editmode) unity_run test EditMode '' "$dir" ;;
@@ -172,7 +173,6 @@ run_formal_gate() {
     *) return 2 ;;
   esac
 }
-
 while IFS=$'\t' read -r id policy required milestone environment registry_notes; do
   status='NOT RUN'; digest='-'; evidence_scope=none; notes='Not run before its milestone.'; evidence_file=
   if [ "$required" = true ] && [ "$milestone" = "$PHASE" ]; then
@@ -192,7 +192,6 @@ while IFS=$'\t' read -r id policy required milestone environment registry_notes;
   node -e 'const fs=require("fs"),[file,id,revision,status,digest,notes,scope,evidence]=process.argv.slice(1);const row={id,revision,status,digest,notes,evidenceScope:scope};if(evidence)row.evidenceFile=evidence;fs.appendFileSync(file,JSON.stringify(row)+"\n")' \
     "$RESULTS" "$id" "$policy" "$status" "$digest" "$notes" "$evidence_scope" "$evidence_file"
 done < <(node -e 'const r=require(process.argv[1]);for(const g of r.gates)console.log([g.id,g.revision,g.required,g.milestone,g.environment,g.notes||"-"].join("\t"))' "$REGISTRY")
-
 if [ "$FIXTURE" -eq 0 ] && [ "$FAILED" -eq 0 ]; then
   node "$ROOT/scripts/oss/release-evidence.mjs" validate-gates --registry "$REGISTRY" --results "$RESULTS" --through "$PHASE" || { FAILED=1; FAILED_GATE=gate-results-validation; }
 fi
