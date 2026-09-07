@@ -92,7 +92,10 @@ codegraph explore "SessionPresentationBridge.Apply CommandRecorder.Record caller
 - **Behavior:** establish a passing Unity, Node, Python, and package-owned engine-free .NET baseline.
   Run the mixed SimulationCore test assembly only through its exact framework class filter. The
   complete Server solution and reference hosts/tests/tools are non-Required diagnostics.
-  On the local macOS host, CompileAndValidate retains `-batchmode -nographics -quit`, while
+  On the Apple Silicon macOS host, formal execution first records the host machine, ARM64 hardware
+  capability, editor architecture list, and executable description. `$UNITY_BIN` must resolve to a
+  native thin `arm64` editor; reject `x86_64`, universal, Rosetta-translated, or uninspectable editors
+  before the first Required gate. CompileAndValidate retains `-batchmode -nographics -quit`, while
   EditMode and PlayMode use `-batchmode -runTests` without `-nographics`; record the actual Metal
   backend/device. A Required test gate needs Unity to exit 0 by itself, complete XML with zero
   failures, completion-to-exit evidence, no watchdog signal, and no shutdown spin or unobserved
@@ -103,7 +106,7 @@ codegraph explore "SessionPresentationBridge.Apply CommandRecorder.Record caller
 - **Verify:** run:
 
 ```bash
-UNITY_BIN=/Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/Unity
+UNITY_BIN=/Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity-arm64.app/Contents/MacOS/Unity
 "$UNITY_BIN" -batchmode -nographics -quit -projectPath "$PWD" \
   -executeMethod ZWebGLFrameWork.Editor.BuildValidator.CompileAndValidate \
   -logFile "$OSS_EVIDENCE_ROOT/baseline/unity-validate.log"
