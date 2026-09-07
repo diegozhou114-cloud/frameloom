@@ -147,11 +147,21 @@ test "$(shasum -a 256 Packages/com.zwebglframework.runtime/ThirdParty/NativeWebS
 
 ## Task 4.5: Freeze Stage 4 Behavior And Paths
 
-- **Paths:** every stage 4 file, external contracts, package/runtime tree, host/Server/CI tooling.
+- **Paths:** every stage 4 file, external contracts, package/runtime tree, host/Server/CI tooling. If
+  a clean WebGL run proves that package runtime-initialize assemblies were stripped, the corrective
+  whitelist is exactly `Assets/Tests/Editor/RepositoryIntegrityTests.cs` plus the existing
+  `GameLauncher.cs`, `SmokeReadinessReporter.cs`, `WebGlRealtimeChannelFactory.cs`, and
+  `NativeRealtimeChannelFactory.cs` startup sources in the canonical runtime package.
 - **Behavior:** rerun package/governance/fresh-tool/history/evidence tests, where `fresh-tool` means
   only fixture, negative, and no-remote dry-run tests from task 4.3, then full Node/Python, Unity
-  EditMode/PlayMode, and Server regression. Audit public English scope and exact new-meta list.
-- **Do not touch:** stable APIs, product content, Layout, shader logs, root README, or remotes.
+  EditMode/PlayMode, and Server regression. Audit public English scope and exact new-meta list. The
+  approved linker correction starts with a focused RED requiring the four package-owned startup
+  assemblies to carry `AlwaysLinkAssembly`, changes only their assembly-level markers, and then
+  requires a fresh WebGL build whose stripped output retains the three applicable assemblies plus
+  the unchanged `app-ready` and real `button-clicked` browser smoke.
+- **Do not touch:** stable APIs, scenes, other product content, stripping level, browser timeouts,
+  Layout, shader logs, root README, or remotes. Do not substitute a host `link.xml`, build-script
+  root, scene component, or lower stripping setting for the package-owned linker markers.
 - **Verify:** all commands above plus [task 1.3](01-baseline.md#task-13-run-the-pre-move-compile-and-test-baseline)
   exit 0; package `README.md`, `CHANGELOG.md`, and `LICENSE` all exist; `git diff --check` is clean;
   no generated consumer/cache/evidence is tracked.
