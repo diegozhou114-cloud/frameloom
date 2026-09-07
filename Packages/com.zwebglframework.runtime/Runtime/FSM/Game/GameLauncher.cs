@@ -4,6 +4,8 @@ using ZWebGLFrameWork.Core;
 using ZWebGLFrameWork.Data;
 using ZWebGLFrameWork.Gameplay;
 
+[assembly: UnityEngine.Scripting.AlwaysLinkAssembly]
+
 namespace ZWebGLFrameWork.FSM
 {
     /// <summary>

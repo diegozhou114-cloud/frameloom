@@ -4,6 +4,8 @@ using ZWebGLFrameWork.Network.Contracts.Transport;
 using ZWebGLFrameWork.Network.Runtime;
 using UnityEngine;
 
+[assembly: UnityEngine.Scripting.AlwaysLinkAssembly]
+
 namespace ZWebGLFrameWork.Network.Native
 {
     internal sealed class NativeRealtimeChannelFactory : IRealtimeChannelFactory

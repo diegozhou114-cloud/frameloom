@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[assembly: UnityEngine.Scripting.AlwaysLinkAssembly]
+
 namespace ZWebGLFrameWork.UI
 {
     public sealed class SmokeReadinessReporter : MonoBehaviour

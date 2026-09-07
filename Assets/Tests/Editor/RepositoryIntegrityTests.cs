@@ -48,6 +48,28 @@ namespace ZWebGLFrameWork.Editor.Tests
         }
 
         [Test]
+        public void RuntimeInitializeAssemblies_AreAlwaysLinked()
+        {
+            string[] required =
+            {
+                "ZWebGLFrameWork.FSM",
+                "ZWebGLFrameWork.UI",
+                "ZWebGLFrameWork.Network.WebGL",
+                "ZWebGLFrameWork.Network.Native"
+            };
+            var assemblies = System.AppDomain.CurrentDomain.GetAssemblies()
+                .ToDictionary(assembly => assembly.GetName().Name);
+            string[] missing = required.Where(name =>
+                !assemblies.TryGetValue(name, out var assembly) ||
+                !System.Attribute.IsDefined(assembly,
+                    typeof(UnityEngine.Scripting.AlwaysLinkAssemblyAttribute))).ToArray();
+
+            Assert.That(missing, Is.Empty,
+                "Runtime initializer assemblies without AlwaysLinkAssembly: " +
+                string.Join(", ", missing));
+        }
+
+        [Test]
         public void BuildScript_EmitsMachineReadableBuildReport()
         {
             string emitted = null;
