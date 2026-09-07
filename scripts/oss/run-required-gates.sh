@@ -13,8 +13,10 @@ P_REPAIR=76f009686196a459a9bbea6dec8f192fa2d4a09a
 P_REPAIR_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
 P_DESIGN=f98478a960e7f68b6294dd8c8af1bc48877542f4
 P_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
-P_PREFIX=7a0d7f4f096fc21ed4fef4e1efa638adc987659e
-P_PREFIX_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'
+P_PLAN=7a0d7f4f096fc21ed4fef4e1efa638adc987659e
+P_PLAN_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'
+P_PREFIX=27cbe4486bb53adc99a8a7f7753824e1b519a474
+P_PREFIX_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
 P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
@@ -40,8 +42,7 @@ canonical_executable() {
 }
 canonical_executable "$UNITY" Unity
 [ -z "$EXECUTOR" ] || canonical_executable "$EXECUTOR" Executor
-native_unity_ok() {
-  [ "$1" != Darwin ] || { [ "$2" = 0 ] || { [ "$2" = 1 ] && [ "$3" = arm64 ] && [ "$4" = 'Mach-O 64-bit executable arm64' ]; }; }
+native_unity_ok() { [ "$1" != Darwin ] || { [ "$2" = 0 ] || { [ "$2" = 1 ] && [ "$3" = arm64 ] && [ "$4" = 'Mach-O 64-bit executable arm64' ]; }; }
 }
 unity_architecture_gate() {
   local dir=$1 host process hardware=not-applicable machine architectures=not-applicable description verdict=FAIL; host=$(/usr/bin/uname -s) || return 1; process=$(/usr/bin/uname -m) || return 1; description=$(/usr/bin/file -b "$UNITY") || return 1
@@ -119,7 +120,7 @@ checkpoint_gate() {
 }
 p_diff_gate() {
   local dir=$1
-  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PREFIX" "$P_DESIGN" "$P_PREFIX_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$REVISION" "$P_PREFIX" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
+  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PLAN" "$P_DESIGN" "$P_PLAN_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$P_PREFIX" "$P_PLAN" "$P_PREFIX_PATHS" architecture-gate-paths.txt architecture-gate "$dir" && checkpoint_gate "$REVISION" "$P_PREFIX" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
   git -C "$ROOT" diff --check af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" && git -C "$ROOT" diff --quiet af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" -- README.md UserSettings/Layouts/default-2022.dwlt
 }
 framework_dotnet() {
@@ -166,7 +167,7 @@ run_formal_gate() {
     simulation-soak) unity_run performance '' '' "$dir"; node "$ROOT/scripts/ci/validate-simulation-performance-report.mjs" --report "$dir/performance/simulation-baseline.json" ;;
     framework-dotnet) framework_dotnet "$dir" ;;
     node-python-workflow) npm ci --prefix "$ROOT/ci" --ignore-scripts; (cd "$ROOT" && node --test scripts/audit/*.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs); (cd "$ROOT" && PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py') ;;
-    webgl-build-browser-smoke) "$ROOT/scripts/oss/run-webgl-smoke.sh" --revision "$REVISION" --unity "$UNITY" --evidence-root "$dir" ;;
+    webgl-build-browser-smoke) "$ROOT/scripts/oss/run-webgl-smoke.sh" --revision "$REVISION" --unity "$UNITY" --evidence-root "$dir/smoke" ;;
     package-structure-governance) structure_gate "$dir" ;;
     p-history-provenance) (cd "$ROOT" && node scripts/oss/audit-history.mjs --revision "$REVISION" --evidence-root "$dir") ;;
     p-diff-whitespace-whitelist) p_diff_gate "$dir" ;;

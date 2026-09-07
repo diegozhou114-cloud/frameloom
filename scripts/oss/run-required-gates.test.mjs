@@ -57,7 +57,7 @@ async function watchdogFixture(t, ignoreTerm) {
   await copyFile(registryPath, path.join(ci, 'gates.json'));
   const unity = path.join(repo, 'FakeUnity');
   const source = path.join(repo, 'fake-unity.c');
-  await writeFile(source, `#include <signal.h>\n#include <unistd.h>\nstatic void stop(int value){(void)value;${ignoreTerm ? '' : '_exit(143);'}}\nint main(void){signal(SIGTERM,stop);for(;;)pause();}\n`);
+  await writeFile(source, `#include <signal.h>\n#include <unistd.h>\nstatic void stop(int value){(void)value;_exit(143);}\nint main(void){signal(SIGTERM,${ignoreTerm ? 'SIG_IGN' : 'stop'});for(;;)pause();}\n`);
   assert.equal(spawnSync('/usr/bin/clang', ['-arch', 'arm64', source, '-o', unity]).status, 0); await rm(source);
   for (const tool of ['dotnet', 'gitleaks']) { const stub = path.join(bin, tool); await writeFile(stub, '#!/bin/sh\nexit 0\n'); await chmod(stub, 0o755); }
   assert.equal(spawnSync('git', ['init', '-q'], { cwd: repo }).status, 0);
@@ -67,7 +67,7 @@ async function watchdogFixture(t, ignoreTerm) {
   const evidence = path.join(top, 'evidence');
   const result = spawnSync(runner, ['--phase', 'package-freeze', '--revision', head, '--unity', unity, '--evidence-root', evidence], {
     cwd: top, encoding: 'utf8', timeout: 15_000,
-    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS: '1', FRAMELOOM_GATE_EXIT_GRACE_SECONDS: '1', FRAMELOOM_GATE_POLL_SECONDS: '1', FRAMELOOM_GATE_TERM_GRACE_SECONDS: '1' },
+    env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS: '2', FRAMELOOM_GATE_EXIT_GRACE_SECONDS: '1', FRAMELOOM_GATE_POLL_SECONDS: '1', FRAMELOOM_GATE_TERM_GRACE_SECONDS: '1' },
   });
   return { evidence, result };
 }
@@ -99,7 +99,7 @@ test('formal Apple Silicon preflight accepts only a native thin arm64 Unity edit
     [['Linux', 'not-applicable', 'not-applicable', 'ELF 64-bit executable'], true],
   ];
   for (const [args, accepted] of cases) { const result = spawnSync('bash', ['-c', `${predicate[0]}\nnative_unity_ok "$@"`, 'gate', ...args]); assert.equal(result.status === 0, accepted, args.join('|')); }
-  for (const contract of [/\/usr\/bin\/uname -s/, /\/usr\/sbin\/sysctl -in hw\.optional\.arm64/, /\/usr\/sbin\/sysctl -n hw\.machine/, /\/usr\/bin\/lipo -archs "\$UNITY"/, /\/usr\/bin\/file -b "\$UNITY"/, /unity-architecture\.txt/, /unity-\*\|external-public-contracts\|editor-mono-allocation\|simulation-soak\|webgl-build-browser-smoke/]) assert.match(shell, contract);
+  for (const contract of [/\/usr\/bin\/uname -s/, /\/usr\/sbin\/sysctl -in hw\.optional\.arm64/, /\/usr\/sbin\/sysctl -n hw\.machine/, /\/usr\/bin\/lipo -archs "\$UNITY"/, /\/usr\/bin\/file -b "\$UNITY"/, /unity-architecture\.txt/, /unity-\*\|external-public-contracts\|editor-mono-allocation\|simulation-soak\|webgl-build-browser-smoke/, /webgl-build-browser-smoke\).*--evidence-root "\$dir\/smoke"/]) assert.match(shell, contract);
 });
 test('watchdog sends TERM and escalates to KILL only for an identity-confirmed live process', { skip: process.platform !== 'darwin' }, async t => {
   for (const [ignoreTerm, expected] of [[false, ['TERM']], [true, ['TERM', 'KILL']]]) {
@@ -135,9 +135,9 @@ test('vendor contract accepts the wrapped governance classification', () => { co
 test('P diff gate pins the append-only corrections and exact non-merge candidate', async t => {
   const source = await readFile(driver, 'utf8'); const values = Object.fromEntries([...source.matchAll(/^P_([A-Z0-9_]+)=(?:'([^']*)'|([a-f0-9]{40}))$/gm)].map(match => [match[1], match[2] ?? match[3]]));
   const paths = values.PATHS.split(' '), setup = source.match(/^P_[A-Z0-9_]+=.*$/gm).join('\n');
-  assert.deepEqual([values.FOUNDATION, values.STAGE4, values.REPAIR, values.DESIGN, values.PREFIX], ['61add622c04ad72494b5da785e542b984ec18df4', 'ef4abbee5afe6891ccc570eefcd1842d35ef95dd', '76f009686196a459a9bbea6dec8f192fa2d4a09a', 'f98478a960e7f68b6294dd8c8af1bc48877542f4', '7a0d7f4f096fc21ed4fef4e1efa638adc987659e']);
+  assert.deepEqual([values.FOUNDATION, values.STAGE4, values.REPAIR, values.DESIGN, values.PLAN, values.PREFIX], ['61add622c04ad72494b5da785e542b984ec18df4', 'ef4abbee5afe6891ccc570eefcd1842d35ef95dd', '76f009686196a459a9bbea6dec8f192fa2d4a09a', 'f98478a960e7f68b6294dd8c8af1bc48877542f4', '7a0d7f4f096fc21ed4fef4e1efa638adc987659e', '27cbe4486bb53adc99a8a7f7753824e1b519a474']);
   assert.deepEqual(values.STAGE4_PATHS.split(' '), ['.github/workflows/ci.yml', 'ci/oss/gates.json', 'scripts/ci/workflow-contract.test.mjs', 'scripts/oss/audit-history.mjs', 'scripts/oss/audit-history.test.mjs', 'scripts/oss/compare-package-content.mjs', 'scripts/oss/compare-package-content.test.mjs', 'scripts/oss/release-evidence.mjs', 'scripts/oss/release-evidence.test.mjs', 'scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/oss/run-webgl-smoke.sh', 'scripts/oss/run-webgl-smoke.test.mjs']);
-  assert.deepEqual([values.REPAIR_PATHS.split(' '), values.DESIGN_PATHS.split(' '), values.PREFIX_PATHS.split(' '), paths], [['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/vendor-nativewebsocket.test.sh'], ['docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'], ['docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'], ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs']]);
+  assert.deepEqual([values.REPAIR_PATHS.split(' '), values.DESIGN_PATHS.split(' '), values.PLAN_PATHS.split(' '), values.PREFIX_PATHS.split(' '), paths], [['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs', 'scripts/vendor-nativewebsocket.test.sh'], ['docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'], ['docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'], ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs'], ['scripts/oss/run-required-gates.sh', 'scripts/oss/run-required-gates.test.mjs']]);
   const gate = source.match(/checkpoint_gate\(\) \{[\s\S]*?\n\}\np_diff_gate\(\) \{[\s\S]*?\n\}/)[0]; const git = (root, args) => spawnSync('git', args, { cwd: root, encoding: 'utf8' }); const prefix = values.PREFIX;
   for (const mode of ['valid', 'extra', 'missing', 'non-direct', 'merge']) {
     const top = await realpath(await mkdtemp(path.join(os.tmpdir(), `frameloom-diff-${mode}-`))); t.after(() => rm(top, { recursive: true, force: true })); const repo = path.join(top, 'repo');
