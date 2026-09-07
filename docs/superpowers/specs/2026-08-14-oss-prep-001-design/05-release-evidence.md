@@ -45,6 +45,13 @@ unobserved exception is present. Signal termination (including exit 143) or an X
 not a pass. This rule applies only to the local macOS gate; GitHub Actions/headless behavior needs
 separate evidence and cannot inherit the local result.
 
+Before any formal local gate runs on Apple Silicon, the runner records the host machine, hardware
+ARM64 capability, editor architecture list, and executable file description. The canonical Unity
+executable must be a native thin `arm64` binary: an `x86_64`, universal, Rosetta-translated, or
+uninspectable editor fails before the first Required gate. This architecture preflight does not
+relax the TestRunner argument, complete-XML, self-exit, signal, watchdog, shutdown, or exception
+requirements above.
+
 The Required .NET projects and mixed-assembly class filter are owned by the
 [package specification](02-package-and-dependencies.md#cross-runtime-net-scope). ReplayValidator,
 FrameSync, RealtimeHost, Kcp2kHost, `Server/Tests`, fixture generators, and the complete Server
