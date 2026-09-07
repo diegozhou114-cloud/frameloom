@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
-REVISION= UNITY= EVIDENCE_ROOT= BROWSER_RUNNER= FIXTURE=0 OUTPUT= SERVER_PID= SERVER_REAPED=false
+REVISION= UNITY= EVIDENCE_ROOT= BROWSER_RUNNER= FIXTURE=0 OUTPUT= SERVER_PID= SERVER_REAPED=false PROJECT_LOG_COUNT=0
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -36,12 +36,34 @@ if [ "$FIXTURE" -eq 0 ]; then
 else
   node -e 'const fs=require("fs");fs.writeFileSync(process.argv[1],JSON.stringify({schemaVersion:1,classification:"fixture-only",formalReleaseEvidence:false,revision:process.argv[2]},null,2)+"\n")' "$OUTPUT/fixture-only.json" "$REVISION"
 fi
+preserve_unity_project_logs() {
+  local destination="$OUTPUT/unity-project-logs" source name
+  local sources=("$ROOT"/Logs/AssetImportWorker*.log "$ROOT"/Logs/ExportedTypes.log)
+  PROJECT_LOG_COUNT=0
+  for source in "${sources[@]}"; do
+    [ -e "$source" ] || continue
+    [ -f "$source" ] && [ ! -L "$source" ] || return 1
+    name=${source##*/}
+    git -C "$ROOT" ls-files --error-unmatch -- "Logs/$name" >/dev/null 2>&1 && return 1
+    if [ "$PROJECT_LOG_COUNT" -eq 0 ]; then mkdir "$destination"; fi
+    [ ! -e "$destination/$name" ] || return 1
+    /bin/mv "$source" "$destination/$name" || return 1
+    PROJECT_LOG_COUNT=$((PROJECT_LOG_COUNT + 1))
+  done
+  if [ "$PROJECT_LOG_COUNT" -gt 0 ]; then
+    (cd "$destination" && LC_ALL=C find . -type f -name '*.log' -print | LC_ALL=C sort |
+      while IFS= read -r name; do shasum -a 256 "$name"; done > manifest.sha256)
+  fi
+}
 set +e
 ZWEB_EVIDENCE_ROOT="$OUTPUT" "$UNITY" -batchmode -nographics -quit -projectPath "$ROOT" \
   -executeMethod ZWebGLFrameWork.Editor.BuildScript.BuildWebGL -logFile "$OUTPUT/unity-webgl.log" \
   > "$OUTPUT/unity.stdout.txt" 2> "$OUTPUT/unity.stderr.txt"
 UNITY_EXIT=$?
 set -e
+if [ "$FIXTURE" -eq 0 ]; then
+  preserve_unity_project_logs || fail "Could not preserve generated Unity project logs"
+fi
 [ "$UNITY_EXIT" -eq 0 ] || fail "Unity WebGL build failed: exit $UNITY_EXIT"
 SUMMARY="$OUTPUT/builds/Reports/WebGL.json"
 node "$ROOT/scripts/ci/validate-build-summary.mjs" --summary "$SUMMARY" --target WebGL \
@@ -107,6 +129,7 @@ else CLASSIFICATION=formal-release; FORMAL=true; fi
   printf 'schemaVersion=1\nclassification=%s\nformalReleaseEvidence=%s\n' "$CLASSIFICATION" "$FORMAL"
   printf 'gate=webgl-build-browser-smoke\nrevision=%s\nbuild=PASS\nbrowser=PASS\n' "$REVISION"
   printf 'buildSummarySha256=%s\nbrowserReportSha256=%s\n' "$(hash_file "$SUMMARY")" "$(hash_file "$REPORT")"
+  printf 'unityGeneratedProjectLogCount=%s\n' "$PROJECT_LOG_COUNT"
   printf 'webglManagedAllocation=NOT MEASURED\n'
 } > "$OUTPUT/webgl-smoke.digest"
 if [ "$FIXTURE" -eq 0 ]; then

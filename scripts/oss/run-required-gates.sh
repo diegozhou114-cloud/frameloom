@@ -7,17 +7,16 @@ FIXTURE=0 FAILED=0
 TOTAL_TIMEOUT=${FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS:-1200}; EXIT_GRACE=${FRAMELOOM_GATE_EXIT_GRACE_SECONDS:-600}; POLL_SECONDS=${FRAMELOOM_GATE_POLL_SECONDS:-2}; TERM_GRACE=${FRAMELOOM_GATE_TERM_GRACE_SECONDS:-30}; U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= WRAPPER_START= SIGNALS=0
 MIXED_CLASSES='ContentManifestGoldenTests DeterministicRandomCompatibilityTests LogicIntCompatibilityTests ModeBehaviorGoldenTests SessionCommandTests SessionDeterminismTests ModeBehaviorTests CoreTargetingTests SimSystemGroupTests SessionTerminalTests'
 P_FOUNDATION=61add622c04ad72494b5da785e542b984ec18df4
-P_STAGE4=ef4abbee5afe6891ccc570eefcd1842d35ef95dd
-P_STAGE4_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
-P_REPAIR=76f009686196a459a9bbea6dec8f192fa2d4a09a
-P_REPAIR_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
-P_DESIGN=f98478a960e7f68b6294dd8c8af1bc48877542f4
-P_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
-P_PLAN=7a0d7f4f096fc21ed4fef4e1efa638adc987659e
-P_PLAN_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'
-P_PREFIX=27cbe4486bb53adc99a8a7f7753824e1b519a474
-P_PREFIX_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
-P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
+P_STAGE4=ef4abbee5afe6891ccc570eefcd1842d35ef95dd P_STAGE4_PATHS='.github/workflows/ci.yml ci/oss/gates.json scripts/ci/workflow-contract.test.mjs scripts/oss/audit-history.mjs scripts/oss/audit-history.test.mjs scripts/oss/compare-package-content.mjs scripts/oss/compare-package-content.test.mjs scripts/oss/release-evidence.mjs scripts/oss/release-evidence.test.mjs scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_REPAIR=76f009686196a459a9bbea6dec8f192fa2d4a09a P_REPAIR_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/vendor-nativewebsocket.test.sh'
+P_DESIGN=f98478a960e7f68b6294dd8c8af1bc48877542f4 P_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
+P_PLAN=7a0d7f4f096fc21ed4fef4e1efa638adc987659e P_PLAN_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/01-baseline.md'
+P_PREFIX=27cbe4486bb53adc99a8a7f7753824e1b519a474 P_PREFIX_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
+P_SMOKE=f9b0641f2f7347ec20ff248931b13cc8ff00f5c8 P_SMOKE_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs'
+P_LINK_DESIGN=67eef1c27c7f3e6beb577eb47062ba12276cb212 P_LINK_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
+P_LINK_PLAN=5a22c3d0d89972e69736071e488d0b9576a4236b P_LINK_PLAN_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/04-governance-validation.md'
+P_LINKER=0297b6a66e306968aea5d2c2a42e0750b5cf256f P_LINKER_PATHS='Assets/Tests/Editor/RepositoryIntegrityTests.cs Packages/com.zwebglframework.runtime/Runtime/FSM/Game/GameLauncher.cs Packages/com.zwebglframework.runtime/Runtime/Network/Native/NativeRealtimeChannelFactory.cs Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/WebGlRealtimeChannelFactory.cs Packages/com.zwebglframework.runtime/Runtime/UI/Diagnostics/SmokeReadinessReporter.cs'
+P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
 set_once() { [ -z "$1" ] || fail "Duplicate argument: $2"; printf '%s' "$3"; }
@@ -120,7 +119,7 @@ checkpoint_gate() {
 }
 p_diff_gate() {
   local dir=$1
-  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PLAN" "$P_DESIGN" "$P_PLAN_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$P_PREFIX" "$P_PLAN" "$P_PREFIX_PATHS" architecture-gate-paths.txt architecture-gate "$dir" && checkpoint_gate "$REVISION" "$P_PREFIX" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
+  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PLAN" "$P_DESIGN" "$P_PLAN_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$P_PREFIX" "$P_PLAN" "$P_PREFIX_PATHS" architecture-gate-paths.txt architecture-gate "$dir" && checkpoint_gate "$P_SMOKE" "$P_PREFIX" "$P_SMOKE_PATHS" webgl-evidence-paths.txt webgl-evidence "$dir" && checkpoint_gate "$P_LINK_DESIGN" "$P_SMOKE" "$P_LINK_DESIGN_PATHS" linker-design-paths.txt linker-design "$dir" && checkpoint_gate "$P_LINK_PLAN" "$P_LINK_DESIGN" "$P_LINK_PLAN_PATHS" linker-plan-paths.txt linker-plan "$dir" && checkpoint_gate "$P_LINKER" "$P_LINK_PLAN" "$P_LINKER_PATHS" linker-repair-paths.txt linker-repair "$dir" && checkpoint_gate "$REVISION" "$P_LINKER" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
   git -C "$ROOT" diff --check af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" && git -C "$ROOT" diff --quiet af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" -- README.md UserSettings/Layouts/default-2022.dwlt
 }
 framework_dotnet() {

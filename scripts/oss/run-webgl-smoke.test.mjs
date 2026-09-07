@@ -71,12 +71,62 @@ test('fixture proves build validation and pinned trusted HTTPS browser smoke', a
   assert.match(digest, /^formalReleaseEvidence=false$/m);
   assert.match(digest, /^gate=webgl-build-browser-smoke$/m); assert.match(digest, /^build=PASS$/m);
   assert.match(digest, /^browser=PASS$/m); assert.match(digest, /^webglManagedAllocation=NOT MEASURED$/m);
+  assert.match(digest, /^unityGeneratedProjectLogCount=0$/m);
   assert.deepEqual(JSON.parse(await readFile(path.join(evidence, 'fixture-only.json'))), {
     schemaVersion: 1, classification: 'fixture-only', formalReleaseEvidence: false, revision,
   });
   const server = JSON.parse(await readFile(path.join(evidence, 'https-server-process.json')));
   assert.equal(server.reaped, true);
   assert.equal(spawnSync('ps', ['-p', String(server.pid), '-o', 'command='], { encoding: 'utf8' }).stdout.includes('serve-https.mjs'), false);
+});
+
+test('preserves only untracked regular Unity project logs as evidence', async t => {
+  const source = await readFile(driver, 'utf8');
+  const match = source.match(/preserve_unity_project_logs\(\) \{[\s\S]*?^\}\n/m);
+  assert.ok(match, 'missing preserve_unity_project_logs function');
+  const run = (root, output) => spawnSync('bash', ['-c', `${match[0]}
+ROOT=$1 OUTPUT=$2 PROJECT_LOG_COUNT=0
+preserve_unity_project_logs
+rc=$?
+printf '%s\n' "$PROJECT_LOG_COUNT"
+exit "$rc"`, 'fixture', root, output], { encoding: 'utf8' });
+  const top = await realpath(await mkdtemp(path.join(os.tmpdir(), 'frameloom-project-logs-')));
+  t.after(() => rm(top, { recursive: true, force: true }));
+  const root = path.join(top, 'repo'), output = path.join(top, 'evidence');
+  await mkdir(path.join(root, 'Logs'), { recursive: true }); await mkdir(output);
+  assert.equal(spawnSync('git', ['init', '-q'], { cwd: root }).status, 0);
+  for (const name of ['AssetImportWorker0.log', 'AssetImportWorker1.log', 'ExportedTypes.log'])
+    await writeFile(path.join(root, 'Logs', name), `${name}\n`);
+  const result = run(root, output); assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, '3\n');
+  for (const name of ['AssetImportWorker0.log', 'AssetImportWorker1.log', 'ExportedTypes.log']) {
+    await assert.rejects(lstat(path.join(root, 'Logs', name)), /ENOENT/);
+    assert.equal(await readFile(path.join(output, 'unity-project-logs', name), 'utf8'), `${name}\n`);
+  }
+  const checked = spawnSync('shasum', ['-a', '256', '-c', 'manifest.sha256'], {
+    cwd: path.join(output, 'unity-project-logs'), encoding: 'utf8',
+  });
+  assert.equal(checked.status, 0, checked.stderr);
+});
+
+test('project log preservation rejects symlinks and tracked files', async t => {
+  const source = await readFile(driver, 'utf8');
+  const match = source.match(/preserve_unity_project_logs\(\) \{[\s\S]*?^\}\n/m);
+  assert.ok(match, 'missing preserve_unity_project_logs function');
+  for (const mode of ['symlink', 'tracked']) {
+    const top = await realpath(await mkdtemp(path.join(os.tmpdir(), `frameloom-project-log-${mode}-`)));
+    t.after(() => rm(top, { recursive: true, force: true }));
+    const root = path.join(top, 'repo'), output = path.join(top, 'evidence');
+    await mkdir(path.join(root, 'Logs'), { recursive: true }); await mkdir(output);
+    assert.equal(spawnSync('git', ['init', '-q'], { cwd: root }).status, 0);
+    const log = path.join(root, 'Logs', 'ExportedTypes.log');
+    if (mode === 'symlink') { const target = path.join(top, 'target'); await writeFile(target, 'log\n'); await symlink(target, log); }
+    else { await writeFile(log, 'log\n'); assert.equal(spawnSync('git', ['add', 'Logs/ExportedTypes.log'], { cwd: root }).status, 0); }
+    const result = spawnSync('bash', ['-c', `${match[0]}
+ROOT=$1 OUTPUT=$2 PROJECT_LOG_COUNT=0
+preserve_unity_project_logs`, 'fixture', root, output]);
+    assert.notEqual(result.status, 0); assert.equal((await lstat(log)).isFile(), mode === 'tracked');
+  }
 });
 
 test('build or browser failure cannot become a smoke PASS', async t => {
