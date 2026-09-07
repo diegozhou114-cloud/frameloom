@@ -67,6 +67,14 @@ WebGL IL2CPP managed allocation, Server reference validation, and explicit non-g
 `Required = No`. Missing Actions history never waives local gates and local results are not CI
 results.
 
+Package assemblies whose player entry is a `RuntimeInitializeOnLoadMethod` must carry the
+package-owned assembly-level `AlwaysLinkAssembly` marker. This applies to `ZWebGLFrameWork.FSM`,
+`ZWebGLFrameWork.UI`, `ZWebGLFrameWork.Network.WebGL`, and `ZWebGLFrameWork.Network.Native`; a scene
+component, lower stripping level, host-owned `link.xml`, or build-script-only root is not a
+substitute. Fresh WebGL evidence must show the applicable FSM, UI, and WebGL transport assemblies in
+the stripped output and must still pass the exact `app-ready` and real `button-clicked` browser
+contract.
+
 ## Publication State Machine
 
 ### Pre-tag
