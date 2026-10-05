@@ -44,15 +44,35 @@ node scripts/oss/audit-history.mjs --revision "$CANDIDATE_P" \
 - **Verify:** run:
 
 ```bash
+OSS_SANDBOX_PROFILE=/absolute/external/path/unity-network.sb
 scripts/oss/run-required-gates.sh --phase package-freeze \
   --revision "$CANDIDATE_P" \
-  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/Unity \
+  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity-arm64.app/Contents/MacOS/Unity \
+  --sandbox-profile "$OSS_SANDBOX_PROFILE" \
   --evidence-root "$OSS_EVIDENCE_ROOT/p-candidate/gates"
 node scripts/oss/release-evidence.mjs validate-gates \
   --registry ci/oss/gates.json \
   --results "$OSS_EVIDENCE_ROOT/p-candidate/gates/results.ndjson" \
   --through package-freeze
 ```
+
+  For the owner-authorized isolated invocation, create the canonical external file named by
+  `OSS_SANDBOX_PROFILE` with these exact bytes (including the final newline):
+
+```scheme
+(version 1)
+(allow default)
+(deny network-outbound (remote ip "*:*"))
+(allow network-outbound (remote ip "localhost:*"))
+```
+
+  On macOS, `--sandbox-profile` is optional (omit it for the normal run) but, when supplied, must be a canonical external regular
+  file with no symlink component and exactly the approved profile bytes. The unsandboxed runner keeps
+  watchdog/process supervision and all Node, npm, .NET, HTTPS, and browser work outside the sandbox;
+  only each Unity child (including the WebGL build child) runs through the read-only evidence copy.
+  The profile denies non-loopback outbound network while allowing `localhost`. Residual limitation:
+  localhost proxies can bypass the intended remote-network restriction; this is a process-local
+  diagnostic boundary, not a complete egress policy. Sandbox profiles are rejected for fixture runs.
 
   Expected: both exit 0 and the following applicable Required gates are `PASS`:
 

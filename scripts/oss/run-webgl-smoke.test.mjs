@@ -9,6 +9,7 @@ import test from 'node:test';
 const repository = path.resolve(new URL('../..', import.meta.url).pathname);
 const driver = path.join(repository, 'scripts/oss/run-webgl-smoke.sh');
 const revision = '2'.repeat(40);
+const approvedProfile = '(version 1)\n(allow default)\n(deny network-outbound (remote ip "*:*"))\n(allow network-outbound (remote ip "localhost:*"))\n';
 
 async function freePort() {
   return new Promise((resolve, reject) => {
@@ -141,14 +142,24 @@ test('build or browser failure cannot become a smoke PASS', async t => {
 test('rejects unsafe paths, revisions, and fixture-only overrides', async t => {
   const value = await fixture(t); const inside = path.join(repository, 'webgl-evidence-forbidden');
   const target = path.join(value.top, 'target'); await mkdir(target); const link = path.join(value.top, 'link'); await symlink(target, link);
+  const profile = path.join(value.top, 'unity.sb'); await writeFile(profile, approvedProfile);
   for (const [args, diagnostic] of [
     [['--fixture-run', '--revision', 'main', '--unity', value.unity, '--evidence-root', path.join(value.top, 'a'), '--browser-runner', value.browser], /full lowercase 40-character SHA/],
     [['--fixture-run', '--revision', revision, '--unity', value.unity, '--evidence-root', inside, '--browser-runner', value.browser], /outside the repository/],
     [['--fixture-run', '--revision', revision, '--unity', value.unity, '--evidence-root', link, '--browser-runner', value.browser], /canonical directory/],
     [['--revision', revision, '--unity', value.unity, '--evidence-root', path.join(value.top, 'b'), '--browser-runner', value.browser], /fixture-run/],
+    [['--fixture-run', '--revision', revision, '--unity', value.unity, '--evidence-root', path.join(value.top, 'c'), '--browser-runner', value.browser, '--sandbox-profile', profile], /not supported with --fixture-run/],
   ]) {
     const result = spawnSync(driver, args, { cwd: repository, encoding: 'utf8' });
     assert.notEqual(result.status, 0); assert.match(result.stderr, diagnostic);
   }
   await assert.rejects(lstat(inside), /ENOENT/);
+});
+test('sandbox profile validation is pre-evidence and the Unity-only launcher is structured', { skip: process.platform !== 'darwin' }, async t => {
+  const value = await fixture(t), good = path.join(value.top, 'good.sb'), bad = path.join(value.top, 'bad.sb'), missing = path.join(value.top, 'missing.sb'); await writeFile(good, approvedProfile); await writeFile(bad, '(version 1)\n(allow default)\n');
+  const profiles = path.join(value.top, 'profiles'); await mkdir(profiles); const nested = path.join(profiles, 'nested.sb'); await writeFile(nested, approvedProfile); const direct = path.join(value.top, 'direct.sb'), ancestor = path.join(value.top, 'ancestor'); await symlink(good, direct); await symlink(profiles, ancestor);
+  const cases = [[['--sandbox-profile'], /Missing value/], [['--sandbox-profile', '--revision'], /Missing value/], [['--sandbox-profile', 'relative.sb'], /canonical and absolute/], [['--sandbox-profile', missing], /regular file/], [['--sandbox-profile', value.top], /regular file/], [['--sandbox-profile', direct], /must not be symlinks/], [['--sandbox-profile', path.join(ancestor, 'nested.sb')], /must not be symlinks/], [['--sandbox-profile', driver], /outside the repository/], [['--sandbox-profile', bad], /approved Unity sandbox profile/], [['--sandbox-profile', ''], /Missing value/], [['--sandbox-profile', good, '--sandbox-profile', ''], /Duplicate argument/]];
+  for (const [tail, diagnostic] of cases) { const evidence = path.join(value.top, `formal-${Math.random()}`), result = spawnSync(driver, ['--revision', revision, '--unity', value.unity, '--evidence-root', evidence, ...tail], { cwd: repository, encoding: 'utf8', env: { ...process.env, FRAMELOOM_UNITY_ARGS: value.unityArgs } }); assert.notEqual(result.status, 0); assert.match(result.stderr, diagnostic); await assert.rejects(lstat(evidence), /ENOENT/); }
+  const wrappedEvidence = path.join(value.top, 'wrapped'), wrapped = spawnSync('/usr/bin/sandbox-exec', ['-f', good, driver, '--revision', revision, '--unity', value.unity, '--evidence-root', wrappedEvidence, '--sandbox-profile', good], { cwd: repository, encoding: 'utf8', env: { ...process.env, FRAMELOOM_UNITY_ARGS: value.unityArgs } }); assert.notEqual(wrapped.status, 0); assert.match(wrapped.stderr, /Unity supervisor must run outside sandbox/); await assert.rejects(lstat(wrappedEvidence), /ENOENT/); await assert.rejects(lstat(value.unityArgs), /ENOENT/);
+  const source = await readFile(driver, 'utf8'), parent = await readFile(path.join(repository, 'scripts/oss/run-required-gates.sh'), 'utf8'); assert.match(source, /unity-launcher-argv\.json/); assert.match(source, /UNITY_LAUNCH=\(\/usr\/bin\/sandbox-exec -f/); assert.match(source, /process\.platform!=="darwin"/); assert.match(parent, /webgl\+=\(--sandbox-profile "\$SANDBOX_PROFILE"\)/); assert.ok(source.trimEnd().split('\n').length <= 200);
 });

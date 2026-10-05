@@ -2,8 +2,8 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
 REGISTRY="$ROOT/ci/oss/gates.json"
-PHASE= REVISION= UNITY= EVIDENCE_ROOT= EXECUTOR= OUTPUT= RESULTS= FAILED_GATE=
-FIXTURE=0 FAILED=0
+PHASE= REVISION= UNITY= EVIDENCE_ROOT= EXECUTOR= SANDBOX_PROFILE= OUTPUT= RESULTS= FAILED_GATE=
+FIXTURE=0 FAILED=0 SANDBOX_SET=0
 TOTAL_TIMEOUT=${FRAMELOOM_GATE_TOTAL_TIMEOUT_SECONDS:-1200}; EXIT_GRACE=${FRAMELOOM_GATE_EXIT_GRACE_SECONDS:-600}; POLL_SECONDS=${FRAMELOOM_GATE_POLL_SECONDS:-2}; TERM_GRACE=${FRAMELOOM_GATE_TERM_GRACE_SECONDS:-30}; U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= WRAPPER_START= SIGNALS=0
 MIXED_CLASSES='ContentManifestGoldenTests DeterministicRandomCompatibilityTests LogicIntCompatibilityTests ModeBehaviorGoldenTests SessionCommandTests SessionDeterminismTests ModeBehaviorTests CoreTargetingTests SimSystemGroupTests SessionTerminalTests'
 P_FOUNDATION=61add622c04ad72494b5da785e542b984ec18df4
@@ -16,7 +16,8 @@ P_SMOKE=f9b0641f2f7347ec20ff248931b13cc8ff00f5c8 P_SMOKE_PATHS='scripts/oss/run-
 P_LINK_DESIGN=67eef1c27c7f3e6beb577eb47062ba12276cb212 P_LINK_DESIGN_PATHS='docs/superpowers/specs/2026-08-14-oss-prep-001-design/05-release-evidence.md'
 P_LINK_PLAN=5a22c3d0d89972e69736071e488d0b9576a4236b P_LINK_PLAN_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/04-governance-validation.md'
 P_LINKER=0297b6a66e306968aea5d2c2a42e0750b5cf256f P_LINKER_PATHS='Assets/Tests/Editor/RepositoryIntegrityTests.cs Packages/com.zwebglframework.runtime/Runtime/FSM/Game/GameLauncher.cs Packages/com.zwebglframework.runtime/Runtime/Network/Native/NativeRealtimeChannelFactory.cs Packages/com.zwebglframework.runtime/Runtime/Network/WebGL/WebGlRealtimeChannelFactory.cs Packages/com.zwebglframework.runtime/Runtime/UI/Diagnostics/SmokeReadinessReporter.cs'
-P_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_CANDIDATE3=3ab06b8c5220c047fa56db7da7264f2596a558b9 P_CANDIDATE3_PATHS='scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
+P_PATHS='docs/superpowers/plans/2026-08-25-oss-prep-001/05-package-freeze.md scripts/oss/run-required-gates.sh scripts/oss/run-required-gates.test.mjs scripts/oss/run-webgl-smoke.sh scripts/oss/run-webgl-smoke.test.mjs'
 fail() { printf '%s\n' "$*" >&2; exit 2; }
 need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
 set_once() { [ -z "$1" ] || fail "Duplicate argument: $2"; printf '%s' "$3"; }
@@ -28,6 +29,7 @@ while [ "$#" -gt 0 ]; do
     --unity) need_value "$@"; UNITY=$(set_once "$UNITY" "$1" "$2"); shift 2 ;;
     --evidence-root) need_value "$@"; EVIDENCE_ROOT=$(set_once "$EVIDENCE_ROOT" "$1" "$2"); shift 2 ;;
     --executor) need_value "$@"; EXECUTOR=$(set_once "$EXECUTOR" "$1" "$2"); shift 2 ;;
+    --sandbox-profile) [ "$SANDBOX_SET" -eq 0 ] || fail "Duplicate argument: $1"; SANDBOX_SET=1; need_value "$@"; [[ "$2" != --* ]] || fail "Missing value for $1"; SANDBOX_PROFILE=$2; shift 2 ;;
     *) fail "Invalid argument: $1" ;;
   esac
 done
@@ -35,12 +37,14 @@ done
 [[ "$REVISION" =~ ^[a-f0-9]{40}$ ]] || fail "Revision must be a full lowercase 40-character SHA"
 [ "$FIXTURE" -eq 1 ] || [ -z "$EXECUTOR" ] || fail "--executor requires --fixture-run"
 [ "$FIXTURE" -eq 0 ] || [ -n "$EXECUTOR" ] || fail "--fixture-run requires --executor"
-canonical_executable() {
-  local value=$1 label=$2 canonical; [[ "$value" = /* ]] && [ -f "$value" ] && [ -x "$value" ] && [ ! -L "$value" ] || fail "$label must be an absolute executable"
-  canonical=$(cd "$(dirname "$value")" && pwd -P)/$(basename "$value"); [ "$value" = "$canonical" ] || fail "$label must be canonical"
-}
+[ "$FIXTURE" -eq 0 ] || [ "$SANDBOX_SET" -eq 0 ] || fail "--sandbox-profile is not supported with --fixture-run"
+canonical_executable() { local value=$1 label=$2 canonical; [[ "$value" = /* ]] && [ -f "$value" ] && [ -x "$value" ] && [ ! -L "$value" ] || fail "$label must be an absolute executable"; canonical=$(cd "$(dirname "$value")" && pwd -P)/$(basename "$value"); [ "$value" = "$canonical" ] || fail "$label must be canonical"; }
 canonical_executable "$UNITY" Unity
 [ -z "$EXECUTOR" ] || canonical_executable "$EXECUTOR" Executor
+profile_copy() { [ "$SANDBOX_SET" -eq 1 ] || return 0; [ -x /usr/bin/sandbox-exec ] || fail "sandbox-exec is unavailable"
+  node -e 'const fs=require("fs"),path=require("path"),[source,repo,out]=process.argv.slice(1),expected=Buffer.from("(version 1)\n(allow default)\n(deny network-outbound (remote ip \"*:*\"))\n(allow network-outbound (remote ip \"localhost:*\"))\n"),die=m=>{console.error(m);process.exit(2)};if(process.platform!=="darwin")die("--sandbox-profile is supported only on macOS");if(!path.isAbsolute(source)||path.resolve(source)!==source)die("Sandbox profile must be canonical and absolute");let real,info;try{real=fs.realpathSync(source);info=fs.lstatSync(source)}catch{die("Sandbox profile must be a regular file")};if(real!==source||info.isSymbolicLink())die("Sandbox profile and ancestors must not be symlinks");if(!info.isFile())die("Sandbox profile must be a regular file");const root=fs.realpathSync(repo),relative=path.relative(root,source);if(relative===""||(!relative.startsWith(".."+path.sep)&&relative!==".."))die("Sandbox profile must be outside the repository");const data=fs.readFileSync(source);if(!data.equals(expected))die("Sandbox profile must match the approved Unity sandbox profile");if(out){fs.writeFileSync(out,data,{flag:"wx",mode:0o444});fs.chmodSync(out,0o444)}' "$SANDBOX_PROFILE" "$ROOT" "${1:-}"
+}
+profile_copy; [ "$SANDBOX_SET" -eq 0 ] || /bin/ps -p "$$" -o pid= >/dev/null 2>&1 || fail "Unity supervisor must run outside sandbox"
 native_unity_ok() { [ "$1" != Darwin ] || { [ "$2" = 0 ] || { [ "$2" = 1 ] && [ "$3" = arm64 ] && [ "$4" = 'Mach-O 64-bit executable arm64' ]; }; }
 }
 unity_architecture_gate() {
@@ -87,14 +91,14 @@ stop_unity() {
   for ((second=0; second<TERM_GRACE; second++)); do kill -0 "$U_PID" 2>/dev/null || return 0; sleep 1; done
   kill -0 "$U_PID" 2>/dev/null || return 0; identity_ok || return 1; kill -KILL "$U_PID"; SIGNALS=$((SIGNALS+1)); printf 'signal=KILL pid=%s identity=confirmed\n' "$U_PID" >> "$1/signal-ledger.txt"
 }
-unity_run() {
-  local kind=$1 mode=$2 filter=$3 dir=$4 xml="$4/results.xml" log="$4/unity.log" marker started ended now complete=0 watchdog=0 reason=none post=0 rc
-  marker='Test run completed. Exiting with code 0 (Ok). Run completed.'; local args
+unity_run() { local kind=$1 mode=$2 filter=$3 dir=$4 xml="$4/results.xml" log="$4/unity.log" marker started ended now complete=0 watchdog=0 reason=none post=0 rc snapshot; local args launch
+  marker='Test run completed. Exiting with code 0 (Ok). Run completed.'
   if [ "$kind" = test ]; then args=(-batchmode -runTests -projectPath "$ROOT" -testPlatform "$mode" -testResults "$xml" -logFile "$log"); [ -z "$filter" ] || args+=(-testFilter "$filter")
   elif [ "$kind" = compile ]; then args=(-batchmode -nographics -quit -projectPath "$ROOT" -executeMethod ZWebGLFrameWork.Editor.BuildValidator.CompileAndValidate -logFile "$log")
   else args=(-batchmode -nographics -quit -projectPath "$ROOT" -executeMethod ZWebGLFrameWork.Editor.SimulationPerformanceBatch.Run -logFile "$log"); fi
+  launch=("$UNITY" "${args[@]}"); if [ "$SANDBOX_SET" -eq 1 ]; then snapshot="$dir/sandbox-profile.sb"; profile_copy "$snapshot" || return 1; (cd "$dir" && shasum -a 256 sandbox-profile.sb > sandbox-profile.sha256) || return 1; launch=(/usr/bin/sandbox-exec -f "$snapshot" "$UNITY" "${args[@]}"); node -e 'require("fs").writeFileSync(process.argv[1],JSON.stringify(process.argv.slice(2))+"\n")' "$dir/unity-launcher-argv.json" "${launch[@]}" || return 1; fi
   : > "$dir/signal-ledger.txt"; started=$(date +%s); WRAPPER_START=$(ps -p "$$" -o lstart= | sed 's/^ *//;s/ *$//'); U_PID= U_START= U_COMMAND= U_PARENT= U_CWD= SIGNALS=0
-  (cd "$ROOT" && exec env ZWEB_EVIDENCE_ROOT="$dir" "$UNITY" "${args[@]}") > "$dir/unity.stdout.txt" 2> "$dir/unity.stderr.txt" & U_PID=$!; sleep 0.2
+  (cd "$ROOT" && exec env ZWEB_EVIDENCE_ROOT="$dir" "${launch[@]}") > "$dir/unity.stdout.txt" 2> "$dir/unity.stderr.txt" & U_PID=$!; sleep 0.2
   if kill -0 "$U_PID" 2>/dev/null; then U_START=$(ps -p "$U_PID" -o lstart= | sed 's/^ *//;s/ *$//'); U_COMMAND=$(ps -ww -p "$U_PID" -o command=); U_PARENT=$(ps -p "$U_PID" -o ppid= | tr -d ' '); U_CWD=$(process_cwd "$U_PID"); identity_ok || return 1; fi
   printf 'pid=%s\nppid=%s\ncwd=%s\ncommand=%s\n' "$U_PID" "${U_PARENT:-exited}" "${U_CWD:-exited}" "${U_COMMAND:-exited}" > "$dir/process-identity.txt"
   while kill -0 "$U_PID" 2>/dev/null; do now=$(date +%s); printf 'epoch=%s pid=%s ppid=%s cwd=%s\n' "$now" "$U_PID" "$(ps -p "$U_PID" -o ppid= | tr -d ' ')" "$(process_cwd "$U_PID")" >> "$dir/process-samples.txt"
@@ -112,14 +116,11 @@ unity_run() {
 }
 evidence_inventory() { local dir=$1; [ -z "$(find "$dir" -type l -print -quit)" ] || return 1; (cd "$dir" && find . -type f -print | LC_ALL=C sort | while IFS= read -r file; do printf '%s  %s\n' "$(shasum -a 256 "$file" | cut -d' ' -f1)" "${file#./}"; done); }
 checkpoint_gate() {
-  local child=$1 parent=$2 paths=$3 file=$4 label=$5 dir=$6 row actual expected; row=$(git -C "$ROOT" rev-list --parents -n 1 "$child") || return 1; set -- $row
-  [ "$#" -eq 2 ] && [ "$1" = "$child" ] && [ "$2" = "$parent" ] || { printf '%s must be the non-merge direct child of %s\n' "$label" "$parent"; return 1; }
-  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$child" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $paths | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/$file"
-  [ "$actual" = "$expected" ] || { printf '%s path mismatch\nexpected:\n%s\nactual:\n%s\n' "$label" "$expected" "$actual"; return 1; }
+  local child=$1 parent=$2 paths=$3 file=$4 label=$5 dir=$6 row actual expected; row=$(git -C "$ROOT" rev-list --parents -n 1 "$child") || return 1; set -- $row; [ "$#" -eq 2 ] && [ "$1" = "$child" ] && [ "$2" = "$parent" ] || { printf '%s must be the non-merge direct child of %s\n' "$label" "$parent"; return 1; }
+  actual=$(git -C "$ROOT" diff-tree --no-commit-id --name-only -r "$child" | LC_ALL=C sort) || return 1; expected=$(printf '%s\n' $paths | LC_ALL=C sort); printf '%s\n' "$actual" > "$dir/$file"; [ "$actual" = "$expected" ] || { printf '%s path mismatch\nexpected:\n%s\nactual:\n%s\n' "$label" "$expected" "$actual"; return 1; }
 }
-p_diff_gate() {
-  local dir=$1
-  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PLAN" "$P_DESIGN" "$P_PLAN_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$P_PREFIX" "$P_PLAN" "$P_PREFIX_PATHS" architecture-gate-paths.txt architecture-gate "$dir" && checkpoint_gate "$P_SMOKE" "$P_PREFIX" "$P_SMOKE_PATHS" webgl-evidence-paths.txt webgl-evidence "$dir" && checkpoint_gate "$P_LINK_DESIGN" "$P_SMOKE" "$P_LINK_DESIGN_PATHS" linker-design-paths.txt linker-design "$dir" && checkpoint_gate "$P_LINK_PLAN" "$P_LINK_DESIGN" "$P_LINK_PLAN_PATHS" linker-plan-paths.txt linker-plan "$dir" && checkpoint_gate "$P_LINKER" "$P_LINK_PLAN" "$P_LINKER_PATHS" linker-repair-paths.txt linker-repair "$dir" && checkpoint_gate "$REVISION" "$P_LINKER" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
+p_diff_gate() { local dir=$1
+  checkpoint_gate "$P_STAGE4" "$P_FOUNDATION" "$P_STAGE4_PATHS" stage4-checkpoint-paths.txt 'Stage 4 checkpoint' "$dir" && checkpoint_gate "$P_REPAIR" "$P_STAGE4" "$P_REPAIR_PATHS" repair-paths.txt repair "$dir" && checkpoint_gate "$P_DESIGN" "$P_REPAIR" "$P_DESIGN_PATHS" design-paths.txt design "$dir" && checkpoint_gate "$P_PLAN" "$P_DESIGN" "$P_PLAN_PATHS" baseline-plan-paths.txt baseline-plan "$dir" && checkpoint_gate "$P_PREFIX" "$P_PLAN" "$P_PREFIX_PATHS" architecture-gate-paths.txt architecture-gate "$dir" && checkpoint_gate "$P_SMOKE" "$P_PREFIX" "$P_SMOKE_PATHS" webgl-evidence-paths.txt webgl-evidence "$dir" && checkpoint_gate "$P_LINK_DESIGN" "$P_SMOKE" "$P_LINK_DESIGN_PATHS" linker-design-paths.txt linker-design "$dir" && checkpoint_gate "$P_LINK_PLAN" "$P_LINK_DESIGN" "$P_LINK_PLAN_PATHS" linker-plan-paths.txt linker-plan "$dir" && checkpoint_gate "$P_LINKER" "$P_LINK_PLAN" "$P_LINKER_PATHS" linker-repair-paths.txt linker-repair "$dir" && checkpoint_gate "$P_CANDIDATE3" "$P_LINKER" "$P_CANDIDATE3_PATHS" candidate3-paths.txt candidate3 "$dir" && checkpoint_gate "$REVISION" "$P_CANDIDATE3" "$P_PATHS" checkpoint-paths.txt candidate "$dir" || return 1
   git -C "$ROOT" diff --check af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" && git -C "$ROOT" diff --quiet af1c2745062f262fc4b922f90b46f43158b537b7.."$REVISION" -- README.md UserSettings/Layouts/default-2022.dwlt
 }
 framework_dotnet() {
@@ -166,7 +167,7 @@ run_formal_gate() {
     simulation-soak) unity_run performance '' '' "$dir"; node "$ROOT/scripts/ci/validate-simulation-performance-report.mjs" --report "$dir/performance/simulation-baseline.json" ;;
     framework-dotnet) framework_dotnet "$dir" ;;
     node-python-workflow) npm ci --prefix "$ROOT/ci" --ignore-scripts; (cd "$ROOT" && node --test scripts/audit/*.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs); (cd "$ROOT" && PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py') ;;
-    webgl-build-browser-smoke) "$ROOT/scripts/oss/run-webgl-smoke.sh" --revision "$REVISION" --unity "$UNITY" --evidence-root "$dir/smoke" ;;
+    webgl-build-browser-smoke) local webgl=("$ROOT/scripts/oss/run-webgl-smoke.sh" --revision "$REVISION" --unity "$UNITY" --evidence-root "$dir/smoke"); [ "$SANDBOX_SET" -eq 0 ] || webgl+=(--sandbox-profile "$SANDBOX_PROFILE"); "${webgl[@]}" ;;
     package-structure-governance) structure_gate "$dir" ;;
     p-history-provenance) (cd "$ROOT" && node scripts/oss/audit-history.mjs --revision "$REVISION" --evidence-root "$dir") ;;
     p-diff-whitespace-whitelist) p_diff_gate "$dir" ;;

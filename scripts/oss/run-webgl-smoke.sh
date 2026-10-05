@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd -P)
-REVISION= UNITY= EVIDENCE_ROOT= BROWSER_RUNNER= FIXTURE=0 OUTPUT= SERVER_PID= SERVER_REAPED=false PROJECT_LOG_COUNT=0
+REVISION= UNITY= EVIDENCE_ROOT= BROWSER_RUNNER= SANDBOX_PROFILE= FIXTURE=0 SANDBOX_SET=0 OUTPUT= SERVER_PID= SERVER_REAPED=false PROJECT_LOG_COUNT=0
 fail() { printf '%s\n' "$*" >&2; exit 2; }
+need_value() { [ "$#" -ge 2 ] && [ -n "$2" ] || fail "Missing value for $1"; }
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --fixture-run) FIXTURE=1; shift ;;
@@ -10,6 +11,7 @@ while [ "$#" -gt 0 ]; do
     --unity) UNITY=${2:-}; shift 2 ;;
     --evidence-root) EVIDENCE_ROOT=${2:-}; shift 2 ;;
     --browser-runner) BROWSER_RUNNER=${2:-}; shift 2 ;;
+    --sandbox-profile) [ "$SANDBOX_SET" -eq 0 ] || fail "Duplicate argument: $1"; SANDBOX_SET=1; need_value "$@"; [[ "$2" != --* ]] || fail "Missing value for $1"; SANDBOX_PROFILE=$2; shift 2 ;;
     *) fail "Invalid argument: $1" ;;
   esac
 done
@@ -19,6 +21,13 @@ if [ -n "$BROWSER_RUNNER" ]; then
   [ "$FIXTURE" -eq 1 ] || fail "--browser-runner requires --fixture-run"
   [ -x "$BROWSER_RUNNER" ] && [[ "$BROWSER_RUNNER" = /* ]] || fail "Browser runner must be an absolute executable"
 elif [ "$FIXTURE" -eq 1 ]; then fail "--fixture-run requires --browser-runner"; fi
+[ "$FIXTURE" -eq 0 ] || [ "$SANDBOX_SET" -eq 0 ] || fail "--sandbox-profile is not supported with --fixture-run"
+profile_copy() {
+  [ "$SANDBOX_SET" -eq 1 ] || return 0
+  [ -x /usr/bin/sandbox-exec ] || fail "sandbox-exec is unavailable"
+  node -e 'const fs=require("fs"),path=require("path"),[source,repo,out]=process.argv.slice(1),expected=Buffer.from("(version 1)\n(allow default)\n(deny network-outbound (remote ip \"*:*\"))\n(allow network-outbound (remote ip \"localhost:*\"))\n"),die=m=>{console.error(m);process.exit(2)};if(process.platform!=="darwin")die("--sandbox-profile is supported only on macOS");if(!path.isAbsolute(source)||path.resolve(source)!==source)die("Sandbox profile must be canonical and absolute");let real,info;try{real=fs.realpathSync(source);info=fs.lstatSync(source)}catch{die("Sandbox profile must be a regular file")};if(real!==source||info.isSymbolicLink())die("Sandbox profile and ancestors must not be symlinks");if(!info.isFile())die("Sandbox profile must be a regular file");const root=fs.realpathSync(repo),relative=path.relative(root,source);if(relative===""||(!relative.startsWith(".."+path.sep)&&relative!==".."))die("Sandbox profile must be outside the repository");const data=fs.readFileSync(source);if(!data.equals(expected))die("Sandbox profile must match the approved Unity sandbox profile");if(out){fs.writeFileSync(out,data,{flag:"wx",mode:0o444});fs.chmodSync(out,0o444)}' "$SANDBOX_PROFILE" "$ROOT" "${1:-}"
+}
+profile_copy; [ "$SANDBOX_SET" -eq 0 ] || /bin/ps -p "$$" -o pid= >/dev/null 2>&1 || fail "Unity supervisor must run outside sandbox"
 OUTPUT=$(node -e '
 const fs=require("fs"),path=require("path"),[input,repo]=process.argv.slice(1);
 function fail(value){console.error(value);process.exit(2)}
@@ -55,10 +64,11 @@ preserve_unity_project_logs() {
       while IFS= read -r name; do shasum -a 256 "$name"; done > manifest.sha256)
   fi
 }
+UNITY_ARGS=(-batchmode -nographics -quit -projectPath "$ROOT" -executeMethod ZWebGLFrameWork.Editor.BuildScript.BuildWebGL -logFile "$OUTPUT/unity-webgl.log")
+UNITY_LAUNCH=("$UNITY" "${UNITY_ARGS[@]}")
+if [ "$SANDBOX_SET" -eq 1 ]; then SNAPSHOT="$OUTPUT/sandbox-profile.sb"; profile_copy "$SNAPSHOT" || fail "Could not snapshot sandbox profile"; (cd "$OUTPUT" && shasum -a 256 sandbox-profile.sb > sandbox-profile.sha256) || fail "Could not hash sandbox profile"; UNITY_LAUNCH=(/usr/bin/sandbox-exec -f "$SNAPSHOT" "$UNITY" "${UNITY_ARGS[@]}"); node -e 'require("fs").writeFileSync(process.argv[1],JSON.stringify(process.argv.slice(2))+"\n")' "$OUTPUT/unity-launcher-argv.json" "${UNITY_LAUNCH[@]}" || fail "Could not record Unity launcher"; fi
 set +e
-ZWEB_EVIDENCE_ROOT="$OUTPUT" "$UNITY" -batchmode -nographics -quit -projectPath "$ROOT" \
-  -executeMethod ZWebGLFrameWork.Editor.BuildScript.BuildWebGL -logFile "$OUTPUT/unity-webgl.log" \
-  > "$OUTPUT/unity.stdout.txt" 2> "$OUTPUT/unity.stderr.txt"
+ZWEB_EVIDENCE_ROOT="$OUTPUT" "${UNITY_LAUNCH[@]}" > "$OUTPUT/unity.stdout.txt" 2> "$OUTPUT/unity.stderr.txt"
 UNITY_EXIT=$?
 set -e
 if [ "$FIXTURE" -eq 0 ]; then
