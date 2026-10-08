@@ -57,7 +57,8 @@ node scripts/oss/release-evidence.mjs validate-gates \
 ```
 
   For the owner-authorized isolated invocation, create the canonical external file named by
-  `OSS_SANDBOX_PROFILE` with these exact bytes (including the final newline):
+  `OSS_SANDBOX_PROFILE` with either approved exact byte profile (including the final newline).
+  The established non-loopback-denial profile remains supported:
 
 ```scheme
 (version 1)
@@ -66,13 +67,25 @@ node scripts/oss/release-evidence.mjs validate-gates \
 (allow network-outbound (remote ip "localhost:*"))
 ```
 
+  The following child-proxy-port-denial profile is also approved (SHA-256
+  `e9688f449f15516bca20fb31d9c4e00a574710368545870a108edd6657d9f9d2`):
+
+```scheme
+(version 1)
+(allow default)
+(deny network-outbound (remote ip "localhost:1082"))
+```
+
   On macOS, `--sandbox-profile` is optional (omit it for the normal run) but, when supplied, must be a canonical external regular
-  file with no symlink component and exactly the approved profile bytes. The unsandboxed runner keeps
+  file with no symlink component and exactly one approved profile. The unsandboxed runner keeps
   watchdog/process supervision and all Node, npm, .NET, HTTPS, and browser work outside the sandbox;
   only each Unity child (including the WebGL build child) runs through the read-only evidence copy.
-  The profile denies non-loopback outbound network while allowing `localhost`. Residual limitation:
-  localhost proxies can bypass the intended remote-network restriction; this is a process-local
-  diagnostic boundary, not a complete egress policy. Sandbox profiles are rejected for fixture runs.
+  The established profile denies non-loopback outbound network while allowing `localhost`; the new
+  profile denies only `localhost:1082` to the child Unity process. The latter is diagnostic child
+  proxy-port isolation, not an egress policy or proof of direct-bypass behavior. Localhost proxies can
+  bypass the established profile's intended remote-network restriction, and neither profile is a
+  complete egress policy. The formal runner's existing TERM/KILL supervision policy does not change.
+  Sandbox profiles are rejected for fixture runs.
 
   Expected: both exit 0 and the following applicable Required gates are `PASS`:
 
