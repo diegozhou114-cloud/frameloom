@@ -16,7 +16,14 @@ const manifest = {
   name: 'com.zwebglframework.runtime', version: '0.1.0', displayName: 'FrameLoom',
   description: 'deterministic Unity strategy-game framework', unity: '2022.3', license: 'MIT',
   author: { name: 'Diego Zhou', url: 'https://github.com/diegozhou114-cloud' },
-  dependencies: { 'com.unity.ugui': '1.0.0' },
+  dependencies: {
+    'com.unity.ugui': '1.0.0',
+    'com.unity.modules.audio': '1.0.0',
+    'com.unity.modules.assetbundle': '1.0.0',
+    'com.unity.modules.unitywebrequest': '1.0.0',
+    'com.unity.modules.jsonserialize': '1.0.0',
+    'com.unity.modules.physics': '1.0.0',
+  },
   keywords: ['unity', 'unity3d', 'unity-package', 'upm', 'webgl',
     'deterministic-simulation', 'strategy-game', 'ecs'],
   documentationUrl: `${base}/README.md`, changelogUrl: `${base}/CHANGELOG.md`, licensesUrl: `${base}/LICENSE`,
@@ -90,6 +97,15 @@ test('accepts exact task 4.1 and 4.2 contract', async t => assert.equal(await er
 test('retains task 4.1 metadata diagnostics', async t => {
   const cases = [[v => { v.displayName = 'Other'; }, /Package metadata mismatch: displayName/], [v => { v.repository = 'mutable'; }, /Unexpected package metadata field: repository/], [v => { v.author.email = 'public@example.com'; }, /Package author mismatch/], [v => { v.dependencies.extra = '1'; }, /Package dependencies mismatch/], [v => v.keywords.reverse(), /Package keywords mismatch/], [v => { v.documentationUrl = v.documentationUrl.replace('v0.1.0', 'main'); }, /Package metadata mismatch: documentationUrl/]];
   for (const [mutate, diagnostic] of cases) { const root = await fixture(t); await changeManifest(root, mutate); assert.match(await errors(root), diagnostic); }
+});
+test('rejects missing and wrong required built-in module dependencies', async t => {
+  for (const name of ['com.unity.modules.audio', 'com.unity.modules.assetbundle',
+    'com.unity.modules.unitywebrequest', 'com.unity.modules.jsonserialize', 'com.unity.modules.physics']) {
+    const missing = await fixture(t); await changeManifest(missing, value => { delete value.dependencies[name]; });
+    assert.match(await errors(missing), /Package dependencies mismatch/);
+    const wrong = await fixture(t); await changeManifest(wrong, value => { value.dependencies[name] = '2.0.0'; });
+    assert.match(await errors(wrong), /Package dependencies mismatch/);
+  }
 });
 test('retains task 4.1 document diagnostics', async t => {
   const missing = await fixture(t); await rm(path.join(missing, pkg, 'README.md')); assert.match(await errors(missing), /Missing package document: README.md/);

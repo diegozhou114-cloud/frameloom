@@ -77,9 +77,11 @@ therefore declares both:
   full SHA `e5acc106ee196bc5a32fb14cdf2987b0f96d11e0`.
 
 That UniTask revision is package version `2.5.11` under MIT. UniTask is not copied, modified,
-vendored, transitively declared, or covered by FrameLoom MIT. Framework `package.json` lists only
-registry-resolvable dependencies, including `"com.unity.ugui": "1.0.0"`. "One aggregate package"
-means FrameLoom itself has one package, not that consumers have one manifest dependency.
+vendored, transitively declared, or covered by FrameLoom MIT. Framework `package.json` declares the
+Unity built-in package `"com.unity.ugui": "1.0.0"` and the built-in engine modules Audio,
+AssetBundle, UnityWebRequest, JSONSerialize, and Physics at `1.0.0`. UGUI is a package distinct from
+`com.unity.modules.*`; its UI and IMGUI modules remain transitive. "One aggregate package" means
+FrameLoom itself has one package, not that consumers have one manifest dependency.
 
 ## Exact Metadata
 
@@ -97,6 +99,14 @@ The package uses:
     "name": "Diego Zhou",
     "url": "https://github.com/diegozhou114-cloud"
   },
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.assetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.physics": "1.0.0"
+  },
   "keywords": [
     "unity",
     "unity3d",
@@ -113,7 +123,7 @@ The package uses:
 }
 ```
 
-The implementation merges these fields with approved registry dependencies. It sets no
+The implementation uses this exact built-in dependency map. It sets no
 `unityRelease`, prerelease/build metadata, `author.email`, homepage, support, publisher, company,
 organization, or technical-support field. v0.1.0 is Git UPM only, not a registry publication.
 

@@ -3,6 +3,20 @@
 This stage owns the adjacent `P`/`R` terminal revisions and release-candidate evidence. Remote,
 tag, Demo, visibility, and Release operations remain separately authorized follow-on gates.
 
+## Approved Dependency Correction
+
+The failed first private GitHub `P` gate exposed undeclared runtime uses of Unity Audio, AssetBundle,
+and UnityWebRequest. A subsequent diagnostic and AssemblyRef audit identified JSONSerialize and
+Physics. A corrected successor `P'` must declare all five built-in modules at `1.0.0`, update the
+host UPM lock through native ARM64 Unity only, and remain the direct child of the existing README-only
+`R`. The formal diff gate preserves the historical `P`/`R` checks, permits only the approved correction
+paths for `P'`, and protects `README.md` and
+`UserSettings/Layouts/default-2022.dwlt` from `R` through `P'`. This correction changes neither
+runtime source nor the frozen historical revisions; fresh authenticated gates must be rerun against
+corrected `P'` and its later README-only successor `R'`. The existing authorized private GitHub
+repository is reused, never recreated; after required D0 and history evidence for the successor,
+only a no-tag fast-forward of `master` is permitted before rerunning private authenticated fresh gates.
+
 ## Task 6.1: Create The README-only Direct Child
 
 - **Paths:** modify exactly root `README.md`; read package README/changelog/governance and external
@@ -66,7 +80,9 @@ node scripts/oss/compare-package-content.mjs --p "$P_SHA" --r "$R_SHA" \
   separate owner authorization, fast-forward Gitee `master` to full R. D0 then installs the Gitee
   package-subdirectory URL pinned to full R and validates combat, Replay, pooling, Editor/Mono
   allocation, SOAK, and WebGL smoke. Only after D0 passes, run the complete history/privacy/license
-  audit. GitHub must still not exist. Pre-tag metadata URL 404s remain known staging state.
+  audit. The historical first-run no-GitHub condition is superseded for this authorized correction
+  successor; the existing private GitHub repository remains untouched until its permitted fast-forward.
+  Pre-tag metadata URL 404s remain known staging state.
 - **Do not touch:** Demo implementation/assets, a GitHub repository, tags, package/runtime code,
   history, non-fast-forward remote state, or raw evidence publication.
 - **Verify:** after authorization run:
@@ -81,50 +97,58 @@ node scripts/oss/audit-history.mjs --revision "$R_SHA" \
 ```
 
   Expected: Gitee master equals R, D0 Required rows PASS against Gitee R, and the complete audit
-  exits 0 before any private GitHub creation or push.
+  exits 0 before any private GitHub push.
 - **Checkpoint:** Gitee D0 and full-history audit evidence authorize consideration of private GitHub;
   this remains a separately approved release action, not normal implementation authority.
 - **Stop:** Gitee requires non-fast-forward, D0 uses P or another URL/SHA, any D0/audit gate fails,
-  or GitHub already exists before this checkpoint.
+  or the historical first-run flow attempts private GitHub creation before this checkpoint. The
+  authorized correction successor may retain the existing private repository without modifying it.
 
 ## Task 6.4: Authorize Private GitHub Master And P/R Fresh Gates
 
-- **Paths:** future empty private `https://github.com/diegozhou114-cloud/frameloom`, Git remote
+- **Paths:** the existing private `https://github.com/diegozhou114-cloud/frameloom`, Git remote
   `github`, root README manifest, two unique external consumer projects, and
   `$OSS_EVIDENCE_ROOT/release-candidate/{upm-p,upm-r}/`.
-- **Behavior:** after task 6.3 PASS and a read-only availability recheck, separately authorize empty
-  private repository creation with no generated file/commit/branch. Push complete unchanged history
-  and `master=R` only; push no tag. Set `master` default. Run P and R gates through the real private
-  GitHub URL with isolated projects and record the private authentication boundary without secrets;
-  these are the first real authenticated P/R resolutions. Require respective lock revisions, version
-  `0.1.0`, public contracts, cleanup, and identical resolved package inventories/digests. Tag-based
-  metadata URL 404s before tag do not fail UPM.
+- **Behavior:** after successful corrected `R'` D0 and full-history evidence from task 6.3, plus a
+  read-only availability recheck, reuse the existing private repository and fast-forward `master=R'`
+  only; push no tag and do not create a repository or change
+  its default branch. Run P' and R' gates through the real private GitHub URL with isolated projects
+  and record the private authentication boundary without secrets; these are the first real
+  authenticated successor resolutions. The historical initial first-run repository-creation rule
+  applies only to the already superseded initial flow, not this successor.
+  Require respective lock revisions, version `0.1.0`, public contracts, cleanup, and identical
+  resolved package inventories/digests. Tag-based metadata URL 404s before tag do not fail UPM.
 - **Do not touch:** create/push GitHub without separate authorization, push a tag, reuse project state,
   use Gitee/local paths in place of README GitHub URL, or label private resolution anonymous.
 - **Verify:** after authorization run:
 
 ```bash
+# CORRECTED_P_REF and CORRECTED_R_REF resolve to the full corrected P' and R' commits.
+P_SHA="$(git rev-parse "$CORRECTED_P_REF")"
+R_SHA="$(git rev-parse "$CORRECTED_R_REF")"
+test "$P_SHA" = "$(git rev-parse "$R_SHA^")"
 git push github "${R_SHA}:refs/heads/master"
 test "$(git ls-remote --heads github refs/heads/master | cut -f1)" = "$R_SHA"
 test -z "$(git ls-remote --tags github refs/tags/v0.1.0)"
 scripts/oss/run-fresh-project-gate.sh --framework-revision "$P_SHA" \
   --access private-authenticated \
-  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/Unity \
+  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity-arm64.app/Contents/MacOS/Unity \
   --evidence-root "$OSS_EVIDENCE_ROOT/release-candidate/upm-p"
 scripts/oss/run-fresh-project-gate.sh --framework-revision "$R_SHA" \
   --access private-authenticated \
-  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity.app/Contents/MacOS/Unity \
+  --unity /Applications/Unity/Hub/Editor/2022.3.62f3c1/Unity-arm64.app/Contents/MacOS/Unity \
   --evidence-root "$OSS_EVIDENCE_ROOT/release-candidate/upm-r"
 node scripts/oss/compare-package-content.mjs \
   --resolved-p "$OSS_EVIDENCE_ROOT/release-candidate/upm-p" \
   --resolved-r "$OSS_EVIDENCE_ROOT/release-candidate/upm-r"
 ```
 
-  Expected: GitHub master equals R with no tag; both authenticated gates and content comparison exit
+  Expected: GitHub master equals corrected R' with no tag; both authenticated gates and content comparison exit
   0; every Pre-tag Required row is PASS before tag creation.
 - **Checkpoint:** complete Pre-tag gate matrix authorizes the separately approved tag transition.
-- **Stop:** pre-push audit evidence is absent, repository is nonempty, tag appears, history/master
-  differs, auth leaks, or any resolution/compile/revision/content/cleanup/Required check fails.
+- **Stop:** pre-push audit evidence is absent, the remote has unexpected history or rejects a
+  fast-forward, a tag appears, visibility changes, auth leaks, or any
+  resolution/compile/revision/content/cleanup/Required check fails.
 
 ## Later Authorized Publication State Machine
 

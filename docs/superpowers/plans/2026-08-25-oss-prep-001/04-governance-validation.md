@@ -11,7 +11,10 @@ the [stage 3 checkpoint](03-public-api-tdd.md#task-35-focused-then-complete-regr
   `scripts/oss/validate-package-governance.mjs`.
 - **Behavior:** structurally require name `com.zwebglframework.runtime`, version `0.1.0`, display
   name `FrameLoom`, description `deterministic Unity strategy-game framework`, Unity `2022.3`, MIT,
-  author `Diego Zhou` with profile URL and no email, only `com.unity.ugui: 1.0.0` dependency, and
+  author `Diego Zhou` with profile URL and no email, exact built-in dependencies
+  `com.unity.ugui`, `com.unity.modules.audio`, `com.unity.modules.assetbundle`,
+  `com.unity.modules.unitywebrequest`, `com.unity.modules.jsonserialize`, and
+  `com.unity.modules.physics`, each at `1.0.0`, and
   the exact ordered keywords `unity`, `unity3d`, `unity-package`, `upm`, `webgl`,
   `deterministic-simulation`, `strategy-game`, `ecs`. Require immutable v0.1.0 URLs ending in package
   `/README.md`, `/CHANGELOG.md`, and `/LICENSE` under

@@ -13,21 +13,13 @@ const frameworkName = 'com.zwebglframework.runtime';
 const frameworkUrl = `https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#${revision}`;
 const unitaskUrl = `https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#${unitaskRevision}`;
 const marker = 'Test run completed. Exiting with code 0 (Ok). Run completed.';
-const cases = [
-  'CommandRecorderPublicContractTests.BufferedRecord_MatchesTickResultCommandsAndTerminalFields', 'CommandRecorderPublicContractTests.BufferedRecord_OwnsCommandsAcrossParentClearReuseAndDispose',
-  'CommandRecorderPublicContractTests.BufferedRecord_RejectsInvalidOutputsWithoutReplayMutation', 'SessionPresentationBridgePublicContractTests.BufferedApply_BufferReuseUpdatesOnlyAfterExplicitApply',
-  'SessionPresentationBridgePublicContractTests.BufferedApply_OutputClearDoesNotChangeLaterSample', 'SessionPresentationBridgePublicContractTests.BufferedApply_OutputDisposePreservesConsumedValuesAndViews',
-  'SessionPresentationBridgePublicContractTests.BufferedApply_PublishedOutputCreatesAndSamplesView',
-].map(name => `ZWebGLFrameWork.PublicApiContract.Tests.${name}`);
+const frameworkDependencies = { 'com.unity.ugui': '1.0.0', 'com.unity.modules.audio': '1.0.0', 'com.unity.modules.assetbundle': '1.0.0', 'com.unity.modules.unitywebrequest': '1.0.0', 'com.unity.modules.jsonserialize': '1.0.0', 'com.unity.modules.physics': '1.0.0' };
+const cases = ['CommandRecorderPublicContractTests.BufferedRecord_MatchesTickResultCommandsAndTerminalFields', 'CommandRecorderPublicContractTests.BufferedRecord_OwnsCommandsAcrossParentClearReuseAndDispose', 'CommandRecorderPublicContractTests.BufferedRecord_RejectsInvalidOutputsWithoutReplayMutation', 'SessionPresentationBridgePublicContractTests.BufferedApply_BufferReuseUpdatesOnlyAfterExplicitApply', 'SessionPresentationBridgePublicContractTests.BufferedApply_OutputClearDoesNotChangeLaterSample', 'SessionPresentationBridgePublicContractTests.BufferedApply_OutputDisposePreservesConsumedValuesAndViews', 'SessionPresentationBridgePublicContractTests.BufferedApply_PublishedOutputCreatesAndSamplesView'].map(name => `ZWebGLFrameWork.PublicApiContract.Tests.${name}`);
 const firstCase = `<test-case fullname="${cases[0]}" result="Passed" />`;
 const json = value => JSON.stringify(value, null, 2) + '\n';
 const sha = value => createHash('sha256').update(value).digest('hex');
-async function put(root, relative, value) {
-  const target = path.join(root, relative); await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, typeof value === 'string' ? value : json(value)); }
-async function mutate(root, relative, callback) {
-  const target = path.join(root, relative); const value = JSON.parse(await readFile(target));
-  callback(value); await writeFile(target, json(value)); }
+async function put(root, relative, value) { const target = path.join(root, relative); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, typeof value === 'string' ? value : json(value)); }
+async function mutate(root, relative, callback) { const target = path.join(root, relative); const value = JSON.parse(await readFile(target)); callback(value); await writeFile(target, json(value)); }
 async function replace(root, relative, from, to) { const target = path.join(root, relative);
   await writeFile(target, (await readFile(target, 'utf8')).replace(from, to)); }
 function sourceRecord({ name, url, origin, subdirectory, revision: hash, inventoryFile, raw }) {
@@ -52,7 +44,7 @@ async function fixture(t) {
   await put(root, 'packages-lock.json', { dependencies: {
     'com.cysharp.unitask': { version: unitaskUrl, depth: 0, source: 'git', dependencies: {}, hash: unitaskRevision },
     [frameworkName]: { version: frameworkUrl, depth: 0, source: 'git',
-      dependencies: { 'com.unity.ugui': '1.0.0' }, hash: revision } } });
+      dependencies: frameworkDependencies, hash: revision } } });
   const frameworkRaw = json({ name: frameworkName, version: '0.1.0' });
   const unitaskRaw = json({ name: 'com.cysharp.unitask', version: '2.5.11' });
   await put(root, 'resolved-package.json', frameworkRaw);
@@ -94,6 +86,7 @@ const errors = async value => (await validateFreshProject({ evidenceRoot: value.
 test('accepts complete observed Git package and lifecycle evidence', async t => {
   assert.ifError(importError); assert.equal(await errors(await fixture(t)), '');
 });
+test('accepts the exact framework module map in a different serialized order', async t => { const value = await fixture(t); await mutate(value.root, 'packages-lock.json', document => { document.dependencies[frameworkName].dependencies = Object.fromEntries(Object.entries(frameworkDependencies).reverse()); }); assert.equal(await errors(value), ''); });
 test('formal validation rejects fixture-only evidence', async t => {
   const value = await fixture(t); const result = await validateFreshProject({ evidenceRoot: value.root,
     repositoryRoot: value.repository, frameworkRevision: revision }); assert.match(result.errors.join('\n'), /Fresh-project input mismatch/);
@@ -125,6 +118,7 @@ test('rejects wrong lock, identities, observed sources, and inventories', async 
     `100644\t${'0'.repeat(64)}\tpackage.json\n`);
   assert.match(await errors(inventory), /Resolved package inventory mismatch/);
 });
+test('rejects missing and wrong required framework module dependencies', async t => { for (const name of ['com.unity.modules.audio', 'com.unity.modules.assetbundle', 'com.unity.modules.unitywebrequest', 'com.unity.modules.jsonserialize', 'com.unity.modules.physics']) { const missing = await fixture(t); await mutate(missing.root, 'packages-lock.json', document => { delete document.dependencies[frameworkName].dependencies[name]; }); assert.match(await errors(missing), /Framework lock mismatch/); const wrong = await fixture(t); await mutate(wrong.root, 'packages-lock.json', document => { document.dependencies[frameworkName].dependencies[name] = '2.0.0'; }); assert.match(await errors(wrong), /Framework lock mismatch/); } });
 test('rejects friend grants, stale source, reflection, and symlinks', async t => {
   const friend = await fixture(t); await mutate(friend.root, 'resolved-source.json', document => {
     document.packages[frameworkName].friendGrants = ['Runtime/Friend.cs'];

@@ -16,8 +16,9 @@ const expectedCases = [
   'SessionPresentationBridgePublicContractTests.BufferedApply_OutputClearDoesNotChangeLaterSample', 'SessionPresentationBridgePublicContractTests.BufferedApply_OutputDisposePreservesConsumedValuesAndViews',
   'SessionPresentationBridgePublicContractTests.BufferedApply_PublishedOutputCreatesAndSamplesView',
 ].map(name => `ZWebGLFrameWork.PublicApiContract.Tests.${name}`).sort();
-const equal = (left, right) => JSON.stringify(left) === JSON.stringify(right),
-  sha256 = value => createHash('sha256').update(value).digest('hex');
+const frameworkDependencies = { 'com.unity.ugui': '1.0.0', 'com.unity.modules.audio': '1.0.0', 'com.unity.modules.assetbundle': '1.0.0', 'com.unity.modules.unitywebrequest': '1.0.0', 'com.unity.modules.jsonserialize': '1.0.0', 'com.unity.modules.physics': '1.0.0' };
+const sameFrameworkDependencies = value => Object.keys(value ?? {}).length === Object.keys(frameworkDependencies).length && Object.entries(frameworkDependencies).every(([name, version]) => value?.[name] === version);
+const equal = (left, right) => JSON.stringify(left) === JSON.stringify(right), sha256 = value => createHash('sha256').update(value).digest('hex');
 async function regular(root, name) {
   const target = path.join(root, name); const info = await lstat(target);
   if (!info.isFile() || info.isSymbolicLink()) throw new Error('not a regular file');
@@ -30,11 +31,10 @@ function inside(child, parent) { const relative = path.relative(parent, child); 
   (relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)); }
 function validateManifest(document, revision, errors) { const expected = { [unitaskName]: unitaskUrl, 'com.unity.test-framework': '1.4.6', [frameworkName]: frameworkUrl(revision) };
   if (!equal(document?.dependencies, expected)) errors.push('Framework manifest dependency mismatch'); }
-function validateLock(document, revision, errors) {
-  const framework = document?.dependencies?.[frameworkName];
+function validateLock(document, revision, errors) { const framework = document?.dependencies?.[frameworkName];
   if (!framework || framework.version !== frameworkUrl(revision) || framework.source !== 'git' ||
       framework.hash !== revision || framework.depth !== 0 ||
-      !equal(framework.dependencies, { 'com.unity.ugui': '1.0.0' })) errors.push('Framework lock mismatch');
+      !sameFrameworkDependencies(framework.dependencies)) errors.push('Framework lock mismatch');
   const unitask = document?.dependencies?.[unitaskName];
   if (!unitask || unitask.version !== unitaskUrl || unitask.source !== 'git' ||
       unitask.hash !== unitaskRevision || unitask.depth !== 0) errors.push('UniTask lock mismatch');
