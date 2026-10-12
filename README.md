@@ -11,7 +11,7 @@ Add both immutable Git dependencies to the consuming project's `Packages/manifes
 ```json
 {
   "dependencies": {
-    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#a36ec1b9c03026173306011adf5ea05922c21612",
+    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#ed0650a3b1736e71aad3a39bf5fe75a372a69d0b",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#e5acc106ee196bc5a32fb14cdf2987b0f96d11e0"
   }
 }
@@ -19,12 +19,12 @@ Add both immutable Git dependencies to the consuming project's `Packages/manifes
 
 Unity 2022.3 cannot express Git dependencies transitively, so consumers pin UniTask directly. The
 FrameLoom entry resolves the `Packages/com.zwebglframework.runtime` subdirectory at full revision
-`a36ec1b9c03026173306011adf5ea05922c21612` (`P`).
+`ed0650a3b1736e71aad3a39bf5fe75a372a69d0b` (`P`).
 
 Canonical GitHub consumer resolution is a later release gate; local package-freeze evidence does not
 prove private or public GitHub resolution yet.
 
-`P` owns package tree `T` (`eeca77c6a5f7c88caae98a51734b110941c52174`). Its README-only direct
+`P` owns package tree `T` (`2cf3dd10887cf63639d4593a8b5761d6645b1ae4`). Its README-only direct
 child `R` will share that exact tree. D0, the planned external validation demo, and the release tag
 use full `R` once it exists; they do not change the package dependency pinned above.
 
