@@ -21,10 +21,22 @@ const forbiddenPassClaims = [
   /WebGL[^\n]{0,48}managed[ -]?allocation[^\n]{0,48}\bPASS\b/i,
 ];
 const requiredPaths = [
-  'Assets/**', 'Packages/**', 'ProjectSettings/**', 'Server/**',
+  'Assets/**', 'README.md', 'Packages/**', 'ProjectSettings/**', 'Server/**',
   '.github/workflows/**', 'scripts/**', 'ci/**',
   'docs/superpowers/specs/2026-07-16-project-repair-evidence.json',
   'docs/superpowers/evidence/**',
+];
+const simulationClasses = [
+  'ZWebGLFrameWork.SimulationCore.ServerTests.ContentManifestGoldenTests',
+  'ZWebGLFrameWork.SimulationCore.ServerTests.DeterministicRandomCompatibilityTests',
+  'ZWebGLFrameWork.SimulationCore.ServerTests.LogicIntCompatibilityTests',
+  'ZWebGLFrameWork.SimulationCore.ServerTests.ModeBehaviorGoldenTests',
+  'ZWebGLFrameWork.SimulationCore.ServerTests.SessionCommandTests',
+  'ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests',
+  'ZWebGLFrameWork.SimulationCore.Tests.ModeBehaviorTests',
+  'ZWebGLFrameWork.SimulationCore.Tests.CoreTargetingTests',
+  'ZWebGLFrameWork.SimulationCore.Tests.SimSystemGroupTests',
+  'ZWebGLFrameWork.SimulationCore.Tests.SessionTerminalTests',
 ];
 
 test('Workflow_AllUnityActionsUsePinnedProjectVersion', () => {
@@ -35,6 +47,13 @@ test('Workflow_AllUnityActionsUsePinnedProjectVersion', () => {
     assert.equal(step.with?.unityVersion, '${{ env.UNITY_VERSION }}');
   assert.equal(workflow.env.UNITY_VERSION, '2022.3.62f3c1');
   assert.doesNotMatch(source, /2022\.3\.40f1|6000\./);
+  for (const job of [workflow.jobs['unity-tests'], workflow.jobs.build]) {
+    const license = job.steps.find(step => step.name === 'Require Unity license');
+    assert.equal(license.env?.UNITY_LICENSE, '${{ secrets.UNITY_LICENSE }}');
+    assert.match(normalizeShell(license.run), /if \[ -z "\$UNITY_LICENSE" \]; then/);
+    assert.match(normalizeShell(license.run), /UNITY_LICENSE is missing; Unity CI is blocked\./);
+    assert.match(normalizeShell(license.run), /exit 1/);
+  }
 });
 
 test('Workflow_TriggersCoverAllGateInputs', () => {
@@ -54,22 +73,33 @@ test('all mutating jobs end with an exact clean-tree gate', () => {
   }
 });
 
-test('CI_ServerProjects_BuildAndTestReleaseWarnAsError', () => {
-  const server = workflow.jobs.server;
-  assert.ok(server, 'server job missing');
-  assert.deepEqual(server.strategy.matrix.os, ['ubuntu-latest', 'windows-latest']);
-  assert.equal(server.env.ZWEB_REPO_ROOT, '${{ github.workspace }}');
-  const commands = server.steps.map(step => step.run || '').join('\n');
-  assert.match(commands,
-    /dotnet restore Server\/ZWebGLFrameWork\.Server\.sln --locked-mode/);
-  assert.match(commands,
-    /dotnet build Server\/ZWebGLFrameWork\.Server\.sln -c Release --no-restore --warnaserror/);
-  assert.match(commands,
-    /dotnet test Server\/ZWebGLFrameWork\.Server\.sln -c Release --no-build --no-restore/);
+test('CI_FrameworkDotnetMatrix_BuildsAndTestsApprovedProjects', () => {
+  const framework = workflow.jobs['framework-dotnet'];
+  assert.ok(framework, 'framework-dotnet job missing');
+  assert.equal(framework['runs-on'], 'ubuntu-latest');
+  assert.equal(framework.env.ZWEB_REPO_ROOT, '${{ github.workspace }}');
+  const projects = framework.strategy.matrix.include.map(entry => entry.project);
+  assert.deepEqual(projects, [
+    'Server/ECS.Tests/ZWebGLFrameWork.ECS.ServerTests.csproj',
+    'Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj',
+    'Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj',
+  ]);
+  const simulation = framework.strategy.matrix.include[2];
+  assert.equal(simulation.minimum, 132);
+  assert.deepEqual(simulation.classes.split(','), simulationClasses);
+  assert.equal(simulation.filter, simulationClasses
+    .map(className => `FullyQualifiedName~${className}`).join('|'));
+  assert.equal(framework.strategy.matrix.include[2].lockfile,
+    'Server/SimulationCore.Tests/packages.lock.json');
+  const commands = framework.steps.map(step => step.run || '').join('\n');
+  assert.match(commands, /dotnet restore "\$\{\{ matrix\.project \}\}" --locked-mode/);
+  assert.match(commands, /dotnet build "\$\{\{ matrix\.project \}\}" -c Release --no-restore --warnaserror/);
+  assert.match(commands, /dotnet test "\$\{\{ matrix\.project \}\}" -c Release --no-build --no-restore --warnaserror/);
   assert.match(commands, /--artifacts-path "\$DOTNET_ARTIFACTS"/);
-  assert.match(commands, /LogFilePrefix=server/);
-  assert.doesNotMatch(commands, /LogFileName=server\.trx/);
+  assert.match(commands, /LogFileName=\$\{\{ matrix\.result \}\}/);
   assert.match(commands, /validate-trx\.py --results/);
+  assert.match(commands, /validate-simulation-trx\.py --results/);
+  assert.doesNotMatch(commands, /ZWebGLFrameWork\.Server\.sln/);
 });
 
 test('CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts', () => {
@@ -78,13 +108,14 @@ test('CI_BuildJobs_InvokeRepositoryBuildScriptAndSmokeArtifacts', () => {
   const action = build.steps.find(step => step.uses === 'game-ci/unity-builder@v4');
   assert.equal(action.with.unityVersion, '${{ env.UNITY_VERSION }}');
   assert.equal(action.with.buildMethod, '${{ matrix.buildMethod }}');
+  assert.match(String(action.env?.ZWEB_EVIDENCE_ROOT), /runner\.temp/);
   const methods = build.strategy.matrix.include.map(entry => entry.buildMethod);
   assert.deepEqual(methods, [
     'ZWebGLFrameWork.Editor.BuildScript.BuildWebGL',
     'ZWebGLFrameWork.Editor.BuildScript.BuildWindows',
   ]);
-  assert.match(String(build.env.ZWEB_EVIDENCE_ROOT), /runner\.temp/);
-  assert.match(String(action.with.buildPath), /runner\.temp/);
+  assert.equal(build.env, undefined);
+  assert.match(String(action.with.buildsPath), /runner\.temp/);
   const commands = build.steps.map(step => step.run || '').join('\n');
   assert.match(commands, /validate-build-summary\.mjs/);
   assert.match(commands, /--artifact-root/);
