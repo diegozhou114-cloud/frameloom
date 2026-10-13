@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { chmod, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { execFile as rawExecFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
@@ -15,7 +16,7 @@ async function git(root, args, env = {}) { return execFile('git', args, { cwd: r
 async function put(root, name, body) { const file = path.join(root, name); await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, body); }
 async function commit(root, name, env = identity) { await git(root, ['add', '.']); await git(root, ['commit', '-qm', name], env); }
 async function fixture(t) {
-  const top = await mkdtemp('/private/tmp/zweb-history-'); t.after(() => rm(top, { recursive: true, force: true })); const root = path.join(top, 'repo'); const bin = path.join(top, 'bin');
+  const top = await realpath(await mkdtemp(path.join(os.tmpdir(), 'zweb-history-'))); t.after(() => rm(top, { recursive: true, force: true })); const root = path.join(top, 'repo'); const bin = path.join(top, 'bin');
   await mkdir(root); await mkdir(bin); await git(root, ['init', '-q']); await git(root, ['config', 'user.name', 'Diego Zhou']); await git(root, ['config', 'user.email', mail]); await put(root, 'LICENSE', 'MIT\n'); await put(root, 'THIRD_PARTY_NOTICES.md', 'ThirdParty/Kcp2k/LICENSE.txt\nThirdParty/NativeWebSocket/LICENSE.txt\n66efda6686f649838d42f078fbaabf56ac449de4\ncbbf04d42522d5f5b466224a0b8e3936676f9b32\n'); await put(root, 'Packages/com.zwebglframework.runtime/ThirdParty/Kcp2k/LICENSE.txt', await readFile(path.join(repository, 'Packages/com.zwebglframework.runtime/ThirdParty/Kcp2k/LICENSE.txt'))); await put(root, 'Packages/com.zwebglframework.runtime/ThirdParty/Kcp2k/code.cs', 'vendor'); await put(root, 'Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket/LICENSE.txt', await readFile(path.join(repository, 'Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket/LICENSE.txt'))); await put(root, 'Packages/com.zwebglframework.runtime/ThirdParty/NativeWebSocket/code.cs', 'vendor'); await commit(root, 'base'); const base = (await git(root, ['rev-parse', 'HEAD'])).stdout.trim();
   const tool = path.join(bin, 'gitleaks'); await put(bin, 'gitleaks', `#!/bin/sh
 if [ "$1" = version ]; then test -f .noise && test ! -f .fail && { echo noise; exit 0; }; echo "\${GITLEAKS_VERSION:-8.30.1}"; exit 0; fi

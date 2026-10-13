@@ -143,12 +143,16 @@ test('build smoke gates require trusted HTTPS and structured Windows exit', () =
 });
 
 test('CI runs repository-safe OSS contracts without publication claims', () => {
-  const auditCommands = workflow.jobs.audit.steps
-    .map(step => normalizeShell(step.run))
-    .filter(Boolean);
-  assert.ok(auditCommands.includes(
-    'node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs'),
+  const auditSteps = workflow.jobs.audit.steps;
+  const contracts = auditSteps.find(step => normalizeShell(step.run) ===
+    'node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs');
+  assert.ok(contracts,
   'audit job must run the repository-safe OSS fixture and negative contracts');
+  assert.equal(contracts['timeout-minutes'], 5);
+  const contractsIndex = auditSteps.indexOf(contracts);
+  assert.ok(auditSteps.slice(0, contractsIndex).some(step =>
+    /apt-get update && sudo apt-get install -y ripgrep/.test(normalizeShell(step.run))),
+  'audit must install ripgrep before its contract suite');
 
   const allCommands = Object.values(workflow.jobs)
     .flatMap(job => (job.steps || []).map(step => normalizeShell(step.run)))
