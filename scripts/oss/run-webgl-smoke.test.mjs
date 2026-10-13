@@ -66,7 +66,7 @@ test('fixture proves build validation and pinned trusted HTTPS browser smoke', a
   const value = await fixture(t); const evidence = path.join(value.top, 'evidence');
   const result = run(value, evidence); assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
   const args = await readFile(value.unityArgs, 'utf8');
-  assert.match(args, /-projectPath .*zweb-glframe-oss-prep/); assert.doesNotMatch(args, /-runTests/);
+  assert.ok(args.includes(`-projectPath ${repository} `)); assert.doesNotMatch(args, /-runTests/);
   assert.equal(await readFile(value.browserLog, 'utf8'), `https://localhost:${value.port}/\n`);
   const digest = await readFile(path.join(evidence, 'webgl-smoke.digest'), 'utf8');
   assert.match(digest, /^schemaVersion=1$/m); assert.match(digest, /^classification=fixture-only$/m);

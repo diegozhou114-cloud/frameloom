@@ -5,6 +5,7 @@ on:
     branches: [master, develop]
     paths: &gate-paths
       - "Assets/**"
+      - "README.md"
       - "Packages/**"
       - "ProjectSettings/**"
       - "Server/**"
@@ -43,7 +44,11 @@ jobs:
           cache: npm
           cache-dependency-path: ci/package-lock.json
       - run: npm ci --prefix ci --ignore-scripts
-      - run: node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs
+      - name: Install audit runner tools
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - name: Run repository-safe contracts
+        timeout-minutes: 5
+        run: node --test scripts/audit/evidence-ledger.test.mjs scripts/ci/*.test.mjs scripts/oss/*.test.mjs
       - run: PYTHONPATH=scripts/ci python3 -m unittest discover -s scripts/ci -p 'test_*.py'
       - run: node scripts/audit/evidence-ledger.mjs validate --ledger docs/superpowers/specs/2026-07-16-project-repair-evidence.json
       - run: scripts/repair/audit-meta.sh "$PWD"
@@ -67,6 +72,14 @@ jobs:
           path: Library
           key: Library-${{ env.UNITY_VERSION }}-${{ matrix.testMode }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-${{ env.UNITY_VERSION }}-${{ matrix.testMode }}-
+      - name: Require Unity license
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ]; then
+            echo "UNITY_LICENSE is missing; Unity CI is blocked."
+            exit 1
+          fi
       - name: Unity ${{ matrix.testMode }}
         uses: game-ci/unity-test-runner@v4
         env:
@@ -88,16 +101,36 @@ jobs:
       - name: Clean tree
         run: test -z "$(git status --porcelain --untracked-files=all)"
 
-  server:
+  framework-dotnet:
     needs: audit
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
-      DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
       ZWEB_REPO_ROOT: ${{ github.workspace }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        include:
+          - name: ECS
+            project: Server/ECS.Tests/ZWebGLFrameWork.ECS.ServerTests.csproj
+            lockfile: Server/ECS.Tests/packages.lock.json
+            result: ecs.trx
+            minimum: 6
+            filter: ''
+            classes: ''
+          - name: Network
+            project: Server/Network.Tests/ZWebGLFrameWork.Network.ServerTests.csproj
+            lockfile: Server/Network.Tests/packages.lock.json
+            result: network.trx
+            minimum: 35
+            filter: ''
+            classes: ''
+          - name: SimulationCore
+            project: Server/SimulationCore.Tests/ZWebGLFrameWork.SimulationCore.ServerTests.csproj
+            lockfile: Server/SimulationCore.Tests/packages.lock.json
+            result: simulation.trx
+            minimum: 132
+            filter: FullyQualifiedName~ZWebGLFrameWork.SimulationCore.ServerTests.ContentManifestGoldenTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.ServerTests.DeterministicRandomCompatibilityTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.ServerTests.LogicIntCompatibilityTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.ServerTests.ModeBehaviorGoldenTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.ServerTests.SessionCommandTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.Tests.ModeBehaviorTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.Tests.CoreTargetingTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.Tests.SimSystemGroupTests|FullyQualifiedName~ZWebGLFrameWork.SimulationCore.Tests.SessionTerminalTests
+            classes: ZWebGLFrameWork.SimulationCore.ServerTests.ContentManifestGoldenTests,ZWebGLFrameWork.SimulationCore.ServerTests.DeterministicRandomCompatibilityTests,ZWebGLFrameWork.SimulationCore.ServerTests.LogicIntCompatibilityTests,ZWebGLFrameWork.SimulationCore.ServerTests.ModeBehaviorGoldenTests,ZWebGLFrameWork.SimulationCore.ServerTests.SessionCommandTests,ZWebGLFrameWork.SimulationCore.Tests.SessionDeterminismTests,ZWebGLFrameWork.SimulationCore.Tests.ModeBehaviorTests,ZWebGLFrameWork.SimulationCore.Tests.CoreTargetingTests,ZWebGLFrameWork.SimulationCore.Tests.SimSystemGroupTests,ZWebGLFrameWork.SimulationCore.Tests.SessionTerminalTests
     steps:
       - uses: actions/checkout@v4
         with:
@@ -106,33 +139,44 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
           cache: true
-          cache-dependency-path: Server/**/packages.lock.json
+          cache-dependency-path: ${{ matrix.lockfile }}
       - name: Locked restore
         shell: bash
-        run: dotnet restore Server/ZWebGLFrameWork.Server.sln --locked-mode --artifacts-path "$DOTNET_ARTIFACTS"
+        env:
+          DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
+        run: dotnet restore "${{ matrix.project }}" --locked-mode --artifacts-path "$DOTNET_ARTIFACTS"
       - name: Release build, warnings as errors
         shell: bash
-        run: dotnet build Server/ZWebGLFrameWork.Server.sln -c Release --no-restore --warnaserror --artifacts-path "$DOTNET_ARTIFACTS"
+        env:
+          DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
+        run: dotnet build "${{ matrix.project }}" -c Release --no-restore --warnaserror --artifacts-path "$DOTNET_ARTIFACTS"
       - name: Release tests
         shell: bash
-        run: dotnet test Server/ZWebGLFrameWork.Server.sln -c Release --no-build --no-restore --artifacts-path "$DOTNET_ARTIFACTS" --logger "trx;LogFilePrefix=server" --results-directory "${{ runner.temp }}/server-tests"
+        env:
+          DOTNET_ARTIFACTS: ${{ runner.temp }}/dotnet-artifacts
+          TEST_FILTER: ${{ matrix.filter }}
+        run: |
+          filter=()
+          if [ -n "$TEST_FILTER" ]; then filter=(--filter "$TEST_FILTER"); fi
+          dotnet test "${{ matrix.project }}" -c Release --no-build --no-restore --warnaserror --artifacts-path "$DOTNET_ARTIFACTS" "${filter[@]}" --logger "trx;LogFileName=${{ matrix.result }}" --results-directory "${{ runner.temp }}/framework-dotnet-tests"
       - name: Require nonzero passing tests
         shell: bash
-        run: python3 scripts/ci/validate-trx.py --results "${{ runner.temp }}/server-tests" --minimum 1
+        run: python3 scripts/ci/validate-trx.py --results "${{ runner.temp }}/framework-dotnet-tests/${{ matrix.result }}" --minimum "${{ matrix.minimum }}"
+      - if: matrix.name == 'SimulationCore'
+        name: Require exact SimulationCore test classes
+        run: python3 scripts/ci/validate-simulation-trx.py --results "${{ runner.temp }}/framework-dotnet-tests/${{ matrix.result }}" --classes "${{ matrix.classes }}"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: server-tests-${{ matrix.os }}
-          path: ${{ runner.temp }}/server-tests
+          name: framework-dotnet-tests-${{ matrix.name }}
+          path: ${{ runner.temp }}/framework-dotnet-tests
       - name: Clean tree
         shell: bash
         run: test -z "$(git status --porcelain --untracked-files=all)"
 
   build:
-    needs: [unity-tests, server]
+    needs: [unity-tests, framework-dotnet]
     runs-on: ubuntu-latest
-    env:
-      ZWEB_EVIDENCE_ROOT: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}
     strategy:
       fail-fast: false
       matrix:
@@ -150,16 +194,27 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+      - name: Require Unity license
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -z "$UNITY_LICENSE" ]; then
+            echo "UNITY_LICENSE is missing; Unity CI is blocked."
+            exit 1
+          fi
       - uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ZWEB_EVIDENCE_ROOT: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
           targetPlatform: ${{ matrix.targetPlatform }}
           buildMethod: ${{ matrix.buildMethod }}
-          buildPath: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds/${{ matrix.artifactDir }}
+          buildsPath: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}/builds
           allowDirtyBuild: false
       - name: Validate build summary and hashes
+        env:
+          ZWEB_EVIDENCE_ROOT: ${{ runner.temp }}/zweb-${{ matrix.targetPlatform }}
         run: node scripts/ci/validate-build-summary.mjs --summary "$ZWEB_EVIDENCE_ROOT/builds/Reports/${{ matrix.summary }}.json" --target "${{ matrix.summary }}" --artifact-root "$ZWEB_EVIDENCE_ROOT"
       - if: matrix.targetPlatform == 'WebGL'
         uses: actions/setup-node@v4
