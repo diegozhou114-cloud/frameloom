@@ -64,6 +64,22 @@ For buffered presentation and command-recording lifetime rules, use the
 [package README](Packages/com.zwebglframework.runtime/README.md). The public package changelog is
 [CHANGELOG.md](Packages/com.zwebglframework.runtime/CHANGELOG.md).
 
+## Runnable Mini Siege Example
+
+This branch includes a standalone two-player frame-synchronization showcase. It demonstrates how
+FrameLoom's deterministic simulation, fixed-point ECS state, ordered input frames, checksums, replay
+tests, and WebSocket transport fit together in a small playable game.
+
+- [Mini Siege guide](docs/minisiege.md)
+- Build: `./scripts/minisiege/build.sh macos`
+- Run two local clients: `./scripts/minisiege/run.sh macos`
+- Verify two packaged clients frame by frame: `./scripts/minisiege/verify.sh`
+
+The demo uses two lanes, guards, archers, a cooldown skill, resource decisions, and a three-minute
+win condition. The Unity clients render the state while the .NET host advances the authoritative
+simulation at 20 ticks per second. The example is intended for framework evaluation and local
+experimentation, rather than production matchmaking.
+
 ## Governance
 
 - [License](LICENSE): project-owned code is MIT; retained third-party licensing is described in the notices.
