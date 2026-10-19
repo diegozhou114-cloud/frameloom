@@ -1,0 +1,6 @@
+{
+    "name": "ZWebGLFrameWork.MiniSiege",
+    "rootNamespace": "ZWebGLFrameWork.MiniSiege",
+    "references": ["ZWebGLFrameWork.SimulationCore"],
+    "autoReferenced": true
+}
