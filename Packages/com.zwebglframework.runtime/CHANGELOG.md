@@ -2,6 +2,12 @@
 
 ## [0.1.0]
 
+- Added scoped event subscriptions and automatic panel-open cleanup on close, failed opening,
+  and destruction, including safe rollback when a custom event bus rejects a registration.
+- Added cancellable resource acquisition with independent, idempotent leases and guards against
+  stale provider/update results. Existing bare-object resource APIs remain available.
+- Added an optional YooAsset integration package for asynchronous business resources and manifest
+  preparation; the core runtime remains independent of YooAsset.
 - Consolidated the framework runtime and retained transport sources into one canonical Unity
   package.
 - Declared Unity 2022.3 LTS support with 2022.3.62f3c1 as the tested editor.

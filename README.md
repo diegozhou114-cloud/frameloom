@@ -11,7 +11,7 @@ Add both immutable Git dependencies to the consuming project's `Packages/manifes
 ```json
 {
   "dependencies": {
-    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#ed0650a3b1736e71aad3a39bf5fe75a372a69d0b",
+    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#2608415a643b37968492118057cbb13482c08538",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#e5acc106ee196bc5a32fb14cdf2987b0f96d11e0"
   }
 }
@@ -19,14 +19,8 @@ Add both immutable Git dependencies to the consuming project's `Packages/manifes
 
 Unity 2022.3 cannot express Git dependencies transitively, so consumers pin UniTask directly. The
 FrameLoom entry resolves the `Packages/com.zwebglframework.runtime` subdirectory at full revision
-`ed0650a3b1736e71aad3a39bf5fe75a372a69d0b` (`P`).
-
-Canonical GitHub consumer resolution is a later release gate; local package-freeze evidence does not
-prove private or public GitHub resolution yet.
-
-`P` owns package tree `T` (`2cf3dd10887cf63639d4593a8b5761d6645b1ae4`). Its README-only direct
-child `R` will share that exact tree. D0, the planned external validation demo, and the release tag
-use full `R` once it exists; they do not change the package dependency pinned above.
+`2608415a643b37968492118057cbb13482c08538`. This revision includes the subscription and resource
+lifetime APIs and has been resolved from GitHub in an independent Unity consumer project.
 
 ## Compatibility And Validation Scope
 
@@ -37,6 +31,17 @@ allocation remains unmeasured.
 
 `Server/` is reference/validation only. It is not distributed package runtime or production server
 infrastructure.
+
+## Subscription And Resource Lifetimes
+
+The current source adds scoped event cleanup and cancellable resource leases. Panel subscriptions
+can follow one open period, while independently owned resource leases remain valid across business
+provider replacement until the consumer releases them.
+
+An optional `com.zwebglframework.yooasset` package adapts YooAsset 2.3.17 without adding a YooAsset
+dependency to the core runtime. Applications configure and initialize their business resource package.
+See the [integration guide](Packages/com.zwebglframework.yooasset/README.md) and
+[update validation notes](docs/updates/2026-11-02-subscription-resource-lifetimes.md).
 
 ## Quick Start
 

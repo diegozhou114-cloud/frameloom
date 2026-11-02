@@ -4,8 +4,11 @@
     "EditMode": {
       "assemblies": {
         "ZWebGLFrameWork.Core.Tests": {
-          "minimumPassed": 37,
+          "minimumPassed": 52,
           "requiredNames": [
+            "Dispose_RemovesZeroOneTwoParameterAndTypedKeySubscriptions",
+            "Subscribe_WhenCustomBusDisposesScopeDuringRegistration_UnsubscribesImmediately",
+            "FailedRollback_ReportsBothFailuresAndRetainsCleanupForDispose",
             "SubscribeAndPublish_ZeroParams_HandlerIsCalled",
             "ValueChanged_TriggersOnChanged",
             "Constructor_RejectsInvalidArgumentsAndCapacity",
@@ -17,6 +20,21 @@
             "FactoryAndDestroyFailures_LeaveConsistentLedger",
             "SteadyStateObjectPool_GetReleaseDoesNotAllocateAfterWarmup",
             "LegacyFiveParameterConstructor_ExistsAndForwards"
+          ]
+        },
+        "ZWebGLFrameWork.YooAsset.Tests": {
+          "minimumPassed": 16,
+          "requiredNames": [
+            "Acquire_UsesIndependentHandles",
+            "Cancellation_ReleasesOnlyItsOwnHandle",
+            "Unload_PreventsOldPendingLoadFromRefillingCache",
+            "Success_ReturnsProviderOnlyAfterBothOperationsSucceed"
+          ]
+        },
+        "ZWebGLFrameWork.YooAsset.IntegrationTests": {
+          "minimumPassed": 1,
+          "requiredNames": [
+            "OfflineBundles_KeepIndependentLeasesAcrossProviderReplacement"
           ]
         },
         "ZWebGLFrameWork.Editor.Tests": {
@@ -101,8 +119,15 @@
     "PlayMode": {
       "assemblies": {
         "ZWebGLFrameWork.Runtime.Tests": {
-          "minimumPassed": 31,
+          "minimumPassed": 65,
           "requiredNames": [
+            "OpenCloseRepeatedly_RegistersExactlyOneCallbackPerCycle",
+            "DestroyWithoutClose_RemovesOpenCycleSubscriptions",
+            "Acquire_BypassesBareCacheAndKeepsIndependentOwnership",
+            "ProviderSwap_ExistingLeaseRemainsValidAndReleasesOriginalProvider",
+            "Acquire_CancelledWhileLoadingReleasesIgnoredCancellationResult",
+            "CancelledAcquire_WhenLateLeaseReleaseThrows_PreservesCancellation",
+            "ProviderRetirementCleanupThrows_UpdateStillCommitsAndAttemptsBothCleanups",
             "LauncherPlayMode_EntersInteractiveVillage",
             "LauncherButton_PointerClick_InvokesAction",
             "SceneChange_AllGameplayServices_RebindAndReleaseOldScene",

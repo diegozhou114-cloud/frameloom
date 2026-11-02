@@ -43,7 +43,7 @@ namespace ZWebGLFrameWork.Core
     }
 
     /// <summary>
-    /// 业务热更集成边界。TODO(YooAsset): 接入资源分包；TODO(Huatuo): 接入业务热更代码。
+    /// 业务内容准备边界。YooAsset 适配包可提供更新器；业务代码热更独立于此接口。
     /// </summary>
     public interface IBusinessContentUpdater
     {
