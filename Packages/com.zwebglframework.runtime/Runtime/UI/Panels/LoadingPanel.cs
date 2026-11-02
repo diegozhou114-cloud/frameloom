@@ -26,12 +26,11 @@ namespace ZWebGLFrameWork.UI
         {
             BuildOnce(BuildUI);
             TryLoadLogo();
-            EventBus.Subscribe<BootProgressEvent>(BootProgressEvent.EventKey, OnBootProgress);
+            OpenSubscriptions.Subscribe<BootProgressEvent>(BootProgressEvent.EventKey, OnBootProgress);
         }
 
         protected override void OnClose()
         {
-            EventBus.Unsubscribe<BootProgressEvent>(BootProgressEvent.EventKey, OnBootProgress);
             if (_logoSprite != null)
             {
                 Object.Destroy(_logoSprite);

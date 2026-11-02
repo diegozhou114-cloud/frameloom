@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -10,7 +8,7 @@ namespace ZWebGLFrameWork.Core
     /// 资源管理器 — 跨场景单例，统一资源加载入口。
     /// 框架资源固定本地加载，业务资源可由后续内容更新系统替换。
     /// </summary>
-    public class ResourceManager : SingletonDontDestroy<ResourceManager>
+    public partial class ResourceManager : SingletonDontDestroy<ResourceManager>
     {
         private IResourceProvider _frameworkProvider;
         private IResourceProvider _businessProvider;
@@ -28,8 +26,7 @@ namespace ZWebGLFrameWork.Core
         /// <summary>
         /// 初始化资源管理器。
         /// 默认使用 ResourcesProvider。
-        /// TODO(YooAsset): 正式项目接入资源更新与分包管理时，使用 YooAsset Provider 替换当前加载策略；
-        /// 目前不构建或加载 AssetBundle。
+        /// YooAsset 通过独立适配包安装到业务层，框架层始终使用本地资源。
         /// </summary>
         public bool Init()
         {
@@ -50,11 +47,15 @@ namespace ZWebGLFrameWork.Core
             }
         }
 
-        /// <summary>替换业务资源加载器（自动清理业务缓存）。</summary>
+        /// <summary>
+        /// 接管业务提供者，替换时释放旧提供者的兼容缓存及 IDisposable 资源。
+        /// 提供者须保证已交给调用方的 ResourceLease 仍有效，直到调用方释放。
+        /// </summary>
         public void SetBusinessProvider(IResourceProvider newProvider)
         {
             if (newProvider == null)
                 throw new ArgumentNullException(nameof(newProvider));
+            if (_resourcesDisposed) throw new ObjectDisposedException(nameof(ResourceManager));
 
             IResourceProvider previousProvider;
             lock (_cacheLock)
@@ -66,34 +67,16 @@ namespace ZWebGLFrameWork.Core
                 _businessProvider = newProvider;
             }
 
-            previousProvider?.UnloadUnused();
             IsReady = true;
+            RetireProvider(previousProvider);
         }
 
         /// <summary>配置业务内容更新器。更新器无法访问框架资源加载器。</summary>
         public void SetBusinessContentUpdater(IBusinessContentUpdater updater)
         {
+            if (_resourcesDisposed) throw new ObjectDisposedException(nameof(ResourceManager));
             _businessContentUpdater = updater ?? throw new ArgumentNullException(nameof(updater));
-        }
-
-        /// <summary>准备业务内容；仅成功结果可以替换业务资源加载器。</summary>
-        public async UniTask<BusinessContentUpdateResult> PrepareBusinessContentAsync(
-            CancellationToken token)
-        {
-            IBusinessContentUpdater updater = _businessContentUpdater ??=
-                new UnconfiguredBusinessContentUpdater();
-            BusinessContentUpdateResult result = await updater.PrepareAsync(token);
-            if (result == null)
-                return BusinessContentUpdateResult.Failed("业务内容更新器未返回结果。");
-
-            if (result.Status != BusinessContentUpdateStatus.Updated)
-                return result;
-
-            if (result.BusinessProvider == null)
-                return BusinessContentUpdateResult.Failed("业务内容更新成功但未提供资源加载器。");
-
-            SetBusinessProvider(result.BusinessProvider);
-            return result;
+            _businessUpdateVersion++;
         }
 
         // ==================== 公开 API ====================
@@ -161,52 +144,5 @@ namespace ZWebGLFrameWork.Core
                 BusinessProvider.UnloadUnused();
         }
 
-        // ==================== 缓存 ====================
-
-        private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _frameworkCache = new();
-        private readonly Dictionary<string, WeakReference<UnityEngine.Object>> _businessCache = new();
-        private readonly object _cacheLock = new object();
-        private int _businessProviderVersion;
-
-        private bool TryGetCache<T>(ResourceLayer layer, string key, out T asset)
-            where T : UnityEngine.Object
-        {
-            lock (_cacheLock)
-            {
-                Dictionary<string, WeakReference<UnityEngine.Object>> cache = GetCache(layer);
-                if (cache.TryGetValue(key, out var weakRef) && weakRef.TryGetTarget(out var obj))
-                {
-                    if (obj is T t)
-                    {
-                        asset = t;
-                        return true;
-                    }
-                    cache.Remove(key); // 类型不匹配，移除
-                }
-                asset = null;
-                return false;
-            }
-        }
-
-        private void SetCacheIfCurrent<T>(ResourceLayer layer, string key, T asset, IResourceProvider provider,
-            int providerVersion) where T : UnityEngine.Object
-        {
-            lock (_cacheLock)
-            {
-                if (!ReferenceEquals(GetProvider(layer), provider) ||
-                    GetProviderVersion(layer) != providerVersion)
-                    return;
-                GetCache(layer)[key] = new WeakReference<UnityEngine.Object>(asset);
-            }
-        }
-
-        private IResourceProvider GetProvider(ResourceLayer layer) =>
-            layer == ResourceLayer.Framework ? FrameworkProvider : BusinessProvider;
-
-        private int GetProviderVersion(ResourceLayer layer) =>
-            layer == ResourceLayer.Business ? _businessProviderVersion : 0;
-
-        private Dictionary<string, WeakReference<UnityEngine.Object>> GetCache(ResourceLayer layer) =>
-            layer == ResourceLayer.Framework ? _frameworkCache : _businessCache;
     }
 }

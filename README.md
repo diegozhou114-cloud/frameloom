@@ -38,6 +38,19 @@ allocation remains unmeasured.
 `Server/` is reference/validation only. It is not distributed package runtime or production server
 infrastructure.
 
+## Subscription And Resource Lifetimes
+
+The current source adds scoped event cleanup and cancellable resource leases. Panel subscriptions
+can follow one open period, while independently owned resource leases remain valid across business
+provider replacement until the consumer releases them.
+
+An optional `com.zwebglframework.yooasset` package adapts YooAsset 2.3.17 without adding a YooAsset
+dependency to the core runtime. Applications configure and initialize their business resource package.
+See the [integration guide](Packages/com.zwebglframework.yooasset/README.md) and
+[update validation notes](docs/updates/2026-11-02-subscription-resource-lifetimes.md).
+The immutable installation revision above identifies the earlier release; use a revision containing
+these updates for the new APIs and optional package.
+
 ## Quick Start
 
 Create a valid `BattleInit` and an `ISimBattleSession` from your game's configuration, then drive its

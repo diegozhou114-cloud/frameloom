@@ -1,0 +1,21 @@
+{
+  "name": "ZWebGLFrameWork.YooAsset.IntegrationTests",
+  "rootNamespace": "ZWebGLFrameWork.YooAsset.IntegrationTests",
+  "references": [
+    "ZWebGLFrameWork.Core",
+    "ZWebGLFrameWork.YooAsset",
+    "UniTask",
+    "YooAsset",
+    "YooAsset.Editor"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": ["TestAssemblies"]
+}

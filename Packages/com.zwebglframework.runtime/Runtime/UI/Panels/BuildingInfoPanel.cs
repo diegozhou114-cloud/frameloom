@@ -36,10 +36,14 @@ namespace ZWebGLFrameWork.UI
             BindSceneServices(_sceneServices.Current);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
-            if (_sceneServices != null)
-                _sceneServices.Changed -= BindSceneServices;
+            try
+            {
+                if (_sceneServices != null)
+                    _sceneServices.Changed -= BindSceneServices;
+            }
+            finally { base.OnDestroy(); }
         }
 
         private void BindSceneServices(SceneServices services)

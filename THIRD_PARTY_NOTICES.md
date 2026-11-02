@@ -41,6 +41,16 @@ NativeWebSocket files nor establishes FrameLoom MIT authority over vendored cont
 - Distribution: Not distributed in the FrameLoom package or declared in its package.json
 - Version: 2.5.11
 
+## YooAsset
+- Upstream: https://github.com/tuyoogame/YooAsset
+- Revision: 101236db8a58a327071ff1ab35d28bc1535ca1c1
+- License: Apache-2.0
+- Copyright: Copyright 2018-2021 何冠峰; Copyright 2021-2025 TuYoo Games
+- Modifications: Upstream source unchanged; integrated through the optional com.zwebglframework.yooasset adapter.
+- License path: Upstream Assets/YooAsset/LICENSE.md
+- Distribution: Installed directly by the host manifest; upstream source is not vendored in the FrameLoom packages.
+- Version: 2.3.17
+
 ## Repository-only dependencies
 - Unity host: Unity 2022.3.62f3c1 packages locked by Packages/manifest.json and Packages/packages-lock.json, including com.coplaydev.unity-mcp 10.1.2 at 4ce7dd3cc54e37e2ed6dc59cb5a047f3dccb3f50 (MIT), com.unity.ide.rider 3.0.40 (MIT), and com.unity.physics 1.3.15 (Unity Companion License).
 - CI: @playwright/test 1.61.1 (Apache-2.0) and yaml 2.9.0 (ISC), locked by ci/package-lock.json.

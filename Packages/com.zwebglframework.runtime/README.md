@@ -31,6 +31,29 @@ reused, or disposed. Recording is an allocating capture path and is outside zero
 Both APIs reject invalid or unpublished output according to their documented exceptions. Use them
 with output published by `IBufferedSimBattleSession.TickInto`.
 
+## Subscription and resource lifetimes
+
+`SubscriptionScope` records subscriptions against the actual `IEventBus` used at construction and
+unsubscribes them on `Dispose`. `UIBase.OpenSubscriptions` follows one panel open period: cleanup
+runs when closing starts, when opening fails, or when the panel is destroyed. Object-lifetime and
+data-binding subscriptions should use separate scopes.
+
+`ResourceManager.AcquireAsync<T>(ResourceLayer.Business, path, token)` returns a `ResourceLease<T>`.
+Keep the lease for as long as the loaded asset or an instance using it remains alive, then dispose
+it on Unity's main thread. Disposal is idempotent and clears `Asset`. Leases bypass the legacy weak
+cache and remain independent of `Unload`, `ClearCache`, and provider replacement. Cancellation,
+manager destruction, or provider replacement during an acquisition releases its late result.
+
+Existing `Load` / `LoadAsync` APIs remain available with provider-owned cache lifetimes. Providers
+that only implement `IResourceProvider` continue to work through those APIs; acquiring a lease
+requires `IResourceLeaseProvider` and otherwise fails explicitly. The default `ResourcesProvider`
+supports both APIs and pins live leases against Unity's unused-resource scan.
+
+YooAsset integration is a separate optional package, `com.zwebglframework.yooasset`. Core has no
+YooAsset reference. Applications initialize the resource package and register its business provider
+or updater; framework loading/error UI remains local. See that package's README for initialization,
+immutable dependency pins, cancellation limitations, and asset ownership examples.
+
 ## Validation scope
 
 The package's Unity editor validation targets 2022.3.62f3c1. WebGL IL2CPP managed allocation is not
