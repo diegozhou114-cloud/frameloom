@@ -4,6 +4,21 @@
 
 项目根 manifest 将 YooAsset 固定到上游提交 `101236db8a58a327071ff1ab35d28bc1535ca1c1`（UPM 路径 `Assets/YooAsset`）；UniTask 固定版本为 2.5.11。脱离此仓库使用时，需要在消费项目 manifest 配置相同 Git 依赖及 FrameLoom 运行时包。
 
+## 安装
+
+以下依赖组合已在独立 Unity 消费项目中从 GitHub 解析并通过公开 API 测试。核心与适配包固定到同一个提交：
+
+```json
+{
+  "dependencies": {
+    "com.zwebglframework.runtime": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.runtime#2608415a643b37968492118057cbb13482c08538",
+    "com.zwebglframework.yooasset": "https://github.com/diegozhou114-cloud/frameloom.git?path=/Packages/com.zwebglframework.yooasset#2608415a643b37968492118057cbb13482c08538",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#e5acc106ee196bc5a32fb14cdf2987b0f96d11e0",
+    "com.tuyoogame.yooasset": "https://github.com/tuyoogame/YooAsset.git?path=Assets/YooAsset#101236db8a58a327071ff1ab35d28bc1535ca1c1"
+  }
+}
+```
+
 ## 编辑器模拟加载
 
 先在 YooAsset 的资源收集器中创建 `Business` 包并配置资源定位地址。以下初始化代码放在消费项目的 Editor 程序集中，该程序集需要显式引用 `ZWebGLFrameWork.Core`、`ZWebGLFrameWork.YooAsset`、`UniTask` 和 `YooAsset`；模拟构建帮助类不能进入 Player。
